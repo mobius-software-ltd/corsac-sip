@@ -85,7 +85,7 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
 //		this.messageChannels.put(key, channel);
 //	}
     
-    private SocketChannel initiateConnection(InetSocketAddress address, InetAddress myAddress) throws IOException {
+    private SocketChannel initiateConnection(InetSocketAddress address, InetAddress myAddress, int timeout) throws IOException {
     	
     	// We use blocking outbound connect just because it's pure pain to deal with http://stackoverflow.com/questions/204186/java-nio-select-returns-without-selected-keys-why
         SocketChannel socketChannel = SocketChannel.open();
@@ -97,7 +97,7 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
       
         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
         	logger.logDebug("Init connect " + address);
-        socketChannel.socket().connect(address, 8000);
+        socketChannel.socket().connect(address, timeout);
         socketChannel.configureBlocking(false);
         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
         	logger.logDebug("Blocking set to false now " + address);
@@ -109,8 +109,8 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
         return socketChannel;
     }
 
-    public SocketChannel blockingConnect(InetSocketAddress address, InetAddress localAddress) throws IOException {
-    	return initiateConnection(address, localAddress);
+    public SocketChannel blockingConnect(InetSocketAddress address, InetAddress localAddress, int timeout) throws IOException {
+    	return initiateConnection(address, localAddress, timeout);
     }
         
     public void send(SocketChannel socket, byte[] data)  {
