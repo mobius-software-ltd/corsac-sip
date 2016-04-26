@@ -35,7 +35,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
-import test.unit.gov.nist.javax.sip.stack.tls.TlsTest;
 
 /**
  * This is the UAS application for performance testing
