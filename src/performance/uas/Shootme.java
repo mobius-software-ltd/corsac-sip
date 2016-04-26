@@ -203,10 +203,10 @@ public class Shootme implements SipListener {
     public void init() {        
         sipStack = null;
         sipFactory = SipFactory.getInstance();
-        System.setProperty( "javax.net.ssl.keyStore",  "/Users/vladimirralev/keystore.ImportKey" );
+        /*System.setProperty( "javax.net.ssl.keyStore",  "/Users/vladimirralev/keystore.ImportKey" );
         System.setProperty( "javax.net.ssl.trustStore", "/Users/vladimirralev/keystore.ImportKey" );
         System.setProperty( "javax.net.ssl.keyStorePassword", "importkey" );
-        System.setProperty( "javax.net.ssl.keyStoreType", "jks" );
+        System.setProperty( "javax.net.ssl.keyStoreType", "jks" );*/
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", "shootme");
@@ -223,8 +223,8 @@ public class Shootme implements SipListener {
                 "shootmedebug.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
         "shootmelog.txt");
-        properties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS",
-                "TLSv1");
+        /*properties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS",
+                "TLSv1");*/
         properties.setProperty("gov.nist.javax.sip.REENTRANT_LISTENER",
         "true");
         properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "4");
