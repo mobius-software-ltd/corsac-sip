@@ -32,6 +32,7 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.ThreadAffinityTask;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.message.SIPMessage;
@@ -93,7 +94,7 @@ public class NioPipelineParser {
 		}
 	}
 	
-    public class Dispatch implements Runnable, QueuedMessageDispatchBase{
+    public class Dispatch implements ThreadAffinityTask, QueuedMessageDispatchBase{
     	String callId;
         UnparsedMessage unparsedMessage;
     	long time;
@@ -157,6 +158,11 @@ public class NioPipelineParser {
 		public long getReceptionTime() {
 			return time;
 		}
+
+        @Override
+        public Object getThreadHash() {
+            return callId;
+        }
     };
 	
 	public void close() {
