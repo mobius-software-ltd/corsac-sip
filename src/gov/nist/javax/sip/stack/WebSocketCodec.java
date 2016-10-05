@@ -152,7 +152,7 @@ public class WebSocketCodec {
 			} else if (framePayloadLen1 == 127) {
 				long value = 0;
 				for(int q=0;q<8;q++) {
-					value &= (0xff&readNextByte())<<(7-q);
+					value &= (0xff&readNextByte())<<(7-q)*8;
 				}
 				framePayloadLength = value;
 
@@ -226,7 +226,7 @@ public class WebSocketCodec {
 	protected static byte[] encode(byte[] msg, int rsv, boolean fin, boolean maskPayload, byte opcode) throws Exception {
 		ByteArrayOutputStream frame = new ByteArrayOutputStream();
 
-		int length = msg.length;
+		long length = msg.length;
 
 		if(logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
 			logger.logDebug("Encoding WebSocket Frame opCode=" + opcode + " length=" + length);
@@ -247,13 +247,13 @@ public class WebSocketCodec {
 		} else if (length <= 0xFFFF) {
 			frame.write(b0);
 			frame.write(maskPayload ? 0xFE : 126);
-			frame.write(length >>> 8 & 0xFF);
-			frame.write(length & 0xFF);
+			frame.write((byte)(length >>> 8));
+			frame.write((byte)length);
 		} else {
 			frame.write(b0);
 			frame.write(maskPayload ? 0xFF : 127);
 			for(int q=0;q<8;q++) {
-				frame.write((0xFF)&(length>>q));
+				frame.write((byte)(length>>>(7-q)*8));
 			}
 		}
 		if(maskPayload) {
