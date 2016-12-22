@@ -65,6 +65,15 @@ public class UriDecoderTest extends TestCase {
 		assertEquals("sip:atlanta.com;method=REGISTER?to=alice@atlanta.com", UriDecoder.decode("sip:atlanta.com;method=REGISTER?to=alice%40atlanta.com"));
 		assertEquals("sip:alice@atlanta.com;transport=TCP", UriDecoder.decode("sip:%61lice@atlanta.com;transport=TCP"));
 		assertEquals("sip:biloxi.com;transport=tcp;method=REGISTER?to=sip:bob@biloxi.com", UriDecoder.decode("sip:biloxi.com;transport=tcp;method=REGISTER?to=sip:bob%40biloxi.com"));
+		assertEquals("fe80:0:0:0:20c:29ff:fe7d:7f9c%2", UriDecoder.decode("fe80:0:0:0:20c:29ff:fe7d:7f9c%252"));
+	
 	}
+	
+	/**
+	 * Test method for {@link gov.nist.javax.sip.address.UriDecoder#decode(java.lang.String)}.
+	 */
+	public void testEncode() {
+		assertEquals("fe80:0:0:0:20c:29ff:fe7d:7f9c%252", UriDecoder.encodeUriParam("fe80:0:0:0:20c:29ff:fe7d:7f9c%2"));
+	}	
 
 }

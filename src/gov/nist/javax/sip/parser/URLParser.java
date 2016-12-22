@@ -33,7 +33,11 @@ import gov.nist.javax.sip.address.GenericURI;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.address.TelURLImpl;
 import gov.nist.javax.sip.address.TelephoneNumber;
+import gov.nist.javax.sip.address.UriDecoder;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Parser For SIP and Tel URLs. Other kinds of URL's are handled by the
@@ -55,26 +59,16 @@ public class URLParser extends Parser {
         this.lexer = lexer;
         this.lexer.selectLexer("sip_urlLexer");
     }
+    
+    public static final Set<Character> MARK_SET = new HashSet(Arrays.asList('-','_','.','!','~','*','\'','(',')'));    
     protected static boolean isMark(char next) {
-        switch (next) {
-            case '-':
-            case '_':
-            case '.':
-            case '!':
-            case '~':
-            case '*':
-            case '\'':
-            case '(':
-            case ')':
-                return true;
-            default:
-                return false;
-        }
+        return MARK_SET.contains(next);
     }
 
     protected static boolean isUnreserved(char next) {
         return Lexer.isAlphaDigit(next) || isMark(next);
     }
+
 
     protected static boolean isReservedNoSlash(char next) {
         switch (next) {
@@ -121,6 +115,15 @@ public class URLParser extends Parser {
             throw createParseException("unreserved");
 
     }
+    
+    public static final Set<Character> PARAM_UNRESERVED_SET = new HashSet(Arrays.asList('[', ']','/', ':', '&', '+', '$'));
+    public static boolean isParamUnreserved(char c) {
+        return PARAM_UNRESERVED_SET.contains(c);
+    }
+    
+    //MARK and PARAM UNRESERVED
+    public static final Set<Character> PARAM_CHAR_SET = new HashSet(Arrays.asList('[', ']','/', ':', '&', '+', '$', '-','_','.','!','~','*','\'','(',')'));
+    
 
     /** Name or value of a parameter.
      */
@@ -129,20 +132,11 @@ public class URLParser extends Parser {
         while (lexer.hasMoreChars()) {
             char next = lexer.lookAhead(0);
             boolean isValidChar = false;
-            switch (next) {
-                case '[':
-                case ']':// JvB: fixed this one
-                case '/':
-                case ':':
-                case '&':
-                case '+':
-                case '$':
-                    isValidChar = true;
-            }
+            isValidChar = isParamUnreserved(next);
             if (isValidChar || isUnreserved(next)) {
                 lexer.consume(1);
-            } else if (isEscaped()) {
-                lexer.consume(3);
+            } else if (UriDecoder.UTF8_ESCAPE_CHAR == next) {
+                escaped();
             } else
                 break;
         }
@@ -202,7 +196,7 @@ public class URLParser extends Parser {
 
     protected boolean isEscaped() {
         try {
-            return lexer.lookAhead(0) == '%' &&
+            return lexer.lookAhead(0) == UriDecoder.UTF8_ESCAPE_CHAR &&
                 Lexer.isHexDigit(lexer.lookAhead(1)) &&
                 Lexer.isHexDigit(lexer.lookAhead(2));
         } catch (Exception ex) {
@@ -218,7 +212,7 @@ public class URLParser extends Parser {
             char next = lexer.lookAhead(0);
             char next1 = lexer.lookAhead(1);
             char next2 = lexer.lookAhead(2);
-            if (next == '%'
+            if (next == UriDecoder.UTF8_ESCAPE_CHAR
                 && Lexer.isHexDigit(next1)
                 && Lexer.isHexDigit(next2)) {
                 lexer.consume(3);
@@ -716,7 +710,7 @@ public class URLParser extends Parser {
             if (isValidChar || Lexer.isAlphaDigit(la)) {
                 lexer.consume(1);
                 retval.append(la);
-            } else if (la == '%') {
+            } else if (la == UriDecoder.UTF8_ESCAPE_CHAR) {
                 retval.append(escaped());
             } else
                 break;

@@ -18,8 +18,9 @@ public class RecordRouteParserTest extends ParserTestCase {
 
                 "Record-Route: <sip:UserB@there.com;maddr=ss2.wcom.com>,"+
                             "<sip:UserB@there.com;maddr=ss1.wcom.com>\n"  ,
-                "Record-Route: <sip:3Zqkv5bGjusip%3A%2B3519116786244%40siplab.domain.com@scscf.ojt4.trial.net:7070;maddr=213.0.115.163;lr>\n"
-                    };
+                "Record-Route: <sip:3Zqkv5bGjusip%3A%2B3519116786244%40siplab.domain.com@scscf.ojt4.trial.net:7070;maddr=213.0.115.163;lr>\n",
+                "Record-Route: <sip:[fe80:0:0:0:20c:29ff:febc:37c7]:5065;transport=tcp;lr;node_host=fe80:0:0:0:20c:29ff:fe7d:7f9c%252;node_port=5060;version=0>\n"        
+        };
 
 
         super.testParser(RecordRouteParser.class,rou);

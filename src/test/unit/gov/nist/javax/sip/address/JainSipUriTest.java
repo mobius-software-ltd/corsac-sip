@@ -36,9 +36,10 @@ public class JainSipUriTest extends junit.framework.TestCase {
     
     static String[] goodURIs = {"sip:darth-vader@darkstar.org", "tel:+122222222", "sips:yoda@dark-star.org", "urn:service:sos", 
     	"ftp://ftp.is.co.za/rfc/rfc1808.txt","http://www.ietf.org/rfc/rfc2396.txt","ldap://[2001:db8::7]/c=GB?objectClass?one","mailto:John.Doe@example.com",
-    	"news:comp.infosystems.www.servers.unix","tel:+1-816-555-1212","telnet://192.0.2.16:80/","urn:oasis:names:specification:docbook:dtd:xml:4.1.2"};
+    	"news:comp.infosystems.www.servers.unix","tel:+1-816-555-1212","telnet://192.0.2.16:80/","urn:oasis:names:specification:docbook:dtd:xml:4.1.2"
+    	};
     
-    static String[] badURIs = {"darth-vader@darkstar.org", "tel@:+122222222", "darth-vader@127.0.0.1:5080" };
+    static String[] badURIs = {"darth-vader@darkstar.org", "tel@:+122222222", "darth-vader@127.0.0.1:5080", "sip:[2001:db8:0:0:0:0:0:120]:5060;transport=tcp;lr;node_host=fe80:0:0:0:20c:29ff:fe7d:7f9c%2;node_port=5060;version=0" };
 
     private javax.sip.SipFactory sipFactory;
 

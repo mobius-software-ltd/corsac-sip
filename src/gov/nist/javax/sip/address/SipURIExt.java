@@ -1,5 +1,6 @@
 package gov.nist.javax.sip.address;
 
+import java.text.ParseException;
 import javax.sip.address.SipURI;
 
 /**
@@ -59,5 +60,25 @@ public interface SipURIExt extends SipURI {
      * @since 2.0
      */
     public void setLrParam();
+    
+    /**
+     * Both name and value will be encoded before saving this internally.
+     * Following rules form RFC3261 will be used
+     * pname             =  1*paramchar
+     * pvalue            =  1*paramchar
+     * paramchar         =  param-unreserved / unreserved / escaped
+     * param-unreserved  =  "[" / "]" / "/" / ":" / "&" / "+" / "$"
+     * @param name
+     * @param value contains chars not escaped following RFC3261 rules
+     */
+    public void setUnencodedParam(String name, String value)  throws ParseException;
+    
+    /**
+     * Name will be encoded before looking for this parameter so it matches
+     * the value in the network. Value will be URL decoded, un-escaping %XX chars.
+     * @param name
+     * @return decoded
+     */
+    public String getDecodedParam(String name);    
 
 }

@@ -36,7 +36,6 @@ package gov.nist.javax.sip.address;
  *Jeroen van Bemmel ( additions for SCTP transport )
  */
 import gov.nist.core.*;
-import gov.nist.javax.sip.ListeningPointExt;
 
 import java.util.*;
 import java.text.ParseException;
@@ -1053,6 +1052,23 @@ public class SipUri extends GenericURI implements javax.sip.address.SipURI , Sip
      */
     public String getGrParam() {
             return (String) this.uriParms.getValue(GRUU);   // JvB: fixed to not add duplicates
+    }
+
+    @Override
+    public void setUnencodedParam(String name, String value)  throws ParseException{
+        String encodedName = UriDecoder.encodeUriParam(name);
+        String encodedValue = UriDecoder.encodeUriParam(value);
+        this.setParameter(encodedName, encodedValue);
+    }
+
+    @Override
+    public String getDecodedParam(String name) {
+        String encodedName = UriDecoder.encodeUriParam(name);        
+        String undecodedValue = this.getParameter(encodedName);
+        if (undecodedValue != null) {
+            undecodedValue = UriDecoder.decode(undecodedValue);
+        }
+        return undecodedValue;
     }
 
     /**
