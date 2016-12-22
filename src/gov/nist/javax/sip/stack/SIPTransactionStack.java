@@ -1123,7 +1123,7 @@ public abstract class SIPTransactionStack implements
                     }
                     //https://github.com/RestComm/jain-sip/issues/60
                     //Now check complementary conditions, to override selected ct, and break
-                   if (notifyMessage.getRequestURI().equals(ct.getOriginalRequest().getContactHeader().getAddress().getURI()) &&
+                   if ((ct.getOriginalRequest() != null && notifyMessage.getRequestURI().equals(ct.getOriginalRequest().getContactHeader().getAddress().getURI())) &&
                 		   (ct.getDefaultDialog() != null || ct.getDialog(dialogId) != null)){
                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                            logger.logDebug("Tx compl conditions met." + ct);
@@ -1754,8 +1754,8 @@ public abstract class SIPTransactionStack implements
                 return null;
             }
         } else {
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                this.logger.logDebug("Could not aquire semaphore !!");
+        	logger.logWarning(
+                "Application is blocked -- could not acquire semaphore -- dropping response");
         }
 
         if (acquired)
@@ -2563,12 +2563,12 @@ public abstract class SIPTransactionStack implements
                     newChannel = nextProcessor
                             .createMessageChannel(targetHostPort);
                 } catch (UnknownHostException ex) {
-                    if (logger.isLoggingEnabled())
-                        logger.logException(ex);
+                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                        logger.logDebug("host is not known " + targetHostPort + " " + ex.getMessage());
                     throw ex;
                 } catch (IOException e) {
-                    if (logger.isLoggingEnabled())
-                        logger.logException(e);
+                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                    	logger.logDebug("host is reachable " + targetHostPort + " " + e.getMessage());
                     // Ignore channel creation error -
                     // try next processor
                 }
