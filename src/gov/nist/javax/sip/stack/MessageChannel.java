@@ -316,8 +316,29 @@ public abstract class MessageChannel {
      */
     public static String getKey(InetAddress inetAddr, int port, String transport) {
     	// http://java.net/jira/browse/JSIP-413 Concurrency issue within MessageChannel.java when using IPv6 addresses
-        return (transport + ":" + inetAddr.getHostAddress().replaceAll("[\\[\\]]", "") + ":" + port).toLowerCase();
+        String hostAddress = extractIPV6Specifics(inetAddr.getHostAddress());
+        return (transport + ":" + hostAddress + ":" + port).toLowerCase();
     }
+    
+    /**
+     * This is necessary to create proper keys that will work in all cases. So,
+     * both when socket is firstly created, and when socket is later searched, the
+     * keys will match whatever the source of IP address (socket API, SIP header).
+     * @param ipAddress
+     * @return Addr without IPV6 brackets, and scopeid
+     */
+    public static String extractIPV6Specifics(String ipAddress)  {
+        String result = ipAddress;    
+        if (Host.stripAddressScopeZones){
+            int scopeIdPos = ipAddress.indexOf("%");
+            if (scopeIdPos > -1) {
+                logger.logDebug("stripping scopeId to generate socket key");
+                result = ipAddress.substring(0, scopeIdPos);
+            }
+        }
+        return result.replaceAll("[\\[\\]]","");
+    }
+            
 
     /**
      * Generate a key given host and port.
@@ -327,8 +348,9 @@ public abstract class MessageChannel {
     	String ipAddress = hostPort.getHost().getIpAddress();
     	if (ipAddress == null) {
     		ipAddress = hostPort.getHost().getHostname();
-    	}
-    	return (transport + ":" + ipAddress.replaceAll("[\\[\\]]", "") + ":" + hostPort.getPort())
+        }
+        ipAddress = extractIPV6Specifics(ipAddress);
+    	return (transport + ":" + ipAddress + ":" + hostPort.getPort())
     			.toLowerCase();
     }
 

@@ -62,7 +62,7 @@ public class Host extends GenericObject {
      * determines whether or not the parser should be stripping them (as
      * opposed simply being blunt and throwing an exception).
      */
-    private static boolean stripAddressScopeZones = false;
+    public static boolean stripAddressScopeZones = false;
 
     private static final long serialVersionUID = -7233564517978323344L;
     protected static final int HOSTNAME = 1;
