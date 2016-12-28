@@ -52,6 +52,17 @@ public class NioPipelineParserTest extends ScenarioHarness {
             + "Call-ID: c6a12ddad0ddc1946d9f443c884a7768@127.0.0.1\r\n"
             + "Content-Type: application/sdp;level=1\r\n"
             + "Content-Length: 145\r\n";
+    private static final String HEADER_CHUNK_COMPACT = "INVITE sip:00001002000022@p25dr;user=TIA-P25-SU SIP/2.0\r\n"
+            + "CSeq: 1 INVITE\r\n"
+            + "f: <sip:0000100200000c@p25dr;user=TIA-P25-SU>;tag=841\r\n"
+            + "t: <sip:00001002000022@p25dr;user=TIA-P25-SU>\r\n"
+            + "v: SIP/2.0/UDP 02.002.00001.p25dr;branch=z9hG4bKa10f04383e3d8e8dbf3f6d06f6bb6880\r\n"
+            + "Max-Forwards: 70\r\n"
+            + "m: <sip:02.002.00001.p25dr>\r\n"
+            + "i: c6a12ddad0ddc1946d9f443c884a7768@127.0.0.1\r\n"
+            + "c: application/sdp;level=1\r\n"
+            + "l: 145\r\n";
+    
     private static final String HEADER1 =  "Allow: REGISTER,INVITE,ACK,BYE,CANCEL\r";
     private static final String HEADER2 =  "\n";
     private static final String BODY_CHUNK ="v=0\r\n"
@@ -92,6 +103,13 @@ public class NioPipelineParserTest extends ScenarioHarness {
     
     public void testNormalBodySeparation() throws Exception {
         parser.addBytes((HEADER_CHUNK + "\r\n").getBytes());
+        parser.addBytes(BODY_CHUNK.getBytes());
+        Thread.sleep(ASSERTION_WAIT);
+        Assert.assertEquals(1, listener.getProcessedMsgs());
+    }
+    
+    public void testCompactBodySeparation() throws Exception {
+        parser.addBytes((HEADER_CHUNK_COMPACT + "\r\n").getBytes());
         parser.addBytes(BODY_CHUNK.getBytes());
         Thread.sleep(ASSERTION_WAIT);
         Assert.assertEquals(1, listener.getProcessedMsgs());
