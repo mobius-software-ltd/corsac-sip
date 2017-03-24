@@ -270,6 +270,12 @@ public abstract class SIPTransactionStack implements
      * for after delivery of first byte of message.
      */
     protected int readTimeout;
+    
+    /*
+     * Conn timeout for TCP outgoign sockets -- maximum time in millis the stack
+     * will wait to open a connection.
+     */
+    protected int connTimeout = 10000;    
 
     /*
      * The socket factory. Can be overriden by applications that want direct
@@ -367,6 +373,8 @@ public abstract class SIPTransactionStack implements
     
     protected boolean patchRport = false;
     
+    protected boolean patchReceivedRport = false;
+    
     protected ClientAuthType clientAuth = ClientAuthType.Default;
     
     // ThreadPool when parsed SIP messages are processed. Affects the case when many TCP calls use single socket.
@@ -422,6 +430,7 @@ public abstract class SIPTransactionStack implements
     public ScheduledExecutorService getSelfRoutingThreadpoolExecutor() {
         if(selfRoutingThreadpoolExecutor == null) {
             if(this.threadPoolSize<=0) {
+                
                 selfRoutingThreadpoolExecutor = new ThreadAffinityExecutor(16);
             } else {
                 selfRoutingThreadpoolExecutor = new ThreadAffinityExecutor(this.threadPoolSize);
@@ -3131,6 +3140,14 @@ public abstract class SIPTransactionStack implements
     public boolean isPatchRport() {
         return patchRport;
     }
+    
+	public void setPatchReceivedRport(boolean patchReceivedRport) {
+		this.patchReceivedRport = patchReceivedRport;
+	}
+	
+	public boolean isPatchReceivedRport() {
+		return patchReceivedRport;
+	}
     
     /**
      * @param maxForkTime
