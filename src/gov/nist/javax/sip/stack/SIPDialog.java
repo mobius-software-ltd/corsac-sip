@@ -2773,9 +2773,11 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         }
 
         try {
+            // FIX ME: firstTransactionPort can be different with the updated sip-provider after failover.
+            // Using directly the port from new updated Sip-provider.
             MessageChannel messageChannel = sipStack.createRawMessageChannel(
                     this.getSipProvider().getListeningPoint(hop.getTransport())
-                            .getIPAddress(), this.firstTransactionPort, hop);
+                            .getIPAddress(), this.getSipProvider().getListeningPoint(hop.getTransport()).getPort(), hop);
 
             MessageChannel oldChannel = ((SIPClientTransaction) clientTransaction)
                     .getMessageChannel();

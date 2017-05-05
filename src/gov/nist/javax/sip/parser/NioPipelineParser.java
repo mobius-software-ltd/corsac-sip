@@ -61,6 +61,10 @@ public class NioPipelineParser {
 	private static StackLogger logger = CommonLogger.getLogger(NioPipelineParser.class);
 
 	private static final String CRLF = "\r\n";
+	
+	private static final String CALL_ID_COMPACT_NAME = "i";
+	
+	private static final String CONTENT_LENGHT_COMPACT_NAME = "l";
 
     /**
      * The message listener that is registered with this parser. (The message
@@ -209,9 +213,15 @@ public class NioPipelineParser {
 				if(lineIgnoreCase.startsWith(ContentLength.NAME_LOWER)) { // naive Content-Length header parsing to figure out how much bytes of message body must be read after the SIP headers
 					contentLength = Integer.parseInt(line.substring(
 							ContentLength.NAME_LOWER.length()+1).trim());
+				} else if(lineIgnoreCase.startsWith(CONTENT_LENGHT_COMPACT_NAME)) { // issue with compact header form
+					contentLength = Integer.parseInt(line.substring(
+							CONTENT_LENGHT_COMPACT_NAME.length()+1).trim());
 				} else if(lineIgnoreCase.startsWith(CallID.NAME_LOWER)) { // naive Content-Length header parsing to figure out how much bytes of message body must be read after the SIP headers
 					callId = line.substring(
 							CallID.NAME_LOWER.length()+1).trim();
+				} else if(lineIgnoreCase.startsWith(CALL_ID_COMPACT_NAME)) { // issue with compact header form
+					callId = line.substring(
+							CALL_ID_COMPACT_NAME.length()+1).trim();
 				}
 			} else {				
 				if(isPreviousLineCRLF) {
