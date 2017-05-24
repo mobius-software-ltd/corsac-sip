@@ -16,6 +16,15 @@
 	<url>http://code.google.com/p/jain-sip/</url>
 	<build>
 		<testSourceDirectory>../../src</testSourceDirectory>
+                <testResources>
+                    <testResource>
+                        <directory>../../src</directory>
+                        <excludes>
+                            <exclude>*.java</exclude>
+                        </excludes>
+                    </testResource>
+                    
+                </testResources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -24,6 +33,12 @@
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
+					<excludes>
+						<exclude>gov/**</exclude>
+                                                <exclude>examples/**</exclude>
+                                                <exclude>tools/**</exclude>
+                                                <exclude>javax/**</exclude>
+					</excludes>                                        
 					<testIncludes>
 						<testInclude>test/**</testInclude>
 					</testIncludes>

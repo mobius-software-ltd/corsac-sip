@@ -40,6 +40,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.LinkedList;
@@ -65,12 +66,33 @@ public class NIOHandler {
     
     private NioTcpMessageProcessor messageProcessor;
     
+    protected SocketTimeoutAuditor socketTimeoutAuditor = null;    
+    
     private AtomicBoolean stopped=new AtomicBoolean(false);
     
     // A cache of client sockets that can be re-used for
     // sending tcp messages.
     private final ConcurrentHashMap<String, SocketChannel> socketTable = new ConcurrentHashMap<String, SocketChannel>();
 
+	protected HashMap<SocketChannel, NioTcpMessageChannel> channelMap = new HashMap<SocketChannel, NioTcpMessageChannel>();
+    
+    
+	public NioTcpMessageChannel getMessageChannel(SocketChannel socketChannel) {
+		return channelMap.get(socketChannel);
+	}
+
+	public void putMessageChannel(SocketChannel socketChannel,
+			NioTcpMessageChannel nioTcpMessageChannel) {
+		channelMap.put(socketChannel, nioTcpMessageChannel);
+	}
+	
+	public void removeMessageChannel(SocketChannel socketChannel) {
+		channelMap.remove(socketChannel);	
+	}
+	
+	public int getCurrentChannelSize() {
+		return channelMap.size();
+	}    
     
     KeyedSemaphore keyedSemaphore = new KeyedSemaphore();
     
@@ -86,6 +108,11 @@ public class NIOHandler {
     protected NIOHandler(SIPTransactionStack sipStack, NioTcpMessageProcessor messageProcessor) {
         this.sipStack = (SipStackImpl) sipStack;
         this.messageProcessor = messageProcessor;
+		if(sipStack.nioSocketMaxIdleTime > 0 && messageProcessor instanceof ConnectionOrientedMessageProcessor) {
+        	// https://java.net/jira/browse/JSIP-471 use property from the stack instead of hard coded 20s
+			socketTimeoutAuditor = new SocketTimeoutAuditor(sipStack.nioSocketMaxIdleTime, this);
+			sipStack.getTimer().scheduleWithFixedDelay(socketTimeoutAuditor, sipStack.nioSocketMaxIdleTime, sipStack.nioSocketMaxIdleTime);
+		}        
     }
 
     /**
@@ -202,8 +229,9 @@ public class NIOHandler {
      * A private function to write things out. This needs to be synchronized as
      * writes can occur from multiple threads. We write in chunks to allow the
      * other side to synchronize for large sized writes.
+     * @throws IOException 
      */
-    private void writeChunks(SocketChannel channel, byte[] bytes, int length) {
+    private void writeChunks(SocketChannel channel, byte[] bytes, int length) throws IOException {
         //Code simplified and method kept for historical reason.
         //The chunking was not taking place anyway.
         messageProcessor.send(channel, bytes);
@@ -227,16 +255,19 @@ public class NIOHandler {
         
         boolean entered = false;
         boolean connected = false;
+        boolean attempted = false;
         try {
                 keyedSemaphore.enterIOCriticalSection(key);
                 entered = true;
                 //we need to check again, now we are in proper critical sec
                 clientSock = getSocket(key);
-                if(clientSock != null && (!clientSock.isConnected() || !clientSock.isOpen())) {
+                if(clientSock != null && (!clientSock.isConnected() || !clientSock.isOpen()) 
+                		&& !clientSock.isConnectionPending()) {
                     removeSocket(key, false);
                     clientSock = null;
                 }                
                 if(clientSock == null) {
+                	attempted = true;
                     //ok, this thread won, let's try to recover conn
                     while (retry_count < max_retry) {
 
@@ -254,7 +285,7 @@ public class NIOHandler {
                                     // address (i.e. that of the stack). In version 1.2
                                     // the IP address is on a per listening point basis.
                                     try {
-                                            clientSock = messageProcessor.blockingConnect(new InetSocketAddress(receiverAddress, contactPort), 
+                                            clientSock = messageProcessor.connect(new InetSocketAddress(receiverAddress, contactPort), 
                                                     senderAddress, this.messageProcessor.sipStack.connTimeout);
                                             connected = true;
                                     } catch (SocketException e) { // We must catch the socket timeout exceptions here, any SocketException not just ConnectException
@@ -317,7 +348,7 @@ public class NIOHandler {
                                                     "inaddr = " + receiverAddress +
                                                     " port = " + contactPort);
                             }
-                            clientSock = messageProcessor.blockingConnect(new InetSocketAddress(receiverAddress, contactPort), 
+                            clientSock = messageProcessor.connect(new InetSocketAddress(receiverAddress, contactPort), 
                                     senderAddress, this.messageProcessor.sipStack.connTimeout);
                             connected = true;
                             putSocket(key, clientSock);
@@ -335,7 +366,7 @@ public class NIOHandler {
             }
         } finally {
             if (entered) {
-                if (!connected) 
+                if (attempted && !connected) 
                 {
                     // new connection is bad.
                     // remove from our table the socket and its semaphore
@@ -390,7 +421,8 @@ public class NIOHandler {
   
         boolean newSocket = false;
         SocketChannel clientSock = getSocket(key);
-        if(clientSock != null && (!clientSock.isConnected() || !clientSock.isOpen())) {
+        if(clientSock != null && (!clientSock.isConnected() || !clientSock.isOpen()) && 
+            (!clientSock.isConnectionPending())) {
                 clientSock = null;
         }        
         if(clientSock == null) {
@@ -454,10 +486,10 @@ public class NIOHandler {
     	try {
         	// Reworked the method for https://java.net/jira/browse/JSIP-471
 			if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-				logger.logDebug("keys to check for inactivity removal " + NioTcpMessageChannel.channelMap.keySet());
+				logger.logDebug("keys to check for inactivity removal " + channelMap.keySet());
 				logger.logDebug("existing socket in NIOHandler " + socketTable.keySet());
 			}
-			Iterator<Entry<SocketChannel, NioTcpMessageChannel>> entriesIterator = NioTcpMessageChannel.channelMap.entrySet().iterator();
+			Iterator<Entry<SocketChannel, NioTcpMessageChannel>> entriesIterator = channelMap.entrySet().iterator();
 			while(entriesIterator.hasNext()) {
 				Entry<SocketChannel, NioTcpMessageChannel> entry = entriesIterator.next();
 				SocketChannel socketChannel = entry.getKey();
@@ -468,8 +500,8 @@ public class NIOHandler {
 							+ " socketChannel = " + socketChannel);
 				}
 				messageChannel.close();
-				NioTcpMessageChannel.channelMap.remove(socketChannel);
-				entriesIterator = NioTcpMessageChannel.channelMap.entrySet().iterator();
+				channelMap.remove(socketChannel);
+				entriesIterator = channelMap.entrySet().iterator();
 			}
         } catch (Exception e) {
         	
@@ -483,7 +515,8 @@ public class NIOHandler {
     	String key = NIOHandler.makeKey(inetAddress, port);
     	SocketChannel channel = null;
         channel = getSocket(key);
-        if(channel != null && (!channel.isConnected() || !channel.isOpen())) {
+        if(channel != null && (!channel.isConnected() || !channel.isOpen())
+                && !channel.isConnectionPending()) {
                 if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                         logger.logDebug("Channel disconnected " + channel);
                 channel = null;
