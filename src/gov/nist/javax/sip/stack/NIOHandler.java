@@ -261,9 +261,11 @@ public class NIOHandler {
                 entered = true;
                 //we need to check again, now we are in proper critical sec
                 clientSock = getSocket(key);
+                //For nonBlocking connect, consider the socket as usable if
+                //connection is pending.
                 if(clientSock != null && (!clientSock.isConnected() || !clientSock.isOpen()) 
                 		&& !clientSock.isConnectionPending()) {
-                    removeSocket(key, false);
+                	removeSocket(key, false);
                     clientSock = null;
                 }                
                 if(clientSock == null) {
