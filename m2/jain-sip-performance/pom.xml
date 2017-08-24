@@ -71,6 +71,11 @@
 			<artifactId>jain-sip-ri</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!--dependency>
+			<groupId>javax.sip</groupId>
+			<artifactId>android-jain-sip-ri</artifactId>
+			<version>${project.version}</version>
+		</dependency-->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
