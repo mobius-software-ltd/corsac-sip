@@ -80,16 +80,25 @@ public class NioTlsWebSocketMessageChannel extends NioWebSocketMessageChannel im
 
         sslStateMachine.sslEngine.setUseClientMode(clientMode);
         String auth = ((SipStackImpl)super.sipStack).
-        		getConfigurationProperties().getProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE");
-
-        sslStateMachine.sslEngine.setNeedClientAuth(false);
-        sslStateMachine.sslEngine.setWantClientAuth(false);
-
-        String clientProtocols = ((SipStackImpl)super.sipStack)
-        		.getConfigurationProperties().getProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS");
-        if(clientProtocols != null) {
-        	sslStateMachine.sslEngine.setEnabledProtocols(clientProtocols.split(","));
+        		getConfigurationProperties().getProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE");        
+        if(auth == null) {
+        	auth = "Enabled";
         }
+        if(auth.equals("Disabled") || auth.equals("DisabledAll")) {
+        	sslStateMachine.sslEngine.setNeedClientAuth(false);
+        	sslStateMachine.sslEngine.setWantClientAuth(false);
+        } else if(auth.equals("Enabled")) {
+        	sslStateMachine.sslEngine.setNeedClientAuth(true);
+        } else if(auth.equals("Want")) {
+        	sslStateMachine.sslEngine.setNeedClientAuth(false);
+        	sslStateMachine.sslEngine.setWantClientAuth(true);
+        } else {
+        	throw new RuntimeException("Invalid parameter for TLS authentication: " + auth);
+        }
+
+        // http://java.net/jira/browse/JSIP-451 - josemrecio
+    	sslStateMachine.sslEngine.setEnabledProtocols(((SipStackImpl)sipStack).getEnabledProtocols());
+        sslStateMachine.sslEngine.setEnabledCipherSuites(((SipStackImpl)sipStack).getEnabledCipherSuites());
 
 	}
 	
