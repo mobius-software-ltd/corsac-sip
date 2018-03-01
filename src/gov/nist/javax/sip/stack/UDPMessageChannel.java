@@ -325,8 +325,12 @@ public class UDPMessageChannel extends MessageChannel implements
                 processIncomingDataPacket(packet);
             } catch (Exception e) {
 
-                logger.logError(
-                        "Error while processing incoming UDP packet" + Arrays.toString(packet.getData()), e);
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug(
+                                    "Error while processing incoming UDP packet" + Arrays.toString(packet.getData()), e);
+                } else {
+                    logger.logError("Error while processing incoming UDP packet with length(" + packet.getLength() + ") peerAddress = " + peerAddress.getHostAddress()+ "/" + packet.getPort(), e);
+                }
             }
 
             if (sipStack.threadPoolSize == -1) {
