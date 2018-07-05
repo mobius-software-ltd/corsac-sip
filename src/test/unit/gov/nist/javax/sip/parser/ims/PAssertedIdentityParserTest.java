@@ -36,26 +36,14 @@ public class PAssertedIdentityParserTest extends ParserTestCase
         String[] preferredID =  {
          "P-Asserted-Identity: <sip:bob@atlanta.com>\n",
 
-         "P-Asserted-Identity: <sip:alice@atlanta.com>, <tel:+1-201-555-0123>\n"
+         "P-Asserted-Identity: <sip:alice@atlanta.com>, <tel:+1-201-555-0123>\n",
+         "P-Asserted-Identity: <sip:alice@atlanta.com;user=phone>, <tel:+1-201-555-0123;user=tel>\n",
+         "P-Asserted-Identity:sip:33296112233@provider.com;user=phone\n",
+         "P-Asserted-Identity:sip:33296112233@provider.com;user=phone,tel:+1-201-555-0123;user=tel\n"
 
         };
 
         super.testParser(PAssertedIdentityParser.class,preferredID);
-    }
-    
-    public void testInvalidHeaderParam() {
-    	
-        String preferredID =  "P-Asserted-Identity:sip:33296112233@provider.com;user=phone\n";
-        
-	    try {                  
-           HeaderParser hp = createParser(PAssertedIdentityParser.class, preferredID);
-           hp.parse();
-           fail("Header:"+ preferredID + " cannot be parse, wrong in pattern");
-	       
-	    } catch (java.text.ParseException ex) {
-	    	assertTrue(ex.getMessage().contains("This header doesn't allow parameters"));
-	    } 
-        
     }
     
     public void testInvalidHeaderParamOnMultiValues() {
