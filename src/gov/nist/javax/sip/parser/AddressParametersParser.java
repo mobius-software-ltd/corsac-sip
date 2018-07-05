@@ -53,8 +53,14 @@ public class AddressParametersParser extends ParametersParser {
         throws ParseException {
         dbg_enter("AddressParametersParser.parse");
         try {
+            int lexerPointer = this.getLexer().markInputPosition();
             AddressParser addressParser = new AddressParser(this.getLexer());
             AddressImpl addr = addressParser.address(false);
+            if (addr.getAddressType() == AddressImpl.ADDRESS_SPEC 
+                    && !this.allowParameters) {
+                this.getLexer().rewindInputPosition(lexerPointer);
+                addr = addressParser.address(true);
+            }
             addressParametersHeader.setAddress(addr);
             lexer.SPorHT();
             char la = this.lexer.lookAhead(0);
