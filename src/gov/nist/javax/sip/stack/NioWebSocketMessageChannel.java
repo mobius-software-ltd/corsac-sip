@@ -301,6 +301,9 @@ public class NioWebSocketMessageChannel extends NioTcpMessageChannel{
 	        	if(viaHost.endsWith(".invalid")) {
 	        		via.setHost(getPeerAddress());
 	        		via.setPort(getPeerPort());
+	        		// https://github.com/RestComm/jain-sip/issues/165
+	        		// When receiving a WS message from WEBRTC proxy(WSS->WS), the transport need to be updated.
+	        		via.setTransport(getTransport());
 	        	}
 	    	} else {
 	    		ContactHeader contact = (ContactHeader)message.getHeader(ContactHeader.NAME);

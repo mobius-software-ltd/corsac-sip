@@ -60,6 +60,7 @@ public class CongestionControlMessageValve implements SIPMessageValve{
     // after which requests are dropped.
     protected int serverTransactionTableHighwaterMark;
     protected int dropResponseStatus;
+    protected boolean printCongestionMessage = true;
     
 	public boolean processRequest(SIPRequest request,
 			MessageChannel messageChannel) {
@@ -78,6 +79,10 @@ public class CongestionControlMessageValve implements SIPMessageValve{
 				if(request.getToTag() != null) {
 					return true;
 				}
+				if(printCongestionMessage) {
+					logger.logWarning("Message will be dropped due to started Congestion Control" + " requestMethod : "+ requestMethod + " From: " + request.getFromTag() + " , To : " + request.getToTag());
+					printCongestionMessage = false;
+				}
 				if(dropResponseStatus>0) {
 					SIPResponse response = request.createResponse(dropResponseStatus);
 					try {
@@ -87,6 +92,11 @@ public class CongestionControlMessageValve implements SIPMessageValve{
 					}
 				}
 				return false; // Do not pass this request to the pipeline
+			} else {
+				if(!printCongestionMessage) {
+					logger.logWarning("Message will not be dropped due to Congestion Control ended" + " requestMethod : "+ requestMethod + " From: " + request.getFromTag() + " , To : " + request.getToTag());
+					printCongestionMessage = true;
+				}
 			}
 		}
 		return true; // OK, the processing of the request can continue

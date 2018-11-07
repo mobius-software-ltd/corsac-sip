@@ -40,7 +40,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.LinkedList;
@@ -74,7 +73,7 @@ public class NIOHandler {
     // sending tcp messages.
     private final ConcurrentHashMap<String, SocketChannel> socketTable = new ConcurrentHashMap<String, SocketChannel>();
 
-	protected HashMap<SocketChannel, NioTcpMessageChannel> channelMap = new HashMap<SocketChannel, NioTcpMessageChannel>();
+	protected ConcurrentHashMap<SocketChannel, NioTcpMessageChannel> channelMap = new ConcurrentHashMap<SocketChannel, NioTcpMessageChannel>();
     
     
 	public NioTcpMessageChannel getMessageChannel(SocketChannel socketChannel) {
