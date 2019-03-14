@@ -860,13 +860,13 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
                 logger.logDebug(
                         "~~~ Starting processing of KeepAliveTimeoutEvent( " + peerAddress.getHostAddress() + "," + peerPort + ")...");
             }
-            logger.logInfo(uuid.toString() + " Сlosing socket time : " + System.currentTimeMillis() );
+            logger.logWarning(uuid.toString() + " Сlosing socket time : " + System.currentTimeMillis() );
             try {
             	close(true, true);
             } catch (Exception e ) {
             	logger.logError("1.Exception in message channel " + uuid.toString() + ". Error : " + e.getMessage());
             }
-            logger.logInfo(uuid.toString() + " Сlosing processIOException time : " + System.currentTimeMillis() );
+            logger.logWarning(uuid.toString() + " Сlosing processIOException time : " + System.currentTimeMillis() );
             if(sipStack instanceof SipStackImpl) {
             	try {
 		            for (Iterator<SipProviderImpl> it = ((SipStackImpl)sipStack).getSipProviders(); it.hasNext();) {
@@ -898,7 +898,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
                 }
             }
             
-            logger.logInfo(uuid.toString() + " Finish KeepAliveTimeoutTimer time : " + System.currentTimeMillis() );
+            logger.logWarning(uuid.toString() + " Finish KeepAliveTimeoutTimer time : " + System.currentTimeMillis() );
             
         }
     }
