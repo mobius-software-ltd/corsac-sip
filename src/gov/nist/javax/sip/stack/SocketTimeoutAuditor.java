@@ -53,7 +53,8 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
         }        
 	
 	public void runTask() {
-		logger.logInfo("Start Task time : " + System.currentTimeMillis());
+		if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+			logger.logDebug("Start Task time : " + System.currentTimeMillis());
 		try {
 			// Reworked the method for https://java.net/jira/browse/JSIP-471
 			if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -65,7 +66,6 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 				SocketChannel socketChannel = entry.getKey();
 				NioTcpMessageChannel messageChannel = entry.getValue();
 				if(System.currentTimeMillis() - messageChannel.getLastActivityTimestamp() > nioSocketMaxIdleTime) {
-					logger.logInfo("Remove socket : " + messageChannel.key);
 					if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 						logger.logDebug("Will remove socket " + messageChannel.key + " lastActivity="
 								+ messageChannel.getLastActivityTimestamp() + " current= " +
@@ -86,6 +86,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 		} catch (Exception anything) {
 			logger.logError("Exception in SocketTimeoutAuditor : ", anything);
 		}
-		logger.logInfo("End Task time : " + System.currentTimeMillis());
+		if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+			logger.logDebug("End Task time : " + System.currentTimeMillis());
 	}
 }
