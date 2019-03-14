@@ -52,6 +52,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.text.ParseException;
 import java.util.Iterator;
+import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
 import javax.sip.ListeningPoint;
@@ -87,6 +88,8 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
     protected String myAddress;
 
     protected int myPort;
+    
+    protected UUID uuid;
 
     protected InetAddress peerAddress;
     
@@ -106,6 +109,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
     private long keepAliveTimeout;    
     
     public ConnectionOrientedMessageChannel(SIPTransactionStack sipStack) {
+    	this.uuid = UUID.randomUUID();
     	this.sipStack = sipStack;
     	this.keepAliveTimeout = sipStack.getReliableConnectionKeepAliveTimeout();
     	if(keepAliveTimeout > 0) {
@@ -851,15 +855,18 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
         } 
         
         public void runTask() {
+        	
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug(
                         "~~~ Starting processing of KeepAliveTimeoutEvent( " + peerAddress.getHostAddress() + "," + peerPort + ")...");
             }
+            logger.logInfo(uuid.toString() + " Сlosing socket time : " + System.currentTimeMillis() );
             try {
             	close(true, true);
             } catch (Exception e ) {
-            	logger.logError("1.Exception in message channel " + peerAddress.getHostAddress() + ":" + peerPort + ":" + getTransport() + ". Error : " + e.getMessage());
+            	logger.logError("1.Exception in message channel " + uuid.toString() + ". Error : " + e.getMessage());
             }
+            logger.logInfo(uuid.toString() + " Сlosing processIOException time : " + System.currentTimeMillis() );
             if(sipStack instanceof SipStackImpl) {
             	try {
 		            for (Iterator<SipProviderImpl> it = ((SipStackImpl)sipStack).getSipProviders(); it.hasNext();) {
@@ -877,7 +884,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
 		                }
 		            }
             	} catch (Exception e ) {
-                	logger.logError("2.Exception in message channel " + peerAddress.getHostAddress() + ":" + peerPort + ":" + getTransport() + ". Error : " + e.getMessage());
+                	logger.logError("2.Exception in message channel " + uuid.toString() + ". Error : " + e.getMessage());
                 }
             } else {
             	try {
@@ -887,9 +894,11 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
 		                    peerAddress.getHostAddress(), peerPort, getTransport()));
 		            }
             	} catch (Exception e ) {
-                	logger.logError("3.Exception in message channel " + peerAddress.getHostAddress() + ":" + peerPort + ":" + getTransport() + ". Error : " + e.getMessage());
+                	logger.logError("3.Exception in message channel " + uuid.toString() + ". Error : " + e.getMessage());
                 }
             }
+            
+            logger.logInfo(uuid.toString() + " Finish KeepAliveTimeoutTimer time : " + System.currentTimeMillis() );
             
         }
     }
