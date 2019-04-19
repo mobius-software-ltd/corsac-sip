@@ -53,7 +53,10 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
         }        
 	
 	public void runTask() {
-		logger.logInfo("Start Task time : " + System.currentTimeMillis());
+		int closedCount = 0;
+		long startTime = System.currentTimeMillis();
+		long endTime = 0;
+		logger.logWarning("Start SocketTimeoutAuditor time : " + startTime + ". Channels map size : " + nioHandler.channelMap.size());
 		try {
 			// Reworked the method for https://java.net/jira/browse/JSIP-471
 			if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -74,6 +77,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 					}
 					messageChannel.close();
 					entriesIterator = nioHandler.channelMap.entrySet().iterator();
+					closedCount++;
 				} else {
 					if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 						logger.logDebug("don't remove socket " + messageChannel.key + " as lastActivity="
@@ -86,6 +90,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 		} catch (Exception anything) {
 			logger.logError("Exception in SocketTimeoutAuditor : ", anything);
 		}
-		logger.logInfo("End Task time : " + System.currentTimeMillis());
+		endTime = System.currentTimeMillis();
+		logger.logWarning("End SocketTimeoutAuditor time : " + endTime + ". Closed channels number : " + closedCount + ". Duration : " + (endTime - startTime));
 	}
 }
