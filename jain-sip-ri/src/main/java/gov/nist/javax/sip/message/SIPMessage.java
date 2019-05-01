@@ -23,9 +23,9 @@
  * .
  *
  */
-/*******************************************************************************
+/** *****************************************************************************
  * Product of NIST/ITL Advanced Networking Technologies Division (ANTD)        *
- ******************************************************************************/
+ ***************************************************************************** */
 package gov.nist.javax.sip.message;
 
 import gov.nist.core.InternalErrorHandler;
@@ -114,11 +114,11 @@ import javax.sip.message.Request;
  *
  */
 /**
- * This is the main SIP Message structure. 
+ * This is the main SIP Message structure.
  * <b>
- * This is an implementation class.
- * WARNING do not directly use the methods of this class in your application.
- * Use the methods of the interfaces implemented by this class.
+ * This is an implementation class. WARNING do not directly use the methods of
+ * this class in your application. Use the methods of the interfaces implemented
+ * by this class.
  * </b>
  *
  * @see StringMsgParser
@@ -181,8 +181,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     protected Map<String, SIPHeader> headerTable;
 
     /**
-     * The application data pointer. This is un-interpreted by the stack. This is provided as a
-     * convenient way of keeping book-keeping data for applications.
+     * The application data pointer. This is un-interpreted by the stack. This
+     * is provided as a convenient way of keeping book-keeping data for
+     * applications.
      */
     protected Object applicationData;
 
@@ -198,21 +199,21 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     private int remotePort;
 
-     /**
-      * The local address that we will send the message from or that we received
-      * it on.
-      */
-     private InetAddress localAddress;
+    /**
+     * The local address that we will send the message from or that we received
+     * it on.
+     */
+    private InetAddress localAddress;
 
-     /**
-      * The local port that we will send the message from or that we received
-      * it on.
-      */
-     private int localPort;
+    /**
+     * The local port that we will send the message from or that we received it
+     * on.
+     */
+    private int localPort;
 
-     private InetAddress peerPacketSourceAddress;
-     
-     private int peerPacketSourcePort;
+    private InetAddress peerPacketSourceAddress;
+
+    private int peerPacketSourcePort;
 
     /**
      * Return true if the header belongs only in a Request.
@@ -246,8 +247,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     /**
      * Get the headers as a linked list of encoded Strings
      *
-     * @return a linked list with each element of the list containing a string encoded header in
-     *         canonical form.
+     * @return a linked list with each element of the list containing a string
+     * encoded header in canonical form.
      */
     public LinkedList<String> getMessageAsEncodedStrings() {
         LinkedList<String> retval = new LinkedList<String>();
@@ -255,7 +256,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         while (li.hasNext()) {
             SIPHeader sipHeader = (SIPHeader) li.next();
             if (sipHeader instanceof SIPHeaderList) {
-                SIPHeaderList< ? > shl = (SIPHeaderList< ? >) sipHeader;
+                SIPHeaderList< ?> shl = (SIPHeaderList< ?>) sipHeader;
                 retval.addAll(shl.getHeadersAsEncodedStrings());
             } else {
                 retval.add(sipHeader.encode());
@@ -276,8 +277,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
 
         while (it.hasNext()) {
             SIPHeader siphdr = (SIPHeader) it.next();
-            if (!(siphdr instanceof ContentLength))
+            if (!(siphdr instanceof ContentLength)) {
                 siphdr.encode(encoding);
+            }
         }
 
         return contentLengthHeader.encode(encoding).append(NEWLINE);
@@ -289,14 +291,15 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public abstract StringBuilder encodeMessage(StringBuilder retval);
 
     /**
-     * Get A dialog identifier constructed from this messsage. This is an id that can be used to
-     * identify dialogs.
+     * Get A dialog identifier constructed from this messsage. This is an id
+     * that can be used to identify dialogs.
      *
-     * @param isServerTransaction is a flag that indicates whether this is a server transaction.
+     * @param isServerTransaction is a flag that indicates whether this is a
+     * server transaction.
      */
     public final String getDialogId(boolean isServer) {
         To to = (To) this.getTo();
-        return this.getDialogId( isServer, to.getTag() );
+        return this.getDialogId(isServer, to.getTag());
     }
 
     /**
@@ -333,18 +336,20 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Template match for SIP messages. The matchObj is a SIPMessage template to match against.
-     * This method allows you to do pattern matching with incoming SIP messages. Null matches wild
-     * card.
+     * Template match for SIP messages. The matchObj is a SIPMessage template to
+     * match against. This method allows you to do pattern matching with
+     * incoming SIP messages. Null matches wild card.
      *
      * @param other is the match template to match against.
      * @return true if a match occured and false otherwise.
      */
     public boolean match(Object other) {
-        if (other == null)
+        if (other == null) {
             return true;
-        if (!other.getClass().equals(this.getClass()))
+        }
+        if (!other.getClass().equals(this.getClass())) {
             return false;
+        }
         SIPMessage matchObj = (SIPMessage) other;
         Iterator<SIPHeader> li = matchObj.getHeaders();
         while (li.hasNext()) {
@@ -352,17 +357,19 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             List<SIPHeader> myHeaders = this.getHeaderList(hisHeaders.getHeaderName());
 
             // Could not find a header to match his header.
-            if (myHeaders == null || myHeaders.size() == 0)
+            if (myHeaders == null || myHeaders.size() == 0) {
                 return false;
+            }
 
             if (hisHeaders instanceof SIPHeaderList) {
-                ListIterator< ? > outerIterator = ((SIPHeaderList< ? >) hisHeaders)
+                ListIterator< ?> outerIterator = ((SIPHeaderList< ?>) hisHeaders)
                         .listIterator();
                 while (outerIterator.hasNext()) {
                     SIPHeader hisHeader = (SIPHeader) outerIterator.next();
-                    if (hisHeader instanceof ContentLength)
+                    if (hisHeader instanceof ContentLength) {
                         continue;
-                    ListIterator< ? > innerIterator = myHeaders.listIterator();
+                    }
+                    ListIterator< ?> innerIterator = myHeaders.listIterator();
                     boolean found = false;
                     while (innerIterator.hasNext()) {
                         SIPHeader myHeader = (SIPHeader) innerIterator.next();
@@ -371,8 +378,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
                             break;
                         }
                     }
-                    if (!found)
+                    if (!found) {
                         return false;
+                    }
                 }
             } else {
                 SIPHeader hisHeader = hisHeaders;
@@ -385,8 +393,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
                         break;
                     }
                 }
-                if (!found)
+                if (!found) {
                     return false;
+                }
             }
         }
         return true;
@@ -400,8 +409,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *
      */
     public void merge(Object template) {
-        if (!template.getClass().equals(this.getClass()))
+        if (!template.getClass().equals(this.getClass())) {
             throw new IllegalArgumentException("Bad class " + template.getClass());
+        }
         SIPMessage templateMessage = (SIPMessage) template;
         Object[] templateHeaders = templateMessage.headers.toArray();
         for (int i = 0; i < templateHeaders.length; i++) {
@@ -422,12 +432,13 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Encode this message as a string. This is more efficient when the payload is a string
-     * (rather than a binary array of bytes). If the payload cannot be encoded as a UTF-8 string
-     * then it is simply ignored (will not appear in the encoded message).
+     * Encode this message as a string. This is more efficient when the payload
+     * is a string (rather than a binary array of bytes). If the payload cannot
+     * be encoded as a UTF-8 string then it is simply ignored (will not appear
+     * in the encoded message).
      *
-     * @return The Canonical String representation of the message (including the canonical string
-     *         representation of the SDP payload if it exists).
+     * @return The Canonical String representation of the message (including the
+     * canonical string representation of the SDP payload if it exists).
      */
     public String encode() {
         StringBuilder encoding = new StringBuilder();
@@ -435,12 +446,13 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
 
         while (it.hasNext()) {
             SIPHeader siphdr = (SIPHeader) it.next();
-            if (!(siphdr instanceof ContentLength))
+            if (!(siphdr instanceof ContentLength)) {
                 siphdr.encode(encoding);
+            }
         }
         // Append the unrecognized headers. Headers that are not
         // recognized are passed through unchanged.
-        if(unrecognizedHeaders != null) {
+        if (unrecognizedHeaders != null) {
             for (String unrecognized : unrecognizedHeaders) {
                 encoding.append(unrecognized).append(NEWLINE);
             }
@@ -456,11 +468,11 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
 
             String content = null;
             try {
-                if (messageContent != null)
+                if (messageContent != null) {
                     content = messageContent;
-                else {
+                } else {
                     // JvB: Check for 'charset' parameter which overrides the default UTF-8
-                    content = new String(messageContentBytes, getCharset() );
+                    content = new String(messageContentBytes, getCharset());
                 }
             } catch (UnsupportedEncodingException ex) {
                 InternalErrorHandler.handleException(ex);
@@ -472,12 +484,12 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Encode the message as a byte array. Use this when the message payload is a binary byte
-     * array.
+     * Encode the message as a byte array. Use this when the message payload is
+     * a binary byte array.
      *
-     * @return The Canonical byte array representation of the message (including the canonical
-     *         byte array representation of the SDP payload if it exists all in one contiguous
-     *         byte array).
+     * @return The Canonical byte array representation of the message (including
+     * the canonical byte array representation of the SDP payload if it exists
+     * all in one contiguous byte array).
      */
     public byte[] encodeAsBytes(String transport) {
         if (this instanceof SIPRequest && ((SIPRequest) this).isNullRequest()) {
@@ -498,8 +510,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
 
             while (it.hasNext()) {
                 SIPHeader siphdr = (SIPHeader) it.next();
-                if (!(siphdr instanceof ContentLength))
+                if (!(siphdr instanceof ContentLength)) {
                     siphdr.encode(encoding);
+                }
 
             }
         }
@@ -513,7 +526,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
 
             byte[] msgarray = null;
             try {
-                msgarray = encoding.toString().getBytes( getCharset() );
+                msgarray = encoding.toString().getBytes(getCharset());
             } catch (UnsupportedEncodingException ex) {
                 InternalErrorHandler.handleException(ex);
             }
@@ -525,7 +538,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             // Message content does not exist.
 
             try {
-                retval = encoding.toString().getBytes( getCharset() );
+                retval = encoding.toString().getBytes(getCharset());
             } catch (UnsupportedEncodingException ex) {
                 InternalErrorHandler.handleException(ex);
             }
@@ -534,12 +547,13 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * clone this message (create a new deep physical copy). All headers in the message are
-     * cloned. You can modify the cloned copy without affecting the original. The content is
-     * handled as follows: If the content is a String, or a byte array, a new copy of the content
-     * is allocated and copied over. If the content is an Object that supports the clone method,
-     * then the clone method is invoked and the cloned content is the new content. Otherwise, the
-     * content of the new message is set equal to the old one.
+     * clone this message (create a new deep physical copy). All headers in the
+     * message are cloned. You can modify the cloned copy without affecting the
+     * original. The content is handled as follows: If the content is a String,
+     * or a byte array, a new copy of the content is allocated and copied over.
+     * If the content is an Object that supports the clone method, then the
+     * clone method is invoked and the cloned content is the new content.
+     * Otherwise, the content of the new message is set equal to the old one.
      *
      * @return A cloned copy of this object.
      */
@@ -552,7 +566,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         retval.callIdHeader = null;
         retval.contentLengthHeader = null;
         retval.maxForwardsHeader = null;
-        retval.forkId = null;        
+        retval.forkId = null;
         if (this.headers != null) {
             retval.headers = new ConcurrentLinkedQueue<SIPHeader>();
             for (Iterator<SIPHeader> iter = headers.iterator(); iter.hasNext();) {
@@ -561,10 +575,12 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             }
 
         }
-        if (this.messageContentBytes != null)
+        if (this.messageContentBytes != null) {
             retval.messageContentBytes = (byte[]) this.messageContentBytes.clone();
-        if (this.messageContentObject != null)
+        }
+        if (this.messageContentObject != null) {
             retval.messageContentObject = makeClone(messageContentObject);
+        }
         retval.unrecognizedHeaders = this.unrecognizedHeaders;
         retval.remoteAddress = this.remoteAddress;
         retval.remotePort = this.remotePort;
@@ -572,10 +588,11 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Get the string representation of this header (for pretty printing the generated structure).
+     * Get the string representation of this header (for pretty printing the
+     * generated structure).
      *
-     * @return Formatted string representation of the object. Note that this is NOT the same as
-     *         encode(). This is used mainly for debugging purposes.
+     * @return Formatted string representation of the object. Note that this is
+     * NOT the same as encode(). This is used mainly for debugging purposes.
      */
     public String debugDump() {
         stringRepresentation = "";
@@ -586,7 +603,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             Field[] fields = this.getClass().getDeclaredFields();
             for (int i = 0; i < fields.length; i++) {
                 Field f = fields[i];
-                Class< ? > fieldType = f.getType();
+                Class< ?> fieldType = f.getType();
                 String fieldName = f.getName();
                 if (f.get(this) != null && SIPHeader.class.isAssignableFrom(fieldType)
                         && fieldName.compareTo("headers") != 0) {
@@ -612,9 +629,10 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Constructor: Initializes lists and list headers. All the headers for which there can be
-     * multiple occurances in a message are derived from the SIPHeaderListClass. All singleton
-     * headers are derived from SIPHeader class.
+     * Constructor: Initializes lists and list headers. All the headers for
+     * which there can be multiple occurances in a message are derived from the
+     * SIPHeaderListClass. All singleton headers are derived from SIPHeader
+     * class.
      */
     public SIPMessage() {
         this.unrecognizedHeaders = new LinkedList<String>();
@@ -632,11 +650,12 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @param h SIPHeader to attach.
      */
     private void attachHeader(SIPHeader h) {
-        if (h == null)
+        if (h == null) {
             throw new IllegalArgumentException("null header!");
+        }
         try {
             if (h instanceof SIPHeaderList) {
-                SIPHeaderList< ? > hl = (SIPHeaderList< ? >) h;
+                SIPHeaderList< ?> hl = (SIPHeaderList< ?>) h;
                 if (hl.isEmpty()) {
                     return;
                 }
@@ -654,14 +673,16 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     public void setHeader(Header sipHeader) {
         SIPHeader header = (SIPHeader) sipHeader;
-        if (header == null)
+        if (header == null) {
             throw new IllegalArgumentException("null header!");
+        }
         try {
             if (header instanceof SIPHeaderList) {
-                SIPHeaderList< ? > hl = (SIPHeaderList< ? >) header;
+                SIPHeaderList< ?> hl = (SIPHeaderList< ?>) header;
                 // Ignore empty lists.
-                if (hl.isEmpty())
+                if (hl.isEmpty()) {
                     return;
+                }
             }
             this.removeHeader(header.getHeaderName());
             attachHeader(header, true, false);
@@ -687,32 +708,33 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Attach a header to the end of the existing headers in this SIPMessage structure. This is
-     * equivalent to the attachHeader(SIPHeader,replaceflag,false); which is the normal way in
+     * Attach a header to the end of the existing headers in this SIPMessage
+     * structure. This is equivalent to the
+     * attachHeader(SIPHeader,replaceflag,false); which is the normal way in
      * which headers are attached. This was added in support of JAIN-SIP.
      *
      * @param h header to attach.
      * @param replaceflag if true then replace a header if it exists.
-     * @throws SIPDuplicateHeaderException If replaceFlag is false and only a singleton header is
-     *         allowed (fpr example CSeq).
+     * @throws SIPDuplicateHeaderException If replaceFlag is false and only a
+     * singleton header is allowed (fpr example CSeq).
      */
     public void attachHeader(SIPHeader h, boolean replaceflag) throws SIPDuplicateHeaderException {
         this.attachHeader(h, replaceflag, false);
     }
 
     /**
-     * Attach the header to the SIP Message structure at a specified position in its list of
-     * headers.
+     * Attach the header to the SIP Message structure at a specified position in
+     * its list of headers.
      *
      * @param header Header to attach.
      * @param replaceFlag If true then replace the existing header.
      * @param top Location in the header list to insert the header.
-     * @exception SIPDuplicateHeaderException if the header is of a type that cannot tolerate
-     *            duplicates and one of this type already exists (e.g. CSeq header).
-     * @throws IndexOutOfBoundsException If the index specified is greater than the number of
-     *         headers that are in this message.
+     * @exception SIPDuplicateHeaderException if the header is of a type that
+     * cannot tolerate duplicates and one of this type already exists (e.g. CSeq
+     * header).
+     * @throws IndexOutOfBoundsException If the index specified is greater than
+     * the number of headers that are in this message.
      */
-
     public void attachHeader(SIPHeader header, boolean replaceFlag, boolean top)
             throws SIPDuplicateHeaderException {
         if (header == null) {
@@ -762,12 +784,13 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             headers.add(h);
         } else {
             if (h instanceof SIPHeaderList) {
-                SIPHeaderList< ? > hdrlist = (SIPHeaderList< ? >) headerTable
+                SIPHeaderList< ?> hdrlist = (SIPHeaderList< ?>) headerTable
                         .get(headerNameLowerCase);
-                if (hdrlist != null)
+                if (hdrlist != null) {
                     hdrlist.concatenate((SIPHeaderList) h, top);
-                else
+                } else {
                     headerTable.put(headerNameLowerCase, h);
+                }
             } else {
                 headerTable.put(headerNameLowerCase, h);
             }
@@ -791,8 +814,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Remove a header given its name. If multiple headers of a given name are present then the
-     * top flag determines which end to remove headers from.
+     * Remove a header given its name. If multiple headers of a given name are
+     * present then the top flag determines which end to remove headers from.
      *
      * @param headerName is the name of the header to remove.
      * @param top -- flag that indicates which end of header list to process.
@@ -802,21 +825,24 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         String headerNameLowerCase = SIPHeaderNamesCache.toLowerCase(headerName);
         SIPHeader toRemove = (SIPHeader) headerTable.get(headerNameLowerCase);
         // nothing to do then we are done.
-        if (toRemove == null)
+        if (toRemove == null) {
             return;
+        }
         if (toRemove instanceof SIPHeaderList) {
-            SIPHeaderList< ? > hdrList = (SIPHeaderList< ? >) toRemove;
-            if (top)
+            SIPHeaderList< ?> hdrList = (SIPHeaderList< ?>) toRemove;
+            if (top) {
                 hdrList.removeFirst();
-            else
+            } else {
                 hdrList.removeLast();
+            }
             // Clean up empty list
             if (hdrList.isEmpty()) {
                 Iterator<SIPHeader> li = this.headers.iterator();
                 while (li.hasNext()) {
                     SIPHeader sipHeader = (SIPHeader) li.next();
-                    if (sipHeader.getName().equalsIgnoreCase(headerNameLowerCase))
+                    if (sipHeader.getName().equalsIgnoreCase(headerNameLowerCase)) {
                         li.remove();
+                    }
                 }
 
                 // JvB: also remove it from the nameTable! Else NPE in
@@ -841,8 +867,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             Iterator<SIPHeader> li = this.headers.iterator();
             while (li.hasNext()) {
                 SIPHeader sipHeader = (SIPHeader) li.next();
-                if (sipHeader.getName().equalsIgnoreCase(headerName))
+                if (sipHeader.getName().equalsIgnoreCase(headerName)) {
                     li.remove();
+                }
             }
         }
 
@@ -855,13 +882,15 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     public void removeHeader(String headerName) {
 
-        if (headerName == null)
+        if (headerName == null) {
             throw new NullPointerException("null arg");
+        }
         String headerNameLowerCase = SIPHeaderNamesCache.toLowerCase(headerName);
         SIPHeader removed = (SIPHeader) headerTable.remove(headerNameLowerCase);
         // nothing to do then we are done.
-        if (removed == null)
+        if (removed == null) {
             return;
+        }
 
         // Remove the fast accessor fields.
         if (removed instanceof From) {
@@ -881,8 +910,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         Iterator<SIPHeader> li = this.headers.iterator();
         while (li.hasNext()) {
             SIPHeader sipHeader = (SIPHeader) li.next();
-            if (sipHeader.getName().equalsIgnoreCase(headerNameLowerCase))
+            if (sipHeader.getName().equalsIgnoreCase(headerNameLowerCase)) {
                 li.remove();
+            }
 
         }
     }
@@ -890,18 +920,21 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     /**
      * Generate (compute) a transaction ID for this SIP message.
      *
-     * @return A string containing the concatenation of various portions of the From,To,Via and
-     *         RequestURI portions of this message as specified in RFC 2543: All responses to a
-     *         request contain the same values in the Call-ID, CSeq, To, and From fields (with the
-     *         possible addition of a tag in the To field (section 10.43)). This allows responses
-     *         to be matched with requests. Incorporates a bug fix for a bug sent in by Gordon
-     *         Ledgard of IPera for generating transactionIDs when no port is present in the via
-     *         header. Incorporates a bug fix for a bug report sent in by Chris Mills of Nortel
-     *         Networks (converts to lower case when returning the transaction identifier).
+     * @return A string containing the concatenation of various portions of the
+     * From,To,Via and RequestURI portions of this message as specified in RFC
+     * 2543: All responses to a request contain the same values in the Call-ID,
+     * CSeq, To, and From fields (with the possible addition of a tag in the To
+     * field (section 10.43)). This allows responses to be matched with
+     * requests. Incorporates a bug fix for a bug sent in by Gordon Ledgard of
+     * IPera for generating transactionIDs when no port is present in the via
+     * header. Incorporates a bug fix for a bug report sent in by Chris Mills of
+     * Nortel Networks (converts to lower case when returning the transaction
+     * identifier).
      *
-     * @return a string that can be used as a transaction identifier for this message. This can be
-     *         used for matching responses and requests (i.e. an outgoing request and its matching
-     *         response have the same computed transaction identifier).
+     * @return a string that can be used as a transaction identifier for this
+     * message. This can be used for matching responses and requests (i.e. an
+     * outgoing request and its matching response have the same computed
+     * transaction identifier).
      */
     public String getTransactionId() {
         Via topVia = getTopmostVia();
@@ -918,10 +951,11 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             // Bis 09 compatible branch assignment algorithm.
             // implies that the branch id can be used as a transaction
             // identifier.
-            if (this.getCSeq().getMethod().equals(Request.CANCEL))
+            if (this.getCSeq().getMethod().equals(Request.CANCEL)) {
                 return (topVia.getBranch() + ":" + this.getCSeq().getMethod()).toLowerCase();
-            else
+            } else {
                 return topVia.getBranch().toLowerCase();
+            }
         } else {
             // Old style client so construct the transaction identifier
             // from various fields of the request.
@@ -930,21 +964,26 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             To to = (To) this.getTo();
             // String hpFrom = from.getUserAtHostPort();
             // retval.append(hpFrom).append(":");
-            if (from.hasTag())
+            if (from != null && from.hasTag()) {
                 retval.append(from.getTag()).append("-");
+            }
             // String hpTo = to.getUserAtHostPort();
             // retval.append(hpTo).append(":");
-            String cid = this.callIdHeader.getCallId();
-            retval.append(cid).append("-");
-            retval.append(this.cSeqHeader.getSequenceNumber()).append("-").append(
-                    this.cSeqHeader.getMethod());
+            if (this.callIdHeader != null) {
+                String cid = this.callIdHeader.getCallId();
+                retval.append(cid).append("-");
+            }
+            if (cSeqHeader != null) {
+                retval.append(this.cSeqHeader.getSequenceNumber()).append("-").append(
+                        this.cSeqHeader.getMethod());
+            }
             if (topVia != null) {
                 retval.append("-").append(topVia.getSentBy().encode());
                 if (!topVia.getSentBy().hasPort()) {
                     retval.append("-").append(5060);
                 }
             }
-            if (this.getCSeq().getMethod().equals(Request.CANCEL)) {
+            if (getCSeq() != null && this.getCSeq().getMethod().equals(Request.CANCEL)) {
                 retval.append(Request.CANCEL);
             }
             return retval.toString().toLowerCase().replace(":", "-").replace("@", "-")
@@ -953,16 +992,17 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Override the hashcode method ( see issue # 55 ) Note that if you try to use this method
-     * before you assemble a valid request, you will get a constant ( -1 ). Beware of placing any
-     * half formed requests in a table.
+     * Override the hashcode method ( see issue # 55 ) Note that if you try to
+     * use this method before you assemble a valid request, you will get a
+     * constant ( -1 ). Beware of placing any half formed requests in a table.
      */
     public int hashCode() {
-        if (this.callIdHeader == null)
+        if (this.callIdHeader == null) {
             throw new RuntimeException(
                     "Invalid message! Cannot compute hashcode! call-id header is missing !");
-        else
+        } else {
             return this.callIdHeader.getCallId().hashCode();
+        }
     }
 
     /**
@@ -991,13 +1031,15 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     protected Header getHeaderLowerCase(String lowerCaseHeaderName) {
-        if (lowerCaseHeaderName == null)
+        if (lowerCaseHeaderName == null) {
             throw new NullPointerException("bad name");
+        }
         SIPHeader sipHeader = (SIPHeader) headerTable.get(lowerCaseHeaderName);
-        if (sipHeader instanceof SIPHeaderList)
+        if (sipHeader instanceof SIPHeaderList) {
             return (Header) ((SIPHeaderList) sipHeader).getFirst();
-        else
+        } else {
             return (Header) sipHeader;
+        }
     }
 
     /**
@@ -1005,14 +1047,12 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *
      * @return contentType header
      */
-
     public ContentType getContentTypeHeader() {
         return (ContentType) getHeaderLowerCase(CONTENT_TYPE_LOWERCASE);
     }
 
     private static final String CONTENT_TYPE_LOWERCASE = SIPHeaderNamesCache
-    .toLowerCase(ContentTypeHeader.NAME);
-
+            .toLowerCase(ContentTypeHeader.NAME);
 
     /**
      * Get the contentLength header.
@@ -1020,7 +1060,6 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public ContentLengthHeader getContentLengthHeader() {
         return this.getContentLength();
     }
-
 
     /**
      * Get the from header.
@@ -1055,7 +1094,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             .toLowerCase(ContactHeader.NAME);
 
     /**
-     * Get the contact header ( the first contact header) which is all we need for the most part.
+     * Get the contact header ( the first contact header) which is all we need
+     * for the most part.
      *
      */
     public Contact getContactHeader() {
@@ -1099,7 +1139,6 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *
      * @param sipHeaderList a headerList to set
      */
-
     public void setHeader(SIPHeaderList<Via> sipHeaderList) {
         this.setHeader((Header) sipHeaderList);
     }
@@ -1110,10 +1149,11 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @return the top most via header if one exists or null if none exists.
      */
     public Via getTopmostVia() {
-        if (this.getViaHeaders() == null)
+        if (this.getViaHeaders() == null) {
             return null;
-        else
+        } else {
             return (Via) (getViaHeaders().getFirst());
+        }
     }
 
     /**
@@ -1142,7 +1182,6 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *
      * @return Max-Forwards header
      */
-
     public MaxForwardsHeader getMaxForwards() {
         return maxForwardsHeader;
     }
@@ -1238,40 +1277,41 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Get the message body as a string. If the message contains a content type header with a
-     * specified charset, and if the payload has been read as a byte array, then it is returned
-     * encoded into this charset.
+     * Get the message body as a string. If the message contains a content type
+     * header with a specified charset, and if the payload has been read as a
+     * byte array, then it is returned encoded into this charset.
      *
      * @return Message body (as a string)
-     * @throws UnsupportedEncodingException if the platform does not support the charset specified
-     *         in the content type header.
+     * @throws UnsupportedEncodingException if the platform does not support the
+     * charset specified in the content type header.
      *
      */
     public String getMessageContent() throws UnsupportedEncodingException {
-        if (this.messageContent == null && this.messageContentBytes == null)
+        if (this.messageContent == null && this.messageContentBytes == null) {
             return null;
-        else if (this.messageContent == null) {
-            this.messageContent = new String(messageContentBytes, getCharset() );
+        } else if (this.messageContent == null) {
+            this.messageContent = new String(messageContentBytes, getCharset());
         }
         return this.messageContent;
     }
 
     /**
-     * Get the message content as an array of bytes. If the payload has been read as a String then
-     * it is decoded using the charset specified in the content type header if it exists.
-     * Otherwise, it is encoded using the default encoding which is UTF-8.
+     * Get the message content as an array of bytes. If the payload has been
+     * read as a String then it is decoded using the charset specified in the
+     * content type header if it exists. Otherwise, it is encoded using the
+     * default encoding which is UTF-8.
      *
      * @return an array of bytes that is the message payload.
      */
     public byte[] getRawContent() {
         try {
-            if ( this.messageContentBytes != null ) {
+            if (this.messageContentBytes != null) {
                 // return messageContentBytes;
             } else if (this.messageContentObject != null) {
                 String messageContent = this.messageContentObject.toString();
-                this.messageContentBytes = messageContent.getBytes( getCharset() );
+                this.messageContentBytes = messageContent.getBytes(getCharset());
             } else if (this.messageContent != null) {
-                this.messageContentBytes = messageContent.getBytes( getCharset() );
+                this.messageContentBytes = messageContent.getBytes(getCharset());
             }
             return this.messageContentBytes;
         } catch (UnsupportedEncodingException ex) {
@@ -1288,8 +1328,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @param messageContent is the messge content as a string.
      */
     public void setMessageContent(String type, String subType, String messageContent) {
-        if (messageContent == null)
+        if (messageContent == null) {
             throw new IllegalArgumentException("messgeContent is null");
+        }
         ContentType ct = new ContentType(type, subType);
         this.setHeader(ct);
         this.messageContent = messageContent;
@@ -1308,8 +1349,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     public void setContent(Object content, ContentTypeHeader contentTypeHeader)
             throws ParseException {
-        if (content == null)
+        if (content == null) {
             throw new NullPointerException("null content");
+        }
         this.setHeader(contentTypeHeader);
 
         this.messageContent = null;
@@ -1320,8 +1362,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             this.messageContent = (String) content;
         } else if (content instanceof byte[]) {
             this.messageContentBytes = (byte[]) content;
-        } else
+        } else {
             this.messageContentObject = content;
+        }
 
         computeContentLength(content);
     }
@@ -1332,14 +1375,15 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @return the content of the sip message.
      */
     public Object getContent() {
-        if (this.messageContentObject != null)
+        if (this.messageContentObject != null) {
             return messageContentObject;
-        else if (this.messageContent != null)
+        } else if (this.messageContent != null) {
             return this.messageContent;
-        else if (this.messageContentBytes != null)
+        } else if (this.messageContentBytes != null) {
             return this.messageContentBytes;
-        else
+        } else {
             return null;
+        }
     }
 
     /**
@@ -1368,7 +1412,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         // set - bug report by Masafumi Watanabe
         computeContentLength(content);
         if ((!computeContentLength)) {
-            if ( (!strict && this.contentLengthHeader.getContentLength() != givenLength)
+            if ((!strict && this.contentLengthHeader.getContentLength() != givenLength)
                     || this.contentLengthHeader.getContentLength() < givenLength) {
                 throw new ParseException("Invalid content length "
                         + this.contentLengthHeader.getContentLength() + " / " + givenLength, 0);
@@ -1413,16 +1457,18 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Compute and set the Content-length header based on the given content object.
+     * Compute and set the Content-length header based on the given content
+     * object.
      *
-     * @param content is the content, as String, array of bytes, or other object.
+     * @param content is the content, as String, array of bytes, or other
+     * object.
      */
     private void computeContentLength(Object content) {
         int length = 0;
         if (content != null) {
             if (content instanceof String) {
                 try {
-                    length = ((String) content).getBytes( getCharset() ).length;
+                    length = ((String) content).getBytes(getCharset()).length;
                 } catch (UnsupportedEncodingException ex) {
                     InternalErrorHandler.handleException(ex);
                 }
@@ -1461,13 +1507,15 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     @SuppressWarnings("unchecked")
     public ListIterator<SIPHeader> getHeaders(String headerName) {
-        if (headerName == null)
+        if (headerName == null) {
             throw new NullPointerException("null headerName");
+        }
         SIPHeader sipHeader = (SIPHeader) headerTable.get(SIPHeaderNamesCache
                 .toLowerCase(headerName));
         // empty iterator
-        if (sipHeader == null)
+        if (sipHeader == null) {
             return new LinkedList<SIPHeader>().listIterator();
+        }
         if (sipHeader instanceof SIPHeaderList) {
             return ((SIPHeaderList<SIPHeader>) sipHeader).listIterator();
         } else {
@@ -1476,8 +1524,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Get a header of the given name as a string. This concatenates the headers of a given type
-     * as a comma separted list. This is useful for formatting and printing headers.
+     * Get a header of the given name as a string. This concatenates the headers
+     * of a given type as a comma separted list. This is useful for formatting
+     * and printing headers.
      *
      * @param name
      * @return the header as a formatted string
@@ -1496,7 +1545,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Get a list of headers of the given name ( or null if no such header exists ).
+     * Get a list of headers of the given name ( or null if no such header
+     * exists ).
      *
      * @param headerName -- a header name from which to retrieve the list.
      * @return -- a list of headers with that name.
@@ -1505,11 +1555,11 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     private List<SIPHeader> getHeaderList(String headerName) {
         SIPHeader sipHeader = (SIPHeader) headerTable.get(SIPHeaderNamesCache
                 .toLowerCase(headerName));
-        if (sipHeader == null)
+        if (sipHeader == null) {
             return null;
-        else if (sipHeader instanceof SIPHeaderList)
-            return (List<SIPHeader>) (((SIPHeaderList< ? >) sipHeader).getHeaderList());
-        else {
+        } else if (sipHeader instanceof SIPHeaderList) {
+            return (List<SIPHeader>) (((SIPHeaderList< ?>) sipHeader).getHeaderList());
+        } else {
             LinkedList<SIPHeader> ll = new LinkedList<SIPHeader>();
             ll.add(sipHeader);
             return ll;
@@ -1629,7 +1679,6 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *
      * @param sipHeader -- string version of SIP header to add.
      */
-
     public void addHeader(String sipHeader) {
         try {
             HeaderParser parser = ParserFactory.createParser(sipHeader + "\n");
@@ -1652,8 +1701,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     /**
      * Get the header names.
      *
-     * @return a list iterator to a list of header names. These are ordered in the same order as
-     *         are present in the message.
+     * @return a list iterator to a list of header names. These are ordered in
+     * the same order as are present in the message.
      */
     public ListIterator<String> getHeaderNames() {
         Iterator<SIPHeader> li = this.headers.iterator();
@@ -1748,7 +1797,6 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *
      * @param expiresHeader -- the expires header to set.
      */
-
     public void setExpires(ExpiresHeader expiresHeader) {
         this.setHeader(expiresHeader);
     }
@@ -1758,7 +1806,6 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *
      * @param contentDispositionHeader -- content disposition header.
      */
-
     public void setContentDisposition(ContentDispositionHeader contentDispositionHeader) {
         this.setHeader(contentDispositionHeader);
 
@@ -1787,7 +1834,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     }
 
     /**
-     * Set the size of all the headers. This is for book keeping. Called by the parser.
+     * Set the size of all the headers. This is for book keeping. Called by the
+     * parser.
      *
      * @param size -- size of the headers.
      */
@@ -1805,8 +1853,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @see javax.sip.message.Message#addLast(javax.sip.header.Header)
      */
     public void addLast(Header header) throws SipException, NullPointerException {
-        if (header == null)
+        if (header == null) {
             throw new NullPointerException("null arg!");
+        }
 
         try {
             this.attachHeader((SIPHeader) header, false, false);
@@ -1823,8 +1872,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     public void addFirst(Header header) throws SipException, NullPointerException {
 
-        if (header == null)
+        if (header == null) {
             throw new NullPointerException("null arg!");
+        }
 
         try {
             this.attachHeader((SIPHeader) header, false, true);
@@ -1840,8 +1890,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @see javax.sip.message.Message#removeFirst(java.lang.String)
      */
     public void removeFirst(String headerName) throws NullPointerException {
-        if (headerName == null)
+        if (headerName == null) {
             throw new NullPointerException("Null argument Provided!");
+        }
         this.removeHeader(headerName, true);
 
     }
@@ -1852,8 +1903,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @see javax.sip.message.Message#removeLast(java.lang.String)
      */
     public void removeLast(String headerName) {
-        if (headerName == null)
+        if (headerName == null) {
             throw new NullPointerException("Null argument Provided!");
+        }
         this.removeHeader(headerName, false);
 
     }
@@ -1863,18 +1915,18 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *
      * @param cseqHeader -- CSeq Header.
      */
-
     public void setCSeq(CSeqHeader cseqHeader) {
         this.setHeader(cseqHeader);
     }
 
     /**
-     * Set the application data pointer. This method is not used the stack. It is provided as a
-     * convenient way of storing book-keeping data for applications. Note that null clears the
-     * application data pointer (releases it).
+     * Set the application data pointer. This method is not used the stack. It
+     * is provided as a convenient way of storing book-keeping data for
+     * applications. Note that null clears the application data pointer
+     * (releases it).
      *
-     * @param applicationData -- application data pointer to set. null clears the application data
-     *        pointer.
+     * @param applicationData -- application data pointer to set. null clears
+     * the application data pointer.
      */
     public void setApplicationData(Object applicationData) {
         this.applicationData = applicationData;
@@ -1901,7 +1953,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
                 .getContentTypeHeader());
         byte[] rawContent = getRawContent();
         try {
-            String body = new String( rawContent, getCharset() );
+            String body = new String(rawContent, getCharset());
             retval.createContentList(body);
             return retval;
         } catch (UnsupportedEncodingException e) {
@@ -1914,16 +1966,13 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         return this.callIdHeader;
     }
 
-
     public FromHeader getFromHeader() {
         return this.fromHeader;
     }
 
-
     public ToHeader getToHeader() {
         return this.toHeader;
     }
-
 
     public ViaHeader getTopmostViaHeader() {
         return this.getTopmostVia();
@@ -1938,38 +1987,43 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     protected final String getCharset() {
         ContentType ct = getContentTypeHeader();
-        if (ct!=null) {
+        if (ct != null) {
             String c = ct.getCharset();
-            return c!=null ? c : contentEncodingCharset;
-        } else return contentEncodingCharset;
+            return c != null ? c : contentEncodingCharset;
+        } else {
+            return contentEncodingCharset;
+        }
     }
 
     /**
-     * Return true if this is a null request (i.e. does not have a request line ).
+     * Return true if this is a null request (i.e. does not have a request line
+     * ).
      *
      * @return true if null request.
      */
     public boolean isNullRequest() {
-        return  this.nullRequest;
+        return this.nullRequest;
     }
 
     /**
-     * Set a flag to indiate this is a special message ( encoded with CRLFCRLF ).
+     * Set a flag to indiate this is a special message ( encoded with CRLFCRLF
+     * ).
      *
      */
     public void setNullRequest() {
         this.nullRequest = true;
     }
+
     public String getForkId() {
-        if ( this.forkId != null ) {
+        if (this.forkId != null) {
             return forkId;
         } else {
-            String callId =  this.getCallId().getCallId();
+            String callId = this.getCallId().getCallId();
             String fromTag = this.getFromTag();
-            if ( fromTag == null ) {
+            if (fromTag == null) {
                 throw new IllegalStateException("From tag is not yet set. Cannot compute forkId");
             }
-            this.forkId =  (callId + ":" + fromTag).toLowerCase();
+            this.forkId = (callId + ":" + fromTag).toLowerCase();
             return this.forkId;
         }
     }
@@ -2019,7 +2073,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @return the unrecognizedHeaders
      */
     protected LinkedList<String> getUnrecognizedHeadersList() {
-        if(unrecognizedHeaders == null) {
+        if (unrecognizedHeaders == null) {
             unrecognizedHeaders = new LinkedList<String>();
         }
         return unrecognizedHeaders;
@@ -2041,35 +2095,35 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         return remotePort;
     }
 
-     public void setLocalAddress(InetAddress localAddress) {
-         this.localAddress = localAddress;
-     }
+    public void setLocalAddress(InetAddress localAddress) {
+        this.localAddress = localAddress;
+    }
 
-     public InetAddress getLocalAddress() {
-         return localAddress;
-     }
+    public InetAddress getLocalAddress() {
+        return localAddress;
+    }
 
-     public void setLocalPort(int localPort) {
-         this.localPort = localPort;
-     }
+    public void setLocalPort(int localPort) {
+        this.localPort = localPort;
+    }
 
-     public int getLocalPort() {
-         return localPort;
-     }
+    public int getLocalPort() {
+        return localPort;
+    }
 
     public void setPeerPacketSourceAddress(InetAddress peerPacketSourceAddress) {
         this.peerPacketSourceAddress = peerPacketSourceAddress;
     }
-    
-    public InetAddress getPeerPacketSourceAddress(){
+
+    public InetAddress getPeerPacketSourceAddress() {
         return this.peerPacketSourceAddress;
     }
 
     public void setPeerPacketSourcePort(int peerPacketSourcePort) {
         this.peerPacketSourcePort = peerPacketSourcePort;
     }
-    
-    public int getPeerPacketSourcePort(){
+
+    public int getPeerPacketSourcePort() {
         return this.peerPacketSourcePort;
     }
 }

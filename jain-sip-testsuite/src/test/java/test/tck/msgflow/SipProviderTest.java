@@ -16,7 +16,7 @@
 * the software.
 *
 *
-*/
+ */
 package test.tck.msgflow;
 
 import junit.framework.*;
@@ -27,29 +27,33 @@ import javax.sip.header.*;
 import java.util.List;
 import java.util.*;
 import java.text.*;
+import org.junit.Ignore;
 import test.tck.*;
 
 /**
- * <p>Title: TCK</p>
- * <p>Description: JAIN SIP 1.1 Technology Compatibility Kit</p>
- * <p>Copyright: Copyright (c) 2003</p>
- * <p>Company: NIST</p>
- * @author Emil Ivov
- *      Network Research Team, Louis Pasteur University, Strasbourg, France.
- * This  code is in the public domain.
+ * <p>
+ * Title: TCK</p>
+ * <p>
+ * Description: JAIN SIP 1.1 Technology Compatibility Kit</p>
+ * <p>
+ * Copyright: Copyright (c) 2003</p>
+ * <p>
+ * Company: NIST</p>
+ *
+ * @author Emil Ivov Network Research Team, Louis Pasteur University,
+ * Strasbourg, France. This code is in the public domain.
  * @version 1.0
  */
-
 public class SipProviderTest extends MessageFlowHarness {
 
     public SipProviderTest(String name) {
-        super(name,true);
+        super(name, true);
     }
 
     //======================= tests ====================================
     /**
-     * Sends a single invite request and checks whether it arrives normally
-     * at the other end.
+     * Sends a single invite request and checks whether it arrives normally at
+     * the other end.
      */
     public void testSendRequest() {
         try {
@@ -62,23 +66,23 @@ public class SipProviderTest extends MessageFlowHarness {
                 waitForMessage();
                 tiSipProvider.sendRequest(invite);
                 waitForMessage();
-                RequestEvent receivedRequestEvent =
-                    eventCollector.extractCollectedRequestEvent();
+                RequestEvent receivedRequestEvent
+                        = eventCollector.extractCollectedRequestEvent();
                 assertNotNull(
-                    "The sent request was not received at the other end!",
-                    receivedRequestEvent);
+                        "The sent request was not received at the other end!",
+                        receivedRequestEvent);
                 assertNotNull(
-                    "The sent request was not received at the other end!",
-                    receivedRequestEvent.getRequest());
+                        "The sent request was not received at the other end!",
+                        receivedRequestEvent.getRequest());
             } catch (TooManyListenersException ex) {
                 throw new TckInternalError(
-                    "The following exception was thrown while trying to add "
+                        "The following exception was thrown while trying to add "
                         + "a SipListener to an RI SipProvider",
-                    ex);
+                        ex);
             } catch (SipException ex) {
                 ex.printStackTrace();
                 fail(
-                    "A SipException exception was thrown while "
+                        "A SipException exception was thrown while "
                         + "trying to send a request.");
             }
         } catch (Throwable exc) {
@@ -87,8 +91,10 @@ public class SipProviderTest extends MessageFlowHarness {
         }
         assertTrue(new Exception().getStackTrace()[0].toString(), true);
     }
+
     /**
-     *Sends a empty request and assures that the other side does not see the request.
+     * Sends a empty request and assures that the other side does not see the
+     * request.
      *
      */
     public void testSendNullRequest() {
@@ -100,20 +106,21 @@ public class SipProviderTest extends MessageFlowHarness {
                 eventCollector.collectRequestEvent(tiSipProvider);
                 riSipProvider.sendRequest(nullRequest);
                 waitForMessage();
-                RequestEvent receivedRequestEvent =
-                    eventCollector.extractCollectedRequestEvent();
+                RequestEvent receivedRequestEvent
+                        = eventCollector.extractCollectedRequestEvent();
 
-                if (receivedRequestEvent != null )
+                if (receivedRequestEvent != null) {
                     throw new TiUnexpectedError("The the sent null string request should not generate a request event!");
+                }
             } catch (TooManyListenersException ex) {
                 throw new TiUnexpectedError(
-                    "A TooManyListenersException was thrown while trying to add "
+                        "A TooManyListenersException was thrown while trying to add "
                         + "a SipListener to a TI SipProvider.",
-                    ex);
+                        ex);
             } catch (SipException ex) {
                 throw new TckInternalError(
-                    "The RI failed to send the request!",
-                    ex);
+                        "The RI failed to send the request!",
+                        ex);
             } catch (ParseException ex) {
                 throw new TiUnexpectedError("The null request did not parse and create an empty message!");
             }
@@ -139,25 +146,25 @@ public class SipProviderTest extends MessageFlowHarness {
                 eventCollector.collectRequestEvent(tiSipProvider);
                 riSipProvider.sendRequest(invite);
                 waitForMessage();
-                receivedRequestEvent =
-                    eventCollector.extractCollectedRequestEvent();
+                receivedRequestEvent
+                        = eventCollector.extractCollectedRequestEvent();
                 assertNotNull(
-                    "The sent request was not received at the other end!",
-                    receivedRequestEvent);
+                        "The sent request was not received at the other end!",
+                        receivedRequestEvent);
                 assertNotNull(
-                    "The sent request was not received at the other end!",
-                    receivedRequestEvent.getRequest());
+                        "The sent request was not received at the other end!",
+                        receivedRequestEvent.getRequest());
             } catch (TooManyListenersException ex) {
                 //This time adding the listener is (sort of) part of the test
                 //so we fail instead of just "throwing on" the exc
                 ex.printStackTrace();
                 fail(
-                    "A TooManyListenersException was thrown while trying to add "
+                        "A TooManyListenersException was thrown while trying to add "
                         + "a SipListener to a TI SipProvider.");
             } catch (SipException ex) {
                 throw new TckInternalError(
-                    "The RI failed to send the request!",
-                    ex);
+                        "The RI failed to send the request!",
+                        ex);
             }
             //question: should we compare sent and received request?
             //my opinion: finding a discrepancy while comparing requests
@@ -167,10 +174,10 @@ public class SipProviderTest extends MessageFlowHarness {
             //associated with them as the application might decide to handle the
             //request statelessly
             assertNull(
-                "The Tested Implementation has implicitly created a ServerTransaction "
+                    "The Tested Implementation has implicitly created a ServerTransaction "
                     + "for the received request. Transactions should only be created "
                     + "explicitly using the SipProvider.getNewXxxTransaction() method.",
-                receivedRequestEvent.getServerTransaction());
+                    receivedRequestEvent.getServerTransaction());
         } catch (Throwable exc) {
             exc.printStackTrace();
             fail(exc.getClass().getName() + ": " + exc.getMessage());
@@ -179,41 +186,42 @@ public class SipProviderTest extends MessageFlowHarness {
     }
 
     /**
-     * Sends a single ACK request from the RI, and tests if the TI passes it to the
-     * application
+     * Sends a single ACK request from the RI, and tests if the TI passes it to
+     * the application
      *
-     * ACKs MUST NOT be filtered for stateless proxy applications, they must forward them
+     * ACKs MUST NOT be filtered for stateless proxy applications, they must
+     * forward them
      */
     public void testReceiveACK() {
         try {
             //create an empty ACK request.
             Request ack = createRiInviteRequest(null, null, null);
-            ack.setMethod( Request.ACK );
+            ack.setMethod(Request.ACK);
             RequestEvent receivedRequestEvent = null;
             try {
                 //Send using RI and collect using TI
                 eventCollector.collectRequestEvent(tiSipProvider);
                 riSipProvider.sendRequest(ack);
                 waitForMessage();
-                receivedRequestEvent =
-                    eventCollector.extractCollectedRequestEvent();
+                receivedRequestEvent
+                        = eventCollector.extractCollectedRequestEvent();
                 assertNotNull(
-                    "The sent ACK event was not received at the other end!",
-                    receivedRequestEvent);
+                        "The sent ACK event was not received at the other end!",
+                        receivedRequestEvent);
                 assertNotNull(
-                    "The sent ACK was not received at the other end!",
-                    receivedRequestEvent.getRequest());
+                        "The sent ACK was not received at the other end!",
+                        receivedRequestEvent.getRequest());
             } catch (TooManyListenersException ex) {
                 //This time adding the listener is (sort of) part of the test
                 //so we fail instead of just "throwing on" the exc
                 ex.printStackTrace();
                 fail(
-                    "A TooManyListenersException was thrown while trying to add "
+                        "A TooManyListenersException was thrown while trying to add "
                         + "a SipListener to a TI SipProvider.");
             } catch (SipException ex) {
                 throw new TckInternalError(
-                    "The RI failed to send the request!",
-                    ex);
+                        "The RI failed to send the request!",
+                        ex);
             }
             //question: should we compare sent and received request?
             //my opinion: finding a discrepancy while comparing requests
@@ -223,10 +231,10 @@ public class SipProviderTest extends MessageFlowHarness {
             //associated with them as the application might decide to handle the
             //request statelessly
             assertNull(
-                "The Tested Implementation has implicitly created a ServerTransaction "
+                    "The Tested Implementation has implicitly created a ServerTransaction "
                     + "for the received request. Transactions should only be created "
                     + "explicitly using the SipProvider.getNewXxxTransaction() method.",
-                receivedRequestEvent.getServerTransaction());
+                    receivedRequestEvent.getServerTransaction());
         } catch (Throwable exc) {
             exc.printStackTrace();
             fail(exc.getClass().getName() + ": " + exc.getMessage());
@@ -249,20 +257,21 @@ public class SipProviderTest extends MessageFlowHarness {
                 eventCollector.collectRequestEvent(tiSipProvider);
                 riSipProvider.sendRequest(invite);
                 waitForMessage();
-                receivedRequestEvent =
-                    eventCollector.extractCollectedRequestEvent();
+                receivedRequestEvent
+                        = eventCollector.extractCollectedRequestEvent();
                 if (receivedRequestEvent == null
-                    || receivedRequestEvent.getRequest() == null)
+                        || receivedRequestEvent.getRequest() == null) {
                     throw new TiUnexpectedError("The sent request was not received by the RI!");
+                }
             } catch (TooManyListenersException ex) {
                 throw new TiUnexpectedError(
-                    "A TooManyListenersException was thrown while trying to add "
+                        "A TooManyListenersException was thrown while trying to add "
                         + "a SipListener to a TI SipProvider.",
-                    ex);
+                        ex);
             } catch (SipException ex) {
                 throw new TckInternalError(
-                    "The RI failed to send the request!",
-                    ex);
+                        "The RI failed to send the request!",
+                        ex);
             }
             Request receivedRequest = receivedRequestEvent.getRequest();
             // 2. Create and send the response
@@ -273,26 +282,26 @@ public class SipProviderTest extends MessageFlowHarness {
             via.add(receivedRequest.getHeader(ViaHeader.NAME));
             Response ok = null;
             try {
-                ok =
-                    tiMessageFactory.createResponse(
-                        Response.OK,
-                        (CallIdHeader) receivedRequest.getHeader(
-                            CallIdHeader.NAME),
-                        (CSeqHeader) receivedRequest.getHeader(CSeqHeader.NAME),
-                        (FromHeader) receivedRequest.getHeader(FromHeader.NAME),
-                        (ToHeader) receivedRequest.getHeader(ToHeader.NAME),
-                        via,
-                        (MaxForwardsHeader) receivedRequest.getHeader(
-                            MaxForwardsHeader.NAME));
+                ok
+                        = tiMessageFactory.createResponse(
+                                Response.OK,
+                                (CallIdHeader) receivedRequest.getHeader(
+                                        CallIdHeader.NAME),
+                                (CSeqHeader) receivedRequest.getHeader(CSeqHeader.NAME),
+                                (FromHeader) receivedRequest.getHeader(FromHeader.NAME),
+                                (ToHeader) receivedRequest.getHeader(ToHeader.NAME),
+                                via,
+                                (MaxForwardsHeader) receivedRequest.getHeader(
+                                        MaxForwardsHeader.NAME));
 
                 // JvB: set to-tag for RFC3261 compliance
-                ((ToHeader)ok.getHeader("To")).setTag("ok");
+                ((ToHeader) ok.getHeader("To")).setTag("ok");
 
                 addStatus(receivedRequest, ok);
             } catch (ParseException ex) {
                 throw new TiUnexpectedError(
-                    "Failed to create an OK response!",
-                    ex);
+                        "Failed to create an OK response!",
+                        ex);
             }
             //Send the response using the TI and collect using RI
             try {
@@ -307,14 +316,14 @@ public class SipProviderTest extends MessageFlowHarness {
                 fail("A SipException occurred while trying to send an ok response.");
             }
             waitForMessage();
-            ResponseEvent responseEvent =
-                eventCollector.extractCollectedResponseEvent();
+            ResponseEvent responseEvent
+                    = eventCollector.extractCollectedResponseEvent();
             assertNotNull(
-                "The sent response was not received by the RI!",
-                responseEvent);
+                    "The sent response was not received by the RI!",
+                    responseEvent);
             assertNotNull(
-                "The sent response was not received by the RI!",
-                responseEvent.getResponse());
+                    "The sent response was not received by the RI!",
+                    responseEvent.getResponse());
         } catch (Throwable exc) {
             exc.printStackTrace();
             fail(exc.getClass().getName() + ": " + exc.getMessage());
@@ -338,38 +347,39 @@ public class SipProviderTest extends MessageFlowHarness {
                 eventCollector.collectRequestEvent(riSipProvider);
                 tiSipProvider.sendRequest(invite);
                 waitForMessage();
-                receivedRequestEvent =
-                    eventCollector.extractCollectedRequestEvent();
+                receivedRequestEvent
+                        = eventCollector.extractCollectedRequestEvent();
                 if (receivedRequestEvent == null
-                    || receivedRequestEvent.getRequest() == null)
+                        || receivedRequestEvent.getRequest() == null) {
                     throw new TckInternalError("The sent request was not received by the RI!");
+                }
             } catch (TooManyListenersException ex) {
                 throw new TckInternalError(
-                    "A TooManyListenersException was thrown while trying to add "
+                        "A TooManyListenersException was thrown while trying to add "
                         + "a SipListener to an RI SipProvider.",
-                    ex);
+                        ex);
             } catch (SipException ex) {
                 throw new TiUnexpectedError(
-                    "The TI failed to send the request!",
-                    ex);
+                        "The TI failed to send the request!",
+                        ex);
             }
             Request receivedRequest = receivedRequestEvent.getRequest();
             // 2. Create and send the response
             Response ok = null;
             try {
-                ok =
-                    riMessageFactory.createResponse(
-                        Response.OK,
-                        receivedRequest);
+                ok
+                        = riMessageFactory.createResponse(
+                                Response.OK,
+                                receivedRequest);
 
                 // JvB: set to-tag for RFC3261 compliance
-                ((ToHeader)ok.getHeader("To")).setTag("ok");
+                ((ToHeader) ok.getHeader("To")).setTag("ok");
 
                 addStatus(receivedRequest, ok);
             } catch (ParseException ex) {
                 throw new TckInternalError(
-                    "Failed to create an OK response!",
-                    ex);
+                        "Failed to create an OK response!",
+                        ex);
             }
             //Send the response using the RI and collect using TI
             try {
@@ -381,24 +391,24 @@ public class SipProviderTest extends MessageFlowHarness {
                 riSipProvider.sendResponse(ok);
             } catch (SipException ex) {
                 throw new TckInternalError(
-                    "Could not send back the response",
-                    ex);
+                        "Could not send back the response",
+                        ex);
             }
             waitForMessage();
-            ResponseEvent responseEvent =
-                eventCollector.extractCollectedResponseEvent();
+            ResponseEvent responseEvent
+                    = eventCollector.extractCollectedResponseEvent();
             //3. Now ... do we like what we got?
             assertNotNull(
-                "The TI failed to receive the response!",
-                responseEvent);
+                    "The TI failed to receive the response!",
+                    responseEvent);
             assertNotNull(
-                "The TI failed to receive the response!",
-                responseEvent.getResponse());
+                    "The TI failed to receive the response!",
+                    responseEvent.getResponse());
             assertNull(
-                "The TI had implicitly created a client transaction! "
+                    "The TI had implicitly created a client transaction! "
                     + "Transactions should only be created explicitly using "
                     + "the SipProvider.getNewXxxTransaction() method.",
-                responseEvent.getClientTransaction());
+                    responseEvent.getClientTransaction());
         } catch (Throwable exc) {
             exc.printStackTrace();
             fail(exc.getClass().getName() + ": " + exc.getMessage());
@@ -418,29 +428,29 @@ public class SipProviderTest extends MessageFlowHarness {
             } catch (TransactionUnavailableException exc) {
                 exc.printStackTrace();
                 fail(
-                    "A TransactionUnavailableException was thrown while trying to "
+                        "A TransactionUnavailableException was thrown while trying to "
                         + "create a new client transaction");
             }
             assertNotNull(
-                "A null ClientTransaction was returned by SipProvider."
+                    "A null ClientTransaction was returned by SipProvider."
                     + "getNewClientTransaction().",
-                tran);
+                    tran);
             String tranBranch = tran.getBranchId();
-            String reqBranch =
-                ((ViaHeader) invite.getHeader(ViaHeader.NAME)).getBranch();
+            String reqBranch
+                    = ((ViaHeader) invite.getHeader(ViaHeader.NAME)).getBranch();
             assertEquals(
-                "The newly created transaction did not have the same "
+                    "The newly created transaction did not have the same "
                     + "branch id as the request that created it",
-                tranBranch,
-                reqBranch);
+                    tranBranch,
+                    reqBranch);
             assertNotNull(
-                "The transaction's getRequest() method returned a null Request ",
-                tran.getRequest());
+                    "The transaction's getRequest() method returned a null Request ",
+                    tran.getRequest());
             assertEquals(
-                "The transaction's getRequest() method returned a Request "
+                    "The transaction's getRequest() method returned a Request "
                     + "that did not match the one that we used to create it!",
-                tran.getRequest(),
-                invite);
+                    tran.getRequest(),
+                    invite);
         } catch (Throwable exc) {
             exc.printStackTrace();
             fail(exc.getClass().getName() + ": " + exc.getMessage());
@@ -463,66 +473,67 @@ public class SipProviderTest extends MessageFlowHarness {
                 eventCollector.collectRequestEvent(tiSipProvider);
                 riSipProvider.sendRequest(invite);
                 waitForMessage();
-                receivedRequestEvent =
-                    eventCollector.extractCollectedRequestEvent();
+                receivedRequestEvent
+                        = eventCollector.extractCollectedRequestEvent();
                 if (receivedRequestEvent == null
-                    || receivedRequestEvent.getRequest() == null)
+                        || receivedRequestEvent.getRequest() == null) {
                     throw new TiUnexpectedError("The sent request was not received by the RI!");
+                }
             } catch (TooManyListenersException ex) {
                 throw new TiUnexpectedError(
-                    "A TooManyListenersException was thrown while trying to add "
+                        "A TooManyListenersException was thrown while trying to add "
                         + "a SipListener to a TI SipProvider.",
-                    ex);
+                        ex);
             } catch (SipException ex) {
                 throw new TckInternalError(
-                    "The RI failed to send the request!",
-                    ex);
+                        "The RI failed to send the request!",
+                        ex);
             }
             try {
                 //issue 16 on dev.java.net - create tran using received invite
                 //and not the ri request object.
                 //report and fix thereof - larryb@dev.java.net
-                tran =
-                    tiSipProvider.getNewServerTransaction(
-                        receivedRequestEvent.getRequest());
+                tran
+                        = tiSipProvider.getNewServerTransaction(
+                                receivedRequestEvent.getRequest());
             } catch (TransactionUnavailableException exc) {
                 exc.printStackTrace();
                 fail(
-                    "A TransactionUnavailableException was thrown while trying to "
+                        "A TransactionUnavailableException was thrown while trying to "
                         + "create a new client transaction");
             } catch (TransactionAlreadyExistsException exc) {
                 exc.printStackTrace();
                 fail(
-                    "A TransactionAlreadyExistsException was thrown while trying to "
+                        "A TransactionAlreadyExistsException was thrown while trying to "
                         + "create a new server transaction");
             }
             assertNotNull(
-                "A null ServerTransaction was returned by SipProvider."
+                    "A null ServerTransaction was returned by SipProvider."
                     + "getNewServerTransaction().",
-                tran);
+                    tran);
             String tranBranch = tran.getBranchId();
-            String reqBranch =
-                ((ViaHeader) invite.getHeader(ViaHeader.NAME)).getBranch();
+            String reqBranch
+                    = ((ViaHeader) invite.getHeader(ViaHeader.NAME)).getBranch();
             assertEquals(
-                "The newly created transaction did not have the same "
+                    "The newly created transaction did not have the same "
                     + "branch id as the request that created it!",
-                tranBranch,
-                reqBranch);
+                    tranBranch,
+                    reqBranch);
             assertNotNull(
-                "The newly created transaction returned a null Dialog. "
+                    "The newly created transaction returned a null Dialog. "
                     + "Please check the docs on Transaction.getDialog()",
-                tran.getDialog());
+                    tran.getDialog());
             assertNotNull(
-                "The transaction's getRequest() method returned a null Request ",
-                tran.getRequest());
+                    "The transaction's getRequest() method returned a null Request ",
+                    tran.getRequest());
             assertEquals(
-                "The transaction's getRequest() method returned a Request "
+                    "The transaction's getRequest() method returned a Request "
                     + "that did not match the one that we used to create it!",
-                tran.getRequest(),
+                    tran.getRequest(),
                     receivedRequestEvent.getRequest());
-                // BUG reported by Ben Evans: comparing
-                // RI and TI objects using equals() is bound to fail
-                // if they are different implementations.
+            // BUG reported by Ben Evans: comparing
+            // RI and TI objects using equals() is bound to fail
+            // if they are different implementations.
 
         } catch (Throwable exc) {
             exc.printStackTrace();
@@ -532,12 +543,10 @@ public class SipProviderTest extends MessageFlowHarness {
     }
 
     //==================== end of tests
-
     //====== STATIC JUNIT ==========
     public static Test suite() {
         return new TestSuite(SipProviderTest.class);
     }
-
 
 }
 /**
