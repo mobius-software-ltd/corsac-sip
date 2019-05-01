@@ -175,40 +175,62 @@
 
     <!-- repositories -->
     <repositories>
+
         <repository>
-            <id>maven2-repository.dev.java.net</id>
-            <name>Java.net Repository for Maven</name>
-            <url>http://download.java.net/maven/2/</url>
-            <layout>default</layout>
-        </repository>
-        <repository>
-            <id>mobicents-public-repository-group</id>
-            <name>Mobicens Public Maven Repository Group</name>
-            <url>https://oss.sonatype.org/content/groups/public</url>
-            <layout>default</layout>
+            <id>cxs-group</id>
+            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/cxs-group/</url>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
+        
+        <repository>
+            <id>cxs-product-snapshots</id>
+            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/product-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </repository>        
     </repositories>
+    
+    <pluginRepositories>
+        <pluginRepository>
+            <id>cxs-group-plugin</id>
+            <url>http://cxs.restcomm.com:8055/repository/cxs-group/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>       
 
     <distributionManagement>
         <repository>
-            <id>telscale-releases-repository</id>
-            <name>TelScale Releases Repository</name>
-            <url>http://telestax.artifactoryonline.com/telestax/releases</url>
+            <id>cxs-prod-releases</id>
+            <name>cxs-prod-releases</name>
+            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/product-releases/</url>
+            
         </repository>
         <snapshotRepository>
-            <id>telscale-snapshots-repository</id>
-            <name>TelScale Snapshots Repository</name>
-            <url>http://telestax.artifactoryonline.com/telestax/snapshots</url>
+            <id>cxs-prod-snapshots</id>
+            <name>Restcomm Snapshots Repository</name>
+            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/product-snapshots/</url>
         </snapshotRepository>
-    </distributionManagement>
+    </distributionManagement>  
 
     <build>	
         <plugins>
