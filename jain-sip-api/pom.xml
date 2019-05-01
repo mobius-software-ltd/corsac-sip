@@ -7,7 +7,6 @@
     <version>7.0.6-SNAPSHOT</version>
     <artifactId>jain-sip</artifactId>
   </parent>
-  <version>1.2.0</version>
 
   <artifactId>jain-sip-api</artifactId>
   <packaging>jar</packaging>
