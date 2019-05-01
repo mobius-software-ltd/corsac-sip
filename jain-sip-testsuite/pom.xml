@@ -18,8 +18,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.18.1</version>
                 <configuration>
-                    <includes>
-                    </includes>
                     <!--<skipTests>true</skipTests>-->
                     <!--<argLine>-Xms512m -Xmx512m</argLine>-->
                     <forkCount>16</forkCount>
@@ -27,33 +25,6 @@
                     <parallel>classes</parallel>
                     <threadCountClasses>5</threadCountClasses>
                 </configuration>                        
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.18.1</version>
-                <configuration>
-                    <includes>
-                        <include>test/unit/**/Test*.java</include>
-                        <include>test/unit/**/*Test.java</include>
-                        <include>test/tck/**/*Test.java</include>
-                        <include>test/gov/**/*Test.java</include>
-                    </includes>
-                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
-                    <forkCount>16</forkCount>
-                    <reuseForks>false</reuseForks>
-                    <parallel>classes</parallel>
-                    <threadCountClasses>5</threadCountClasses>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>failsafe-integration-tests</id>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <goal>integration-test</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>	
     </build>
