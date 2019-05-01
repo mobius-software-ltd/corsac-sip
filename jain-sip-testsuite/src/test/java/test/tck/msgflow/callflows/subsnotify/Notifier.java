@@ -16,7 +16,7 @@
 * the software.
 *
 *
-*/
+ */
 package test.tck.msgflow.callflows.subsnotify;
 
 import javax.sip.ClientTransaction;
@@ -60,11 +60,10 @@ import test.tck.msgflow.callflows.TestAssertion;
 /**
  * This is the side that sends out the notify.
  *
- * This code is released to  domain.
+ * This code is released to domain.
  *
  * @author M. Ranganathan
  */
-
 public class Notifier implements SipListener {
 
     private static AddressFactory addressFactory;
@@ -75,7 +74,6 @@ public class Notifier implements SipListener {
 
     private static SipStack sipStack;
 
-
     private int port;
 
     protected SipProvider sipProvider;
@@ -84,7 +82,7 @@ public class Notifier implements SipListener {
 
     private String transport;
 
-    private static Logger logger = Logger.getLogger(Notifier.class) ;
+    private static Logger logger = Logger.getLogger(Notifier.class);
 
     private boolean gotSubscribeRequest;
 
@@ -92,7 +90,7 @@ public class Notifier implements SipListener {
         try {
             logger.setLevel(Level.INFO);
             logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "logs/notifieroutputlog.txt"));
+                    "target/logs/notifieroutputlog.txt"));
         } catch (Exception ex) {
             logger.info(ex.getMessage(), ex);
             TestHarness.fail("Failed to initialize Subscriber, because of " + ex.getMessage());
@@ -100,10 +98,11 @@ public class Notifier implements SipListener {
     }
 
     class MyEventSource implements Runnable {
+
         private Notifier notifier;
         private EventHeader eventHeader;
 
-        public MyEventSource(Notifier notifier, EventHeader eventHeader ) {
+        public MyEventSource(Notifier notifier, EventHeader eventHeader) {
             this.notifier = notifier;
             this.eventHeader = eventHeader;
         }
@@ -120,16 +119,15 @@ public class Notifier implements SipListener {
                     request.addHeader(eventHeader);
 
                     // Lets mark our Contact
-                    ((SipURI)dialog.getLocalParty().getURI()).setParameter("id","not2");
+                    ((SipURI) dialog.getLocalParty().getURI()).setParameter("id", "not2");
 
                     ClientTransaction ct = sipProvider.getNewClientTransaction(request);
-                    logger.info("NOTIFY Branch ID " +
-                        ((ViaHeader)request.getHeader(ViaHeader.NAME)).getParameter("branch"));
+                    logger.info("NOTIFY Branch ID "
+                            + ((ViaHeader) request.getHeader(ViaHeader.NAME)).getParameter("branch"));
                     this.notifier.dialog.sendRequest(ct);
                     logger.info("Dialog " + dialog);
                     logger.info("Dialog state after active NOTIFY: " + dialog.getState());
                 }
-
 
             } catch (Throwable ex) {
                 logger.info(ex.getMessage(), ex);
@@ -146,7 +144,7 @@ public class Notifier implements SipListener {
         logger.info("\n\nRequest " + request.getMethod()
                 + " received at " + sipStack.getStackName()
                 + " with server transaction id " + serverTransactionId
-                + " and dialog id " + requestEvent.getDialog() );
+                + " and dialog id " + requestEvent.getDialog());
 
         if (request.getMethod().equals(Request.SUBSCRIBE)) {
             processSubscribe(requestEvent, serverTransactionId);
@@ -179,9 +177,9 @@ public class Notifier implements SipListener {
 
             // Check if it is an initial SUBSCRIBE or a refresh / unsubscribe
             boolean isInitial = requestEvent.getDialog() == null;
-            if ( isInitial ) {
+            if (isInitial) {
                 // JvB: need random tags to test forking
-                String toTag = Integer.toHexString( (int) (Math.random() * Integer.MAX_VALUE) );
+                String toTag = Integer.toHexString((int) (Math.random() * Integer.MAX_VALUE));
                 response = messageFactory.createResponse(202, request);
                 ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
 
@@ -194,7 +192,7 @@ public class Notifier implements SipListener {
                 // subscribe dialogs do not terminate on bye.
                 this.dialog.terminateOnBye(false);
 
-                AbstractSubsnotifyTestCase.assertTrue("initial -- dialog assigned to the transaction not null " , dialog != null );
+                AbstractSubsnotifyTestCase.assertTrue("initial -- dialog assigned to the transaction not null ", dialog != null);
                 AbstractSubsnotifyTestCase.assertTrue("Dialog state should be null ", dialog.getState() == null);
 
             } else {
@@ -203,16 +201,16 @@ public class Notifier implements SipListener {
 
             // Both 2xx response to SUBSCRIBE and NOTIFY need a Contact
             Address address = addressFactory.createAddress("Notifier <sip:127.0.0.1>");
-            ((SipURI)address.getURI()).setPort( sipProvider.getListeningPoint(transport).getPort() );
+            ((SipURI) address.getURI()).setPort(sipProvider.getListeningPoint(transport).getPort());
             ContactHeader contactHeader = headerFactory.createContactHeader(address);
             response.addHeader(contactHeader);
 
             // Expires header is mandatory in 2xx responses to SUBSCRIBE
-            ExpiresHeader expires = (ExpiresHeader) request.getHeader( ExpiresHeader.NAME );
-            if (expires==null) {
+            ExpiresHeader expires = (ExpiresHeader) request.getHeader(ExpiresHeader.NAME);
+            if (expires == null) {
                 expires = headerFactory.createExpiresHeader(30);// rather short
             }
-            response.addHeader( expires );
+            response.addHeader(expires);
 
             /*
              * JvB: The SUBSCRIBE MUST be answered first. See RFC3265 3.1.6.2:
@@ -234,20 +232,18 @@ public class Notifier implements SipListener {
              * subscription at this time. The "terminated" value indicates that
              * the subscription is not active.
              */
-
-            Request notifyRequest = dialog.createRequest( "NOTIFY" );
-
+            Request notifyRequest = dialog.createRequest("NOTIFY");
 
             // Mark the contact header, to check that the remote contact is updated
-            ((SipURI)contactHeader.getAddress().getURI()).setParameter("id","not");
+            ((SipURI) contactHeader.getAddress().getURI()).setParameter("id", "not");
 
             // Initial state is pending, second time we assume terminated (Expires==0)
             SubscriptionStateHeader sstate = headerFactory.createSubscriptionStateHeader(
-                    isInitial ? SubscriptionStateHeader.PENDING : SubscriptionStateHeader.TERMINATED );
+                    isInitial ? SubscriptionStateHeader.PENDING : SubscriptionStateHeader.TERMINATED);
 
             // Need a reason for terminated
-            if ( sstate.getState().equalsIgnoreCase("terminated") ) {
-                sstate.setReasonCode( "deactivated" );
+            if (sstate.getState().equalsIgnoreCase("terminated")) {
+                sstate.setReasonCode("deactivated");
             }
 
             notifyRequest.addHeader(sstate);
@@ -259,15 +255,15 @@ public class Notifier implements SipListener {
             // Let the other side know that the tx is pending acceptance
             //
             dialog.sendRequest(ct);
-            logger.info("NOTIFY Branch ID " +
-                ((ViaHeader)request.getHeader(ViaHeader.NAME)).getParameter("branch"));
+            logger.info("NOTIFY Branch ID "
+                    + ((ViaHeader) request.getHeader(ViaHeader.NAME)).getParameter("branch"));
             logger.info("Dialog " + dialog);
             logger.info("Dialog state after pending NOTIFY: " + dialog.getState());
             AbstractSubsnotifyTestCase.assertTrue("Dialog state after pending NOTIFY ",
                     dialog.getState() == DialogState.CONFIRMED);
 
             if (isInitial) {
-                Thread myEventSource = new Thread(new MyEventSource(this,eventHeader));
+                Thread myEventSource = new Thread(new MyEventSource(this, eventHeader));
                 myEventSource.start();
             }
         } catch (Throwable ex) {
@@ -281,9 +277,9 @@ public class Notifier implements SipListener {
         Transaction tid = responseReceivedEvent.getClientTransaction();
 
         logger.info("Response received with client transaction id "
-                + tid + " CSeq = " +
-                response.getHeader(CSeqHeader.NAME)
-                + " status code = " + response.getStatusCode() );
+                + tid + " CSeq = "
+                + response.getHeader(CSeqHeader.NAME)
+                + " status code = " + response.getStatusCode());
 
     }
 
@@ -348,10 +344,10 @@ public class Notifier implements SipListener {
         // TODO Auto-generated method stub
 
     }
-    
+
     public TestAssertion getAssertion() {
         return new TestAssertion() {
-            
+
             @Override
             public boolean assertCondition() {
                 return gotSubscribeRequest;

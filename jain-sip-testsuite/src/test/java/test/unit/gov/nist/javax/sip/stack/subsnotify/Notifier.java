@@ -250,9 +250,9 @@ public class Notifier implements SipListener {
         // Your code will limp at 32 but it is best for debugging.
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                "logs/notifierdebug_"+port+".txt");
+                "target/logs/notifierdebug_"+port+".txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                "logs/notifierlog_"+port+".txt");
+                "target/logs/notifierlog_"+port+".txt");
         
         properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
         if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {

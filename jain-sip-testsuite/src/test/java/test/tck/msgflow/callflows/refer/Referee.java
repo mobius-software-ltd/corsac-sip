@@ -51,13 +51,11 @@ import test.tck.TestHarness;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 
-
-
 /**
  * This example shows an out-of-dialog REFER scenario:
  *
- * referer sends REFER to referee, with Refer-To set to Shootme
- * referee sends INVITE to Shootme, and NOTIFYs to referer about call progress
+ * referer sends REFER to referee, with Refer-To set to Shootme referee sends
+ * INVITE to Shootme, and NOTIFYs to referer about call progress
  *
  * This is the referee
  *
@@ -83,7 +81,7 @@ public class Referee implements SipListener {
 
     protected Dialog dialog;
 
-    private static Logger logger = Logger.getLogger(Referee.class) ;
+    private static Logger logger = Logger.getLogger(Referee.class);
 
     private boolean tryingSent;
 
@@ -95,11 +93,12 @@ public class Referee implements SipListener {
         try {
             logger.setLevel(Level.INFO);
             logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "logs/refereeoutputlog.txt"));
+                    "target/logs/refereeoutputlog.txt"));
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
+
     public Referee(ProtocolObjects protObjects) {
         addressFactory = protObjects.addressFactory;
         messageFactory = protObjects.messageFactory;
@@ -117,8 +116,8 @@ public class Referee implements SipListener {
         logger.info("\n\nRequest " + request.getMethod()
                 + " received at " + sipStack.getStackName()
                 + " with server transaction id " + serverTransactionId
-                + " and dialog id " + requestEvent.getDialog() );
-        logger.info( request.toString() );
+                + " and dialog id " + requestEvent.getDialog());
+        logger.info(request.toString());
         if (request.getMethod().equals(Request.REFER)) {
             try {
                 processRefer(requestEvent, serverTransactionId);
@@ -126,109 +125,110 @@ public class Referee implements SipListener {
                 logger.info("Referee failed processing REFER, because of " + e.getMessage(), e);
                 TestHarness.fail("Referee failed processing REFER, because of " + e.getMessage());
             }
-        } else TestHarness.fail( "Not a REFER request but:" + request.getMethod() );
+        } else {
+            TestHarness.fail("Not a REFER request but:" + request.getMethod());
+        }
 
     }
 
     /**
      * Process the REFER request.
+     *
      * @throws ParseException
      * @throws SipException
      * @throws InvalidArgumentException
      */
     public void processRefer(RequestEvent requestEvent,
-        ServerTransaction serverTransaction) throws ParseException, SipException, InvalidArgumentException {
+            ServerTransaction serverTransaction) throws ParseException, SipException, InvalidArgumentException {
         SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request refer = requestEvent.getRequest();
 
-            logger.info("referee: got an REFER sending Accepted");
-            logger.info("referee:  " + refer.getMethod() );
-            dialog = requestEvent.getDialog();
-            logger.info("referee : dialog = " + requestEvent.getDialog());
+        logger.info("referee: got an REFER sending Accepted");
+        logger.info("referee:  " + refer.getMethod());
+        dialog = requestEvent.getDialog();
+        logger.info("referee : dialog = " + requestEvent.getDialog());
 
-            // Check that it has a Refer-To, if not bad request
-            ReferToHeader refTo = (ReferToHeader) refer.getHeader( ReferToHeader.NAME );
-            if (refTo==null) {
-                Response bad = messageFactory.createResponse(Response.BAD_REQUEST, refer);
-                bad.setReasonPhrase( "Missing Refer-To" );
-                sipProvider.sendResponse( bad );
-                TestHarness.fail("Bad REFER request. Missing Refer-To.");
-            }
-
-            // New test: first time, only send 100 Trying, to test that retransmission
-            // continues for non-INVITE requests (using UDP)
-            // before(!) creating a ServerTransaction! Else retransmissions are filtered
-            if (!tryingSent && "udp".equalsIgnoreCase(transport)) {
-                tryingSent = true;
-                sipProvider.sendResponse( messageFactory.createResponse(100, refer) );
-                return;
-            }
-
-            // Always create a ServerTransaction, best as early as possible in the code
-            Response response = null;
-            ServerTransaction st = requestEvent.getServerTransaction();
-            if (st == null) {
-                st = sipProvider.getNewServerTransaction(refer);
-            }
-
-            // Check if it is an initial SUBSCRIBE or a refresh / unsubscribe
-            String toTag = Integer.toHexString( (int) (Math.random() * Integer.MAX_VALUE) );
-            response = messageFactory.createResponse(202, refer);
-            ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
-
-            // Sanity check: to header should not have a tag. Else the dialog
-            // should have matched
-            TestHarness.assertNull("To-tag!=null but no dialog match! My dialog=" + dialog, toHeader.getTag());
-            toHeader.setTag(toTag); // Application is supposed to set.
-
-            this.dialog = st.getDialog();
-            // REFER dialogs do not terminate on bye.
-            this.dialog.terminateOnBye(false);
-            if (dialog != null) {
-                logger.info("Dialog " + dialog);
-                logger.info("Dialog state " + dialog.getState());
-                logger.info( "local tag=" + dialog.getLocalTag() );
-                logger.info( "remote tag=" + dialog.getRemoteTag() );
-            }
-
-            // Both 2xx response to SUBSCRIBE and NOTIFY need a Contact
-            Address address = addressFactory.createAddress("Referee <sip:127.0.0.1>");
-            ((SipURI)address.getURI()).setPort( mySipProvider.getListeningPoint(transport).getPort() );
-            ContactHeader contactHeader = headerFactory.createContactHeader(address);
-            response.addHeader(contactHeader);
-
-            // Expires header is mandatory in 2xx responses to REFER
-            ExpiresHeader expires = (ExpiresHeader) refer.getHeader( ExpiresHeader.NAME );
-            if (expires==null) {
-                expires = headerFactory.createExpiresHeader(30);// rather short
-            }
-            response.addHeader( expires );
-
-            /*
-             * The REFER MUST be answered first.
-             */
-            TestHarness.assertNull( dialog.getState() );
-            st.sendResponse(response);
-            TestHarness.assertEquals( DialogState.CONFIRMED, dialog.getState() );
-
-            // NOTIFY MUST have "refer" event, possibly with id
-            referEvent = headerFactory.createEventHeader("refer");
-
-            // Not necessary, but allowed: id == cseq of REFER
-            long id = ((CSeqHeader) refer.getHeader("CSeq")).getSeqNumber();
-            referEvent.setEventId( Long.toString(id) );
-
-            // JvB: do this after receiving 100 response
-            // sendNotify( Response.TRYING, "Trying" );
-
-            // Then call the refer-to
-            sendInvite( refTo );
+        // Check that it has a Refer-To, if not bad request
+        ReferToHeader refTo = (ReferToHeader) refer.getHeader(ReferToHeader.NAME);
+        if (refTo == null) {
+            Response bad = messageFactory.createResponse(Response.BAD_REQUEST, refer);
+            bad.setReasonPhrase("Missing Refer-To");
+            sipProvider.sendResponse(bad);
+            TestHarness.fail("Bad REFER request. Missing Refer-To.");
         }
 
-        private void sendNotify( int code, String reason )
-            throws SipException, ParseException
-        {
-            /*
+        // New test: first time, only send 100 Trying, to test that retransmission
+        // continues for non-INVITE requests (using UDP)
+        // before(!) creating a ServerTransaction! Else retransmissions are filtered
+        if (!tryingSent && "udp".equalsIgnoreCase(transport)) {
+            tryingSent = true;
+            sipProvider.sendResponse(messageFactory.createResponse(100, refer));
+            return;
+        }
+
+        // Always create a ServerTransaction, best as early as possible in the code
+        Response response = null;
+        ServerTransaction st = requestEvent.getServerTransaction();
+        if (st == null) {
+            st = sipProvider.getNewServerTransaction(refer);
+        }
+
+        // Check if it is an initial SUBSCRIBE or a refresh / unsubscribe
+        String toTag = Integer.toHexString((int) (Math.random() * Integer.MAX_VALUE));
+        response = messageFactory.createResponse(202, refer);
+        ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
+
+        // Sanity check: to header should not have a tag. Else the dialog
+        // should have matched
+        TestHarness.assertNull("To-tag!=null but no dialog match! My dialog=" + dialog, toHeader.getTag());
+        toHeader.setTag(toTag); // Application is supposed to set.
+
+        this.dialog = st.getDialog();
+        // REFER dialogs do not terminate on bye.
+        this.dialog.terminateOnBye(false);
+        if (dialog != null) {
+            logger.info("Dialog " + dialog);
+            logger.info("Dialog state " + dialog.getState());
+            logger.info("local tag=" + dialog.getLocalTag());
+            logger.info("remote tag=" + dialog.getRemoteTag());
+        }
+
+        // Both 2xx response to SUBSCRIBE and NOTIFY need a Contact
+        Address address = addressFactory.createAddress("Referee <sip:127.0.0.1>");
+        ((SipURI) address.getURI()).setPort(mySipProvider.getListeningPoint(transport).getPort());
+        ContactHeader contactHeader = headerFactory.createContactHeader(address);
+        response.addHeader(contactHeader);
+
+        // Expires header is mandatory in 2xx responses to REFER
+        ExpiresHeader expires = (ExpiresHeader) refer.getHeader(ExpiresHeader.NAME);
+        if (expires == null) {
+            expires = headerFactory.createExpiresHeader(30);// rather short
+        }
+        response.addHeader(expires);
+
+        /*
+             * The REFER MUST be answered first.
+         */
+        TestHarness.assertNull(dialog.getState());
+        st.sendResponse(response);
+        TestHarness.assertEquals(DialogState.CONFIRMED, dialog.getState());
+
+        // NOTIFY MUST have "refer" event, possibly with id
+        referEvent = headerFactory.createEventHeader("refer");
+
+        // Not necessary, but allowed: id == cseq of REFER
+        long id = ((CSeqHeader) refer.getHeader("CSeq")).getSeqNumber();
+        referEvent.setEventId(Long.toString(id));
+
+        // JvB: do this after receiving 100 response
+        // sendNotify( Response.TRYING, "Trying" );
+        // Then call the refer-to
+        sendInvite(refTo);
+    }
+
+    private void sendNotify(int code, String reason)
+            throws SipException, ParseException {
+        /*
              * NOTIFY requests MUST contain a "Subscription-State" header with a
              * value of "active", "pending", or "terminated". The "active" value
              * indicates that the subscription has been accepted and has been
@@ -237,45 +237,45 @@ public class Referee implements SipListener {
              * policy information is insufficient to accept or deny the
              * subscription at this time. The "terminated" value indicates that
              * the subscription is not active.
-             */
+         */
 
-            Request notifyRequest = dialog.createRequest( "NOTIFY" );
+        Request notifyRequest = dialog.createRequest("NOTIFY");
 
-            // Initial state is pending, second time we assume terminated (Expires==0)
-            String state = SubscriptionStateHeader.PENDING;
-            if (code>100 && code<200) {
-                state = SubscriptionStateHeader.ACTIVE;
-            } else if (code>=200) {
-                state = SubscriptionStateHeader.TERMINATED;
-            }
+        // Initial state is pending, second time we assume terminated (Expires==0)
+        String state = SubscriptionStateHeader.PENDING;
+        if (code > 100 && code < 200) {
+            state = SubscriptionStateHeader.ACTIVE;
+        } else if (code >= 200) {
+            state = SubscriptionStateHeader.TERMINATED;
+        }
 
-            SubscriptionStateHeader sstate = headerFactory.createSubscriptionStateHeader( state );
-            if (state == SubscriptionStateHeader.TERMINATED) {
-                sstate.setReasonCode("noresource");
-            }
-            notifyRequest.addHeader(sstate);
-            notifyRequest.setHeader(referEvent);
+        SubscriptionStateHeader sstate = headerFactory.createSubscriptionStateHeader(state);
+        if (state == SubscriptionStateHeader.TERMINATED) {
+            sstate.setReasonCode("noresource");
+        }
+        notifyRequest.addHeader(sstate);
+        notifyRequest.setHeader(referEvent);
 
-            Address address = addressFactory.createAddress("Referee <sip:127.0.0.1>");
-            ((SipURI)address.getURI()).setPort( mySipProvider.getListeningPoint(transport).getPort() );
-            ((SipURI)address.getURI()).setTransportParam(transport);
-            ContactHeader contactHeader = headerFactory.createContactHeader(address);
-            notifyRequest.setHeader(contactHeader);
-            // notifyRequest.setHeader(routeHeader);
-            ClientTransaction ct2 = mySipProvider.getNewClientTransaction(notifyRequest);
+        Address address = addressFactory.createAddress("Referee <sip:127.0.0.1>");
+        ((SipURI) address.getURI()).setPort(mySipProvider.getListeningPoint(transport).getPort());
+        ((SipURI) address.getURI()).setTransportParam(transport);
+        ContactHeader contactHeader = headerFactory.createContactHeader(address);
+        notifyRequest.setHeader(contactHeader);
+        // notifyRequest.setHeader(routeHeader);
+        ClientTransaction ct2 = mySipProvider.getNewClientTransaction(notifyRequest);
 
-            ContentTypeHeader ct = headerFactory.createContentTypeHeader("message","sipfrag");
-            ct.setParameter( "version", "2.0" );
+        ContentTypeHeader ct = headerFactory.createContentTypeHeader("message", "sipfrag");
+        ct.setParameter("version", "2.0");
 
-            notifyRequest.setContent( "SIP/2.0 " + code + ' ' + reason, ct );
+        notifyRequest.setContent("SIP/2.0 " + code + ' ' + reason, ct);
 
-            // Let the other side know that the tx is pending acceptance
-            //
-            dialog.sendRequest(ct2);
-            logger.info("NOTIFY Branch ID " +
-                ((ViaHeader)notifyRequest.getHeader(ViaHeader.NAME)).getParameter("branch"));
-            logger.info("Dialog " + dialog);
-            logger.info("Dialog state after NOTIFY: " + dialog.getState());
+        // Let the other side know that the tx is pending acceptance
+        //
+        dialog.sendRequest(ct2);
+        logger.info("NOTIFY Branch ID "
+                + ((ViaHeader) notifyRequest.getHeader(ViaHeader.NAME)).getParameter("branch"));
+        logger.info("Dialog " + dialog);
+        logger.info("Dialog state after NOTIFY: " + dialog.getState());
     }
 
     public void processResponse(ResponseEvent responseReceivedEvent) {
@@ -283,49 +283,50 @@ public class Referee implements SipListener {
         Response response = (Response) responseReceivedEvent.getResponse();
         Transaction tid = responseReceivedEvent.getClientTransaction();
 
-        if(tid != null) {
-	        logger.info("Response received with client transaction id "
-	                + tid + ":\n" + response.getStatusCode() +
-	                " cseq = " + response.getHeader(CSeqHeader.NAME) + 
-	                " dialog " + tid.getDialog());
+        if (tid != null) {
+            logger.info("Response received with client transaction id "
+                    + tid + ":\n" + response.getStatusCode()
+                    + " cseq = " + response.getHeader(CSeqHeader.NAME)
+                    + " dialog " + tid.getDialog());
         } else {
-        	logger.info("Response received with client transaction id "
-	                + tid + ":\n" + response.getStatusCode() +
-	                " cseq = " + response.getHeader(CSeqHeader.NAME) + 
-	                " dialog " + responseReceivedEvent.getDialog());
+            logger.info("Response received with client transaction id "
+                    + tid + ":\n" + response.getStatusCode()
+                    + " cseq = " + response.getHeader(CSeqHeader.NAME)
+                    + " dialog " + responseReceivedEvent.getDialog());
         }
-        
-        // Filter retransmissions for slow machines
-        if(tid == null) return;
 
-        CSeqHeader cseq = (CSeqHeader) response.getHeader( CSeqHeader.NAME );
+        // Filter retransmissions for slow machines
+        if (tid == null) {
+            return;
+        }
+
+        CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
         if (cseq.getMethod().equals(Request.INVITE)) {
 
             try {
-                sendNotify( response.getStatusCode(), response.getReasonPhrase() );
+                sendNotify(response.getStatusCode(), response.getReasonPhrase());
             } catch (Exception e1) {
                 TestHarness.fail("Failed to send notify, because of " + e1.getMessage());
             }
 
-            if (response.getStatusCode() == 200 ) {
+            if (response.getStatusCode() == 200) {
                 try {
-                    Request ack = tid.getDialog().createAck( cseq.getSeqNumber() );
-                    tid.getDialog().sendAck( ack );
+                    Request ack = tid.getDialog().createAck(cseq.getSeqNumber());
+                    tid.getDialog().sendAck(ack);
 
                     // kill it right away
-                    if ( tid.getDialog().getState() != DialogState.TERMINATED ) {
-                    	Request bye = tid.getDialog()
-								.createRequest(Request.BYE);
-						tid.getDialog().sendRequest(
-								mySipProvider.getNewClientTransaction(bye));
+                    if (tid.getDialog().getState() != DialogState.TERMINATED) {
+                        Request bye = tid.getDialog()
+                                .createRequest(Request.BYE);
+                        tid.getDialog().sendRequest(
+                                mySipProvider.getNewClientTransaction(bye));
                     }
                 } catch (Exception e) {
-                	logger.error("Caught exception",e);
+                    logger.error("Caught exception", e);
                     TestHarness.fail("Failed to send BYE request, because of " + e.getMessage());
                 }
             }
         }
-
 
     }
 
@@ -342,10 +343,10 @@ public class Referee implements SipListener {
                 + transaction.getDialog().getState());
         logger.info("Transaction Time out");
 
-        TestHarness.fail( "Transaction timeout" );
+        TestHarness.fail("Transaction timeout");
     }
 
-    public void sendInvite( ReferToHeader to ) {
+    public void sendInvite(ReferToHeader to) {
 
         try {
 
@@ -363,7 +364,7 @@ public class Referee implements SipListener {
                     fromNameAddress, "12345");
 
             // create To Header
-            ToHeader toHeader = headerFactory.createToHeader( to.getAddress(),
+            ToHeader toHeader = headerFactory.createToHeader(to.getAddress(),
                     null);
 
             // get Request URI
@@ -372,7 +373,6 @@ public class Referee implements SipListener {
             ListeningPoint lp = mySipProvider.getListeningPoint(transport);
 
             // Create ViaHeaders
-
             ArrayList viaHeaders = new ArrayList();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     lp.getPort(), transport, null);
@@ -383,8 +383,7 @@ public class Referee implements SipListener {
             // Create a new CallId header
             CallIdHeader callIdHeader = mySipProvider.getNewCallId();
             // JvB: Make sure that the implementation matches the messagefactory
-            callIdHeader = headerFactory.createCallIdHeader( callIdHeader.getCallId() );
-
+            callIdHeader = headerFactory.createCallIdHeader(callIdHeader.getCallId());
 
             // Create a new Cseq header
             CSeqHeader cSeqHeader = headerFactory.createCSeqHeader(1L,
@@ -403,7 +402,7 @@ public class Referee implements SipListener {
 
             SipURI contactURI = addressFactory.createSipURI(fromName, host);
             contactURI.setPort(lp.getPort());
-            contactURI.setTransportParam( transport );
+            contactURI.setTransportParam(transport);
 
             Address contactAddress = addressFactory.createAddress(contactURI);
 
@@ -426,8 +425,6 @@ public class Referee implements SipListener {
         }
     }
 
-
-
     public SipProvider createProvider() throws Exception {
         ListeningPoint lp = sipStack.createListeningPoint("127.0.0.1",
                 myPort, transport);
@@ -439,20 +436,20 @@ public class Referee implements SipListener {
     }
 
     public void processIOException(IOExceptionEvent exceptionEvent) {
-        logger.error( "processIOEx:" + exceptionEvent );
+        logger.error("processIOEx:" + exceptionEvent);
         TestHarness.fail("unexpected event");
     }
 
     public void processTransactionTerminated(
             TransactionTerminatedEvent tte) {
 
-        logger.info("transaction terminated:" + tte );
+        logger.info("transaction terminated:" + tte);
     }
 
     public void processDialogTerminated(
             DialogTerminatedEvent dialogTerminatedEvent) {
 
-        logger.info("dialog terminated:" + dialogTerminatedEvent );
+        logger.info("dialog terminated:" + dialogTerminatedEvent);
     }
 
 }

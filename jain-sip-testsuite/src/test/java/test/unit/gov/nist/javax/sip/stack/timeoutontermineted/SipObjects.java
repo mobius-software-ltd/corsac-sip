@@ -44,7 +44,7 @@ public class SipObjects {
         // Your code will limp at 32 but it is best for debugging.
 
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
-        String logFile = "logs/" + stackname + ".txt";
+        String logFile = "target/logs/" + stackname + ".txt";
 
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", logFile);
         if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {

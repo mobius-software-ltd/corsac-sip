@@ -48,7 +48,7 @@ import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ScenarioHarness;
 import test.tck.msgflow.callflows.TestAssertion;
 
-public class CancelEventTest extends  ScenarioHarness {
+public class CancelEventTest extends ScenarioHarness {
 
     private static String transport = "udp";
     private static String unexpectedException = "Unexpected Exception ";
@@ -62,14 +62,14 @@ public class CancelEventTest extends  ScenarioHarness {
     private static Logger logger = Logger.getLogger("test.tck");
 
     static {
-        if (!logger.isAttached(console))
+        if (!logger.isAttached(console)) {
             logger.addAppender(console);
+        }
     }
 
     public CancelEventTest() {
-        super("CanceEventTest",true);
+        super("CanceEventTest", true);
     }
-
 
     class Shootist implements SipListener {
 
@@ -90,8 +90,6 @@ public class CancelEventTest extends  ScenarioHarness {
         private boolean cancelTxTerm = false;
         private boolean inviteTxTerm = false;
         private boolean dialogTerminated = false;
-
-
 
         AddressFactory addressFactory;
 
@@ -121,7 +119,7 @@ public class CancelEventTest extends  ScenarioHarness {
             // and are not necessarily part of any other jain-sip
             // implementation.
             properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                    logFileDirectory + this.getClass().getName()  + ".debug.txt");
+                    logFileDirectory + this.getClass().getName() + ".debug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
                     logFileDirectory + stackname + "log.txt");
 
@@ -131,11 +129,11 @@ public class CancelEventTest extends  ScenarioHarness {
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL",
                     new Integer(logLevel).toString());
 
-            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-            	logger.info("\nNIO Enabled\n");
-            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+                logger.info("\nNIO Enabled\n");
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
             }
-            
+
             try {
                 // Create SipStack object
                 sipStack = sipFactory.createSipStack(properties);
@@ -329,7 +327,6 @@ public class CancelEventTest extends  ScenarioHarness {
 
                 // ClientTransaction CTInvite = null;
                 // ClientTransaction CTCancel = null;
-
                 inviteTid = sipProvider.getNewClientTransaction(request);
 
                 inviteTid.sendRequest();
@@ -378,14 +375,14 @@ public class CancelEventTest extends  ScenarioHarness {
             }
 
         }
-        
+
         public TestAssertion getAssertion() {
             return new TestAssertion() {
-                    @Override
-                    public boolean assertCondition() {
-                        return cancelOk && cancelTxTerm && inviteTxTerm && dialogTerminated;
-                    }
-                };
+                @Override
+                public boolean assertCondition() {
+                    return cancelOk && cancelTxTerm && inviteTxTerm && dialogTerminated;
+                }
+            };
         }
 
         public boolean conditionMet() {
@@ -404,21 +401,20 @@ public class CancelEventTest extends  ScenarioHarness {
             result[2] = "[" + inviteTxTerm + "] - INVITE STX terminated";
             // echhh
             String state = null;
-            if (dialog == null)
+            if (dialog == null) {
                 state = "DIALOG IS NULL";
-            else
+            } else {
                 state = dialog.getState().toString();
+            }
             result[3] = "[" + dialogTerminated + "] - Dialog terminated state["
                     + state + "]";
             result[4] = "[" + cancelSent + "] - CANCEL sent";
             return result;
         }
 
-
-
     }
 
-    class Shootme  implements SipListener {
+    class Shootme implements SipListener {
 
         private static final String myAddress = "127.0.0.1";
 
@@ -442,7 +438,7 @@ public class CancelEventTest extends  ScenarioHarness {
 
         int logLevel = 32;
 
-        String logFileDirectory = "logs/";
+        String logFileDirectory = "target/logs/";
 
         AddressFactory addressFactory;
 
@@ -450,9 +446,9 @@ public class CancelEventTest extends  ScenarioHarness {
 
         HeaderFactory headerFactory;
 
-		private boolean dialogOnCancelTx = true;
+        private boolean dialogOnCancelTx = true;
 
-        Shootme () {
+        Shootme() {
             SipFactory sipFactory = null;
             String stackname = "shootme";
 
@@ -478,11 +474,11 @@ public class CancelEventTest extends  ScenarioHarness {
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL",
                     new Integer(logLevel).toString());
 
-            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-            	logger.info("\nNIO Enabled\n");
-            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+                logger.info("\nNIO Enabled\n");
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
             }
-            
+
             try {
                 // Create SipStack object
                 sipStack = sipFactory.createSipStack(properties);
@@ -596,8 +592,8 @@ public class CancelEventTest extends  ScenarioHarness {
                     inviteTid.sendResponse(response);
                 }
                 cancelOk = true;
-                if(serverTransactionId.getDialog() == null) {
-                	dialogOnCancelTx = false;
+                if (serverTransactionId.getDialog() == null) {
+                    dialogOnCancelTx = false;
                 }
             } catch (Exception ex) {
                 // logger.error(ex);
@@ -669,24 +665,24 @@ public class CancelEventTest extends  ScenarioHarness {
             dialogTerminated = true;
             dteCount++;
         }
-        
+
         public TestAssertion getAssertion() {
             return new TestAssertion() {
-                    @Override
-                    public boolean assertCondition() {
-                        return cancelOk && cancelTxTerm && inviteTxTerm && dialogTerminated && dialogOnCancelTx;
-                    }
-                };
-        }        
+                @Override
+                public boolean assertCondition() {
+                    return cancelOk && cancelTxTerm && inviteTxTerm && dialogTerminated && dialogOnCancelTx;
+                }
+            };
+        }
 
         public boolean conditionMet() {
-             System.out.println("cancelOK = " + cancelOk);
-             System.out.println("cancelTerm = " + cancelTxTerm);
-             System.out.println("inviteTxTerm = " + inviteTxTerm);
-             System.out.println("dialogTerminated = " + dialogTerminated);
-             System.out.println("dialogOnCancelTx = " + dialogOnCancelTx);
+            System.out.println("cancelOK = " + cancelOk);
+            System.out.println("cancelTerm = " + cancelTxTerm);
+            System.out.println("inviteTxTerm = " + inviteTxTerm);
+            System.out.println("dialogTerminated = " + dialogTerminated);
+            System.out.println("dialogOnCancelTx = " + dialogOnCancelTx);
 
-             return cancelOk && cancelTxTerm && inviteTxTerm && dialogTerminated && dialogOnCancelTx;
+            return cancelOk && cancelTxTerm && inviteTxTerm && dialogTerminated && dialogOnCancelTx;
         }
 
         public String[] conditionsState() {
@@ -696,10 +692,11 @@ public class CancelEventTest extends  ScenarioHarness {
             result[2] = "[" + inviteTxTerm + "] - INVITE STX terminated";
             // echhh
             String state = null;
-            if (dialog == null)
+            if (dialog == null) {
                 state = "DIALOG IS NULL";
-            else
+            } else {
                 state = dialog.getState().toString();
+            }
             result[3] = "[" + dialogTerminated + "] - Dialog terminated state["
                     + state + "] count [" + dteCount + "]";
             return result;
@@ -712,7 +709,6 @@ public class CancelEventTest extends  ScenarioHarness {
 
     public void setUp() throws Exception {
 
-
         shootist = new Shootist();
         shootist.createSipProvider();
         shootist.sipProvider.addSipListener(shootist);
@@ -720,16 +716,14 @@ public class CancelEventTest extends  ScenarioHarness {
         shootme.createProvider();
         shootme.sipProvider.addSipListener(shootme);
 
-
-
     }
 
     public void testCancelEvent() throws Exception {
         shootist.sendInvite();
         AssertUntil.assertUntil(shootist.getAssertion(), 40000);
         AssertUntil.assertUntil(shootme.getAssertion(), 40000);
-        assertTrue ( shootist.conditionMet());
-        assertTrue ( shootme.conditionMet());
+        assertTrue(shootist.conditionMet());
+        assertTrue(shootme.conditionMet());
     }
 
     public void tearDown() {

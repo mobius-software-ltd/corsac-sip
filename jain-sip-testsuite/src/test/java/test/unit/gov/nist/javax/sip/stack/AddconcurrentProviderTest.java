@@ -23,13 +23,14 @@ import junit.framework.TestCase;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 
 public class AddconcurrentProviderTest extends TestCase {
+
     public SipStack sipStack;
     private ExecutorService threadPool = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors());    
+            Runtime.getRuntime().availableProcessors());
 //    private AtomicInteger portCounter = new AtomicInteger(5060);
     private AtomicBoolean failed = new AtomicBoolean(false);
-	public void testAddConcurrentProvider() throws Exception
-	{
+
+    public void testAddConcurrentProvider() throws Exception {
         SipFactory sipFactory = null;
         sipStack = null;
         sipFactory = SipFactory.getInstance();
@@ -50,7 +51,7 @@ public class AddconcurrentProviderTest extends TestCase {
         // You can set a max message size for tcp transport to
         // guard against denial of service attack.
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                "logs/" + this.getClass().getName() + ".shootistdebug.txt");
+                "target/logs/" + this.getClass().getName() + ".shootistdebug.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
                 "shootistlog.txt");
 
@@ -61,47 +62,48 @@ public class AddconcurrentProviderTest extends TestCase {
         // You need 16 (or TRACE) for logging traces. 32 (or DEBUG) for debug + traces.
         // Your code will limp at 32 but it is best for debugging.
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-        if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-        	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+        if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+            properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
         }
 
         // Create SipStack object
         sipStack = sipFactory.createSipStack(properties);
         System.out.println("Shootist : createSipStack " + sipStack);
 
-        
-        for (int i =0 ; i < 10 ; i ++){
-        	threadPool.submit(new Runnable() {
+        for (int i = 0; i < 10; i++) {
+            threadPool.submit(new Runnable() {
 
-				@Override
-				public void run() {
-	                ListeningPoint udpListeningPoint;
-					try {
-						int port = NetworkPortAssigner.retrieveNextPort();
-						udpListeningPoint = sipStack.createListeningPoint("127.0.0.1", port, "udp");
-		                SipProvider sipProvider = sipStack.createSipProvider(udpListeningPoint);
-					} catch (Exception e) {
-						failed.set(true);
-					}
-				}
-        		
-        	});
-        	threadPool.submit(new Runnable() {
+                @Override
+                public void run() {
+                    ListeningPoint udpListeningPoint;
+                    try {
+                        int port = NetworkPortAssigner.retrieveNextPort();
+                        udpListeningPoint = sipStack.createListeningPoint("127.0.0.1", port, "udp");
+                        SipProvider sipProvider = sipStack.createSipProvider(udpListeningPoint);
+                    } catch (Exception e) {
+                        failed.set(true);
+                    }
+                }
 
-				@Override
-				public void run() {
-					try {
-		                Iterator it = sipStack.getSipProviders();
-		                if (it.hasNext()) {it.next();}
-					} catch (ConcurrentModificationException e) {
-						failed.set(true);
-					}
-				}
-        		
-        	});        	
+            });
+            threadPool.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        Iterator it = sipStack.getSipProviders();
+                        if (it.hasNext()) {
+                            it.next();
+                        }
+                    } catch (ConcurrentModificationException e) {
+                        failed.set(true);
+                    }
+                }
+
+            });
         }
         threadPool.awaitTermination(1, TimeUnit.SECONDS);
         Assert.assertFalse(failed.get());
-        
-	}
+
+    }
 }

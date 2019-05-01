@@ -314,9 +314,9 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
             // You can set a max message size for tcp transport to
             // guard against denial of service attack.
             properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                    "logs/" + this.getClass().getName() + ".shootistdebug.txt");
+                    "target/logs/" + this.getClass().getName() + ".shootistdebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                    "logs/" + this.getClass().getName() + ".shootistlog.txt");
+                    "target/logs/" + this.getClass().getName() + ".shootistlog.txt");
 
             // Drop the client connection after we are done with the
             // transaction.
@@ -772,9 +772,9 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
             properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                    "logs/stxretransmission_shootmedebug.txt");
+                    "target/logs/stxretransmission_shootmedebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                    "logs/stxretransmission_shootmelog.txt");
+                    "target/logs/stxretransmission_shootmelog.txt");
             if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             	logger.info("\nNIO Enabled\n");
             	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());

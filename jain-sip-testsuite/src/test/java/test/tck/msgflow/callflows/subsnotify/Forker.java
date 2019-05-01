@@ -16,7 +16,7 @@
 * the software.
 *
 *
-*/
+ */
 package test.tck.msgflow.callflows.subsnotify;
 
 import javax.sip.*;
@@ -49,7 +49,6 @@ import java.util.*;
  *
  * @author Jeroen van Bemmel
  */
-
 public class Forker implements SipListener {
 
     private static AddressFactory addressFactory;
@@ -62,7 +61,7 @@ public class Forker implements SipListener {
 
     private SipProvider sipProvider;
 
-    private Hashtable<String,ServerTransaction> serverTransactionTable = new Hashtable<String,ServerTransaction>();
+    private Hashtable<String, ServerTransaction> serverTransactionTable = new Hashtable<String, ServerTransaction>();
 
     /**
      * Flag to test UAC behavior for non-RFC3261 proxies. In particular, they
@@ -72,10 +71,11 @@ public class Forker implements SipListener {
     private static boolean nonRFC3261Proxy;
 
     private static Logger logger = Logger.getLogger(Forker.class);
+
     static {
         try {
             logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "logs/forkeroutputlog.txt"));
+                    "target/logs/forkeroutputlog.txt"));
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -93,8 +93,9 @@ public class Forker implements SipListener {
             SipException {
         Address me = addressFactory.createAddress("<sip:127.0.0.1:" + port
                 + ";id=" + uniqueId + '>');
-        if (!nonRFC3261Proxy)
+        if (!nonRFC3261Proxy) {
             ((SipURI) me.getURI()).setLrParam();
+        }
         RecordRouteHeader rr = headerFactory.createRecordRouteHeader(me);
         m.addFirst(rr);
     }
@@ -119,7 +120,6 @@ public class Forker implements SipListener {
                 Request newRequest = (Request) request.clone();
 
                 // Forward it without creating a transaction
-
                 // RFC3265 says: "proxy MUST record-route the initial SUBSCRIBE
                 // and
                 // any dialog-establishing NOTIFY requests
@@ -127,8 +127,9 @@ public class Forker implements SipListener {
                 FromHeader from = (FromHeader) newRequest
                         .getHeader(FromHeader.NAME);
                 recordRoute(newRequest, from.getTag());
-                if ( st != null )
-                    this.serverTransactionTable.put( ((ViaHeader) request.getHeader(ViaHeader.NAME)).getBranch(), st);
+                if (st != null) {
+                    this.serverTransactionTable.put(((ViaHeader) request.getHeader(ViaHeader.NAME)).getBranch(), st);
+                }
                 doForwardStateless(newRequest, st);
             } else {
                 Response notImplemented = messageFactory.createResponse(
@@ -144,7 +145,7 @@ public class Forker implements SipListener {
      * Process the invite request.
      */
     public void processSubscribe(RequestEvent re, ServerTransaction st) {
-        Request request = (Request)re.getRequest();
+        Request request = (Request) re.getRequest();
         try {
             logger.info("forker: got an Subscribe -> forking or forwarding");
 
@@ -193,9 +194,9 @@ public class Forker implements SipListener {
     private String transport;
 
     private int port;
-    
+
     private int notifier1Port;
-    
+
     private int notifier2Port;
 
     public Forker(ProtocolObjects protObjects) {
@@ -232,7 +233,7 @@ public class Forker implements SipListener {
         recordRoute(forked, Integer.toString(port));
 
         ClientTransaction ct = sipProvider.getNewClientTransaction(forked);
-        AbstractSubsnotifyTestCase.assertTrue("Stateless operation -- should not create a dialog ", ct.getDialog() == null );
+        AbstractSubsnotifyTestCase.assertTrue("Stateless operation -- should not create a dialog ", ct.getDialog() == null);
         CTtoST.put(ct, st);
         ct.sendRequest(); // gets sent to the outbound proxy == Notifier
     }
@@ -297,16 +298,16 @@ public class Forker implements SipListener {
             try {
                 String branchId = ((ViaHeader) response.getHeader(ViaHeader.NAME)).getBranch();
                 ServerTransaction st = this.serverTransactionTable.get(branchId);
-                if ( st != null) {
+                if (st != null) {
                     st.sendResponse(response);
                     this.serverTransactionTable.remove(branchId);
                 } else {
                     sipProvider.sendResponse(response);
                 }
             } catch (SipException e) {
-                AbstractSubsnotifyTestCase.fail("Unexpected exception seen",e);
+                AbstractSubsnotifyTestCase.fail("Unexpected exception seen", e);
             } catch (InvalidArgumentException ex) {
-                AbstractSubsnotifyTestCase.fail("Unexpected exception seen",ex);
+                AbstractSubsnotifyTestCase.fail("Unexpected exception seen", ex);
 
             }
         } else {
@@ -352,7 +353,7 @@ public class Forker implements SipListener {
             this.port = newPort;
             this.notifier1Port = notifier1;
             this.notifier2Port = notifier2;
-            
+
             ListeningPoint lp = sipStack.createListeningPoint("127.0.0.1",
                     port, transport);
 

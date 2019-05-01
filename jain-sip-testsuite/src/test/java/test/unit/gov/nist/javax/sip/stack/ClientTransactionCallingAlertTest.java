@@ -54,15 +54,18 @@ import org.apache.log4j.SimpleLayout;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 
-
 public class ClientTransactionCallingAlertTest extends TestCase {
+
     public static final boolean callerSendsBye = true;
 
-    private static Logger logger = Logger.getLogger( ClientTransactionCallingAlertTest.class);
+    private static Logger logger = Logger.getLogger(ClientTransactionCallingAlertTest.class);
+
     static {
-        if ( ! logger.getAllAppenders().hasMoreElements())
+        if (!logger.getAllAppenders().hasMoreElements()) {
             logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+        }
     }
+
     class Shootist implements SipListener {
 
         private SipProvider sipProvider;
@@ -86,16 +89,17 @@ public class ClientTransactionCallingAlertTest extends TestCase {
         private long startTime = System.currentTimeMillis();
 
         private boolean byeTaskRunning;
-        
-        private  String PEER_ADDRESS;
 
-        private  int PEER_PORT;
+        private String PEER_ADDRESS;
 
-        private  String peerHostPort;   
-        
-        private final int myPort = NetworkPortAssigner.retrieveNextPort();        
+        private int PEER_PORT;
+
+        private String peerHostPort;
+
+        private final int myPort = NetworkPortAssigner.retrieveNextPort();
 
         class ByeTask extends TimerTask {
+
             Dialog dialog;
 
             public ByeTask(Dialog dialog) {
@@ -117,13 +121,13 @@ public class ClientTransactionCallingAlertTest extends TestCase {
             }
 
         }
-        
-        public Shootist( Shootme shootme) {
+
+        public Shootist(Shootme shootme) {
             super();
             PEER_ADDRESS = shootme.myAddress;
             PEER_PORT = shootme.myPort;
-            peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;  
-        }        
+            peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;
+        }
 
         private static final String usageString = "java "
                 + "examples.shootist.Shootist \n"
@@ -139,9 +143,9 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                     + " with server transaction id " + serverTransactionId);
 
             // We are the UAC so the only request we get is the BYE.
-            if (request.getMethod().equals(Request.BYE))
+            if (request.getMethod().equals(Request.BYE)) {
                 processBye(request, serverTransactionId);
-            else {
+            } else {
                 try {
                     serverTransactionId.sendResponse(messageFactory
                             .createResponse(202, request));
@@ -181,21 +185,19 @@ public class ClientTransactionCallingAlertTest extends TestCase {
         private boolean timeoutSeen;
 
         public void processResponse(ResponseEvent responseReceivedEvent) {
-          logger.info("Response seen " + responseReceivedEvent.getResponse().getStatusCode());
+            logger.info("Response seen " + responseReceivedEvent.getResponse().getStatusCode());
 
         }
 
-        
         // ***************************************************************** END
-
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
 
             logger.info("Transaction Time out");
-            if ( timeoutEvent.getTimeout() == Timeout.RETRANSMIT ) {
+            if (timeoutEvent.getTimeout() == Timeout.RETRANSMIT) {
                 this.timeoutSeen = true;
             }
-            
-            assertEquals ("ClientTxState must be Calling ", timeoutEvent.getClientTransaction().getState(), TransactionState.CALLING);
+
+            assertEquals("ClientTxState must be Calling ", timeoutEvent.getClientTransaction().getState(), TransactionState.CALLING);
         }
 
         public void init() {
@@ -217,9 +219,9 @@ public class ClientTransactionCallingAlertTest extends TestCase {
             // You can set a max message size for tcp transport to
             // guard against denial of service attack.
             properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                    "logs/" + this.getClass().getName() + ".shootistdebug.txt");
+                    "target/logs/" + this.getClass().getName() + ".shootistdebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                    "logs/shootistlog.txt");
+                    "target/logs/shootistlog.txt");
 
             // Drop the client connection after we are done with the
             // transaction.
@@ -231,11 +233,11 @@ public class ClientTransactionCallingAlertTest extends TestCase {
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
 
-            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-            	logger.info("\nNIO Enabled\n");
-            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+                logger.info("\nNIO Enabled\n");
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
             }
-            
+
             try {
                 // Create SipStack object
                 sipStack = sipFactory.createSipStack(properties);
@@ -290,7 +292,6 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                         peerHostPort);
 
                 // Create ViaHeaders
-
                 ArrayList viaHeaders = new ArrayList();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
@@ -370,7 +371,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                 Header callInfoHeader = headerFactory.createHeader("Call-Info",
                         "<http://www.antd.nist.gov>");
                 request.addHeader(callInfoHeader);
-                
+
                 // Non regression test for https://java.net/jira/browse/JSIP-460
                 ReasonHeader reasonHeader = headerFactory.createReasonHeader("SIP", 200, "Call Completed Elsewhere");
                 request.addHeader(reasonHeader);
@@ -379,7 +380,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                 // https://java.net/jira/browse/JSIP-479
                 reasonHeader = headerFactory.createReasonHeader("Q.777", 12, null);
                 request.addHeader(reasonHeader);
-                
+
                 ListIterator<Header> listIt = request.getHeaders(ReasonHeader.NAME);
                 int i = 0;
                 while (listIt.hasNext()) {
@@ -391,7 +392,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                 request.setExpires(headerFactory.createExpiresHeader(3600000));
                 // Create the client transaction.
                 inviteTid = sipProvider.getNewClientTransaction(request);
-                
+
                 ((ClientTransactionExt) inviteTid).alertIfStillInCallingStateBy(2);
 
                 // send the request out.
@@ -414,12 +415,13 @@ public class ClientTransactionCallingAlertTest extends TestCase {
 
         public void processTransactionTerminated(
                 TransactionTerminatedEvent transactionTerminatedEvent) {
-            if ( transactionTerminatedEvent.getServerTransaction() != null)
-                logger.info("Shootist: Transaction terminated event recieved on transaction : " + 
-                    transactionTerminatedEvent.getServerTransaction());
-            else 
-                logger.info("Shootist : Transaction terminated event recieved on transaction : " + 
-                    transactionTerminatedEvent.getClientTransaction());
+            if (transactionTerminatedEvent.getServerTransaction() != null) {
+                logger.info("Shootist: Transaction terminated event recieved on transaction : "
+                        + transactionTerminatedEvent.getServerTransaction());
+            } else {
+                logger.info("Shootist : Transaction terminated event recieved on transaction : "
+                        + transactionTerminatedEvent.getClientTransaction());
+            }
         }
 
         public void processDialogTerminated(
@@ -427,7 +429,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
             logger.info("dialogTerminatedEvent");
 
         }
-        
+
         public void terminate() {
             sipStack.stop();
         }
@@ -447,14 +449,12 @@ public class ClientTransactionCallingAlertTest extends TestCase {
 
         private final int myPort = NetworkPortAssigner.retrieveNextPort();
 
-     
         private Response okResponse;
 
         private Request inviteRequest;
 
         private Dialog dialog;
 
-      
         protected static final String usageString = "java "
                 + "examples.shootist.Shootist \n"
                 + ">>>> is your class path set to the root?";
@@ -474,7 +474,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                 processAck(requestEvent, serverTransactionId);
             } else if (request.getMethod().equals(Request.BYE)) {
                 processBye(requestEvent, serverTransactionId);
-            } 
+            }
 
         }
 
@@ -514,7 +514,6 @@ public class ClientTransactionCallingAlertTest extends TestCase {
             this.inviteRequest = request;
         }
 
-      
         /**
          * Process the bye request.
          */
@@ -532,13 +531,11 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                         + serverTransactionId.getDialog().getState());
 
             } catch (Exception ex) {
-                logger.error("UNexpected exception",ex);
+                logger.error("UNexpected exception", ex);
                 fail("UNexpected exception");
 
             }
         }
-
-        
 
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
             Transaction transaction;
@@ -547,7 +544,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
             } else {
                 transaction = timeoutEvent.getClientTransaction();
             }
-            logger.info("Shootme: Transaction Time out : " + transaction    );
+            logger.info("Shootme: Transaction Time out : " + transaction);
         }
 
         public void init() {
@@ -561,12 +558,12 @@ public class ClientTransactionCallingAlertTest extends TestCase {
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
             properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                    "logs/"+this.getClass().getName()+ ".shootmedebug.txt");
+                    "target/logs/" + this.getClass().getName() + ".shootmedebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
                     "shootmelog.txt");
-            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-            	logger.info("\nNIO Enabled\n");
-            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+                logger.info("\nNIO Enabled\n");
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
             }
             try {
                 // Create SipStack object
@@ -578,10 +575,11 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                 // in the classpath
                 e.printStackTrace();
                 System.err.println(e.getMessage());
-                if (e.getCause() != null)
+                if (e.getCause() != null) {
                     e.getCause().printStackTrace();
+                }
                 logger.error("Unexpected error creating stack", e);
-                fail ("Unexpected error");
+                fail("Unexpected error");
             }
 
             try {
@@ -602,7 +600,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
             }
 
         }
-        
+
         public void terminate() {
             this.sipStack.stop();
         }
@@ -614,12 +612,13 @@ public class ClientTransactionCallingAlertTest extends TestCase {
 
         public void processTransactionTerminated(
                 TransactionTerminatedEvent transactionTerminatedEvent) {
-            if (transactionTerminatedEvent.isServerTransaction())
+            if (transactionTerminatedEvent.isServerTransaction()) {
                 logger.info("Transaction terminated event recieved"
                         + transactionTerminatedEvent.getServerTransaction());
-            else
+            } else {
                 logger.info("Transaction terminated "
                         + transactionTerminatedEvent.getClientTransaction());
+            }
 
         }
 
@@ -635,26 +634,26 @@ public class ClientTransactionCallingAlertTest extends TestCase {
 
     private Shootist shootist;
     private Shootme shootme;
-    
+
     public void setUp() {
         this.shootme = new Shootme();
         this.shootist = new Shootist(shootme);
-        
-        
+
     }
+
     public void tearDown() {
         shootist.terminate();
         shootme.terminate();
     }
-    
+
     public void testRetransmit() {
         this.shootme.init();
         this.shootist.init();
         try {
             Thread.sleep(2000);
         } catch (Exception ex) {
-            
+
         }
-        assertTrue("Timeout must be seen",shootist.timeoutSeen);
+        assertTrue("Timeout must be seen", shootist.timeoutSeen);
     }
 }

@@ -16,7 +16,7 @@
 * the software.
 *
 *
-*/
+ */
 package test.tck.msgflow.callflows.router;
 
 import java.util.ArrayList;
@@ -67,7 +67,6 @@ import test.tck.msgflow.callflows.TestAssertion;
  *
  * @author M. Ranganathan
  */
-
 public class Shootist implements SipListener {
 
     private static SipProvider sipProvider;
@@ -88,15 +87,15 @@ public class Shootist implements SipListener {
 
     private String transport;
 
-
     public static final int myPort = NetworkPortAssigner.retrieveNextPort();
 
     private static Logger logger = Logger.getLogger(Shootist.class);
+
     static {
         try {
             logger.setLevel(Level.INFO);
             logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "logs/telurlshootist.txt"));
+                    "target/logs/telurlshootist.txt"));
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -125,7 +124,6 @@ public class Shootist implements SipListener {
         return sipProvider;
     }
 
-
     public void processRequest(RequestEvent requestReceivedEvent) {
         Request request = requestReceivedEvent.getRequest();
         ServerTransaction serverTransactionId = requestReceivedEvent
@@ -136,8 +134,9 @@ public class Shootist implements SipListener {
                 + " with server transaction id " + serverTransactionId);
 
         // We are the UAC so the only request we get is the BYE.
-        if (request.getMethod().equals(Request.BYE))
+        if (request.getMethod().equals(Request.BYE)) {
             processBye(request, serverTransactionId);
+        }
 
     }
 
@@ -172,7 +171,6 @@ public class Shootist implements SipListener {
 
         logger.info("Response received : Status Code = "
                 + response.getStatusCode() + " " + cseq);
-
 
         if (tid == null) {
             logger.info("Stray response -- dropping ");
@@ -236,7 +234,6 @@ public class Shootist implements SipListener {
             URI requestURI = addressFactory.createURI("tel:46317014291;phone-context=+5");
 
             // Create ViaHeaders
-
             ArrayList viaHeaders = new ArrayList();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     sipProvider.getListeningPoint(transport).getPort(),
@@ -245,12 +242,10 @@ public class Shootist implements SipListener {
             // add via headers
             viaHeaders.add(viaHeader);
 
-
             // Create a new CallId header
             CallIdHeader callIdHeader = sipProvider.getNewCallId();
             // JvB: Make sure that the implementation matches the messagefactory
-            callIdHeader = headerFactory.createCallIdHeader( callIdHeader.getCallId() );
-
+            callIdHeader = headerFactory.createCallIdHeader(callIdHeader.getCallId());
 
             // Create a new Cseq header
             CSeqHeader cSeqHeader = headerFactory.createCSeqHeader(1L,
@@ -284,16 +279,14 @@ public class Shootist implements SipListener {
             contactHeader = headerFactory.createContactHeader(contactAddress);
             request.addHeader(contactHeader);
 
-
             // Create the client transaction.
             inviteTid = sipProvider.getNewClientTransaction(request);
             dialog = inviteTid.getDialog();
             AbstractRouterTestCase.assertTrue("dialog state ",
-                    dialog!= null && dialog.getState() == null);
+                    dialog != null && dialog.getState() == null);
 
             // send the request out.
             inviteTid.sendRequest();
-
 
         } catch (Exception ex) {
             TestHarness.fail("sendInvite failed because of " + ex.getMessage());
@@ -317,10 +310,10 @@ public class Shootist implements SipListener {
             DialogTerminatedEvent dialogTerminatedEvent) {
         logger.info("dialogTerminatedEvent");
     }
-    
+
     public TestAssertion getAssertion() {
         return new TestAssertion() {
-            
+
             @Override
             public boolean assertCondition() {
                 return gotBye && gotInviteOK;
@@ -329,7 +322,7 @@ public class Shootist implements SipListener {
     }
 
     public void checkState() {
-        TestHarness.assertTrue(this.gotBye && this.gotInviteOK );
+        TestHarness.assertTrue(this.gotBye && this.gotInviteOK);
     }
 
 }

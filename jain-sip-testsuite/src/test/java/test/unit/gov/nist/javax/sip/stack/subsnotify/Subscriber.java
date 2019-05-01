@@ -347,9 +347,9 @@ public class Subscriber implements SipListener {
 
         properties.setProperty("javax.sip.STACK_NAME", "subscriber");
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                "logs/subscriberdebug.txt");
+                "target/logs/subscriberdebug.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                "logs/subscriberlog.txt");
+                "target/logs/subscriberlog.txt");
 
         properties.setProperty("javax.sip.FORKABLE_EVENTS", "foo");
 

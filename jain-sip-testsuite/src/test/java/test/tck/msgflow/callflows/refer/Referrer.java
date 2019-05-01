@@ -43,13 +43,12 @@ import test.tck.msgflow.callflows.ProtocolObjects;
 /**
  * This example shows an out-of-dialog REFER scenario:
  *
- * referer sends REFER to referee, with Refer-To set to Shootme
- * referee sends INVITE to Shootme, and NOTIFYs to referer about call progress
+ * referer sends REFER to referee, with Refer-To set to Shootme referee sends
+ * INVITE to Shootme, and NOTIFYs to referer about call progress
  *
  * @author Jeroen van Bemmel
  * @author Ivelin Ivanov
  */
-
 public class Referrer implements SipListener {
 
     private SipProvider sipProvider;
@@ -76,7 +75,7 @@ public class Referrer implements SipListener {
         try {
             logger.setLevel(Level.INFO);
             logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "logs/refereroutputlog.txt"));
+                    "target/logs/refereroutputlog.txt"));
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -98,23 +97,23 @@ public class Referrer implements SipListener {
         Request request = requestReceivedEvent.getRequest();
         ServerTransaction serverTransactionId = requestReceivedEvent
                 .getServerTransaction();
-        String viaBranch = ((ViaHeader)(request.getHeaders(ViaHeader.NAME).next())).getParameter("branch");
+        String viaBranch = ((ViaHeader) (request.getHeaders(ViaHeader.NAME).next())).getParameter("branch");
 
         logger.info("\n\nRequest " + request.getMethod() + " received at "
                 + sipStack.getStackName() + " with server transaction id "
-                + serverTransactionId +
-                " branch ID = " + viaBranch);
+                + serverTransactionId
+                + " branch ID = " + viaBranch);
         //logger.info( request );
         if (request.getMethod().equals(Request.NOTIFY)) {
             processNotify(requestReceivedEvent, serverTransactionId);
-        } else if ( request.getMethod().equals(Request.INVITE)) {
-            processInvite( requestReceivedEvent );
-        } else if ( request.getMethod().equals(Request.ACK)) {
-            processAck( requestReceivedEvent );
-        } else if ( request.getMethod().equals(Request.BYE)) {
-            processBye( requestReceivedEvent );
+        } else if (request.getMethod().equals(Request.INVITE)) {
+            processInvite(requestReceivedEvent);
+        } else if (request.getMethod().equals(Request.ACK)) {
+            processAck(requestReceivedEvent);
+        } else if (request.getMethod().equals(Request.BYE)) {
+            processBye(requestReceivedEvent);
         } else {
-            TestHarness.fail( "Unexpected request type:" + request.getMethod() );
+            TestHarness.fail("Unexpected request type:" + request.getMethod());
         }
 
     }
@@ -123,80 +122,81 @@ public class Referrer implements SipListener {
             ServerTransaction serverTransactionId) {
         SipProvider provider = (SipProvider) requestEvent.getSource();
         Request notify = requestEvent.getRequest();
-        if ( notify.getMethod().equals("NOTIFY") ) try {
-            logger.info("referer:  got a NOTIFY count  " + ++this.count + ":\n" + notify );
-            if (serverTransactionId == null) {
-                logger.info("referer:  null TID.");
-                serverTransactionId = provider.getNewServerTransaction(notify);
+        if (notify.getMethod().equals("NOTIFY")) {
+            try {
+                logger.info("referer:  got a NOTIFY count  " + ++this.count + ":\n" + notify);
+                if (serverTransactionId == null) {
+                    logger.info("referer:  null TID.");
+                    serverTransactionId = provider.getNewServerTransaction(notify);
+                }
+                Dialog dialog = serverTransactionId.getDialog();
+                logger.info("Dialog = " + dialog);
+
+                TestHarness.assertTrue("Dialog should not be null", dialog != null);
+                logger.info("Dialog State = " + dialog.getState());
+
+                Response response = messageFactory.createResponse(200, notify);
+                // SHOULD add a Contact
+                ContactHeader contact = (ContactHeader) contactHeader.clone();
+                ((SipURI) contact.getAddress().getURI()).setParameter("id", "sub");
+                response.addHeader(contact);
+                logger.info("Transaction State = " + serverTransactionId.getState());
+                serverTransactionId.sendResponse(response);
+                logger.info("Dialog State = " + dialog.getState());
+                SubscriptionStateHeader subscriptionState = (SubscriptionStateHeader) notify
+                        .getHeader(SubscriptionStateHeader.NAME);
+
+                // Subscription is terminated?
+                String state = subscriptionState.getState();
+                if (state.equalsIgnoreCase(SubscriptionStateHeader.TERMINATED)) {
+                    dialog.delete();
+                } else {
+                    logger.info("Referer: state now " + state);
+                }
+            } catch (Exception ex) {
+                TestHarness.fail("Failed processing notify, because of " + ex);
+
             }
-            Dialog dialog = serverTransactionId.getDialog();
-            logger.info("Dialog = " + dialog);
-
-            TestHarness.assertTrue("Dialog should not be null", dialog != null);
-            logger.info("Dialog State = " + dialog.getState());
-
-            Response response = messageFactory.createResponse(200, notify);
-            // SHOULD add a Contact
-            ContactHeader contact = (ContactHeader) contactHeader.clone();
-            ((SipURI)contact.getAddress().getURI()).setParameter( "id", "sub" );
-            response.addHeader( contact );
-            logger.info("Transaction State = " + serverTransactionId.getState());
-            serverTransactionId.sendResponse(response);
-            logger.info("Dialog State = " + dialog.getState());
-            SubscriptionStateHeader subscriptionState = (SubscriptionStateHeader) notify
-                    .getHeader(SubscriptionStateHeader.NAME);
-
-            // Subscription is terminated?
-            String state = subscriptionState.getState();
-            if (state.equalsIgnoreCase(SubscriptionStateHeader.TERMINATED)) {
-                dialog.delete();
-            } else {
-                logger.info("Referer: state now " + state);
-            }
-        } catch (Exception ex) {
-            TestHarness.fail("Failed processing notify, because of " + ex);
-
         } else {
-            TestHarness.fail( "Unexpected request type" );
+            TestHarness.fail("Unexpected request type");
         }
     }
 
-    private void processInvite( RequestEvent re )
-    {
+    private void processInvite(RequestEvent re) {
         SipProvider provider = (SipProvider) re.getSource();
         ServerTransaction st = re.getServerTransaction();
         try {
-            if (st==null) st = provider.getNewServerTransaction( re.getRequest() );
-            Response r = messageFactory.createResponse( 100 , re.getRequest());
-            st.sendResponse( r );
-            r = messageFactory.createResponse( 180 , re.getRequest());
-            r.addHeader( (ContactHeader) contactHeader.clone() );
-            ((ToHeader) r.getHeader("To")).setTag( "inv_res" );
-            st.sendResponse( r );
-            Thread.sleep( 500 );
-            r = messageFactory.createResponse( 200, re.getRequest() );
-            r.addHeader( (ContactHeader) contactHeader.clone() );
-            ((ToHeader) r.getHeader("To")).setTag( "inv_res" );
-            st.sendResponse( r );
+            if (st == null) {
+                st = provider.getNewServerTransaction(re.getRequest());
+            }
+            Response r = messageFactory.createResponse(100, re.getRequest());
+            st.sendResponse(r);
+            r = messageFactory.createResponse(180, re.getRequest());
+            r.addHeader((ContactHeader) contactHeader.clone());
+            ((ToHeader) r.getHeader("To")).setTag("inv_res");
+            st.sendResponse(r);
+            Thread.sleep(500);
+            r = messageFactory.createResponse(200, re.getRequest());
+            r.addHeader((ContactHeader) contactHeader.clone());
+            ((ToHeader) r.getHeader("To")).setTag("inv_res");
+            st.sendResponse(r);
         } catch (Throwable t) {
             t.printStackTrace();
-            TestHarness.fail( "Throwable:" + t.getLocalizedMessage() );
+            TestHarness.fail("Throwable:" + t.getLocalizedMessage());
         }
     }
 
-    private void processAck( RequestEvent re )
-    {
+    private void processAck(RequestEvent re) {
         // ignore it, Referee sends BYE right after
     }
 
-    private void processBye( RequestEvent re )
-    {
+    private void processBye(RequestEvent re) {
         try {
             re.getServerTransaction().sendResponse(
                     messageFactory.createResponse(200, re.getRequest()));
         } catch (Throwable t) {
             t.printStackTrace();
-            TestHarness.fail( "Throwable:" + t.getLocalizedMessage() );
+            TestHarness.fail("Throwable:" + t.getLocalizedMessage());
         }
     }
 
@@ -205,18 +205,19 @@ public class Referrer implements SipListener {
         Transaction tid = responseReceivedEvent.getClientTransaction();
 
         logger.info("Got a response:" + response.getStatusCode()
-                + ':' + response.getHeader( CSeqHeader.NAME ) );
+                + ':' + response.getHeader(CSeqHeader.NAME));
 
         logger.info("Response received with client transaction id " + tid
-                + ": " + response.getStatusCode()  );
+                + ": " + response.getStatusCode());
         if (tid == null) {
             logger.info("Stray response -- dropping ");
             return;
         }
         logger.info("transaction state is " + tid.getState());
         logger.info("Dialog = " + tid.getDialog());
-        if ( tid.getDialog () != null )
+        if (tid.getDialog() != null) {
             logger.info("Dialog State is " + tid.getDialog().getState());
+        }
 
     }
 
@@ -261,11 +262,10 @@ public class Referrer implements SipListener {
             // create Request URI
             SipURI requestURI = addressFactory.createSipURI(toUser,
                     toSipAddress);
-            requestURI.setPort( Referee.myPort );// referee
+            requestURI.setPort(Referee.myPort);// referee
             requestURI.setTransportParam(transport);
 
             // Create ViaHeaders
-
             ArrayList viaHeaders = new ArrayList();
             int port = sipProvider.getListeningPoint(transport).getPort();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
@@ -277,8 +277,7 @@ public class Referrer implements SipListener {
             // Create a new CallId header
             CallIdHeader callIdHeader = sipProvider.getNewCallId();
             // JvB: Make sure that the implementation matches the messagefactory
-            callIdHeader = headerFactory.createCallIdHeader( callIdHeader.getCallId() );
-
+            callIdHeader = headerFactory.createCallIdHeader(callIdHeader.getCallId());
 
             // Create a new Cseq header
             CSeqHeader cSeqHeader = headerFactory.createCSeqHeader(1L,
@@ -319,12 +318,11 @@ public class Referrer implements SipListener {
             // EventHeader eventHeader = headerFactory.createEventHeader("foo");
             // eventHeader.setEventId("foo");
             // request.addHeader(eventHeader);
-
             // Make the INVITE come back to this listener!
             ReferToHeader referTo = headerFactory.createReferToHeader(
-                    addressFactory.createAddress( "<sip:127.0.0.1:" + myPort + ";transport=" + transport + ">" )
+                    addressFactory.createAddress("<sip:127.0.0.1:" + myPort + ";transport=" + transport + ">")
             );
-            request.addHeader( referTo );
+            request.addHeader(referTo);
 
             logger.info("Refer Dialog = " + subscribeTid.getDialog());
 
@@ -342,7 +340,7 @@ public class Referrer implements SipListener {
 
     public void processTransactionTerminated(
             TransactionTerminatedEvent tte) {
-        logger.info("transaction terminated:" + tte );
+        logger.info("transaction terminated:" + tte);
 
     }
 

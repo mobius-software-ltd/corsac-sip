@@ -65,7 +65,7 @@ public class Shootme  implements SipListener {
 
     static{
     	try {
-			logger.addAppender(new FileAppender(new SimpleLayout(),"logs/" + Shootme.class.getName() + "debuglog.txt"));
+			logger.addAppender(new FileAppender(new SimpleLayout(),"target/logs/" + Shootme.class.getName() + "debuglog.txt"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

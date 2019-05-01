@@ -46,10 +46,11 @@ import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.TestAssertion;
 
 /**
- * Test originally tested the LOOSE_DIALOG_VALIDATION stack proprty to accept ACK retransmissions and to not validate CSeq numbers.
- * Later 4th Novemenr 2009 it was decided that instead of turing on LOOSE_DIALOG_VALIDATION, these features will be active when
- * AUTOMATIC_DIALOG_SUPPORT is "off".
- * 
+ * Test originally tested the LOOSE_DIALOG_VALIDATION stack proprty to accept
+ * ACK retransmissions and to not validate CSeq numbers. Later 4th Novemenr 2009
+ * it was decided that instead of turing on LOOSE_DIALOG_VALIDATION, these
+ * features will be active when AUTOMATIC_DIALOG_SUPPORT is "off".
+ *
  * @author vralev
  *
  */
@@ -57,11 +58,11 @@ public class LooseDialogValidationTest extends TestCase {
 
     public class Shootme implements SipListener {
 
-        private  AddressFactory addressFactory;
+        private AddressFactory addressFactory;
 
-        private  MessageFactory messageFactory;
+        private MessageFactory messageFactory;
 
-        private  HeaderFactory headerFactory;
+        private HeaderFactory headerFactory;
 
         private SipStack sipStack;
 
@@ -71,14 +72,9 @@ public class LooseDialogValidationTest extends TestCase {
 
         private final int myPort = NetworkPortAssigner.retrieveNextPort();
 
-
-
         private DialogExt dialog;
 
         public static final boolean callerSendsBye = true;
-
-
-
 
         public void processRequest(RequestEvent requestEvent) {
             Request request = requestEvent.getRequest();
@@ -91,7 +87,7 @@ public class LooseDialogValidationTest extends TestCase {
 
             if (request.getMethod().equals(Request.INVITE)) {
                 processInvite(requestEvent, serverTransactionId);
-            } else if(request.getMethod().equals(Request.ACK)) {
+            } else if (request.getMethod().equals(Request.ACK)) {
                 processAck(requestEvent, serverTransactionId);
             }
 
@@ -101,25 +97,25 @@ public class LooseDialogValidationTest extends TestCase {
 
         public void processResponse(ResponseEvent responseEvent) {
             num++;
-            if(num<5) {
+            if (num < 5) {
                 try {
                     System.out.println("shootme: got an OK response! ");
                     System.out.println("Dialog State = " + dialog.getState());
                     SipProvider provider = (SipProvider) responseEvent.getSource();
 
                     Request messageRequest = dialog.createRequest(Request.MESSAGE);
-                    CSeqHeader cseq = (CSeqHeader)messageRequest.getHeader(CSeqHeader.NAME);
+                    CSeqHeader cseq = (CSeqHeader) messageRequest.getHeader(CSeqHeader.NAME);
 
                     // We will test if the CSEq validation is off by sending CSeq 1 again
                     cseq.setSeqNumber(1);
                     ClientTransaction ct = provider
-                    .getNewClientTransaction(messageRequest);
+                            .getNewClientTransaction(messageRequest);
                     dialog.sendRequest(ct);
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
-            } else if (num == 5){
+            } else if (num == 5) {
                 try {
                     System.out.println("shootme: got an OK response! ");
                     System.out.println("Dialog State = " + dialog.getState());
@@ -128,19 +124,20 @@ public class LooseDialogValidationTest extends TestCase {
                     Request messageRequest = dialog.createRequest(Request.BYE);
 
                     ClientTransaction ct = provider
-                    .getNewClientTransaction(messageRequest);
+                            .getNewClientTransaction(messageRequest);
                     dialog.sendRequest(ct);
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
-            if(responseEvent.getResponse().getStatusCode() == 500) {
+            if (responseEvent.getResponse().getStatusCode() == 500) {
                 fail("We received some error. It should not happen with loose dialog validation. We should not receive error on cseq out of order");
             }
         }
 
         int acks = 0;
+
         /**
          * Process the ACK request. Send the bye and complete the call flow.
          */
@@ -149,20 +146,18 @@ public class LooseDialogValidationTest extends TestCase {
             acks++;
             // We will wait for 5 acks to test if retransmissions are filtered. With loose dialog
             // validation the ACK retransmissions are not filtered by the stack.
-            if(acks == 5)
-            {
+            if (acks == 5) {
                 try {
                     System.out.println("shootme: got an ACK! ");
                     System.out.println("Dialog State = " + dialog.getState());
                     SipProvider provider = (SipProvider) requestEvent.getSource();
 
                     Request messageRequest = dialog.createRequest(Request.MESSAGE);
-                    CSeqHeader cseq = (CSeqHeader)messageRequest.getHeader(CSeqHeader.NAME);
+                    CSeqHeader cseq = (CSeqHeader) messageRequest.getHeader(CSeqHeader.NAME);
 
                     // We will test if the CSEq validation is off by sending CSeq 1 again
-
                     ClientTransaction ct = provider
-                    .getNewClientTransaction(messageRequest);
+                            .getNewClientTransaction(messageRequest);
                     cseq.setSeqNumber(1);
                     ct.sendRequest();
 
@@ -178,9 +173,9 @@ public class LooseDialogValidationTest extends TestCase {
          */
         public void processInvite(RequestEvent requestEvent,
                 ServerTransaction serverTransaction) {
-        
+
             SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-  
+
             Request request = requestEvent.getRequest();
             try {
                 serverTransaction = sipProvider.getNewServerTransaction(request);
@@ -189,11 +184,10 @@ public class LooseDialogValidationTest extends TestCase {
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-                return ;
+                return;
             }
 
             try {
-
 
                 Response okResponse = messageFactory.createResponse(Response.OK,
                         request);
@@ -206,22 +200,16 @@ public class LooseDialogValidationTest extends TestCase {
                 ToHeader toHeader = (ToHeader) okResponse.getHeader(ToHeader.NAME);
                 toHeader.setTag("4321"); // Application is supposed to set.
 
-                FromHeader fromHeader = (FromHeader)okResponse.getHeader(FromHeader.NAME);
+                FromHeader fromHeader = (FromHeader) okResponse.getHeader(FromHeader.NAME);
                 fromHeader.setTag("12345");
                 okResponse.addHeader(contactHeader);
                 serverTransaction.sendResponse(okResponse);
-
 
             } catch (Exception ex) {
                 ex.printStackTrace();
                 junit.framework.TestCase.fail("Exit JVM");
             }
         }
-
-
-
-
-
 
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
             Transaction transaction;
@@ -248,9 +236,9 @@ public class LooseDialogValidationTest extends TestCase {
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
             properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                    "logs/shootmedebug.txt");
+                    "target/logs/shootmedebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                    "logs/shootmelog.txt");
+                    "target/logs/shootmelog.txt");
             properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING", "false");
             properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
             properties.setProperty("gov.nist.javax.sip.AGGRESSIVE_CLEANUP", "true");
@@ -258,8 +246,8 @@ public class LooseDialogValidationTest extends TestCase {
             properties.setProperty("gov.nist.javax.sip.REENTRANT_LISTENER", "true");
             properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "8");
             properties.setProperty("gov.nist.javax.sip.LOOSE_DIALOG_VALIDATION", "true");
-            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
             }
             try {
                 // Create SipStack object
@@ -271,8 +259,9 @@ public class LooseDialogValidationTest extends TestCase {
                 // in the classpath
                 e.printStackTrace();
                 System.err.println(e.getMessage());
-                if (e.getCause() != null)
+                if (e.getCause() != null) {
                     e.getCause().printStackTrace();
+                }
                 junit.framework.TestCase.fail("Exit JVM");
             }
 
@@ -296,8 +285,6 @@ public class LooseDialogValidationTest extends TestCase {
 
         }
 
-
-
         public void processIOException(IOExceptionEvent exceptionEvent) {
             fail("IOException");
 
@@ -305,12 +292,13 @@ public class LooseDialogValidationTest extends TestCase {
 
         public void processTransactionTerminated(
                 TransactionTerminatedEvent transactionTerminatedEvent) {
-            if (transactionTerminatedEvent.isServerTransaction())
+            if (transactionTerminatedEvent.isServerTransaction()) {
                 System.out.println("Transaction terminated event recieved"
                         + transactionTerminatedEvent.getServerTransaction());
-            else
+            } else {
                 System.out.println("Transaction terminated "
                         + transactionTerminatedEvent.getClientTransaction());
+            }
 
         }
 
@@ -324,27 +312,27 @@ public class LooseDialogValidationTest extends TestCase {
         public void terminate() {
             this.sipStack.stop();
         }
-        
+
         public TestAssertion getAssertion() {
             return new TestAssertion() {
-                    @Override
-                    public boolean assertCondition() {
-                        return acks == 5;
-                    }
-                };
-        }        
+                @Override
+                public boolean assertCondition() {
+                    return acks == 5;
+                }
+            };
+        }
 
     }
 
     public class Shootist implements SipListener {
 
-        private  SipProvider sipProvider;
+        private SipProvider sipProvider;
 
         private AddressFactory addressFactory;
 
         private MessageFactory messageFactory;
 
-        private  HeaderFactory headerFactory;
+        private HeaderFactory headerFactory;
 
         private SipStack sipStack;
 
@@ -352,18 +340,16 @@ public class LooseDialogValidationTest extends TestCase {
 
         private ListeningPoint udpListeningPoint;
 
-
         private Dialog dialog;
-
 
         private boolean timeoutRecieved;
 
         boolean messageSeen = false;
 
-        private  String PEER_ADDRESS;
+        private String PEER_ADDRESS;
 
-        private  int PEER_PORT;
-        
+        private int PEER_PORT;
+
         private String peerHostPort;
 
         private final int myPort = NetworkPortAssigner.retrieveNextPort();
@@ -371,42 +357,35 @@ public class LooseDialogValidationTest extends TestCase {
         public Shootist(Shootme shootme) {
             PEER_ADDRESS = shootme.myAddress;
             PEER_PORT = shootme.myPort;
-            peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;            
+            peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;
         }
-
-
-        
-
 
         public void processRequest(RequestEvent requestReceivedEvent) {
             Request request = requestReceivedEvent.getRequest();
-            if(request.getMethod().equalsIgnoreCase("message")) {
+            if (request.getMethod().equalsIgnoreCase("message")) {
                 messageSeen = true;
             }
             try {
                 Response response = messageFactory.createResponse(200, request);
                 requestReceivedEvent.getServerTransaction().sendResponse(response);
             } catch (Exception e) {
-                e.printStackTrace();fail("Error");
+                e.printStackTrace();
+                fail("Error");
             }
-
 
         }
 
-
-
-
         public void processResponse(ResponseEvent responseReceivedEvent) {
-            if ( responseReceivedEvent.getResponse().getStatusCode() == Response.OK) {
+            if (responseReceivedEvent.getResponse().getStatusCode() == Response.OK) {
 
                 Dialog d = responseReceivedEvent.getDialog();
                 try {
                     Request ack = d.createAck(1);
                     // Added Thread.sleep to avoid regression on the test
                     // as ACKs arriving at the same time may create race condition
-                    // where the ACK is removing from pending transactions by loose dialog validation 
+                    // where the ACK is removing from pending transactions by loose dialog validation
                     // but re created by the next ACK coming in line and thus the EventScanner
-                    // sipStack.findPendingTransaction(sipRequest.getTransactionId()) gives transaction already exists 
+                    // sipStack.findPendingTransaction(sipRequest.getTransactionId()) gives transaction already exists
                     // and the ACK is not passed to TU
                     sipProvider.sendRequest(ack);
                     Thread.sleep(50);
@@ -416,7 +395,7 @@ public class LooseDialogValidationTest extends TestCase {
                     Thread.sleep(50);
                     sipProvider.sendRequest(ack);
                     Thread.sleep(50);
-                    sipProvider.sendRequest(ack);                                       
+                    sipProvider.sendRequest(ack);
                 } catch (Exception e) {
                     e.printStackTrace();
                     fail("Error sending ACK");
@@ -432,8 +411,6 @@ public class LooseDialogValidationTest extends TestCase {
             this.timeoutRecieved = true;
         }
 
-
-
         public void init() {
             SipFactory sipFactory = null;
             sipStack = null;
@@ -442,7 +419,7 @@ public class LooseDialogValidationTest extends TestCase {
             Properties properties = new Properties();
             // If you want to try TCP transport change the following to
             String transport = "udp";
-            
+
             properties.setProperty("javax.sip.OUTBOUND_PROXY", peerHostPort + "/"
                     + transport);
             // If you want to use UDP then uncomment this.
@@ -454,9 +431,9 @@ public class LooseDialogValidationTest extends TestCase {
             // You can set a max message size for tcp transport to
             // guard against denial of service attack.
             properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                    "logs/shootistdebug.txt");
+                    "target/logs/shootistdebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                    "logs/shootistlog.txt");
+                    "target/logs/shootistlog.txt");
 
             // Drop the client connection after we are done with the transaction.
             properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS",
@@ -466,9 +443,9 @@ public class LooseDialogValidationTest extends TestCase {
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
             properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
-            properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING","false");
-            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING", "false");
+            if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
             }
             try {
                 // Create SipStack object
@@ -522,7 +499,6 @@ public class LooseDialogValidationTest extends TestCase {
                         peerHostPort);
 
                 // Create ViaHeaders
-
                 ArrayList viaHeaders = new ArrayList();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
@@ -601,13 +577,13 @@ public class LooseDialogValidationTest extends TestCase {
 
                 // Create the client transaction.
                 ClientTransaction inviteTid = sipProvider.getNewClientTransaction(request);
-            	Dialog d = null;
-				try {
-					d = sipProvider.getNewDialog(inviteTid);
-				} catch (SipException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+                Dialog d = null;
+                try {
+                    d = sipProvider.getNewDialog(inviteTid);
+                } catch (SipException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
 
                 // send the request out.
                 inviteTid.sendRequest();
@@ -618,8 +594,6 @@ public class LooseDialogValidationTest extends TestCase {
                 fail("cannot create or send initial invite");
             }
         }
-
-
 
         public void processIOException(IOExceptionEvent exceptionEvent) {
             System.out.println("IOException happened for "
@@ -638,18 +612,19 @@ public class LooseDialogValidationTest extends TestCase {
             System.out.println("dialogTerminatedEvent");
 
         }
+
         public void terminate() {
             this.sipStack.stop();
         }
-        
+
         public TestAssertion getAssertion() {
             return new TestAssertion() {
-                    @Override
-                    public boolean assertCondition() {
-                        return messageSeen;
-                    }
-                };
-        }        
+                @Override
+                public boolean assertCondition() {
+                    return messageSeen;
+                }
+            };
+        }
     }
 
     private test.unit.gov.nist.javax.sip.stack.LooseDialogValidationTest.Shootme shootme;
@@ -659,8 +634,8 @@ public class LooseDialogValidationTest extends TestCase {
         this.shootme = new Shootme();
         this.shootist = new Shootist(shootme);
 
-
     }
+
     public void tearDown() {
         shootist.terminate();
         shootme.terminate();
@@ -671,13 +646,12 @@ public class LooseDialogValidationTest extends TestCase {
         this.shootist.init();
         AssertUntil.assertUntil(shootist.getAssertion(), 10000);
         AssertUntil.assertUntil(shootme.getAssertion(), 10000);
-        if(!this.shootist.messageSeen) {
+        if (!this.shootist.messageSeen) {
             fail("Something went wrong. We expected the MESSAGE requests. Why are they not sent?");
         }
-        if(this.shootme.acks != 5) {
+        if (this.shootme.acks != 5) {
             fail("We expect 5 ACKs because retransmissions are not filtered in loose dialog validation.");
         }
     }
-
 
 }

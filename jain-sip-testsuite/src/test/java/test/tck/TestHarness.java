@@ -117,7 +117,7 @@ public abstract class TestHarness extends TestCase {
                         logFileName));
             } else {
                 logger.addAppender(new FileAppender(new SimpleLayout(),
-                        "tckoutput.txt"));
+                        "target/logs/tckoutput.txt"));
             }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -470,9 +470,9 @@ public abstract class TestHarness extends TestCase {
 
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                "logs/riDebugLog.txt");
+                "target/logs/riDebugLog.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                "logs/riMessageLog.txt");
+                "target/logs/riMessageLog.txt");
 
         // JvB: Most TCK tests dont work well with automatic dialog support
         // enabled
@@ -513,9 +513,9 @@ public abstract class TestHarness extends TestCase {
 
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                "logs/tiDebugLog.txt");
+                "target/logs/tiDebugLog.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                "logs/tiMessageLog.txt");
+                "target/logs/tiMessageLog.txt");
         // For testing sending of stateless null keepalive messages.
         //@see test.tck.msgflow.SipProviderTest.testSendNullRequest
         properties.setProperty("javax.sip.OUTBOUND_PROXY", LOCAL_ADDRESS + ":" + peerPort + "/udp");

@@ -85,7 +85,7 @@ public class Shootist implements SipListener {
 
     static {
     	try {
-			logger.addAppender(new FileAppender(new SimpleLayout(), "logs/"+ Shootist.class.getName() + "debuglog.txt"));
+			logger.addAppender(new FileAppender(new SimpleLayout(), "target/logs/"+ Shootist.class.getName() + "debuglog.txt"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

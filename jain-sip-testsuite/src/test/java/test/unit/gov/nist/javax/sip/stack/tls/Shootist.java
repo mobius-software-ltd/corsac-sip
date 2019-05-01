@@ -217,10 +217,10 @@ public class Shootist implements SipListener, TlsSecurityPolicy {
                         "1048576");
             properties.setProperty(
                 "gov.nist.javax.sip.DEBUG_LOG",
-                "logs/shootistdebug.txt");
+                "target/logs/shootistdebug.txt");
             properties.setProperty(
                 "gov.nist.javax.sip.SERVER_LOG",
-                "logs/shootistlog.txt");
+                "target/logs/shootistlog.txt");
             properties.setProperty(
                     "gov.nist.javax.sip.SSL_HANDSHAKE_TIMEOUT", "10000");
             properties.setProperty("gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE", "20");
