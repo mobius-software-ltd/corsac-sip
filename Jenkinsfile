@@ -46,7 +46,7 @@ node("cxs-testsuite-large_docker") {
     withEnv(javaEnv) {
 
         stage('Versioning') {
-            sh 'mvn -B versions:set -DremoveSnapshot -DnewVersion=${MAJOR_VERSION_NUMBER} versions:commit'
+            sh 'mvn -B versions:set -DnewVersion=${MAJOR_VERSION_NUMBER} versions:commit'
         }
 
         stage ("Build") {
