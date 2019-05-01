@@ -326,7 +326,7 @@ public class DeliverNotifyBefore202Test extends TestCase {
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
-            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "subscriberdebug_" + port
+            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/subscriberdebug_" + port
                     + ".txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "subscriberlog_" + port
                     + ".txt");
@@ -576,7 +576,7 @@ public class DeliverNotifyBefore202Test extends TestCase {
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
-            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "notifierdebug_" + port
+            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/notifierdebug_" + port
                     + ".txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "notifierlog_" + port
                     + ".txt");

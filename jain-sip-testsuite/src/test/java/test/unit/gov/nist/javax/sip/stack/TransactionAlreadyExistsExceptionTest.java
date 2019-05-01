@@ -159,7 +159,7 @@ public class TransactionAlreadyExistsExceptionTest extends TestCase {
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
-            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "shootmedebug.txt");
+            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/shootmedebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "shootmelog.txt");
             if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
@@ -319,7 +319,7 @@ public class TransactionAlreadyExistsExceptionTest extends TestCase {
             // implementation.
             // You can set a max message size for tcp transport to
             // guard against denial of service attack.
-            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "shootistdebug.txt");
+            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/shootistdebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "shootistlog.txt");
 
             // Drop the client connection after we are done with the

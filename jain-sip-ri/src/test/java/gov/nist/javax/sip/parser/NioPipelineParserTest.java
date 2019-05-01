@@ -29,8 +29,8 @@ public class NioPipelineParserTest extends junit.framework.TestCase {
 
         defaultProperties.setProperty("javax.sip.STACK_NAME", "server");
         defaultProperties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-        defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "server_debug_ViaRPortTest.txt");
-        defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "server_log_ViaRPortTest.txt");
+        defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/server_debug_ViaRPortTest.txt");
+        defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "target/logs/server_log_ViaRPortTest.txt");
         //defaultProperties.setProperty("gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE", "64");
         defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
         SipFactory sipFactory = SipFactory.getInstance();

@@ -105,7 +105,7 @@ public class ViaRPortTest extends ScenarioHarness {
 
                 defaultProperties.setProperty("javax.sip.STACK_NAME", "server");
                 defaultProperties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "server_debug_ViaRPortTest.txt");
+                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/server_debug_ViaRPortTest.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "server_log_ViaRPortTest.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS",
@@ -154,7 +154,7 @@ public class ViaRPortTest extends ScenarioHarness {
                 String host = "127.0.0.1";
                 defaultProperties.setProperty("javax.sip.STACK_NAME", "client");
                 defaultProperties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "client_debug.txt");
+                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/client_debug.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "client_log.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS","false");

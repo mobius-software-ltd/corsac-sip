@@ -205,7 +205,7 @@ public class NonBlockingTest extends ScenarioHarness {
 
                 defaultProperties.setProperty("javax.sip.STACK_NAME", "server" + port);
                 defaultProperties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "TRACE");
-                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "server_nonBlocking.txt");
+                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/server_nonBlocking.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "server_log_nonBlocking.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS",
@@ -275,7 +275,7 @@ public class NonBlockingTest extends ScenarioHarness {
                 host = "127.0.0.1";
                 defaultProperties.setProperty("javax.sip.STACK_NAME", "client");
                 defaultProperties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "TRACE");
-                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "client_nonBlocking_debug.txt");
+                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/client_nonBlocking_debug.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "client_nonBlocking_log.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS", "false");

@@ -164,7 +164,7 @@ public class NoAutoDialogTest extends TestCase {
                 defaultProperties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
                 defaultProperties.setProperty("javax.sip.STACK_NAME", "server");
                 defaultProperties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "server_debug_NoAutoDialogTest.txt");
+                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/server_debug_NoAutoDialogTest.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "server_log_NoAutoDialogTest.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS",
@@ -294,7 +294,7 @@ public class NoAutoDialogTest extends TestCase {
                 defaultProperties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
                 defaultProperties.setProperty("javax.sip.STACK_NAME", "client");
                 defaultProperties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "client_debug_NoAutoDialogTest.txt");
+                defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/client_debug_NoAutoDialogTest.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "client_log_NoAutoDialogTest.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS",
