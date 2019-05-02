@@ -12,7 +12,7 @@ public interface SocketAuditorMBean {
 
     void start();
 
-    void stop();
+    void pause();
 
     void runTask();
 

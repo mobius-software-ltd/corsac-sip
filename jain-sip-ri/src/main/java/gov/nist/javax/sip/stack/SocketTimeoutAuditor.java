@@ -45,7 +45,7 @@ import javax.management.StandardMBean;
  */
 public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAuditorMBean {
 
-    public static final String MBEAN_NAME = "gov.nist.javax.sip.stack:type=%sSocketAuditor";
+    public static final String MBEAN_NAME = "gov.nist.javax.sip.stack:type=SocketAuditor,name=%s";
 
     private static StackLogger logger = CommonLogger.getLogger(SocketTimeoutAuditor.class);
     private long nioSocketMaxIdleTime;
@@ -55,23 +55,24 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
     private int maxIterations = 100;
     private int removedSockets = 0;
     private Clock clock;
-    private String transport;
+    private String id;
+    private ObjectName mbeanName;
 
-    public SocketTimeoutAuditor(String transport, long nioSocketMaxIdleTime, ConcurrentHashMap<SocketChannel, NioTcpMessageChannel> channelMap, SipTimer timer) {
+    public SocketTimeoutAuditor(String id, long nioSocketMaxIdleTime, ConcurrentHashMap<SocketChannel, NioTcpMessageChannel> channelMap, SipTimer timer) {
         this.nioSocketMaxIdleTime = nioSocketMaxIdleTime;
         this.channelMap = channelMap;
         this.timer = timer;
-        this.transport = transport;
+        this.id = id;
         this.auditFrequency = nioSocketMaxIdleTime;
         final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
         this.clock = new SystemClock();
+        String name = String.format(MBEAN_NAME, id);
         try {
             final StandardMBean mbean = new StandardMBean(this, SocketAuditorMBean.class);
-            String name = String.format(MBEAN_NAME, transport);
-            ObjectName mbeanName = new ObjectName(name);
+            mbeanName = new ObjectName(name);
             mbeanServer.registerMBean(mbean, mbeanName);
         } catch (Exception e) {
-            logger.logError("Could not register MBean " + MBEAN_NAME, e);
+            logger.logError("Could not register MBean " + name, e);
         }
     }
 
@@ -84,7 +85,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
     public void runTask() {
         long auditStartTS = clock.millis();
         removedSockets = 0;
-        logger.logInfo("(" + transport + ")Start Task time : " + auditStartTS);
+        logger.logInfo("(" + id + ")Start Task time : " + auditStartTS);
         try {
             // Reworked the method for https://java.net/jira/browse/JSIP-471
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -97,7 +98,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
                 SocketChannel socketChannel = messageChannel.getSocketChannel();
                 long elapsedSinceLastAct = auditStartTS - messageChannel.getLastActivityTimestamp();
                 if (elapsedSinceLastAct > nioSocketMaxIdleTime) {
-                    logger.logInfo("(" + transport + ")Remove socket : " + messageChannel.key);
+                    logger.logInfo("(" + id + ")Remove socket : " + messageChannel.key);
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                         logger.logDebug("Will remove socket " + messageChannel.key + " lastActivity="
                                 + messageChannel.getLastActivityTimestamp() + " current= "
@@ -119,10 +120,10 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
         } catch (Exception anything) {
             logger.logError("Exception in SocketTimeoutAuditor : ", anything);
         }
-        logger.logInfo("(" + transport + ")End Task time: " + removedSockets);
+        logger.logInfo("(" + id + ")End Task time: " + removedSockets);
         //schedule next audit
         boolean schedule = timer.schedule(this, auditFrequency);
-        logger.logInfo("(" + transport + ")Task scheduled : " + schedule);
+        logger.logInfo("(" + id + ")Task scheduled : " + schedule);
     }
 
     @Override
@@ -156,11 +157,21 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
     @Override
     public void start() {
         boolean schedule = timer.schedule(this, nioSocketMaxIdleTime);
-        logger.logInfo("(" + transport + ")Task scheduled : " + schedule);
+        logger.logInfo("(" + id + ")Task scheduled : " + schedule);
+    }
+
+    public void stop() {
+        timer.cancel(this);
+        final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+        try {
+            mbeanServer.unregisterMBean(mbeanName);
+        } catch (Exception ex) {
+            logger.logError("Unable to unregister", ex);
+        }
     }
 
     @Override
-    public void stop() {
+    public void pause() {
         timer.cancel(this);
     }
 

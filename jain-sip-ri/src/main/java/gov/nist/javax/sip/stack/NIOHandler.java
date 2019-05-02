@@ -108,7 +108,8 @@ public class NIOHandler {
         this.messageProcessor = messageProcessor;
         if (sipStack.nioSocketMaxIdleTime > 0 && messageProcessor instanceof ConnectionOrientedMessageProcessor) {
             // https://java.net/jira/browse/JSIP-471 use property from the stack instead of hard coded 20s
-            socketTimeoutAuditor = new SocketTimeoutAuditor(messageProcessor.getTransport(), sipStack.nioSocketMaxIdleTime, this.channelMap, sipStack.getTimer());
+            String auditorId = messageProcessor.getTransport() + "-" + messageProcessor.getPort();
+            socketTimeoutAuditor = new SocketTimeoutAuditor(auditorId, sipStack.nioSocketMaxIdleTime, this.channelMap, sipStack.getTimer());
             socketTimeoutAuditor.start();
         }
     }

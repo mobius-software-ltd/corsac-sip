@@ -52,6 +52,9 @@ public class SocketTimeoutAuditorTest {
         assertEquals(maxIterations, auditor.getRemovedSockets());
         //ensure creators added more than removed sockets
         assertTrue(auditor.getChannelSize() > 0);
+        auditor.pause();
+        auditor.start();
+        auditor.stop();
     }
 
     /**
