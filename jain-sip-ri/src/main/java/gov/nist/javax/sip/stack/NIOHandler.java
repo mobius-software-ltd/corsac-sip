@@ -57,7 +57,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  *
  */
-
 public class NIOHandler {
 
     private static StackLogger logger = CommonLogger.getLogger(NIOHandler.class);
@@ -109,7 +108,7 @@ public class NIOHandler {
         this.messageProcessor = messageProcessor;
         if (sipStack.nioSocketMaxIdleTime > 0 && messageProcessor instanceof ConnectionOrientedMessageProcessor) {
             // https://java.net/jira/browse/JSIP-471 use property from the stack instead of hard coded 20s
-            socketTimeoutAuditor = new SocketTimeoutAuditor(sipStack.nioSocketMaxIdleTime, this.channelMap, sipStack.getTimer());
+            socketTimeoutAuditor = new SocketTimeoutAuditor(messageProcessor.getTransport(), sipStack.nioSocketMaxIdleTime, this.channelMap, sipStack.getTimer());
         }
     }
 

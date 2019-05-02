@@ -45,7 +45,7 @@ import javax.management.StandardMBean;
  */
 public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAuditorMBean {
 
-    public static final String MBEAN_NAME = "gov.nist.javax.sip.stack:type=SocketAuditor";
+    public static final String MBEAN_NAME = "gov.nist.javax.sip.stack:type=%sSocketAuditor";
 
     private static StackLogger logger = CommonLogger.getLogger(SocketTimeoutAuditor.class);
     private long nioSocketMaxIdleTime;
@@ -56,7 +56,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
     private int removedSockets = 0;
     private Clock clock;
 
-    public SocketTimeoutAuditor(long nioSocketMaxIdleTime, ConcurrentHashMap<SocketChannel, NioTcpMessageChannel> channelMap, SipTimer timer) {
+    public SocketTimeoutAuditor(String transport, long nioSocketMaxIdleTime, ConcurrentHashMap<SocketChannel, NioTcpMessageChannel> channelMap, SipTimer timer) {
         this.nioSocketMaxIdleTime = nioSocketMaxIdleTime;
         this.channelMap = channelMap;
         this.timer = timer;
@@ -66,7 +66,8 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
         this.clock = new SystemClock();
         try {
             final StandardMBean mbean = new StandardMBean(this, SocketAuditorMBean.class);
-            ObjectName mbeanName = new ObjectName(MBEAN_NAME);
+            String name = String.format(MBEAN_NAME, transport);
+            ObjectName mbeanName = new ObjectName(name);
             mbeanServer.registerMBean(mbean, mbeanName);
         } catch (Exception e) {
             logger.logError("Could not register MBean " + MBEAN_NAME, e);

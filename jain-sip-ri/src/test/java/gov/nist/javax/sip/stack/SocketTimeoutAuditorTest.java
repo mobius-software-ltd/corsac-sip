@@ -35,7 +35,7 @@ public class SocketTimeoutAuditorTest {
         SipTimer timer = Mockito.mock(SipTimer.class);
         Clock clock = Mockito.mock(Clock.class);
         when(clock.millis()).thenReturn(10000L);
-        SocketTimeoutAuditor auditor = new SocketTimeoutAuditor(maxIdleTime, channelMap, timer);
+        SocketTimeoutAuditor auditor = new SocketTimeoutAuditor("tcp", maxIdleTime, channelMap, timer);
         auditor.setClock(clock);
         auditor.setMaxIterations(maxIterations);
         ScheduledExecutorService newFixedThreadPool = Executors.newScheduledThreadPool(20);
