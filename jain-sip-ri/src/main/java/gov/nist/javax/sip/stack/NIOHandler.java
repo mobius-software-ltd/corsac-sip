@@ -109,6 +109,7 @@ public class NIOHandler {
         if (sipStack.nioSocketMaxIdleTime > 0 && messageProcessor instanceof ConnectionOrientedMessageProcessor) {
             // https://java.net/jira/browse/JSIP-471 use property from the stack instead of hard coded 20s
             socketTimeoutAuditor = new SocketTimeoutAuditor(messageProcessor.getTransport(), sipStack.nioSocketMaxIdleTime, this.channelMap, sipStack.getTimer());
+            socketTimeoutAuditor.start();
         }
     }
 
@@ -481,6 +482,7 @@ public class NIOHandler {
 
     public void stop() {
         stopped.set(true);
+        socketTimeoutAuditor.stop();
         try {
             // Reworked the method for https://java.net/jira/browse/JSIP-471
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {

@@ -55,12 +55,13 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
     private int maxIterations = 100;
     private int removedSockets = 0;
     private Clock clock;
+    private String transport;
 
     public SocketTimeoutAuditor(String transport, long nioSocketMaxIdleTime, ConcurrentHashMap<SocketChannel, NioTcpMessageChannel> channelMap, SipTimer timer) {
         this.nioSocketMaxIdleTime = nioSocketMaxIdleTime;
         this.channelMap = channelMap;
         this.timer = timer;
-        timer.schedule(this, nioSocketMaxIdleTime);
+        this.transport = transport;
         this.auditFrequency = nioSocketMaxIdleTime;
         final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
         this.clock = new SystemClock();
@@ -79,10 +80,11 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
         return null;
     }
 
+    @Override
     public void runTask() {
         long auditStartTS = clock.millis();
         removedSockets = 0;
-        logger.logInfo("Start Task time : " + auditStartTS);
+        logger.logInfo("(" + transport + ")Start Task time : " + auditStartTS);
         try {
             // Reworked the method for https://java.net/jira/browse/JSIP-471
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -95,7 +97,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
                 SocketChannel socketChannel = messageChannel.getSocketChannel();
                 long elapsedSinceLastAct = auditStartTS - messageChannel.getLastActivityTimestamp();
                 if (elapsedSinceLastAct > nioSocketMaxIdleTime) {
-                    logger.logInfo("Remove socket : " + messageChannel.key);
+                    logger.logInfo("(" + transport + ")Remove socket : " + messageChannel.key);
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                         logger.logDebug("Will remove socket " + messageChannel.key + " lastActivity="
                                 + messageChannel.getLastActivityTimestamp() + " current= "
@@ -104,7 +106,6 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
                     }
                     messageChannel.close();
                     removedSockets = removedSockets + 1;
-                    Thread.sleep(50);
                 } else {
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                         logger.logDebug("don't remove socket " + messageChannel.key + " as lastActivity="
@@ -118,19 +119,23 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
         } catch (Exception anything) {
             logger.logError("Exception in SocketTimeoutAuditor : ", anything);
         }
-        logger.logInfo("End Task time : " + removedSockets);
+        logger.logInfo("(" + transport + ")End Task time: " + removedSockets);
         //schedule next audit
-        timer.schedule(this, auditFrequency);
+        boolean schedule = timer.schedule(this, auditFrequency);
+        logger.logInfo("(" + transport + ")Task scheduled : " + schedule);
     }
 
+    @Override
     public Integer getMaxIterations() {
         return maxIterations;
     }
 
+    @Override
     public void setMaxIterations(Integer maxIterations) {
         this.maxIterations = maxIterations;
     }
 
+    @Override
     public Integer getRemovedSockets() {
         return removedSockets;
     }
@@ -143,8 +148,20 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask implements SocketAud
         this.clock = clock;
     }
 
+    @Override
     public Integer getChannelSize() {
         return channelMap.size();
+    }
+
+    @Override
+    public void start() {
+        boolean schedule = timer.schedule(this, nioSocketMaxIdleTime);
+        logger.logInfo("(" + transport + ")Task scheduled : " + schedule);
+    }
+
+    @Override
+    public void stop() {
+        timer.cancel(this);
     }
 
 }

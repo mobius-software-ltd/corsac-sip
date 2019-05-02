@@ -10,4 +10,10 @@ public interface SocketAuditorMBean {
 
     Integer getChannelSize();
 
+    void start();
+
+    void stop();
+
+    void runTask();
+
 }
