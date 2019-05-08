@@ -35,9 +35,9 @@ def tag() {
 }
 
 def version() {
-    def newVersion = MAJOR_VERSION_NUMBER
+    def newVersion = 'MAJOR_VERSION_NUMBER'
     if (BRANCH_NAME != "ts2") {
-        newVersion = MAJOR_VERSION_NUMBER-BRANCH_NAME
+        newVersion = 'MAJOR_VERSION_NUMBER-BRANCH_NAME'
     }   
     sh 'mvn -B versions:set -DnewVersion=${newVersion} versions:commit'
     currentBuild.displayName = "#${BUILD_NUMBER}-${newVersion}"
