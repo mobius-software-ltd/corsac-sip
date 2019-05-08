@@ -39,8 +39,9 @@ def version() {
     if (BRANCH_NAME != "ts2") {
         newVersion = "${MAJOR_VERSION_NUMBER}-${BRANCH_NAME}"
     }   
-    sh 'mvn -B versions:set -DnewVersion=${newVersion} versions:commit'
     currentBuild.displayName = "#${BUILD_NUMBER}-${newVersion}"
+    sh 'mvn -B versions:set -DnewVersion=${newVersion} versions:commit'
+    
 }
 
 def isSnapshot() {
