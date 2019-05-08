@@ -1,11 +1,11 @@
 
 def runTestsuite(forkCount=1, profile="defaultProfile") {
-        sh "mvn -B -f jain-sip-testsuite/pom.xml  install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DforkCount=\"$forkCount\" "
+    sh "mvn -B -f jain-sip-testsuite/pom.xml  install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DforkCount=\"$forkCount\" "
 }
 
 
 def build() {
-    // Run the maven build with in-module unit testing and sonar
+    // Run the maven build with in-module unit testing
     try {
         sh "mvn -B -f pom.xml -Dmaven.test.redirectTestOutputToFile=true clean deploy"
     } catch(err) {
@@ -14,7 +14,7 @@ def build() {
     }
 }
 
-def publishRCResults() {
+def publishResults() {
     junit testResults: '**/target/surefire-reports/*.xml', testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
     checkstyle canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
     step( [ $class: 'JacocoPublisher' ] )
@@ -35,9 +35,9 @@ def tag() {
 }
 
 def version() {
-    def newVersion = ${MAJOR_VERSION_NUMBER}
+    def newVersion = MAJOR_VERSION_NUMBER
     if (BRANCH_NAME != "ts2") {
-        newVersion = ${MAJOR_VERSION_NUMBER}-${BRANCH_NAME}
+        newVersion = MAJOR_VERSION_NUMBER-BRANCH_NAME
     }   
     sh 'mvn -B versions:set -DnewVersion=${newVersion} versions:commit'
     currentBuild.displayName = "#${BUILD_NUMBER}-${newVersion}"
@@ -93,7 +93,7 @@ node("cxs-testsuite-large_docker") {
 
 
         stage("PublishResults") {
-            publishRCResults()
+            publishResults()
         }
 
         if ( !isSnapshot()) {
