@@ -4,14 +4,14 @@ def runTestsuite(forkCount=1, profile="defaultProfile") {
 }
 
 
-def buildRC() {
-        // Run the maven build with in-module unit testing and sonar
-        try {
+def build() {
+    // Run the maven build with in-module unit testing and sonar
+    try {
         sh "mvn -B -f pom.xml -Dmaven.test.redirectTestOutputToFile=true clean deploy"
-        } catch(err) {
-            publishRCResults()
-            throw err
-        }
+    } catch(err) {
+        publishRCResults()
+        throw err
+    }
 }
 
 def publishRCResults() {
@@ -20,7 +20,41 @@ def publishRCResults() {
     step( [ $class: 'JacocoPublisher' ] )
 }
 
+def tag() {
+    // Save release version
+    def pom = readMavenPom file: 'pom.xml'
+    releaseVersion = pom.version
+    echo "Set release version to ${releaseVersion}"
+
+    withCredentials([usernamePassword(credentialsId: 'c2cce724-a831-4ec8-82b1-73d28d1c367a', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+        sh('git fetch https://${GIT_USERNAME}:${GIT_PASSWORD}@bitbucket.org/telestax/telscale-jsip.git --tags')
+        sh("git commit -a -m \"New release candidate ${releaseVersion}\"")
+        sh("git tag ${releaseVersion}")
+        sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@bitbucket.org/telestax/telscale-jsip.git --tags')
+    }
+}
+
+def version() {
+    def newVersion = ${MAJOR_VERSION_NUMBER}
+    if (BRANCH_NAME != "ts2") {
+        newVersion = ${MAJOR_VERSION_NUMBER}-${BRANCH_NAME}
+    }   
+    sh 'mvn -B versions:set -DnewVersion=${newVersion} versions:commit'
+    currentBuild.displayName = "#${BUILD_NUMBER}-${newVersion}"
+}
+
+def isSnapshot() {
+    return MAJOR_VERSION_NUMBER.contains("SNAPSHOT")
+}
+
 node("cxs-testsuite-large_docker") {
+    properties([[$class: 'DatadogJobProperty', tagFile: '', tagProperties: ''], parameters([string(defaultValue: '7.0.0-SNAPSHOT', description: 'Snapshots will skip Tag stage', name: 'MAJOR_VERSION_NUMBER', trim: false),
+        
+    ])]) 
+
+    if (isSnapshot()) {
+        echo "SNAPSHOT detected, skip Tag stage"
+    }
 
     configFileProvider(
         [configFile(fileId: 'c33123c7-0e84-4be5-a719-fc9417c13fa3',  targetLocation: 'settings.xml')]) {
@@ -33,7 +67,7 @@ node("cxs-testsuite-large_docker") {
 
     // Define Java and Maven versions (named according to Jenkins installed tools)
     // Source: https://jenkins.io/blog/2017/02/07/declarative-maven-project/
-    String jdktool = tool name: "JenkinsJava7"
+    String jdktool = tool name: 'JenkinsJava7'
     def mvnHome = tool name: 'Maven-3.5.0'
 
     // Set JAVA_HOME, and special PATH variables.
@@ -46,15 +80,15 @@ node("cxs-testsuite-large_docker") {
     withEnv(javaEnv) {
 
         stage('Versioning') {
-            sh 'mvn -B versions:set -DnewVersion=${MAJOR_VERSION_NUMBER} versions:commit'
+            version()
         }
 
         stage ("Build") {
-            buildRC()
+            build()
         }
 
         stage("CITestsuiteParallel") {
-                runTestsuite("20" , "parallel-testing")
+                runTestsuite("40" , "parallel-testing")
         }
 
 
@@ -62,16 +96,9 @@ node("cxs-testsuite-large_docker") {
             publishRCResults()
         }
 
-        stage('Tag') {
-            // Save release version
-            def pom = readMavenPom file: 'pom.xml'
-            releaseVersion = pom.version
-            echo "Set release version to ${releaseVersion}"
-
-            withCredentials([usernamePassword(credentialsId: 'c2cce724-a831-4ec8-82b1-73d28d1c367a', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                sh("git commit -a -m \"New release candidate ${releaseVersion}\"")
-                sh("git tag ${releaseVersion}")
-                sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@bitbucket.org/telestax/telscale-jsip.git --tags')
+        if ( !isSnapshot()) {
+            stage('Tag') {
+                tag()
             }
         }
     }
