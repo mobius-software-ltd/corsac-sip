@@ -40,7 +40,7 @@ def version() {
         newVersion = "${MAJOR_VERSION_NUMBER}-${BRANCH_NAME}"
     }   
     currentBuild.displayName = "#${BUILD_NUMBER}-${newVersion}"
-    sh 'mvn -B versions:set -DnewVersion=${newVersion} versions:commit'
+    sh "mvn -B versions:set -DnewVersion=${newVersion} versions:commit"
     
 }
 
