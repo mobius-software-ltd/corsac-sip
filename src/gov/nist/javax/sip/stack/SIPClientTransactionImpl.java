@@ -235,7 +235,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   public class TransactionTimer extends SIPStackTimerTask {
 
     public TransactionTimer() {
-
+    	super(TransactionTimer.class.getSimpleName());
     }
 
     public void runTask() {
@@ -278,7 +278,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   class ExpiresTimerTask extends SIPStackTimerTask {
 
     public ExpiresTimerTask() {
-
+    	super(ExpiresTimerTask.class.getSimpleName());
     }
 
     @Override
@@ -703,7 +703,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
             logger.logDebug("starting TransactionTimerK() : " + getTransactionId() + " time "
                             + time);
           }
-          SIPStackTimerTask task = new SIPStackTimerTask() {
+          SIPStackTimerTask task = new SIPStackTimerTask("TimerK") {
 
             public void runTask() {
               if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {

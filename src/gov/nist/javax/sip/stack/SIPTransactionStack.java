@@ -275,7 +275,13 @@ public abstract class SIPTransactionStack implements
      * Conn timeout for TCP outgoign sockets -- maximum time in millis the stack
      * will wait to open a connection.
      */
-    protected int connTimeout = 10000;    
+    protected int connTimeout = 10000; 
+    
+    /*
+     * Threads number for initialization SeparateAffinitityExecutorSipTimer
+     */
+    
+    protected int separateAffinitityExecutorSipTimerThreadPool = 8; 
 
     /*
      * The socket factory. Can be overriden by applications that want direct
@@ -460,6 +466,7 @@ public abstract class SIPTransactionStack implements
 
         // / Constructor
         public PingTimer(ThreadAuditor.ThreadHandle a_oThreadHandle) {
+        	super(PingTimer.class.getSimpleName());
             threadHandle = a_oThreadHandle;
         }
         
@@ -496,6 +503,7 @@ public abstract class SIPTransactionStack implements
         private final String forkId;
 
         public RemoveForkedTransactionTimerTask(String forkId) {
+        	super(RemoveForkedTransactionTimerTask.class.getSimpleName());
             this.forkId = forkId;
         }
         
@@ -3446,6 +3454,19 @@ public abstract class SIPTransactionStack implements
 	public void setConnectionLingerTimer(int connectionLingerTimer) {
 		SIPTransactionStack.connectionLingerTimer = connectionLingerTimer;
 	}
+	
+	/**
+	 * @param separateAffinitityExecutorSipTimerThreadPool the number of threads for SeparateAffinitityExecutorSipTimer
+	 */
+	
+	public void setSeparateAffinitityExecutorSipTimerThreadPool(int separateAffinitityExecutorSipTimerThreadPool) {
+		this.separateAffinitityExecutorSipTimerThreadPool = separateAffinitityExecutorSipTimerThreadPool;
+	}
+	
+	public int getSeparateAffinitityExecutorSipTimerThreadPool() {
+		return this.separateAffinitityExecutorSipTimerThreadPool;
+	}
+	
 
 	/**
 	 * @return the stackCongestionControlTimeout

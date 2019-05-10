@@ -152,6 +152,7 @@ public class UDPMessageChannel extends MessageChannel implements
         int port;
 
         public PingBackTimerTask(String ipAddress, int port) {
+        	super(PingBackTimerTask.class.getSimpleName());
             this.ipAddress = ipAddress;
             this.port = port;
         }

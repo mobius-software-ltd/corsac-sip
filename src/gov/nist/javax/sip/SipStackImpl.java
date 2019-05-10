@@ -1461,6 +1461,9 @@ public class SipStackImpl extends SIPTransactionStack implements
 		// Contribution for https://github.com/Mobicents/jain-sip/issues/40
 		super.setConnectionLingerTimer(Integer.parseInt(configurationProperties.getProperty(
 				"gov.nist.javax.sip.LINGER_TIMER", "8")));
+		
+		super.setSeparateAffinitityExecutorSipTimerThreadPool(Integer.parseInt(configurationProperties.getProperty(
+				"gov.nist.javax.sip.SEPARATE_AFFINITITY_EXECUTOR_SIP_TIMER_THREADS", "8")));
 
 		super.isBackToBackUserAgent = Boolean
 				.parseBoolean(configurationProperties.getProperty(

@@ -64,6 +64,7 @@ public class Pipeline extends InputStream {
         private boolean isCancelled;
 
         protected MyTimer(Pipeline pipeline) {
+        	super(MyTimer.class.getSimpleName());
             this.pipeline = pipeline;
         }
         

@@ -152,6 +152,7 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 			 try {
 				 // task can be null if it has been cancelled
 				 if(task != null) {
+					 Thread.currentThread().setName(task.getTaskName());
 					 task.runTask();
 				 }
 	        } catch (Throwable e) {

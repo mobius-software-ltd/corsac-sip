@@ -45,8 +45,12 @@ import gov.nist.javax.sip.ThreadAffinityIdentifier;
  */
 public abstract class SIPStackTimerTask implements ThreadAffinityIdentifier {
 	// the underlying timer task that was scheduled in the Stack SIP timer
-	Object timerTask = null; 
+	Object timerTask = null;
+	private String taskName;
     // Implements code to be run when the SIPStackTimerTask is executed.
+	public SIPStackTimerTask(String taskName) {
+		this.taskName = taskName; 
+	}
     public abstract void runTask();
     
     public void cleanUpBeforeCancel() {
@@ -60,4 +64,8 @@ public abstract class SIPStackTimerTask implements ThreadAffinityIdentifier {
 	public Object getSipTimerTask() {
 		return timerTask;
 	}
+	public String getTaskName() {
+		return taskName;
+	}
+	
 }

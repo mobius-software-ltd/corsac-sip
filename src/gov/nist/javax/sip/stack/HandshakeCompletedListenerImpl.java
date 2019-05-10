@@ -147,6 +147,7 @@ public class HandshakeCompletedListenerImpl implements HandshakeCompletedListene
     	Socket  socket;
     	 
     	private HandshakeWatchdog(Socket socket) {
+    		super(HandshakeWatchdog.class.getSimpleName());
     		this.socket = socket;
     	}
         

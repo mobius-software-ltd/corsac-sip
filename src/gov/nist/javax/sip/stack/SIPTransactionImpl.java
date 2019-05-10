@@ -277,7 +277,8 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     class LingerTimer extends SIPStackTimerTask {
 
-        public LingerTimer() {            
+        public LingerTimer() {
+        	super(LingerTimer.class.getSimpleName());
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             	SIPTransaction sipTransaction = SIPTransactionImpl.this;
                 logger.logDebug("LingerTimer : "
@@ -307,6 +308,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      *
      */
     class MaxTxLifeTimeListener extends SIPStackTimerTask {
+    	
+    	MaxTxLifeTimeListener() {
+    		super(MaxTxLifeTimeListener.class.getSimpleName());
+    	}
         SIPTransaction sipTransaction = SIPTransactionImpl.this;
     
         public void runTask() {

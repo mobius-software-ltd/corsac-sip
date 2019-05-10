@@ -43,6 +43,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 	private NIOHandler nioHandler;
 	
 	public SocketTimeoutAuditor(long nioSocketMaxIdleTime, NIOHandler nioHandler) {
+		super(SocketTimeoutAuditor.class.getSimpleName());
 		this.nioSocketMaxIdleTime = nioSocketMaxIdleTime;
 		this.nioHandler = nioHandler;
 	}

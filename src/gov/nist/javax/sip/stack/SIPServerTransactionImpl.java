@@ -244,6 +244,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         int ticksLeft;
 
         public RetransmissionAlertTimerTask(String dialogId) {
+        	super(RetransmissionAlertTimerTask.class.getSimpleName());
 
             this.ticks = SIPTransactionImpl.T1;
             this.ticksLeft = this.ticks;
@@ -281,6 +282,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         int ticksLeft;
 
         public ProvisionalResponseTask() {
+        	super(ProvisionalResponseTask.class.getSimpleName());
             this.ticks = SIPTransactionImpl.T1;
             this.ticksLeft = this.ticks;
         }
@@ -343,6 +345,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     class SendTrying extends SIPStackTimerTask {
 
         protected SendTrying() {
+        	super(SendTrying.class.getSimpleName());
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug("scheduled timer for " + SIPServerTransactionImpl.this);
 
@@ -385,6 +388,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     class TransactionTimer extends SIPStackTimerTask {
 
         public TransactionTimer() {
+        	super(TransactionTimer.class.getSimpleName());
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("TransactionTimer() : " + getTransactionId());
             }
@@ -1647,7 +1651,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     }
                     // The timer is set to null when the Stack is
                     // shutting down.
-                    SIPStackTimerTask task = new SIPStackTimerTask () {
+                    SIPStackTimerTask task = new SIPStackTimerTask ("TimerJ") {
 
                         public void runTask() {
                             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {

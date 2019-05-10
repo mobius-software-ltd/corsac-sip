@@ -370,6 +370,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     class EarlyStateTimerTask extends SIPStackTimerTask implements Serializable {
 
         public EarlyStateTimerTask() {
+        	super(EarlyStateTimerTask.class.getSimpleName());
 
         }
 
@@ -530,6 +531,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
     class LingerTimer extends SIPStackTimerTask implements Serializable {
 
+    	LingerTimer(){
+    		super(LingerTimer.class.getSimpleName());
+    	}
         public void runTask() {
             SIPDialog dialog = SIPDialog.this;
             sipStack.removeDialog(dialog);
@@ -558,6 +562,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         // long cseqNumber;
 
         public DialogTimerTask(SIPServerTransaction transaction) {
+        	super(DialogTimerTask.class.getSimpleName());
             this.transaction = transaction;
             this.nRetransmissions = 0;
          }
@@ -656,6 +661,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
     class DialogDeleteTask extends SIPStackTimerTask implements Serializable {
 
+    	DialogDeleteTask() {
+    		super(DialogDeleteTask.class.getSimpleName());
+    	}
         public void runTask() {
             delete();
         }
@@ -677,6 +685,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         private long seqno;
 
         public DialogDeleteIfNoAckSentTask(long seqno) {
+        	super(DialogDeleteIfNoAckSentTask.class.getSimpleName());
             this.seqno = seqno;
         }
         

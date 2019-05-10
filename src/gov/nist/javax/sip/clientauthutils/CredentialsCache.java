@@ -35,6 +35,7 @@ class CredentialsCache {
         String userName;
 
         public TimeoutTask(String userName, String callId) {
+        	super(TimeoutTask.class.getSimpleName());
             this.callId = callId;
             this.userName = userName;
         }

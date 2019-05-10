@@ -845,6 +845,9 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
         }
     }
     class KeepAliveTimeoutTimerTask extends SIPStackTimerTask {
+    	KeepAliveTimeoutTimerTask () { 
+    		super(KeepAliveTimeoutTimerTask.class.getSimpleName());
+    	}
         @Override
         public Object getThreadHash() {
             return null;

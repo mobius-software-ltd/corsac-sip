@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 public class AffinitityExecutorSipTimer implements SipTimer {
 	private static StackLogger logger = CommonLogger.getLogger(AffinitityExecutorSipTimer.class);
 	protected SipStackImpl sipStackImpl;
-	ScheduledExecutorService threadPoolExecutor;
+	protected ScheduledExecutorService threadPoolExecutor;
     
 	public AffinitityExecutorSipTimer() {
 	}
@@ -125,6 +125,7 @@ public class AffinitityExecutorSipTimer implements SipTimer {
 			 try {
 				 // task can be null if it has been cancelled
 				 if(task != null) {
+					 Thread.currentThread().setName(task.getTaskName());
 					 task.runTask();
 				 }
 	        } catch (Throwable e) {
