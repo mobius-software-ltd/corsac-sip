@@ -9,13 +9,13 @@ def build() {
     try {
         sh "mvn -B -f pom.xml -Dmaven.test.redirectTestOutputToFile=true clean deploy"
     } catch(err) {
-        publishRCResults()
+        publishResults()
         throw err
     }
 }
 
 def publishResults() {
-    junit testResults: '**/target/surefire-reports/*.xml', testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
+    junit testResults: '**/target/*-reports/*.xml', testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
     checkstyle canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
     step( [ $class: 'JacocoPublisher' ] )
 }
