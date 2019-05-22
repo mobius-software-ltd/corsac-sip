@@ -48,13 +48,7 @@
             <artifactId>jain-sip-ri</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
-        </dependency>  
-        <dependency>
-            <groupId>javax.sip</groupId>
-            <artifactId>jain-sip-sctp</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>                         
+        </dependency>                        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
