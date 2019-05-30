@@ -12,7 +12,6 @@
     <packaging>jar</packaging>
     <name>jain-sip-ri</name>
 
-
     <dependencies>
         <dependency>
             <groupId>log4j</groupId>
@@ -32,8 +31,5 @@
             <scope>test</scope>
         </dependency>       
     </dependencies>
-
-
-
 
 </project>

@@ -615,4 +615,28 @@ public interface SIPTransaction extends TransactionExt {
 
   int getBaseTimerInterval();
 
+  /**
+   * This method allows applications to associate application context with
+   * the transaction. This specification does not define the format of this
+   * data, this the responsibility of the application and is dependent
+   * on the application. This capability may be useful for proxy servers
+   * to associate the transaction to some application state. The context of
+   * this application data is un-interpreted by the stack.
+   *
+   * @param key   The name of the stored data
+   * @param value The application data object
+   * @return The old value associated with this key. May return null.
+   */
+  Object setApplicationData(String key, Object value);
+
+  /**
+   * Returns the application data associated with the transaction.This
+   * specification does not define the format of this application specific
+   * data. This is the responsibility of the application.
+   *
+   * @param key The name of the stored data
+   * @return The data object associated with the key. May return null.
+   */
+  Object getApplicationData(String key);
+
 }
