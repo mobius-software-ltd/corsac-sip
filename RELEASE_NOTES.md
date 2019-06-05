@@ -15,8 +15,10 @@ The folowing tags are used to categorize and state the scope of a change
 https://cxs.restcomm.com/job/TelScale-JAIN-SIP-7-MultiPipeline/job/ts2/14/
 
 ### New features
-* **BS-2213:** Transaction application data as key-value data store
-
+* **BS-2213:**
+    * Transaction application data as key-value data store.
+    * Added sub-types of ServerResponseInterface: TransactionResponseInterface and DialogResponseInterface to allow 
+    fine-grained operations. 
 
 ### Breaking Changes
 
