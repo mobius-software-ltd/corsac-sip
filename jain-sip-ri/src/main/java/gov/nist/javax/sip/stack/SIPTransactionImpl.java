@@ -56,6 +56,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -117,7 +119,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     // Proposed feature for next release.
     private static final String DEFAULT_APP_DATA = "appdata.default";
-    protected transient final Map<String, Object> applicationData;
+    protected transient final ConcurrentMap<String, Object> applicationData;
 
     protected SIPResponse lastResponse;
 
@@ -381,7 +383,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         addEventListener(newParentStack);
 
         releaseReferencesStrategy = sipStack.getReleaseReferencesStrategy();
-        this.applicationData = new HashMap<String, Object>(10);
+        this.applicationData = new ConcurrentHashMap<String, Object>(10);
     }
 
     /**
