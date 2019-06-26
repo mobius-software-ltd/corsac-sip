@@ -9,6 +9,24 @@ The folowing tags are used to categorize and state the scope of a change
 
 # JSIP-RI Release Notes
 
+## 7.1.1 version 2019-06-26
+
+### Release Unit/Integration Tests
+https://cxs.restcomm.com/job/TelScale-JAIN-SIP-7-MultiPipeline/job/ts2/16/
+
+### New features
+* N/A
+
+### Breaking Changes
+
+* N/A
+
+### Bug fixes
+
+* BS-2678: Thread-safe transaction data
+    * Transaction data is now powered by a concurrent map to make it thread-safe.
+
+
 ## 7.1.0 version 2019-05-30
 
 ### Release Unit/Integration Tests
