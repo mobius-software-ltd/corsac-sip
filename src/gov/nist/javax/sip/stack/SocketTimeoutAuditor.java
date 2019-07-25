@@ -76,7 +76,14 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 								System.currentTimeMillis() + " socketChannel = "
 								+ socketChannel);
 					}
-					messageChannel.close();
+					
+					try {
+						messageChannel.close();
+					} catch (Exception anything) {
+						logger.logError("Exception in SocketTimeoutAuditor : ", anything);
+					}
+					//removing anyway,otherwise we may get into indefinite loop
+					nioHandler.removeMessageChannel(entry.getKey());
 					entriesIterator = nioHandler.channelMap.entrySet().iterator();
 					closedCount++;
 				} else {
