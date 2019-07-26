@@ -1,0 +1,315 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>javax.sip</groupId>
+    <artifactId>jain-sip</artifactId>
+    <version>7.0.6-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <name>jain-sip</name>
+    <description>JAIN SIP Parent pom</description>
+    <url>http://code.google.com/p/jain-sip/</url>
+
+    <developers>
+        <developer>
+            <id>jean.deruelle</id>
+            <name>Jean Deruelle</name>
+            <email>jean.deruelle@gmail.com</email>
+            <organization>TeleStax</organization>
+            <organizationUrl>http://www.telestax.com/</organizationUrl>
+            <roles>
+                <role>Active Developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>vralev</id>
+            <name>Vladimir Ralev</name>
+            <email>vladimir.ralev@gmail.com</email>
+            <organization>TeleStax</organization>
+            <organizationUrl>http://www.telestax.com/</organizationUrl>
+            <roles>
+                <role>Active Developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>ranga</id>
+            <name>ranga</name>
+            <email>mranga@gmail.com</email>
+            <organization>NIST</organization>
+            <organizationUrl>http://www.nist.gov/</organizationUrl>
+            <roles>
+                <role>Project Lead</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>		
+    </developers>
+    <licenses>
+        <license>
+            <name>Public Domain</name>
+            <url>http://www.gnu.org/licenses/license-list.html#PublicDomain</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.8.9</version>
+            <scope>test</scope>
+        </dependency> 
+         
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.14</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>                    
+    </dependencies>
+    <modules>
+        <module>jain-sip-api</module>
+        <module>jain-sip-ri</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+        <!-- IDEs has a problem when we use late binding with @ in the surefire arg line.
+        Therefore we set this empty property here-->
+        <jacocoArgLine />       
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>performance</id>
+            <modules>
+                <module>jain-sip-performance</module>
+            </modules>
+        </profile>   
+        <profile>
+            <id>android</id>
+            <modules>
+                <module>android-jain-sip-ri</module>
+            </modules>
+        </profile>          
+        <profile>
+            <id>examples</id>
+            <modules>
+                <module>jain-sip-examples</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>docs</id>
+            <modules>
+                <module>docs</module>
+            </modules>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.8.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>                    
+                </plugins>
+            </build>
+        </profile>  
+        
+        <profile>
+            <id>int-testing</id>
+            <modules>
+                <module>jain-sip-testsuite</module>
+            </modules>
+        </profile>                                             
+        <profile>
+            <id>sctp</id>
+            <modules>
+                <module>jain-sip-sctp</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <!-- repositories -->
+    <repositories>
+
+        <repository>
+            <id>cxs-group</id>
+            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/cxs-group/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </repository>
+        
+        <repository>
+            <id>cxs-product-snapshots</id>
+            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/product-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </repository>        
+    </repositories>
+    
+    <pluginRepositories>
+        <pluginRepository>
+            <id>cxs-group-plugin</id>
+            <url>http://cxs.restcomm.com:8055/repository/cxs-group/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>       
+
+    <distributionManagement>
+        <repository>
+            <id>cxs-prod-releases</id>
+            <name>cxs-prod-releases</name>
+            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/product-releases/</url>
+            
+        </repository>
+        <snapshotRepository>
+            <id>cxs-prod-snapshots</id>
+            <name>Restcomm Snapshots Repository</name>
+            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/product-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>  
+
+    <build>	
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <executions>
+                    <!--
+                        Prepares the property pointing to the JaCoCo runtime agent which
+                        is passed as VM argument when Maven the Surefire plugin is executed.
+                    -->
+                    <execution>
+                        <id>pre-unit-test</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <!--
+                                Sets the name of the property containing the settings
+                                for JaCoCo runtime agent.
+                            -->
+                            <propertyName>jacocoArgLine</propertyName>
+                            <append>true</append>
+                        </configuration>
+                    </execution>
+                    <!--
+                        Ensures that the code coverage report for unit tests is created after
+                        unit tests have been run.
+                    -->
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the output directory for the code coverage report. -->
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+	
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.2.2</version>		  		
+            </plugin>
+        </plugins>
+    </build>
+
+    <scm>
+        <connection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</connection>
+        <developerConnection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</developerConnection>
+        <url>https://bitbucket.org/telestax/telscale-jsip</url>
+    </scm>
+
+</project>
