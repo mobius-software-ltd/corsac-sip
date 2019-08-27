@@ -15,23 +15,20 @@ package gov.nist.core;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import java.util.Map;
 
-/** 
- * This is simply a Map with slightly different semantics.
- * Instead of returning an Object, it returns a Collection.
- * So for example, you can put( key, new Integer(1) ); 
- * and then a Object get( key ); will return you a Collection 
- * instead of an Integer.
- * Thus, this is simply a tag interface.
+/**
+ * This is simply a Map with slightly different semantics. Instead of returning
+ * an Object, it returns a Collection. So for example, you can put( key, new
+ * Integer(1) ); and then a Object get( key ); will return you a Collection
+ * instead of an Integer. Thus, this is simply a tag interface.
  *
  * @since 2.0
  * @author Christopher Berry
  * @author <a href="mailto:jstrachan@apache.org">James Strachan</a>
  */
 public interface MultiMap extends Map {
-    
-    public Object remove( Object key, Object item );
-   
+
+    public Object removeMulti(Object key, Object item);
+
 }

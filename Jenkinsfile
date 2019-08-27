@@ -68,7 +68,7 @@ node("cxs-testsuite-large_docker") {
 
     // Define Java and Maven versions (named according to Jenkins installed tools)
     // Source: https://jenkins.io/blog/2017/02/07/declarative-maven-project/
-    String jdktool = tool name: 'JenkinsJava7'
+    String jdktool = tool name: 'JenkinsJava8'
     def mvnHome = tool name: 'Maven-3.5.0'
 
     // Set JAVA_HOME, and special PATH variables.
