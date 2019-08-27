@@ -15,7 +15,7 @@ import javax.sip.SipException;
 import javax.sip.address.Hop;
 import javax.sip.message.Request;
 
-public interface SIPClientTransaction extends ClientTransactionExt, SIPTransaction, ServerResponseInterface {
+public interface SIPClientTransaction extends ClientTransactionExt, SIPTransaction, TransactionResponseInterface {
 
   /**
    * Sets the real ResponseInterface this transaction encapsulates.

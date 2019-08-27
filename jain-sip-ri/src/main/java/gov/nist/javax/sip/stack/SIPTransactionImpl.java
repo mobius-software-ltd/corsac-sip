@@ -51,9 +51,13 @@ import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -114,7 +118,8 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     protected int timerD = 32000 / baseTimerInterval;
 
     // Proposed feature for next release.
-    protected transient Object applicationData;
+    private static final String DEFAULT_APP_DATA = "appdata.default";
+    protected transient final ConcurrentMap<String, Object> applicationData;
 
     protected SIPResponse lastResponse;
 
@@ -378,6 +383,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         addEventListener(newParentStack);
 
         releaseReferencesStrategy = sipStack.getReleaseReferencesStrategy();
+        this.applicationData = new ConcurrentHashMap<String, Object>(10);
     }
 
     /**
@@ -1229,7 +1235,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     @Override
     public void setApplicationData(Object applicationData) {
-        this.applicationData = applicationData;
+        this.applicationData.put(DEFAULT_APP_DATA, applicationData);
     }
 
     /**
@@ -1237,7 +1243,17 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public Object getApplicationData() {
-        return this.applicationData;
+        return this.applicationData.get(DEFAULT_APP_DATA);
+    }
+
+    @Override
+    public Object setApplicationData(String key, Object value) {
+        return this.applicationData.put(key, value);
+    }
+
+    @Override
+    public Object getApplicationData(String key) {
+        return this.applicationData.get(key);
     }
 
     /**
@@ -1525,25 +1541,11 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     @Override
     public abstract boolean isMessagePartOfTransaction(SIPMessage messageToTest);
 
-    /*
-     * (non-Javadoc)
-     * @see gov.nist.javax.sip.DialogExt#isReleaseReferences()
-     */
-    /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#isReleaseReferences()
-     */
     @Override
     public ReleaseReferencesStrategy getReleaseReferencesStrategy() {        
         return releaseReferencesStrategy;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see gov.nist.javax.sip.DialogExt#setReleaseReferences(ReleaseReferencesStrategy)
-     */
-    /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#setReleaseReferences(ReleaseReferencesStrategy)
-     */
     @Override
     public void setReleaseReferencesStrategy(ReleaseReferencesStrategy releaseReferencesStrategy) {
         this.releaseReferencesStrategy = releaseReferencesStrategy;

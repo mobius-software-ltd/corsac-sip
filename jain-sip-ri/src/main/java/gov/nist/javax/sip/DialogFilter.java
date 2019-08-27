@@ -44,6 +44,7 @@ import gov.nist.javax.sip.header.RouteList;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.DialogResponseInterface;
 import gov.nist.javax.sip.stack.MessageChannel;
 import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPDialog;
@@ -90,7 +91,7 @@ import javax.sip.message.Response;
  * 
  * @author M. Ranganathan
  */
-class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
+class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
 	
 	private static StackLogger logger = CommonLogger.getLogger(DialogFilter.class);
 
