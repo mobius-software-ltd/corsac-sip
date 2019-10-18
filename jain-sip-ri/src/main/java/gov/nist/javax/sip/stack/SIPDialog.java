@@ -75,6 +75,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -88,6 +89,8 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
@@ -4469,10 +4472,20 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         RSeq header field in the response.  The PRACK messages contain an
         RAck header field, which indicates the sequence number of the
         provisional response that is being acknowledged.*/
+
         RSeq rseq = (RSeq) response.getHeader(RSeqHeader.NAME);
         String retransCondition =(statusCode + "/" + responseCSeqNumber + "/" + responseMethod);
+        if (statusCode >= 100 && statusCode <200){
+            if(response.getContent()!=null){
+                final int sdpHachCode = response.getContent().hashCode();
+                retransCondition =(statusCode + "/" + responseCSeqNumber + "/" + responseMethod+ "/" + sdpHachCode);
+            }
+        }
         if(rseq != null) {
             retransCondition = retransCondition + "/" + rseq.getSeqNumber();
+        }
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("retransCondition is : " + retransCondition);
         }
         boolean isRetransmission = !responsesReceivedInForkingCase.add(retransCondition);
         response.setRetransmission(isRetransmission);            
