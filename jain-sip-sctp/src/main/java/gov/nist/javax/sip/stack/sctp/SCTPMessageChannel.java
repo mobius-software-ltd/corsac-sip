@@ -17,6 +17,7 @@ import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.ParseExceptionListener;
 import gov.nist.javax.sip.parser.StringMsgParser;
 import gov.nist.javax.sip.stack.MessageChannel;
+import gov.nist.javax.sip.stack.RawMessageChannel;
 import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPServerTransaction;
 import gov.nist.javax.sip.stack.SIPTransaction;
@@ -41,8 +42,8 @@ import com.sun.nio.sctp.SctpChannel;
  * @author Jeroen van Bemmel
  */
 @SuppressWarnings("restriction")
-final class SCTPMessageChannel extends MessageChannel
-    implements ParseExceptionListener, Comparable<SCTPMessageChannel> {
+final class SCTPMessageChannel extends MessageChannel 
+    implements ParseExceptionListener, RawMessageChannel, Comparable<SCTPMessageChannel> {
     private static StackLogger logger = CommonLogger.getLogger(SCTPMessageChannel.class);
 
     private final SCTPMessageProcessor processor;
@@ -234,7 +235,7 @@ final class SCTPMessageChannel extends MessageChannel
         rxBuffer.compact();
         try {
             SIPMessage m = parser.parseSIPMessage( msg, true, true, this );
-            this.processMessage( m, rxTime );
+            this.processMessage( m );
             rxTime = 0;    // reset for next message
         } catch (ParseException e) {
             if ( logger.isLoggingEnabled( LogWriter.TRACE_DEBUG ) ) {
@@ -251,7 +252,7 @@ final class SCTPMessageChannel extends MessageChannel
      *
      * JvB: copied from UDPMessageChannel, TODO restructure
      */
-    private void processMessage( SIPMessage sipMessage, long rxTime ) {
+    public void processMessage( SIPMessage sipMessage ) {
         SIPTransactionStack sipStack = processor.getSIPStack();
          sipMessage.setRemoteAddress(this.peerAddress.getAddress());
          sipMessage.setRemotePort(this.getPeerPort());
