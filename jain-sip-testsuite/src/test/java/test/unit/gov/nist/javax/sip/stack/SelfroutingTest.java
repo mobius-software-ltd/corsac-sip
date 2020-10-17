@@ -1,9 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.SipStackImpl;
-
 import java.util.ArrayList;
-import java.util.EventObject;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
@@ -15,7 +12,6 @@ import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
-import javax.sip.TimeoutEvent;
 import javax.sip.Transaction;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.address.Address;
@@ -33,9 +29,13 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.Logger;
-import test.tck.msgflow.callflows.NetworkPortAssigner;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
+import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.ScenarioHarness;
 
@@ -43,11 +43,14 @@ public class SelfroutingTest extends ScenarioHarness {
 
     protected Shootist shootist;
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
 
     static {
-        if (!logger.isAttached(console))
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        }
     }
 
     class Shootist  implements SipListener {
@@ -166,8 +169,6 @@ public class SelfroutingTest extends ScenarioHarness {
 				logger.info("Dialog State is "
 						+ responseReceivedEvent.getDialog().getState());
 			}
-            SipProvider provider = (SipProvider) responseReceivedEvent.getSource();
-
             try {
             	if (response.getStatusCode() == Response.OK) {
             		if(((CSeqHeader) response.getHeader(CSeqHeader.NAME))
@@ -246,7 +247,7 @@ public class SelfroutingTest extends ScenarioHarness {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 int port = provider.getListeningPoint(protocolObjects.transport)
                         .getPort();
 
@@ -406,8 +407,7 @@ public class SelfroutingTest extends ScenarioHarness {
             shootist = new Shootist(getRiProtocolObjects());
             SipProvider shootistProvider = shootist.createSipProvider();
             shootistProvider.addSipListener(shootist);
-            SipStackImpl ss = (SipStackImpl) shootistProvider.getSipStack();
-
+            
             getRiProtocolObjects().start();
             if (getTiProtocolObjects() != getRiProtocolObjects())
                 getTiProtocolObjects().start();

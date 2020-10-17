@@ -28,31 +28,6 @@
  ******************************************************************************/
 package gov.nist.javax.sip;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.InternalErrorHandler;
-import gov.nist.core.LogLevels;
-import gov.nist.core.LogWriter;
-import gov.nist.core.StackLogger;
-import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
-import gov.nist.javax.sip.address.RouterExt;
-import gov.nist.javax.sip.header.CallID;
-import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.message.RequestExt;
-import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.HopImpl;
-import gov.nist.javax.sip.stack.MessageChannel;
-import gov.nist.javax.sip.stack.SIPClientTransaction;
-import gov.nist.javax.sip.stack.SIPDialog;
-import gov.nist.javax.sip.stack.SIPDialogErrorEvent;
-import gov.nist.javax.sip.stack.SIPDialogEventListener;
-import gov.nist.javax.sip.stack.SIPServerTransaction;
-import gov.nist.javax.sip.stack.SIPTransaction;
-import gov.nist.javax.sip.stack.SIPTransactionErrorEvent;
-import gov.nist.javax.sip.stack.SIPTransactionEventListener;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.EventObject;
@@ -82,6 +57,29 @@ import javax.sip.address.Hop;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.LogLevels;
+import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
+import gov.nist.javax.sip.address.RouterExt;
+import gov.nist.javax.sip.header.CallID;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.HopImpl;
+import gov.nist.javax.sip.stack.MessageChannel;
+import gov.nist.javax.sip.stack.SIPClientTransaction;
+import gov.nist.javax.sip.stack.SIPDialog;
+import gov.nist.javax.sip.stack.SIPDialogErrorEvent;
+import gov.nist.javax.sip.stack.SIPDialogEventListener;
+import gov.nist.javax.sip.stack.SIPServerTransaction;
+import gov.nist.javax.sip.stack.SIPTransaction;
+import gov.nist.javax.sip.stack.SIPTransactionErrorEvent;
+import gov.nist.javax.sip.stack.SIPTransactionEventListener;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
 
 /*
  * Contributions (bug fixes) made by: Daniel J. Martinez Manzano, Hagai Sela.
@@ -116,7 +114,7 @@ public class SipProviderImpl implements javax.sip.SipProvider, gov.nist.javax.si
     
     private boolean dialogErrorsAutomaticallyHandled = true;
     
-    private SipProviderImpl() {
+    public SipProviderImpl() {
 
     }
 
@@ -128,7 +126,7 @@ public class SipProviderImpl implements javax.sip.SipProvider, gov.nist.javax.si
         // Put an empty event in the queue and post ourselves a message.
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
             logger.logDebug("Exiting provider");
-        for (Iterator it = listeningPoints.values().iterator(); it.hasNext();) {
+        for (Iterator<ListeningPoint> it = listeningPoints.values().iterator(); it.hasNext();) {
             ListeningPointImpl listeningPoint = (ListeningPointImpl) it.next();
             listeningPoint.removeSipProvider();
         }
@@ -1010,8 +1008,7 @@ public class SipProviderImpl implements javax.sip.SipProvider, gov.nist.javax.si
             Transaction tx = (Transaction) errorObject;
 
             if (tx.getDialog() != null)
-                InternalErrorHandler.handleException("Unexpected event !",
-                        this.logger);
+                InternalErrorHandler.handleException("Unexpected event !",logger);
 
             Timeout timeout = Timeout.RETRANSMIT;
             TimeoutEvent ev = null;
@@ -1110,7 +1107,7 @@ public class SipProviderImpl implements javax.sip.SipProvider, gov.nist.javax.si
      * when the stack removes the Provider
      */
     public synchronized void removeListeningPoints() {
-        for (Iterator it = this.listeningPoints.values().iterator(); it
+        for (Iterator<ListeningPoint> it = this.listeningPoints.values().iterator(); it
                 .hasNext();) {
             ListeningPointImpl lp = (ListeningPointImpl) it.next();
             lp.messageProcessor.stop();

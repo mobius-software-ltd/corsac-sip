@@ -78,10 +78,12 @@ public class SecurityAgreeParser extends HeaderParser
     }
 
 
-    public SIPHeaderList parse(SecurityAgree header) throws ParseException
+    @SuppressWarnings("unchecked")
+	public SIPHeaderList<?> parse(SecurityAgree header) throws ParseException
     {
 
-        SIPHeaderList list;
+        @SuppressWarnings("rawtypes")
+		SIPHeaderList list;
 
         if (header.getClass().isInstance(new SecurityClient())) {
             list = new SecurityClientList();

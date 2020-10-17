@@ -76,7 +76,6 @@ public class AddressParser extends Parser {
                 this.lexer.SPorHT();
                 URLParser uriParser = new URLParser((Lexer) lexer);
                 GenericURI uri = uriParser.uriReference( true );
-                AddressImpl retval = new AddressImpl();
                 addr.setAddressType(AddressImpl.NAME_ADDR);
                 addr.setURI(uri);
                 this.lexer.SPorHT();

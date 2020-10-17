@@ -1,7 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack.subsnotify;
 
 import junit.framework.TestCase;
-import static test.tck.TestHarness.assertTrue;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.TestAssertion;
 

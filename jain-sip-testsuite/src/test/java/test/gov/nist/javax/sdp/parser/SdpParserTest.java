@@ -1,19 +1,17 @@
 package test.gov.nist.javax.sdp.parser;
 
-import gov.nist.javax.sdp.SessionDescriptionImpl;
-import gov.nist.javax.sdp.fields.AttributeField;
-import gov.nist.javax.sdp.parser.AttributeFieldParser;
-import gov.nist.javax.sdp.parser.SDPAnnounceParser;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.util.Vector;
 
 import javax.sdp.Attribute;
-import javax.sdp.Connection;
 import javax.sdp.MediaDescription;
 
+import gov.nist.javax.sdp.SessionDescriptionImpl;
+import gov.nist.javax.sdp.fields.AttributeField;
+import gov.nist.javax.sdp.parser.AttributeFieldParser;
+import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import junit.framework.TestCase;
 
 public class SdpParserTest extends TestCase {
@@ -112,7 +110,7 @@ public class SdpParserTest extends TestCase {
             SDPAnnounceParser parser = new SDPAnnounceParser(sdpdata);
             SessionDescriptionImpl parsedDescription = parser.parse();
             SessionDescriptionImpl sessiondescription = new SessionDescriptionImpl(parsedDescription);
-            Vector attrs = sessiondescription.getAttributes(false);
+            Vector<AttributeField> attrs = sessiondescription.getAttributes(false);
 
             if (attrs != null) {
                 Attribute attrib = (Attribute) attrs.get(0);
@@ -140,6 +138,7 @@ public class SdpParserTest extends TestCase {
             outFile.deleteOnExit();
             ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(outFile, false));
             os.writeObject(sessiondescription1);
+            os.close();
         }
 
     }

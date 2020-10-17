@@ -69,10 +69,12 @@ import javax.sip.message.Response;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.NonSipUriRouter;
@@ -93,16 +95,19 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
     
     private static int ROUTER_PORT = NetworkPortAssigner.retrieveNextPort();
 
-    protected static final Appender console = new ConsoleAppender(new SimpleLayout());
+    protected static final Appender console = ConsoleAppender.newBuilder().setName("Console").build();
 
-    protected static Logger logger = Logger.getLogger(ReInviteInfoAckOverlapTest.class);
+    protected static Logger logger = LogManager.getLogger(ReInviteInfoAckOverlapTest.class);
     
     
 
     static {
 
-        if (!logger.isAttached(console))
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(console);
+        }
     }
 
     private static String PEER_ADDRESS = Shootme.myAddress;
@@ -215,16 +220,16 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
 
         public synchronized void destroy() {
 
-            HashSet hashSet = new HashSet();
+            HashSet<SipProvider> hashSet = new HashSet<SipProvider>();
 
-            for (Iterator it = sipStack.getSipProviders(); it.hasNext();) {
+            for (Iterator<?> it = sipStack.getSipProviders(); it.hasNext();) {
 
                 SipProvider sipProvider = (SipProvider) it.next();
                 hashSet.add(sipProvider);
             }
 
-            for ( Iterator it = hashSet.iterator(); it.hasNext();) {
-                SipProvider sipProvider = (SipProvider) it.next();
+            for ( Iterator<SipProvider> it = hashSet.iterator(); it.hasNext();) {
+                SipProvider sipProvider = it.next();
 
                 for (int j = 0; j < 5; j++) {
                     try {
@@ -264,8 +269,6 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
         private ServerTransaction inviteTid = null;
 
         private Dialog dialog = null;
-
-        private boolean okRecieved = false;
 
         private int reInviteCount = 0;
         
@@ -419,7 +422,6 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
          */
         public void processBye(RequestEvent requestEvent, ServerTransaction serverTransactionId) {
 
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             try {
                 logger.info("shootme:  got a bye sending OK.");
@@ -442,7 +444,6 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
         
         public void processInfo(RequestEvent requestEvent, ServerTransaction serverTransactionId) {
 
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             try {
                 logger.info("shootme:  got a INFO sending OK.");
@@ -473,7 +474,6 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
                 if (response.getStatusCode() == Response.OK
                         && ((CSeqHeader) response.getHeader(CSeqHeader.NAME)).getMethod().equals(
                                 Request.INVITE)) {
-                    this.okRecieved = true;
                     ReInviteInfoAckOverlapTest.assertNotNull("INVITE 200 response should match a transaction",
                             tid);
                     Dialog dialog = tid.getDialog();
@@ -579,15 +579,11 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
 
         protected ClientTransaction inviteTid;
 
-        private boolean okReceived = false;
-
         int reInviteReceivedCount = 0;
 
         private ProtocolObjects protocolObjects = null;
 
         private Dialog dialog = null;
-
-        private boolean busyHereReceived = false;
 
         public Shootist(ProtocolObjects protocolObjects) {
             super();
@@ -708,8 +704,7 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
                 	}
 
                 } else if (response.getStatusCode() == Response.BUSY_HERE) {
-                	this.busyHereReceived = true;
-                    TestCase.assertEquals("Dialog State must be CONFIRMED", dialog.getState(), DialogState.CONFIRMED);
+                	TestCase.assertEquals("Dialog State must be CONFIRMED", dialog.getState(), DialogState.CONFIRMED);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -781,7 +776,7 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 int port = provider.getListeningPoint(protocolObjects.transport).getPort();
 
                 ViaHeader viaHeader = protocolObjects.headerFactory.createViaHeader(myAddress,

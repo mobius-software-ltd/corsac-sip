@@ -1,14 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.DialogExt;
-import gov.nist.javax.sip.SipProviderExt;
-import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.stack.MessageChannel;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-import gov.nist.javax.sip.stack.SIPMessageValve;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -45,6 +36,8 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import gov.nist.javax.sip.DialogExt;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 
@@ -341,12 +334,6 @@ public class SIPMessageValveTest extends TestCase {
 
         private ListeningPoint udpListeningPoint;
 
-
-        private Dialog dialog;
-
-
-        private boolean timeoutRecieved;
-
         boolean messageSeen = false;
 
         private final int myPort = NetworkPortAssigner.retrieveNextPort();        
@@ -358,7 +345,7 @@ public class SIPMessageValveTest extends TestCase {
         private  String peerHostPort;
 
         public Shootist(Shootme shootme) {
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;             
         }
@@ -394,8 +381,6 @@ public class SIPMessageValveTest extends TestCase {
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
 
             System.out.println("Got a timeout " + timeoutEvent.getClientTransaction());
-
-            this.timeoutRecieved = true;
         }
 
 
@@ -489,7 +474,7 @@ public class SIPMessageValveTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -567,9 +552,8 @@ public class SIPMessageValveTest extends TestCase {
 
                 // Create the client transaction.
                 ClientTransaction inviteTid = sipProvider.getNewClientTransaction(request);
-            	Dialog d = null;
 				try {
-					d = sipProvider.getNewDialog(inviteTid);
+					sipProvider.getNewDialog(inviteTid);
 				} catch (SipException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -577,10 +561,7 @@ public class SIPMessageValveTest extends TestCase {
 
                 // send the request out.
                 inviteTid.sendRequest();
-
-                dialog = inviteTid.getDialog();
-
-            } catch (Exception ex) {
+           } catch (Exception ex) {
                 fail("cannot create or send initial invite");
             }
         }

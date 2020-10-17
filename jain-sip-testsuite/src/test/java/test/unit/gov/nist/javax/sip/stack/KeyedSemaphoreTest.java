@@ -143,11 +143,10 @@ public class KeyedSemaphoreTest extends TestCase{
     }
 
     public void testSunnyOnly() throws Exception {
-        org.apache.log4j.BasicConfigurator.configure();
         ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(THREAD_NUM);
         KeyedSemaphore sem = new KeyedSemaphore();
         final String key = "key";
-        List<Callable<Boolean>> tasks = new ArrayList();
+        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>();
         for (int i = 0; i < THREAD_NUM; i++) {
             tasks.add(new SunnyConnect(sem, key));
         }
@@ -160,11 +159,10 @@ public class KeyedSemaphoreTest extends TestCase{
     }
 
     public void testRainyOnly() throws Exception {
-        org.apache.log4j.BasicConfigurator.configure();
         ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(THREAD_NUM);
         final KeyedSemaphore sem = new KeyedSemaphore();
         final String key = "key";
-        List<Callable<Boolean>> tasks = new ArrayList();
+        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>();
         for (int i = 0; i < THREAD_NUM; i++) {
             tasks.add(new FaultyConnect(sem, key));
         }

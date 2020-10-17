@@ -55,7 +55,13 @@ public class SecurityServer
 
     // TODO serialVersionUID
 
-    public SecurityServer()
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	public SecurityServer()
     {
         super(SecurityServerHeader.NAME);
 

@@ -1,8 +1,5 @@
 package gov.nist.javax.sip.multipartmime;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Iterator;
 
 import javax.sip.header.ContentDispositionHeader;
@@ -19,15 +16,6 @@ import gov.nist.javax.sip.message.MessageFactoryExt;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.MultipartMimeContent;
 import gov.nist.javax.sip.message.SIPRequest;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
-
-import javax.sip.header.ContentTypeHeader;
-import javax.sip.message.Request;
-
 import junit.framework.TestCase;
 
 public class MultipartMimeParserTest extends TestCase {
@@ -500,16 +488,6 @@ public class MultipartMimeParserTest extends TestCase {
     
     assertNotNull(sdpPart.getContent());
     assertFalse(partContentIterator.hasNext());
-  }
-  
-  private byte[] toByteArray(InputStream input) throws IOException {
-    ByteArrayOutputStream output = new ByteArrayOutputStream();
-    byte[] buffer = new byte[1024];
-    int n = 0;
-    while (-1 != (n = input.read(buffer))) {
-      output.write(buffer, 0, n);
-    }
-    return output.toByteArray();
   }
 
 }

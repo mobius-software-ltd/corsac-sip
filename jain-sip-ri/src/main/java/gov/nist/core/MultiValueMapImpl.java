@@ -35,7 +35,7 @@ import java.util.Set;
 public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable {
     // jeand : lazy init of the map to reduce mem consumption
 
-    private HashMap<String, ArrayList<V>> map = null;
+    private HashMap<String, List<V>> map = null;
 
     private static final long serialVersionUID = 4275505380960964605L;
 
@@ -44,7 +44,7 @@ public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable
     }
 
     public List<V> put(String key, V value) {
-        ArrayList<V> keyList = null;
+        List<V> keyList = null;
         if (map != null) {
             keyList = map.get(key);
         }
@@ -58,7 +58,7 @@ public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable
     }
 
     public boolean containsValue(Object value) {
-        Set pairs = null;
+        Set<Entry<String, List<V>>> pairs = null;
         if (map != null) {
             pairs = map.entrySet();
         }
@@ -66,10 +66,10 @@ public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable
             return false;
         }
 
-        Iterator pairsIterator = pairs.iterator();
+        Iterator<Entry<String, List<V>>> pairsIterator = pairs.iterator();
         while (pairsIterator.hasNext()) {
-            Map.Entry keyValuePair = (Map.Entry) (pairsIterator.next());
-            ArrayList list = (ArrayList) (keyValuePair.getValue());
+            Entry<String, List<V>> keyValuePair = pairsIterator.next();
+            List<V> list = keyValuePair.getValue();
             if (list.contains(value)) {
                 return true;
             }
@@ -79,41 +79,40 @@ public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable
 
     public void clear() {
         if (map != null) {
-            Set pairs = map.entrySet();
-            Iterator pairsIterator = pairs.iterator();
+            Set<Entry<String, List<V>>> pairs = map.entrySet();
+            Iterator<Entry<String, List<V>>> pairsIterator = pairs.iterator();
             while (pairsIterator.hasNext()) {
-                Map.Entry keyValuePair = (Map.Entry) (pairsIterator.next());
-                ArrayList list = (ArrayList) (keyValuePair.getValue());
+            	Entry<String, List<V>> keyValuePair = pairsIterator.next();
+                List<V> list = keyValuePair.getValue();
                 list.clear();
             }
             map.clear();
         }
     }
 
-    public Collection values() {
+    public Collection<List<V>> values() {
         if (map == null) {
-            return new ArrayList();
+            return new ArrayList<List<V>>();
         }
-        ArrayList returnList = new ArrayList(map.size());
+        ArrayList<List<V>> returnList = new ArrayList<List<V>>(map.size());
 
-        Set pairs = map.entrySet();
-        Iterator pairsIterator = pairs.iterator();
+        Set<Entry<String, List<V>>> pairs = map.entrySet();
+        Iterator<Entry<String, List<V>>> pairsIterator = pairs.iterator();
         while (pairsIterator.hasNext()) {
-            Map.Entry keyValuePair = (Map.Entry) (pairsIterator.next());
-            ArrayList list = (ArrayList) (keyValuePair.getValue());
+        	Entry<String, List<V>> keyValuePair = pairsIterator.next();
+            List<V> list =keyValuePair.getValue();
 
-            Object[] values = list.toArray();
-            for (int ii = 0; ii < values.length; ii++) {
-                returnList.add(values[ii]);
-            }
+            returnList.add(list);            
         }
+        
         return returnList;
     }
 
-    public Object clone() {
-        MultiValueMapImpl obj = new MultiValueMapImpl<V>();
+    @SuppressWarnings("unchecked")
+	public Object clone() {
+        MultiValueMapImpl<V> obj = new MultiValueMapImpl<V>();
         if (map != null) {
-            obj.map = (HashMap<Object, ArrayList<V>>) this.map.clone();
+            obj.map = (HashMap<String, List<V>>) this.map.clone();
         }
         return obj;
     }
@@ -132,9 +131,9 @@ public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable
         return map.containsKey(key);
     }
 
-    public Set entrySet() {
+    public Set<Entry<String, List<V>>> entrySet() {
         if (map == null) {
-            return new HashSet();
+            return new HashSet<Entry<String, List<V>>>();
         }
         return map.entrySet();
     }
@@ -157,7 +156,7 @@ public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable
         if (map == null) {
             return null;
         }
-        ArrayList<V> list = this.map.get(key);
+        List<V> list = this.map.get(key);
         if (list == null) {
             return null;
         } else {
@@ -194,9 +193,9 @@ public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable
     /**
      * @return the map
      */
-    public HashMap<String, ArrayList<V>> getMap() {
+    public HashMap<String, List<V>> getMap() {
         if (map == null) {
-            map = new HashMap<String, ArrayList<V>>(0);
+            map = new HashMap<String, List<V>>(0);
         }
         return map;
     }

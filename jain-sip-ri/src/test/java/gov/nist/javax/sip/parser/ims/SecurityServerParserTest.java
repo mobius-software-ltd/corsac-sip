@@ -24,7 +24,6 @@
 
 package gov.nist.javax.sip.parser.ims;
 
-import gov.nist.javax.sip.parser.ims.SecurityServerParser;
 import gov.nist.javax.sip.parser.ParserTestCase;
 
 public class SecurityServerParserTest extends ParserTestCase

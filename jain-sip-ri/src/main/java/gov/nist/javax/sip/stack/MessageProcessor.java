@@ -190,7 +190,7 @@ public abstract class MessageProcessor  {
     public ListeningPointImpl getListeningPoint() {
         if ( listeningPoint == null )  {
             if ( logger.isLoggingEnabled()) {
-                this.logger.logError("getListeningPoint" + this +
+                MessageProcessor.logger.logError("getListeningPoint" + this +
                         " returning null listeningpoint");
 
             }
@@ -200,7 +200,7 @@ public abstract class MessageProcessor  {
 
     public void setListeningPoint(ListeningPointImpl lp) {
         if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            this.logger.logDebug("setListeningPoint" + this +
+            MessageProcessor.logger.logDebug("setListeningPoint" + this +
                     " listeningPoint = " + lp);
 
         }

@@ -5,14 +5,8 @@ import gov.nist.javax.sip.LogRecord;
 public class LogRecordImpl implements LogRecord {
 
     private String message;
-    private String source;
-    private String destination;
     private long timeStamp;
-    private String tid;
-    private String firstLine;
-    private String callId;
-    private long timestampVal;
-
+    
     /**
      * Constructor for our custom log record
      *
@@ -40,13 +34,7 @@ public class LogRecordImpl implements LogRecord {
             long timeStamp, boolean isSender, String firstLine, String tid,
             String callId, long timestampVal) {
         this.message = message;
-        this.source = source;
-        this.destination = destination;
-        this.timeStamp = timeStamp;
-        this.firstLine = firstLine;
-        this.tid = tid;
-        this.callId = callId;
-        this.timestampVal = timestampVal;
+        this.timeStamp = timeStamp;        
     }
 
     public boolean equals(Object other) {

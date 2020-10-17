@@ -48,10 +48,12 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.TestHarness;
 import test.tck.msgflow.callflows.ProtocolObjects;
@@ -82,15 +84,18 @@ public class Notifier implements SipListener {
 
     private String transport;
 
-    private static Logger logger = Logger.getLogger(Notifier.class);
+    private static Logger logger = LogManager.getLogger(Notifier.class);
 
     private boolean gotSubscribeRequest;
 
     static {
         try {
-            logger.setLevel(Level.INFO);
-            logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "target/logs/notifieroutputlog.txt"));
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+            Configuration configuration = logContext.getConfiguration();
+            configuration.addAppender(FileAppender.newBuilder().setName("Notifieroutputlog").withFileName("target/logs/notifieroutputlog.txt").build());
+            
+            configuration.getLoggerConfig(logger.getName()).setLevel(Level.INFO);
+            logContext.updateLoggers();
         } catch (Exception ex) {
             logger.info(ex.getMessage(), ex);
             TestHarness.fail("Failed to initialize Subscriber, because of " + ex.getMessage());

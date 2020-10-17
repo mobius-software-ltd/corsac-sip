@@ -41,7 +41,11 @@ import javax.sdp.*;
 *@author M. Ranganathan   <br/>
 */
 public class KeyField extends SDPField implements javax.sdp.Key {
-    protected String type;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String type;
     protected String keyData;
 
     public KeyField() {

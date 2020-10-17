@@ -86,7 +86,7 @@ public class SdpFactory extends Object {
         TimeField timeImpl = new TimeField();
         timeImpl.setZero();
         timeDescriptionImpl.setTime(timeImpl);
-        Vector times = new Vector();
+        Vector<TimeDescription> times = new Vector<TimeDescription>();
         times.addElement(timeDescriptionImpl);
         sessionDescriptionImpl.setTimeDescriptions(times);
 
@@ -329,7 +329,7 @@ public class SdpFactory extends Object {
      * @return Media
      */
     public Media createMedia(String media, int port, int numPorts,
-            String transport, Vector staticRtpAvpTypes) throws SdpException {
+            String transport, Vector<String> staticRtpAvpTypes) throws SdpException {
         MediaField mediaImpl = new MediaField();
         mediaImpl.setMediaType(media);
         mediaImpl.setMediaPort(port);
@@ -425,7 +425,7 @@ public class SdpFactory extends Object {
         mediaImpl.setProtocol(transport);
         mediaDescriptionImpl.setMedia(mediaImpl);
         // Bug fix contributed by Paloma Ortega.
-        Vector payload = new Vector();
+        Vector<String> payload = new Vector<String>();
         for (int i = 0; i < staticRtpAvpTypes.length; i++)
             payload.add(new Integer(staticRtpAvpTypes[i]).toString());
         mediaImpl.setMediaFormats(payload);
@@ -461,7 +461,7 @@ public class SdpFactory extends Object {
             mediaImpl.setPortCount(numPorts);
             mediaImpl.setProtocol(transport);
 
-            Vector formatsV = new Vector(formats.length);
+            Vector<String> formatsV = new Vector<String>(formats.length);
             for (int i = 0; i < formats.length; i++)
                 formatsV.add(formats[i]);
             mediaImpl.setMediaFormats(formatsV);
@@ -697,7 +697,7 @@ public class SdpFactory extends Object {
         ZoneField timeZoneAdjustmentImpl = new ZoneField();
         try {
 
-            Hashtable map = new Hashtable();
+            Hashtable<Date,Integer> map = new Hashtable<Date,Integer>();
             map.put(d, new Integer(offset));
             timeZoneAdjustmentImpl.setZoneAdjustments(map);
         } catch (SdpException s) {
@@ -758,16 +758,16 @@ public class SdpFactory extends Object {
                 .createSessionDescription(sdpFields);
 
         System.out.println("sessionDescription = " + sessionDescription);
-        Vector mediaDescriptions = sessionDescription
+        Vector<MediaDescription> mediaDescriptions = sessionDescription
                 .getMediaDescriptions(true);
 
         for (int i = 0; i < mediaDescriptions.size(); i++) {
-            MediaDescription m = (MediaDescription) mediaDescriptions
+            MediaDescription m = mediaDescriptions
                     .elementAt(i);
             ((MediaDescriptionImpl) m).setDuplexity("sendrecv");
             System.out.println("m = " + m.toString());
             Media media = m.getMedia();
-            Vector formats = media.getMediaFormats(false);
+            Vector<String> formats = media.getMediaFormats(false);
             System.out.println("formats = " + formats);
         }
     }

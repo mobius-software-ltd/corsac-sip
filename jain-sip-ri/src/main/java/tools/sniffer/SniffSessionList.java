@@ -15,17 +15,18 @@ import java.util.*;
 *
 */
 
-public class SniffSessionList extends ArrayList {
+public class SniffSessionList extends ArrayList<SniffMessageList> {
+	private static final long serialVersionUID = 1L;
 
-    /**
+	/**
      * Add a new SniffMessage to the SniffSessionList.
      * Create a new Sniff Session if this is a new call id.
      */
     public void add(SniffMessage sniffMessage) {
         boolean newSession = true;
-        ListIterator i = super.listIterator();
+        ListIterator<SniffMessageList> i = super.listIterator();
         while (i.hasNext()) {
-            SniffMessageList temp = (SniffMessageList) i.next();
+            SniffMessageList temp = i.next();
             if (temp.getCallID().equals(sniffMessage.getCallID())) {
                 temp.add(sniffMessage);
                 newSession = false;
@@ -43,14 +44,13 @@ public class SniffSessionList extends ArrayList {
     * to the trace viewer.
     */
     public String toXML() {
-        ListIterator li = super.listIterator();
+        ListIterator<SniffMessageList> li = super.listIterator();
         String xmlMessages =
             "<description\n "
                 + "logDescription = "
                 + "\" sniffer capture "
                 + "\"\n name = "
                 + "\" snifferTrace \" /> \n";
-        int i = 0;
         while (li.hasNext()) {
             SniffMessageList sml = (SniffMessageList) li.next();
             xmlMessages += sml.toXML();
@@ -62,7 +62,7 @@ public class SniffSessionList extends ArrayList {
     * Return an array of call identifiers for the traces.
     */
     public String[] getCallIds() {
-        ListIterator li = super.listIterator();
+        ListIterator<SniffMessageList> li = super.listIterator();
         String[] retval = new String[this.size()];
         int i = 0;
         while (li.hasNext()) {

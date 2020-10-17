@@ -30,6 +30,13 @@
 
 package gov.nist.javax.sip.parser;
 
+import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+/*
+ * Acknowledgement: 1/12/2007: Yanick Belanger rewrote the parsing loops to make them
+ * simpler and quicker.
+ */
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.Host;
 import gov.nist.core.HostNameParser;
@@ -47,15 +54,6 @@ import gov.nist.javax.sip.header.StatusLine;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-
-import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
-/*
- * Acknowledgement: 1/12/2007: Yanick Belanger rewrote the parsing loops to make them
- * simpler and quicker.
- */
-
-import javax.xml.bind.DatatypeConverter;
 
 /**
  * Parse SIP message and parts of SIP messages such as URI's etc from memory and
@@ -296,7 +294,7 @@ public class StringMsgParser implements MessageParser {
         } catch (ParseException ex) {
             if (parseExceptionListener != null) {
                 String headerName = Lexer.getHeaderName(header);
-                Class headerClass = NameMap.getClassFromName(headerName);
+                Class<?> headerClass = NameMap.getClassFromName(headerName);
                 if (headerClass == null) {
                     headerClass = ExtensionHeaderImpl.class;
 

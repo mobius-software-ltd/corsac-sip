@@ -77,11 +77,6 @@ public class Controller implements SipListener {
 
     int first = 0, second = 0;
 
-    private static void usage() {
-        System.out.println(usageString);
-        junit.framework.TestCase.fail("Exit JVM");
-    }
-
     public void processRequest(RequestEvent requestReceivedEvent) {
         Request request = requestReceivedEvent.getRequest();
         ServerTransaction serverTransactionId = requestReceivedEvent
@@ -257,7 +252,7 @@ public class Controller implements SipListener {
         SipURI requestURI = addressFactory.createSipURI(toVal, peerHostPort);
 
         // Create ViaHeaders
-        ArrayList viaHeaders = new ArrayList();
+        ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
         ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                 sipProvider.getListeningPoint(transport).getPort(), transport,
                 null);

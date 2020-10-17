@@ -15,15 +15,16 @@
  */
  package test.unit.gov.nist.javax.sip.stack.tx.timeout;
 
-import gov.nist.javax.sip.SipStackImpl;
-
 import javax.sip.SipProvider;
 import javax.sip.message.Request;
 
-import org.apache.log4j.Logger;
-import static test.tck.TestHarness.assertTrue;
-import test.tck.msgflow.callflows.AssertUntil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
+import gov.nist.javax.sip.SipStackImpl;
+import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.ScenarioHarness;
 import test.tck.msgflow.callflows.TestAssertion;
@@ -45,12 +46,14 @@ public class TxTimeoutTest extends ScenarioHarness {
 
     private Shootme shootme;
     
-    private static final Logger logger = Logger.getLogger("test.tck");
     private static final int TIMEOUT = 60000;
 
     static {
-        if (!logger.isAttached(console))
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        }
     }
 
     public TxTimeoutTest() {
@@ -103,7 +106,8 @@ public class TxTimeoutTest extends ScenarioHarness {
                 ((SipStackImpl)shootistProtocolObjs.sipStack).setMaxTxLifetimeInvite(30);
                 
                 this.shootist.sendRequest(Request.INVITE);
-                Thread.currentThread().sleep(10000);
+                Thread.currentThread();
+				Thread.sleep(10000);
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -154,7 +158,8 @@ public class TxTimeoutTest extends ScenarioHarness {
                 ((SipStackImpl)shootistProtocolObjs.sipStack).setMaxTxLifetimeNonInvite(30);
                 
                 this.shootist.sendRequest(Request.MESSAGE);
-                Thread.currentThread().sleep(10000);
+                Thread.currentThread();
+				Thread.sleep(10000);
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

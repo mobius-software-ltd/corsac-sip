@@ -1,32 +1,22 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
-import javax.sip.DialogState;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
-import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
 import javax.sip.PeerUnavailableException;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
-import javax.sip.SipException;
 import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
 import javax.sip.Transaction;
-import javax.sip.TransactionState;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
@@ -45,7 +35,7 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -264,10 +254,6 @@ public class RejectInvalidResponseTest extends TestCase {
 
         private ListeningPoint udpListeningPoint;
 
-
-        private Dialog dialog;
-
-
         private boolean timeoutRecieved;
 
         private int peerPort = 0;
@@ -390,7 +376,7 @@ public class RejectInvalidResponseTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -471,8 +457,6 @@ public class RejectInvalidResponseTest extends TestCase {
 
                 // send the request out.
                 inviteTid.sendRequest();
-
-                dialog = inviteTid.getDialog();
 
             } catch (Exception ex) {
                 fail("cannot create or send initial invite");

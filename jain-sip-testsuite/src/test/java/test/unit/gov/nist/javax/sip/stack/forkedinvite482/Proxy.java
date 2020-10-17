@@ -1,7 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack.forkedinvite482;
 
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 
 import javax.sip.ClientTransaction;
@@ -14,7 +13,6 @@ import javax.sip.ServerTransaction;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.TimeoutEvent;
-import javax.sip.Transaction;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.address.Address;
 import javax.sip.address.SipURI;
@@ -25,7 +23,8 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import test.tck.TestHarness;
 import test.tck.msgflow.callflows.ProtocolObjects;
@@ -41,9 +40,7 @@ public class Proxy extends TestHarness implements SipListener {
 
     // private ServerTransaction st;
 
-    private SipProvider inviteServerTxProvider;
-
-    private HashSet clientTxTable = new HashSet<ClientTransaction>();
+    private HashSet<ClientTransaction> clientTxTable = new HashSet<ClientTransaction>();
 
     private static String host = "127.0.0.1";
 
@@ -53,7 +50,7 @@ public class Proxy extends TestHarness implements SipListener {
 
     private static String unexpectedException = "Unexpected exception";
 
-    private static Logger logger = Logger.getLogger(Proxy.class);
+    private static Logger logger = LogManager.getLogger(Proxy.class);
 
     private ProtocolObjects protocolObjects;
 
@@ -63,7 +60,6 @@ public class Proxy extends TestHarness implements SipListener {
         try {
             Request request = requestEvent.getRequest();
             SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-            this.inviteServerTxProvider = sipProvider;
             if (request.getMethod().equals(Request.INVITE)) {
 
                 ListeningPoint lp = sipProvider.getListeningPoint(protocolObjects.transport);
@@ -234,7 +230,7 @@ public class Proxy extends TestHarness implements SipListener {
         logger.info("Transaction terminated event occured -- cleaning up");
         if (!transactionTerminatedEvent.isServerTransaction()) {
             ClientTransaction ct = transactionTerminatedEvent.getClientTransaction();
-            for (Iterator it = this.clientTxTable.iterator(); it.hasNext();) {
+            for (Iterator<ClientTransaction> it = this.clientTxTable.iterator(); it.hasNext();) {
                 if (it.next().equals(ct)) {
                     it.remove();
                 }

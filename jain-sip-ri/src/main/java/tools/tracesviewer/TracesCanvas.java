@@ -53,7 +53,9 @@ public class TracesCanvas
     extends Canvas
     implements MouseListener, MouseMotionListener {
 
-    public static int FIRST_ACTOR_GAP = 100;
+	private static final long serialVersionUID = 1L;
+	
+	public static int FIRST_ACTOR_GAP = 100;
     public int HORIZONTAL_GAP = 350;
     public static int ACTORS_STRIPE = 120;
     public static int FIRST_ARROW_GAP = 50;
@@ -87,9 +89,9 @@ public class TracesCanvas
     public TextArea messageContentTextArea = null;
     public String tracesOrigin;
 
-    public Hashtable actors = new Hashtable();
-    public Hashtable arrows = new Hashtable();
-    public Hashtable arrowsColors = new Hashtable();
+    public Hashtable<String,Integer> actors = new Hashtable<String,Integer>();
+    public Hashtable<String,Arrow> arrows = new Hashtable<String,Arrow>();
+    public Hashtable<String,Color> arrowsColors = new Hashtable<String,Color>();
 
     public boolean isAnimated = false;
     public Arrow arrowTipTool = null;
@@ -198,10 +200,10 @@ public class TracesCanvas
         g.drawLine(0, ACTORS_STRIPE, widthCanvas, ACTORS_STRIPE);
 
         // draw the actors above the separation line and their vertical line:
-        Enumeration e = actors.keys();
+        Enumeration<String> e = actors.keys();
         while (e.hasMoreElements()) {
-            String origin = (String) e.nextElement();
-            int positionX = ((Integer) actors.get(origin)).intValue();
+            String origin = e.nextElement();
+            int positionX = actors.get(origin).intValue();
 
             // if we have an image for the actors display it
             // otherwise just do nothing
@@ -244,7 +246,7 @@ public class TracesCanvas
     public void constructActors() {
         try {
             // We clean the table
-            actors = new Hashtable();
+            actors = new Hashtable<String,Integer>();
             for (int i = 0; i < tracesSession.size(); i++) {
                 TracesMessage tracesMessage =
                     (TracesMessage) tracesSession.elementAt(i);
@@ -282,7 +284,7 @@ public class TracesCanvas
     }
 
     public void constructArrows() {
-        arrows = new Hashtable();
+        arrows = new Hashtable<String,Arrow>();
         String from = null;
         String to = null;
 
@@ -366,7 +368,7 @@ public class TracesCanvas
     }
 
     public void assignColors() {
-        arrowsColors = new Hashtable();
+        arrowsColors = new Hashtable<String,Color>();
         TracesMessage tracesMessage = null;
         int colorIndex = 0;
 
@@ -392,10 +394,10 @@ public class TracesCanvas
 
     public Arrow getArrow(int x, int y) {
         //System.out.println("getArrow: x:"+x+" y:"+y);
-        Enumeration e = arrows.keys();
+        Enumeration<String> e = arrows.keys();
         while (e.hasMoreElements()) {
-            String arrowName = (String) e.nextElement();
-            Arrow arrow = (Arrow) arrows.get(arrowName);
+            String arrowName = e.nextElement();
+            Arrow arrow = arrows.get(arrowName);
             if (arrow == null)
                 return null;
             if (arrow.isCollisionArrow(x, y))
@@ -406,10 +408,10 @@ public class TracesCanvas
 
     public Arrow getArrowInfo(int x, int y) {
         //System.out.println("getArrow: x:"+x+" y:"+y);
-        Enumeration e = arrows.keys();
+        Enumeration<String> e = arrows.keys();
         while (e.hasMoreElements()) {
-            String arrowName = (String) e.nextElement();
-            Arrow arrow = (Arrow) arrows.get(arrowName);
+            String arrowName = e.nextElement();
+            Arrow arrow = arrows.get(arrowName);
             if (arrow == null)
                 return null;
             else if (arrow.statusInfo) {
@@ -485,10 +487,10 @@ public class TracesCanvas
         // draw the arrows and information
         // Set up the Font
 
-        Enumeration e = arrows.keys();
+        Enumeration<String> e = arrows.keys();
         while (e.hasMoreElements()) {
-            String arrowName = (String) e.nextElement();
-            Arrow arrow = (Arrow) arrows.get(arrowName);
+            String arrowName = e.nextElement();
+            Arrow arrow = arrows.get(arrowName);
             if (arrow.visible) {
                 //System.out.println("arrow:"+arrow.ymin);
                 arrow.draw(g);
@@ -502,19 +504,19 @@ public class TracesCanvas
     }
 
     public void unvisibleAllArrows() {
-        Enumeration e = arrows.keys();
+        Enumeration<String> e = arrows.keys();
         while (e.hasMoreElements()) {
-            String arrowName = (String) e.nextElement();
-            Arrow arrow = (Arrow) arrows.get(arrowName);
+            String arrowName = e.nextElement();
+            Arrow arrow = arrows.get(arrowName);
             arrow.visible = false;
         }
     }
 
     public void unselectAllArrows() {
-        Enumeration e = arrows.keys();
+        Enumeration<String> e = arrows.keys();
         while (e.hasMoreElements()) {
-            String arrowName = (String) e.nextElement();
-            Arrow arrow = (Arrow) arrows.get(arrowName);
+            String arrowName = e.nextElement();
+            Arrow arrow = arrows.get(arrowName);
             arrow.selected = false;
         }
     }
@@ -543,15 +545,13 @@ public class TracesCanvas
 
     public void unDisplayInfo() {
         //System.out.println("getArrow: x:"+x+" y:"+y);
-        Enumeration e = arrows.keys();
-        boolean repaint = false;
+        Enumeration<String> e = arrows.keys();
         while (e.hasMoreElements()) {
-            String arrowName = (String) e.nextElement();
-            Arrow arrow = (Arrow) arrows.get(arrowName);
+            String arrowName = e.nextElement();
+            Arrow arrow = arrows.get(arrowName);
             if (arrow != null)
                 if (arrow.displayInfo) {
                     arrow.displayInfo = false;
-                    repaint = true;
                 }
         }
         repaint();

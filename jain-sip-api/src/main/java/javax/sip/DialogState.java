@@ -45,6 +45,11 @@ import java.io.*;
 public final class DialogState implements Serializable{
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Constructor for the DialogState
      *
      * @param dialogState  The integer value for the DialogueState

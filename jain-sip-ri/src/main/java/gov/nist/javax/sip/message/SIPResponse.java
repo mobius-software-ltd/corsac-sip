@@ -54,7 +54,9 @@ import java.util.LinkedList;
 public class SIPResponse
     extends SIPMessage
     implements javax.sip.message.Response, ResponseExt {
-    protected StatusLine statusLine;
+	private static final long serialVersionUID = 1L;
+	
+	protected StatusLine statusLine;
     private boolean isRetransmission = true;
    
     public static String getReasonPhrase(int rc) {
@@ -449,8 +451,8 @@ public class SIPResponse
      *   the message.
      */
 
-    public LinkedList getMessageAsEncodedStrings() {
-        LinkedList retval = super.getMessageAsEncodedStrings();
+    public LinkedList<String> getMessageAsEncodedStrings() {
+        LinkedList<String> retval = super.getMessageAsEncodedStrings();
 
         if (statusLine != null)
             retval.addFirst(statusLine.encode());

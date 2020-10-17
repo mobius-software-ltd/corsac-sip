@@ -24,7 +24,6 @@ import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.ContactHeader;
-import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.EventHeader;
 import javax.sip.header.ExpiresHeader;
 import javax.sip.header.FromHeader;
@@ -264,7 +263,7 @@ public class Subscriber implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     sipProvider.getListeningPoint(transport).getPort(),
                     transport, null);

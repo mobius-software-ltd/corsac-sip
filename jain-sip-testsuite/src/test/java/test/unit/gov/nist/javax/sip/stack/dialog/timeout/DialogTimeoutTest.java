@@ -15,13 +15,14 @@
  */
  package test.unit.gov.nist.javax.sip.stack.dialog.timeout;
 
-import gov.nist.javax.sip.SipStackImpl;
-
 import javax.sip.SipProvider;
 
-import org.apache.log4j.Logger;
-import test.tck.msgflow.callflows.AssertUntil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 
+import gov.nist.javax.sip.SipStackImpl;
+import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.ScenarioHarness;
 import test.tck.msgflow.callflows.TestAssertion;
@@ -48,12 +49,14 @@ public class DialogTimeoutTest extends ScenarioHarness {
     
     private ShootmeNotImplementingListener shootmeNotImplementingListener;
 
-    private static final Logger logger = Logger.getLogger("test.tck");
     private static final int TIMEOUT = 60000;
 
     static {
-        if (!logger.isAttached(console))
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(console);
+        }
     }
 
     public DialogTimeoutTest() {
@@ -102,7 +105,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
                     getTiProtocolObjects().start();
                 
                 this.shootist.sendInviteRequest();
-                Thread.currentThread().sleep(TIMEOUT);
+                Thread.currentThread();
+				Thread.sleep(TIMEOUT);
             } catch (Exception e) {
                 fail("unexpected exception ",e);
             }
@@ -151,7 +155,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
                 getTiProtocolObjects().start();
             
             this.shootist.sendInviteRequest();
-            Thread.currentThread().sleep(TIMEOUT);
+            Thread.currentThread();
+			Thread.sleep(TIMEOUT);
         } catch (Exception e) {
             fail("unexpected exception ", e);
         }
@@ -179,7 +184,7 @@ public class DialogTimeoutTest extends ScenarioHarness {
             shootme = new Shootme(shootmeProtocolObjs);
             SipProvider shootmeProvider = shootme.createSipProvider();
             
-            this.shootistProtocolObjs = new ProtocolObjects("shootist", "gov.nist", "udp", false,false, true);
+            this.shootistProtocolObjs = new ProtocolObjects("shootist", "gov.nist", "udp", true,false, true);
             shootistNotImplementingSipListenerExt = new ShootistNotImplementingSipListenerExt(shootistProtocolObjs, shootme);
             SipProvider shootistProvider = shootistNotImplementingSipListenerExt.createSipProvider();            
            
@@ -196,7 +201,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
                 getTiProtocolObjects().start();
             
             this.shootistNotImplementingSipListenerExt.sendInviteRequest();
-            Thread.currentThread().sleep(TIMEOUT);
+            Thread.currentThread();
+			Thread.sleep(TIMEOUT);
         } catch (Exception e) {
             fail("unexpected exception ",e);
         }
@@ -206,7 +212,7 @@ public class DialogTimeoutTest extends ScenarioHarness {
             AssertUntil.assertUntil(new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
-                    return shootme.checkState() && shootistNotImplementingSipListenerExt.checkState();
+                	return shootme.checkState() && shootistNotImplementingSipListenerExt.checkState();
                 };
             }, TIMEOUT)
         );
@@ -242,7 +248,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
                 getTiProtocolObjects().start();
             
             this.shootist.sendInviteRequest();
-            Thread.currentThread().sleep(TIMEOUT);
+            Thread.currentThread();
+			Thread.sleep(TIMEOUT);
         } catch (Exception e) {
             fail("unexpected exception ", e);
         }
@@ -288,7 +295,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
                 getTiProtocolObjects().start();
             
             this.shootist.sendInviteRequest();
-            Thread.currentThread().sleep(TIMEOUT);
+            Thread.currentThread();
+			Thread.sleep(TIMEOUT);
         } catch (Exception e) {
             fail("unexpected exception ", e);
         }

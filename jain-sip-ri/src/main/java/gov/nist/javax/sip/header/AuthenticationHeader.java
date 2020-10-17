@@ -49,7 +49,12 @@ import java.text.ParseException;
  */
 public abstract class AuthenticationHeader extends ParametersHeader {
 
-    public static final String DOMAIN = ParameterNames.DOMAIN;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public static final String DOMAIN = ParameterNames.DOMAIN;
 
     public static final String REALM = ParameterNames.REALM;
 

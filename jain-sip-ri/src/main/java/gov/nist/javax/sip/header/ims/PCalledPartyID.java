@@ -35,7 +35,6 @@ import java.text.ParseException;
 import javax.sip.header.ExtensionHeader;
 
 import gov.nist.javax.sip.address.AddressImpl;
-import gov.nist.javax.sip.header.ims.PCalledPartyIDHeader;
 
 /**
  * P-Called-Party-ID SIP Private Header.
@@ -47,7 +46,9 @@ public class PCalledPartyID
     extends gov.nist.javax.sip.header.AddressParametersHeader
     implements PCalledPartyIDHeader, SIPHeaderNamesIms , ExtensionHeader{
 
-    /**
+    private static final long serialVersionUID = 1L;
+
+	/**
      * constructor
      * @param address address to set
      */

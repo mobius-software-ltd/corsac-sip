@@ -23,16 +23,11 @@
  */
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.address.AddressImpl;
-import gov.nist.javax.sip.address.SipUri;
+import java.text.ParseException;
+
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.ContactList;
 import gov.nist.javax.sip.header.SIPHeader;
-
-import javax.sip.address.URI;
-import java.text.ParseException;
-import java.util.HashSet;
-import java.util.Iterator;
 
 /**
  * A parser for The SIP contact header.

@@ -40,7 +40,12 @@ import javax.sip.header.*;
  */
 public class AcceptEncodingList extends SIPHeaderList<AcceptEncoding>{
 
-    @Override
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Override
     public Object clone() {
         AcceptEncodingList retval = new AcceptEncodingList();
         retval.clonehlist(this.hlist);

@@ -41,7 +41,11 @@ import javax.sdp.*;
 */
 public class EmailField extends SDPField implements javax.sdp.EMail {
 
-    protected EmailAddress emailAddress;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected EmailAddress emailAddress;
 
     public EmailField() {
         super(SDPFieldNames.EMAIL_FIELD);

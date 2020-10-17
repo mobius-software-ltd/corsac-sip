@@ -1,13 +1,9 @@
 package test.unit.gov.nist.javax.sip.stack.acktransport;
 
 
-import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.address.SipUri;
-
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Properties;
 
 import javax.sip.ClientTransaction;
 import javax.sip.DialogTerminatedEvent;
@@ -16,8 +12,6 @@ import javax.sip.ListeningPoint;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
-import javax.sip.SipException;
-import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
@@ -31,18 +25,16 @@ import javax.sip.header.HeaderFactory;
 import javax.sip.header.RecordRouteHeader;
 import javax.sip.header.RouteHeader;
 import javax.sip.header.ViaHeader;
-import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+
 import junit.framework.TestCase;
-
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-
-import test.tck.TestHarness;
-import test.tck.msgflow.callflows.ProtocolObjects;
 
 /**
  * A very simple forking proxy server.
@@ -56,7 +48,7 @@ public class Proxy implements SipListener {
 
     private SipProvider inviteServerTxProvider;
 
-    private Hashtable clientTxTable = new Hashtable();
+    private Hashtable<Integer,ClientTransaction> clientTxTable = new Hashtable<Integer,ClientTransaction>();
 
     private static String host = "127.0.0.1";
 
@@ -66,18 +58,18 @@ public class Proxy implements SipListener {
     
     private static String unexpectedException = "Unexpected exception";
 
-    private static Logger logger = Logger.getLogger(Proxy.class);
+    private static Logger logger = LogManager.getLogger(Proxy.class);
 
     private static AddressFactory addressFactory;
-
-    private static MessageFactory messageFactory;
 
     private static HeaderFactory headerFactory;
 
     private SipStack sipStack;
     
     static {
-        logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());        
     }
 
     
@@ -214,7 +206,7 @@ public class Proxy implements SipListener {
         logger.info("Transaction terminated event occured -- cleaning up");
         if (!transactionTerminatedEvent.isServerTransaction()) {
             ClientTransaction ct = transactionTerminatedEvent.getClientTransaction();
-            for (Iterator it = this.clientTxTable.values().iterator(); it.hasNext();) {
+            for (Iterator<ClientTransaction> it = this.clientTxTable.values().iterator(); it.hasNext();) {
                 if (it.next().equals(ct)) {
                     it.remove();
                 }
@@ -232,7 +224,6 @@ public class Proxy implements SipListener {
         this.port = myPort;
         SipObjects sipObjects = new SipObjects(myPort, "proxy","off");
         addressFactory = sipObjects.addressFactory;
-        messageFactory = sipObjects.messageFactory;
         headerFactory = sipObjects.headerFactory;
         this.sipStack = sipObjects.sipStack;
   

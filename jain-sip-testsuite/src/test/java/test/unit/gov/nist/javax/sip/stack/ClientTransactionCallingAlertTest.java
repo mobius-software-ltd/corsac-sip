@@ -1,17 +1,12 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.ClientTransactionExt;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
 import java.util.ArrayList;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
-import javax.sip.DialogState;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
 import javax.sip.ListeningPoint;
@@ -19,7 +14,6 @@ import javax.sip.PeerUnavailableException;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
-import javax.sip.SipException;
 import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
@@ -46,23 +40,28 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import junit.framework.TestCase;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import gov.nist.javax.sip.ClientTransactionExt;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import junit.framework.TestCase;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
-import test.tck.msgflow.callflows.ProtocolObjects;
 
 public class ClientTransactionCallingAlertTest extends TestCase {
 
     public static final boolean callerSendsBye = true;
 
-    private static Logger logger = Logger.getLogger(ClientTransactionCallingAlertTest.class);
+    private static Logger logger = LogManager.getLogger(ClientTransactionCallingAlertTest.class);
 
     static {
-        if (!logger.getAllAppenders().hasMoreElements()) {
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
 
@@ -83,12 +82,6 @@ public class ClientTransactionCallingAlertTest extends TestCase {
         private ListeningPoint udpListeningPoint;
 
         private ClientTransaction inviteTid;
-
-        private Dialog dialog;
-
-        private long startTime = System.currentTimeMillis();
-
-        private boolean byeTaskRunning;
 
         private String PEER_ADDRESS;
 
@@ -124,14 +117,10 @@ public class ClientTransactionCallingAlertTest extends TestCase {
 
         public Shootist(Shootme shootme) {
             super();
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;
         }
-
-        private static final String usageString = "java "
-                + "examples.shootist.Shootist \n"
-                + ">>>> is your class path set to the root?";
 
         public void processRequest(RequestEvent requestReceivedEvent) {
             Request request = requestReceivedEvent.getRequest();
@@ -180,8 +169,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
         }
 
         // Save the created ACK request, to respond to retransmitted 2xx
-        private Request ackRequest;
-
+        
         private boolean timeoutSeen;
 
         public void processResponse(ResponseEvent responseReceivedEvent) {
@@ -292,7 +280,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                         peerHostPort);
 
                 // Create ViaHeaders
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -381,7 +369,7 @@ public class ClientTransactionCallingAlertTest extends TestCase {
                 reasonHeader = headerFactory.createReasonHeader("Q.777", 12, null);
                 request.addHeader(reasonHeader);
 
-                ListIterator<Header> listIt = request.getHeaders(ReasonHeader.NAME);
+                ListIterator<?> listIt = request.getHeaders(ReasonHeader.NAME);
                 int i = 0;
                 while (listIt.hasNext()) {
                     listIt.next();
@@ -397,8 +385,6 @@ public class ClientTransactionCallingAlertTest extends TestCase {
 
                 // send the request out.
                 inviteTid.sendRequest();
-
-                dialog = inviteTid.getDialog();
 
             } catch (Exception ex) {
                 logger.error("Unexpected exception", ex);
@@ -437,21 +423,13 @@ public class ClientTransactionCallingAlertTest extends TestCase {
 
     public class Shootme implements SipListener {
 
-        private AddressFactory addressFactory;
-
         private MessageFactory messageFactory;
-
-        private HeaderFactory headerFactory;
 
         private SipStack sipStack;
 
         private static final String myAddress = "127.0.0.1";
 
         private final int myPort = NetworkPortAssigner.retrieveNextPort();
-
-        private Response okResponse;
-
-        private Request inviteRequest;
 
         private Dialog dialog;
 
@@ -509,9 +487,6 @@ public class ClientTransactionCallingAlertTest extends TestCase {
          */
         public void processInvite(RequestEvent requestEvent,
                 ServerTransaction serverTransaction) {
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-            Request request = requestEvent.getRequest();
-            this.inviteRequest = request;
         }
 
         /**
@@ -519,7 +494,6 @@ public class ClientTransactionCallingAlertTest extends TestCase {
          */
         public void processBye(RequestEvent requestEvent,
                 ServerTransaction serverTransactionId) {
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             Dialog dialog = requestEvent.getDialog();
             logger.info("shootme: local party = " + dialog.getLocalParty());
@@ -583,8 +557,6 @@ public class ClientTransactionCallingAlertTest extends TestCase {
             }
 
             try {
-                headerFactory = sipFactory.createHeaderFactory();
-                addressFactory = sipFactory.createAddressFactory();
                 messageFactory = sipFactory.createMessageFactory();
                 ListeningPoint lp = sipStack.createListeningPoint("127.0.0.1",
                         myPort, "udp");

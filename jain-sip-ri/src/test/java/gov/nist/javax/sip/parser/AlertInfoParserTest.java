@@ -1,7 +1,5 @@
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.parser.AlertInfoParser;
-
 public class AlertInfoParserTest extends ParserTestCase {
 	
 

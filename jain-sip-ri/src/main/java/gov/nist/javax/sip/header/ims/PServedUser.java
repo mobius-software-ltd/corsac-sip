@@ -42,7 +42,13 @@ import gov.nist.javax.sip.header.AddressParametersHeader;
 public class PServedUser extends AddressParametersHeader implements PServedUserHeader, SIPHeaderNamesIms, ExtensionHeader{
 
 
-    public PServedUser(AddressImpl address)
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	public PServedUser(AddressImpl address)
     {
         super(P_SERVED_USER);
         this.address = address;
@@ -149,7 +155,6 @@ public class PServedUser extends AddressParametersHeader implements PServedUserH
     {
          if(other instanceof PServedUser)
          {
-            final PServedUserHeader psu = (PServedUserHeader)other;
             return this.getAddress().equals(((PServedUser) other).getAddress());
          }
         return false;

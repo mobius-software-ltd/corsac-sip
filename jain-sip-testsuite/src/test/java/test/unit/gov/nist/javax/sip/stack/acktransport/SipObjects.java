@@ -1,6 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack.acktransport;
 
-import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 import java.util.Properties;

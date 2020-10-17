@@ -40,6 +40,11 @@ import java.util.EventObject;
 public class DialogTerminatedEvent extends EventObject {
     
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Constructs a DialogTerminatedEvent to indicate a dialog
      * timeout.
      *

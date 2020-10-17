@@ -93,12 +93,6 @@ public class DialogIdentityTest extends TestCase {
 
         }
 
-        protected static final String usageString = "java "
-                + "examples.shootist.Shootist \n"
-                + ">>>> is your class path set to the root?";
-
-
-
         public Shootme(boolean b) {
             this.setToTagOn180 = b;
         }
@@ -174,7 +168,7 @@ public class DialogIdentityTest extends TestCase {
                 ServerTransaction serverTransaction) {
             SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
-    		ListIterator li = request.getHeaders("Route");
+    		ListIterator<?> li = request.getHeaders("Route");
     		if(li == null || !li.hasNext()) {
     			//logger.info("No route headers in that invite. It must be means for someone else");
     			return;
@@ -260,7 +254,6 @@ public class DialogIdentityTest extends TestCase {
          */
         public void processBye(RequestEvent requestEvent,
                 ServerTransaction serverTransactionId) {
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             Dialog dialog = requestEvent.getDialog();
             System.out.println("local party = " + dialog.getLocalParty());
@@ -280,7 +273,6 @@ public class DialogIdentityTest extends TestCase {
 
         public void processCancel(RequestEvent requestEvent,
                 ServerTransaction serverTransactionId) {
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             try {
                 System.out.println("shootme:  got a cancel.");
@@ -660,7 +652,7 @@ public class DialogIdentityTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),

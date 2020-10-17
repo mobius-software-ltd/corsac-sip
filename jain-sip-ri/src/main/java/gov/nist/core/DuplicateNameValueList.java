@@ -26,8 +26,7 @@ package gov.nist.core;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
 /**
  *
@@ -64,16 +63,23 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
 
     public StringBuilder encode(StringBuilder buffer) {
         if (!nameValueMap.isEmpty()) {
-            Iterator<NameValue> iterator = nameValueMap.values().iterator();
+            Iterator<List<NameValue>> iterator = nameValueMap.values().iterator();
             if (iterator.hasNext()) {
                 while (true) {
-                    Object obj = iterator.next();
-                    if (obj instanceof GenericObject) {
-                        GenericObject gobj = (GenericObject) obj;
-                        gobj.encode(buffer);
-                    } else {
-                        buffer.append(obj.toString());
-                    }
+                	List<NameValue> obj = iterator.next();
+                	for(int i=0;i<obj.size();i++) {
+                		NameValue value=obj.get(i);              		
+	                	if (value instanceof GenericObject) {
+	                        GenericObject gobj = (GenericObject) value;
+	                        gobj.encode(buffer);
+	                    } else {
+	                        buffer.append(value.toString());
+	                    }
+	                    
+	                    if(i<obj.size()-1)
+	                    	buffer.append(Separators.SEMICOLON);
+                	}
+                	
                     if (iterator.hasNext()) {
                         buffer.append(Separators.SEMICOLON);
                     } else {
@@ -127,8 +133,8 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
 
         while (li.hasNext()) {
             String key = (String) li.next();
-            Collection nv1 = this.getNameValue(key);
-            Collection nv2 = (Collection) other.nameValueMap.get(key);
+            List<NameValue> nv1 = this.getNameValue(key);
+            List<NameValue> nv2 = other.nameValueMap.get(key);
             if (nv2 == null) {
                 return false;
             } else if (!nv2.equals(nv1)) {
@@ -141,8 +147,8 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
     /**
      * Do a lookup on a given name and return value associated with it.
      */
-    public Object getValue(String name) {
-        Collection nv = this.getNameValue(name.toLowerCase());
+    public List<NameValue> getValue(String name) {
+        List<NameValue> nv = this.getNameValue(name.toLowerCase());
         if (nv != null) {
             return nv;
         } else {
@@ -154,8 +160,8 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
      * Get the NameValue record given a name.
      *
      */
-    public Collection getNameValue(String name) {
-        return (Collection) this.nameValueMap.get(name.toLowerCase());
+    public List<NameValue> getNameValue(String name) {
+        return this.nameValueMap.get(name.toLowerCase());
     }
 
     /**
@@ -182,7 +188,7 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
 
     public Object clone() {
         DuplicateNameValueList retval = new DuplicateNameValueList();
-        Iterator<NameValue> it = this.nameValueMap.values().iterator();
+        Iterator<List<NameValue>> it = this.nameValueMap.values().iterator();
         while (it.hasNext()) {
             retval.set((NameValue) ((NameValue) it.next()).clone());
         }
@@ -194,7 +200,7 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
      *
      * @return the iterator.
      */
-    public Iterator<NameValue> iterator() {
+    public Iterator<List<NameValue>> iterator() {
         return this.nameValueMap.values().iterator();
     }
 
@@ -246,7 +252,7 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
         return this.nameValueMap.size();
     }
 
-    public Collection<NameValue> values() {
+    public Collection<List<NameValue>> values() {
         return this.nameValueMap.values();
     }
 

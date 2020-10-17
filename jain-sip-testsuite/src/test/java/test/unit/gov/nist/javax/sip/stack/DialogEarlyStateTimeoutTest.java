@@ -24,7 +24,6 @@ import javax.sip.ServerTransaction;
 import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.TimeoutEvent;
-import javax.sip.TransactionState;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
@@ -33,7 +32,6 @@ import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.ContentTypeHeader;
-import javax.sip.header.ExpiresHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.MaxForwardsHeader;
 import javax.sip.header.RouteHeader;
@@ -42,11 +40,12 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
-import test.unit.gov.nist.javax.sip.stack.CtxExpiredTest.Shootist;
-import test.unit.gov.nist.javax.sip.stack.CtxExpiredTest.Shootme;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -67,9 +66,11 @@ public class DialogEarlyStateTimeoutTest extends TestCase {
 
     private SipStackExt shootmeStack;
 
-    private static Logger logger = Logger.getLogger(CtxExpiredTest.class);
+    private static Logger logger = LogManager.getLogger(CtxExpiredTest.class);
     static {
-        logger.addAppender(new ConsoleAppender());
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
     }
 
     class Shootist implements SipListenerExt {
@@ -116,7 +117,7 @@ public class DialogEarlyStateTimeoutTest extends TestCase {
                     myPort, "udp");
             this.provider = (SipProviderExt) sipStack.createSipProvider(lp);
             provider.addSipListener(this);
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;             
         }
@@ -163,7 +164,7 @@ public class DialogEarlyStateTimeoutTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 int port = provider.getListeningPoint("udp").getPort();
 
                 ViaHeader viaHeader = headerFactory.createViaHeader(myAddress,
@@ -320,7 +321,6 @@ public class DialogEarlyStateTimeoutTest extends TestCase {
         public static final String myAddress = "127.0.0.1";
         private SipProviderExt provider;
         private boolean cancelSeen;
-        private boolean byeSeen;
 
         public TestAssertion getAssertion() {
             return new TestAssertion() {
@@ -388,7 +388,6 @@ public class DialogEarlyStateTimeoutTest extends TestCase {
                     Response okResponse = messageFactory.createResponse(200,
                             request);
                     stx.sendResponse(okResponse);
-                    this.byeSeen = true;
 
                 }
             } catch (Exception ex) {

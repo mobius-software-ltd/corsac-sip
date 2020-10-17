@@ -2,7 +2,6 @@ package examples.redirect;
 
 import java.util.Properties;
 
-import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
 import javax.sip.SipFactory;
 import javax.sip.SipStack;

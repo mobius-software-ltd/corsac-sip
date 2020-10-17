@@ -175,7 +175,6 @@ public class Shootme implements SipListener {
      */
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
             System.out.println("shootme:  got a bye sending OK.");
@@ -193,7 +192,6 @@ public class Shootme implements SipListener {
 
     public void processCancel(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
             System.out.println("shootme:  got a cancel.");

@@ -91,7 +91,7 @@ public class UDPMessageProcessor extends MessageProcessor implements Runnable {
     /**
      * A list of message channels that we have started.
      */
-    protected LinkedList messageChannels;
+    protected LinkedList<UDPMessageChannel> messageChannels;
 
     /**
      * Max # of udp message channels
@@ -106,10 +106,6 @@ public class UDPMessageProcessor extends MessageProcessor implements Runnable {
      */
     protected boolean isRunning;
     
-    private static final int HIGHWAT=5000;
-    
-    private static final int LOWAT=2500;
-
     private int maxMessageSize = SipStackImpl.MAX_DATAGRAM_SIZE;
     private int exceptionsReportedCounter;
     private static final int MAX_EXCEPTIONS_TO_REPORT = 10;
@@ -202,7 +198,7 @@ public class UDPMessageProcessor extends MessageProcessor implements Runnable {
      */
     public void run() {
         // Check for running flag.
-        this.messageChannels = new LinkedList();
+        this.messageChannels = new LinkedList<UDPMessageChannel>();
         // start all our messageChannels (unless the thread pool size is
         // infinity.
         if (sipStack.threadPoolSize != -1) {

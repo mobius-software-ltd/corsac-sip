@@ -33,7 +33,6 @@ import javax.sip.header.ContactHeader;
 import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.ExpiresHeader;
 import javax.sip.header.FromHeader;
-import javax.sip.header.Header;
 import javax.sip.header.MaxForwardsHeader;
 import javax.sip.header.RouteHeader;
 import javax.sip.header.ToHeader;
@@ -41,8 +40,11 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
@@ -65,9 +67,11 @@ public class CtxExpiredTest extends TestCase {
 
     private SipStackExt shootmeStack;
 
-    private static Logger logger = Logger.getLogger(CtxExpiredTest.class);
+    private static Logger logger = LogManager.getLogger(CtxExpiredTest.class);
     static {
-        logger.addAppender(new ConsoleAppender());
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
     }
 
     class Shootist implements SipListener {
@@ -111,7 +115,7 @@ public class CtxExpiredTest extends TestCase {
             this.provider = (SipProviderExt) sipStack.createSipProvider(lp);
             provider.addSipListener(this);
             
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;             
         }
@@ -158,7 +162,7 @@ public class CtxExpiredTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 int port = provider.getListeningPoint("udp").getPort();
 
                 ViaHeader viaHeader = headerFactory.createViaHeader(myAddress,

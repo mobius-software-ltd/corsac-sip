@@ -2,9 +2,15 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+	<parent>
+		<groupId>org.restcomm</groupId>
+		<artifactId>restcomm-parent</artifactId>
+		<version>8.0.0-28</version>
+	</parent>
+	
     <groupId>javax.sip</groupId>
     <artifactId>jain-sip</artifactId>
-    <version>7.0.6-SNAPSHOT</version>
+    <version>8.0.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -45,6 +51,17 @@
                 <role>Project Lead</role>
             </roles>
             <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>yulianoifa</id>
+            <name>yulianoifa</name>
+            <email>yulian.oifa@mobius-software.com</email>
+            <organization>Mobius Software LTD</organization>
+            <organizationUrl>https://www.mobius-software.com/</organizationUrl>
+            <roles>
+                <role>Project Lead</role>
+            </roles>
+            <timezone>+1</timezone>
         </developer>		
     </developers>
     <licenses>
@@ -61,24 +78,17 @@
             <artifactId>mockito-core</artifactId>
             <version>2.8.9</version>
             <scope>test</scope>
-        </dependency> 
-         
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
             <scope>test</scope>
         </dependency>                    
     </dependencies>
     <modules>
         <module>jain-sip-api</module>
+        <module>jain-sip-testsuite-common</module>
         <module>jain-sip-ri</module>
     </modules>
 
@@ -94,12 +104,6 @@
             <id>performance</id>
             <modules>
                 <module>jain-sip-performance</module>
-            </modules>
-        </profile>   
-        <profile>
-            <id>android</id>
-            <modules>
-                <module>android-jain-sip-ri</module>
             </modules>
         </profile>          
         <profile>
@@ -118,7 +122,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.8.1</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
@@ -177,45 +180,35 @@
     <repositories>
 
         <repository>
-            <id>cxs-group</id>
-            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/cxs-group/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-        </repository>
-        
-        <repository>
-            <id>cxs-product-snapshots</id>
-            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/product-snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-            </snapshots>
-        </repository>        
+			<id>mobius-telestax-private-releases-repository</id>
+			<name>Mobius Releases Repository For Telestax</name>
+			<url>http://nexus.mobius-software.com:8081/repository/telestax-local</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<updatePolicy>never</updatePolicy>
+			</snapshots>                            
+		</repository>	      
     </repositories>
     
     <pluginRepositories>
         <pluginRepository>
-            <id>cxs-group-plugin</id>
-            <url>http://cxs.restcomm.com:8055/repository/cxs-group/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-        </pluginRepository>
+			<id>mobius-telestax-private-releases-repository</id>
+			<name>Mobius Releases Repository For Telestax</name>
+			<url>http://nexus.mobius-software.com:8081/repository/telestax-local</url>
+			<layout>default</layout>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</snapshots>
+		</pluginRepository>
     </pluginRepositories>       
 
     <distributionManagement>
@@ -277,16 +270,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.2</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -300,8 +291,7 @@
 
 	
             <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.2.2</version>		  		
+                <artifactId>maven-release-plugin</artifactId>                		  	
             </plugin>
         </plugins>
     </build>

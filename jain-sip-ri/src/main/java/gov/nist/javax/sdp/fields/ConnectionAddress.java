@@ -40,7 +40,11 @@ import gov.nist.core.*;
 *
 */
 public class ConnectionAddress extends SDPObject {
-    protected Host address;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected Host address;
     protected int ttl;
     protected int port;
 

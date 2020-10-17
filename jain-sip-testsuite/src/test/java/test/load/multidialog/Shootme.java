@@ -33,9 +33,9 @@ public class Shootme implements SipListener {
 
     private int createdCount;
 
-    private HashSet dialogIds;
+    private HashSet<String> dialogIds;
 
-    private HashMap transactionIDs;
+    private HashMap<String,ServerTransaction> transactionIDs;
 
     class TTask extends TimerTask {
 
@@ -62,7 +62,7 @@ public class Shootme implements SipListener {
                 response.addHeader(contactHeader);
 
                 //System.out.println("got a server tranasaction " + st);
-                Dialog dialog = st.getDialog();
+                //Dialog dialog = st.getDialog();
                 /*
                  * if (dialog != null) { System.out.println("Dialog " + dialog);
                  * System.out.println("Dialog state " + dialog.getState()); }
@@ -238,11 +238,10 @@ public class Shootme implements SipListener {
     }
 
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
-        Transaction transaction;
         if (timeoutEvent.isServerTransaction()) {
-            transaction = timeoutEvent.getServerTransaction();
+            timeoutEvent.getServerTransaction();
         } else {
-            transaction = timeoutEvent.getClientTransaction();
+            timeoutEvent.getClientTransaction();
         }
         /*
          * System.out.println("state = " + transaction.getState());
@@ -255,8 +254,8 @@ public class Shootme implements SipListener {
     }
 
     public void init() {
-        this.dialogIds = new HashSet();
-        this.transactionIDs = new HashMap();
+        this.dialogIds = new HashSet<String>();
+        this.transactionIDs = new HashMap<String,ServerTransaction>();
         SipFactory sipFactory = null;
         sipStack = null;
         sipFactory = SipFactory.getInstance();

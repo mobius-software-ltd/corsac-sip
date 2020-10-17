@@ -97,7 +97,7 @@ public class MediaFieldParser extends SDPParser {
             this.lexer.SPorHT();
 
             // The formats list:
-            Vector formatList = new Vector();
+            Vector<String> formatList = new Vector<String>();
             while (lexer.hasMoreChars()) {
                 char la = lexer.lookAhead(0);
                 if (la == '\n' || la == '\r')

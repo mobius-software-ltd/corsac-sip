@@ -25,39 +25,6 @@
  */
 package gov.nist.javax.sip;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.LogLevels;
-import gov.nist.core.ServerLogger;
-import gov.nist.core.StackLogger;
-import gov.nist.core.ThreadAuditor;
-import gov.nist.core.net.AddressResolver;
-import gov.nist.core.net.DefaultSecurityManagerProvider;
-import gov.nist.core.net.NetworkLayer;
-import gov.nist.core.net.SecurityManagerProvider;
-import gov.nist.core.net.SslNetworkLayer;
-import gov.nist.javax.sip.clientauthutils.AccountManager;
-import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
-import gov.nist.javax.sip.clientauthutils.AuthenticationHelperImpl;
-import gov.nist.javax.sip.clientauthutils.SecureAccountManager;
-import gov.nist.javax.sip.parser.MessageParserFactory;
-import gov.nist.javax.sip.parser.PostParseExecutorServices;
-import gov.nist.javax.sip.parser.StringMsgParser;
-import gov.nist.javax.sip.parser.StringMsgParserFactory;
-import gov.nist.javax.sip.stack.ByteBufferFactory;
-import gov.nist.javax.sip.stack.ClientAuthType;
-import gov.nist.javax.sip.stack.ConnectionOrientedMessageProcessor;
-import gov.nist.javax.sip.stack.DefaultMessageLogFactory;
-import gov.nist.javax.sip.stack.DefaultRouter;
-import gov.nist.javax.sip.stack.MessageProcessor;
-import gov.nist.javax.sip.stack.MessageProcessorFactory;
-import gov.nist.javax.sip.stack.NIOMode;
-import gov.nist.javax.sip.stack.OIOMessageProcessorFactory;
-import gov.nist.javax.sip.stack.SIPEventInterceptor;
-import gov.nist.javax.sip.stack.SIPMessageValve;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
-import gov.nist.javax.sip.stack.timers.DefaultSipTimer;
-import gov.nist.javax.sip.stack.timers.SipTimer;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,9 +35,8 @@ import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
 import java.util.Hashtable;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -91,6 +57,41 @@ import javax.sip.TransportNotSupportedException;
 import javax.sip.address.Router;
 import javax.sip.header.HeaderFactory;
 import javax.sip.message.Request;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.LogLevels;
+import gov.nist.core.ServerLogger;
+import gov.nist.core.StackLogger;
+import gov.nist.core.ThreadAuditor;
+import gov.nist.core.net.AddressResolver;
+import gov.nist.core.net.DefaultSecurityManagerProvider;
+import gov.nist.core.net.NetworkLayer;
+import gov.nist.core.net.SecurityManagerProvider;
+import gov.nist.core.net.SslNetworkLayer;
+import gov.nist.javax.sip.clientauthutils.AccountManager;
+import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
+import gov.nist.javax.sip.clientauthutils.AuthenticationHelperImpl;
+import gov.nist.javax.sip.clientauthutils.SecureAccountManager;
+import gov.nist.javax.sip.parser.MessageParserFactory;
+import gov.nist.javax.sip.parser.PostParseExecutorServices;
+import gov.nist.javax.sip.parser.StringMsgParser;
+import gov.nist.javax.sip.parser.StringMsgParserFactory;
+import gov.nist.javax.sip.stack.ByteBufferFactory;
+import gov.nist.javax.sip.stack.ClientAuthType;
+import gov.nist.javax.sip.stack.DefaultMessageLogFactory;
+import gov.nist.javax.sip.stack.DefaultRouter;
+import gov.nist.javax.sip.stack.MessageProcessor;
+import gov.nist.javax.sip.stack.MessageProcessorFactory;
+import gov.nist.javax.sip.stack.NIOMode;
+import gov.nist.javax.sip.stack.OIOMessageProcessorFactory;
+import gov.nist.javax.sip.stack.SIPEventInterceptor;
+import gov.nist.javax.sip.stack.SIPMessageValve;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.timers.DefaultSipTimer;
+import gov.nist.javax.sip.stack.timers.SipTimer;
 
 /**
  * Implementation of SipStack.
@@ -1124,7 +1125,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 				this.threadPoolSize = new Integer(threadPoolSize).intValue();
 			} catch (NumberFormatException ex) {
 				if (logger.isLoggingEnabled())
-					this.logger.logError(
+					logger.logError(
 						"thread pool size - bad value " + ex.getMessage());
 			}
 		}
@@ -1144,7 +1145,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 				PostParseExecutorServices.setPostParseExcutorSize(this, threads, congetstionControlTimeout);
 			} catch (NumberFormatException ex) {
 				if (logger.isLoggingEnabled())
-					this.logger.logError(
+					logger.logError(
 							"TCP post-parse thread pool size - bad value " + tcpTreadPoolSize + " : " + ex.getMessage());
 			}
 		}
@@ -1159,7 +1160,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 				// Lowater is 80% of highwater
 			} catch (NumberFormatException ex) {
 				if (logger.isLoggingEnabled())
-					this.logger
+					logger
 						.logError(
 								"transaction table size - bad value "
 										+ ex.getMessage());
@@ -1180,7 +1181,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 				// Lowater is 80% of highwater
 			} catch (NumberFormatException ex) {
 				if (logger.isLoggingEnabled())
-					this.logger
+					logger
 						.logError(
 								"transaction table size - bad value "
 										+ ex.getMessage());
@@ -1276,7 +1277,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 				.getProperty("gov.nist.javax.sip.STUN_SERVER");
 
 		if (stunAddr != null)
-			this.logger.logWarning(
+			logger.logWarning(
 					"Ignoring obsolete property "
 							+ "gov.nist.javax.sip.STUN_SERVER");
 
@@ -1692,7 +1693,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 		if (listeningPoint == null)
 			throw new NullPointerException("null listeningPoint");
 		if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
-			this.logger.logDebug(
+			logger.logDebug(
 					"createSipProvider: " + listeningPoint);
 		ListeningPointImpl listeningPointImpl = (ListeningPointImpl) listeningPoint;
 		if (listeningPointImpl.sipProvider != null)
@@ -1769,7 +1770,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 	 *
 	 * @see javax.sip.SipStack#getListeningPoints()
 	 */
-	public java.util.Iterator getListeningPoints() {
+	public Iterator<?> getListeningPoints() {
 		return this.listeningPoints.values().iterator();
 	}
 
@@ -1911,9 +1912,9 @@ public class SipStackImpl extends SIPTransactionStack implements
 	 * @deprecated TODO: remove this method May 11, 2010.
 	 */
 	@Deprecated
-	public void addLogAppender(org.apache.log4j.Appender appender) {
-		if (this.logger instanceof gov.nist.core.LogWriter) {
-			((gov.nist.core.LogWriter) this.logger).addAppender(appender);
+	public void addLogAppender(Appender appender) {
+		if (logger instanceof gov.nist.core.LogWriter) {
+			((gov.nist.core.LogWriter) logger).addAppender(appender);
 		}
 	}
 
@@ -1925,9 +1926,9 @@ public class SipStackImpl extends SIPTransactionStack implements
 	 * @deprecated TODO: This method will be removed May 11, 2010.
 	 */
 	@Deprecated
-	public org.apache.log4j.Logger getLogger() {
-		if (this.logger instanceof gov.nist.core.LogWriter) {
-			return ((gov.nist.core.LogWriter) this.logger).getLogger();
+	public Logger getLogger() {
+		if (logger instanceof gov.nist.core.LogWriter) {
+			return ((gov.nist.core.LogWriter) logger).getLogger();
 		}
 		return null;
 	}

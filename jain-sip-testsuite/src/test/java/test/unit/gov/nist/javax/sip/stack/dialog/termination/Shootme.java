@@ -1,20 +1,36 @@
 package test.unit.gov.nist.javax.sip.stack.dialog.termination;
 
-import javax.sip.*;
-import javax.sip.address.*;
-import javax.sip.header.*;
-import javax.sip.message.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
+import javax.sip.Dialog;
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.IOExceptionEvent;
+import javax.sip.ListeningPoint;
+import javax.sip.RequestEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipListener;
+import javax.sip.SipProvider;
+import javax.sip.Transaction;
+import javax.sip.TransactionTerminatedEvent;
+import javax.sip.address.Address;
+import javax.sip.address.AddressFactory;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.HeaderFactory;
+import javax.sip.header.ToHeader;
+import javax.sip.message.MessageFactory;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
 
-import test.tck.msgflow.callflows.ProtocolObjects;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
-import java.text.ParseException;
-import java.util.*;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
+import test.tck.msgflow.callflows.ProtocolObjects;
 
 /**
  * This class is a UAC template. Shootist is the guy that shoots and shootme is
@@ -47,7 +63,7 @@ public class Shootme implements SipListener {
                 response.addHeader(contactHeader);
 
                 // System.out.println("got a server tranasaction " + st);
-                Dialog dialog = st.getDialog();
+                st.getDialog();
 
                 st.sendResponse(response); // send 180(RING)
                 response = messageFactory.createResponse(200, request);
@@ -86,13 +102,11 @@ public class Shootme implements SipListener {
 
     public final int myPort = NetworkPortAssigner.retrieveNextPort();
 
-    private static Logger logger = Logger.getLogger(Shootme.class);
-
     static {
-        if (logger.getAllAppenders().equals(NullEnumeration.getInstance())) {
-
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
 
@@ -124,7 +138,6 @@ public class Shootme implements SipListener {
      * Process the ACK request. Send the bye and complete the call flow.
      */
     public void processAck(RequestEvent requestEvent, ServerTransaction serverTransaction) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         try {
             // System.out.println("*** shootme: got an ACK "
             // + requestEvent.getRequest());
@@ -238,11 +251,10 @@ public class Shootme implements SipListener {
     }
 
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
-        Transaction transaction;
         if (timeoutEvent.isServerTransaction()) {
-            transaction = timeoutEvent.getServerTransaction();
+            timeoutEvent.getServerTransaction();
         } else {
-            transaction = timeoutEvent.getClientTransaction();
+            timeoutEvent.getClientTransaction();
         }
         /*
          * System.out.println("state = " + transaction.getState());

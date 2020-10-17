@@ -35,7 +35,11 @@ package gov.nist.javax.sdp.fields;
  *
  */
 public class TypedTime extends SDPObject {
-    String unit;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	String unit;
     int time;
 
     public String encode() {

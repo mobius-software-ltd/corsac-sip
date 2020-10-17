@@ -81,9 +81,9 @@ public class ViaRPortTest extends ScenarioHarness {
 		Request serverLastRequestReceived = server.getLastRequestReceived();
 		assertNotNull(serverLastRequestReceived);
 		
-		ListIterator<ViaHeader> iterator = serverLastRequestReceived.getHeaders(ViaHeader.NAME);
+		ListIterator<?> iterator = serverLastRequestReceived.getHeaders(ViaHeader.NAME);
 		assertTrue(iterator.hasNext());
-		int rport = iterator.next().getRPort();
+		int rport = ((ViaHeader)iterator.next()).getRPort();
 		
 		assertEquals(CLIENT_PORT, rport);		
 	}
@@ -145,9 +145,7 @@ public class ViaRPortTest extends ScenarioHarness {
         private SipFactory sipFactory;
         private SipStack sipStack;
         private SipProvider provider;
-        private boolean o_sentInvite, o_received180, o_sentCancel, o_receiver200Cancel,
-                o_inviteTxTerm, o_dialogTerinated;
-
+        
         public Client() {
             try {
                 final Properties defaultProperties = new Properties();
@@ -189,7 +187,7 @@ public class ViaRPortTest extends ScenarioHarness {
 			ToHeader to = headerFactory.createToHeader(addressFactory.createAddress("server@"+host+":"+SERVER_PORT), null);
 			ViaHeader via = ((ListeningPointImpl)provider.getListeningPoint(testProtocol)).getViaHeader();
 			via.setRPort();
-			List vias = Arrays.asList(via);			
+			List<ViaHeader> vias = Arrays.asList(via);			
 			MaxForwardsHeader maxForwards = headerFactory.createMaxForwardsHeader(10);
     		
     		URI requestURI = addressFactory.createURI("sip:test@"+host+":"+SERVER_PORT);

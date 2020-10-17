@@ -1,7 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack;
 
 import gov.nist.javax.sip.DialogExt;
-import gov.nist.javax.sip.SipProviderExt;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 import java.util.ArrayList;
@@ -340,10 +339,6 @@ public class LooseDialogValidationTest extends TestCase {
 
         private ListeningPoint udpListeningPoint;
 
-        private Dialog dialog;
-
-        private boolean timeoutRecieved;
-
         boolean messageSeen = false;
 
         private String PEER_ADDRESS;
@@ -355,7 +350,7 @@ public class LooseDialogValidationTest extends TestCase {
         private final int myPort = NetworkPortAssigner.retrieveNextPort();
 
         public Shootist(Shootme shootme) {
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;
         }
@@ -407,8 +402,6 @@ public class LooseDialogValidationTest extends TestCase {
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
 
             System.out.println("Got a timeout " + timeoutEvent.getClientTransaction());
-
-            this.timeoutRecieved = true;
         }
 
         public void init() {
@@ -499,7 +492,7 @@ public class LooseDialogValidationTest extends TestCase {
                         peerHostPort);
 
                 // Create ViaHeaders
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -577,9 +570,8 @@ public class LooseDialogValidationTest extends TestCase {
 
                 // Create the client transaction.
                 ClientTransaction inviteTid = sipProvider.getNewClientTransaction(request);
-                Dialog d = null;
                 try {
-                    d = sipProvider.getNewDialog(inviteTid);
+                    sipProvider.getNewDialog(inviteTid);
                 } catch (SipException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
@@ -587,8 +579,6 @@ public class LooseDialogValidationTest extends TestCase {
 
                 // send the request out.
                 inviteTid.sendRequest();
-
-                dialog = inviteTid.getDialog();
 
             } catch (Exception ex) {
                 fail("cannot create or send initial invite");

@@ -46,7 +46,9 @@ import java.io.Serializable;
  */
 public abstract class GenericObjectList extends LinkedList<GenericObject> implements
         Serializable, Cloneable{
-    // Useful constants.
+ 	private static final long serialVersionUID = 1L;
+
+	// Useful constants.
     protected static final String SEMICOLON = Separators.SEMICOLON;
 
     protected static final String COLON = Separators.COLON;
@@ -134,7 +136,7 @@ public abstract class GenericObjectList extends LinkedList<GenericObject> implem
 
 
 
-    public void setMyClass(Class cl) {
+    public void setMyClass(Class<?> cl) {
         myClass = cl;
     }
 
@@ -169,7 +171,7 @@ public abstract class GenericObjectList extends LinkedList<GenericObject> implem
      * checking).
      */
 
-    protected GenericObjectList(String lname, Class objclass) {
+    protected GenericObjectList(String lname, Class<?> objclass) {
         this(lname);
         myClass = objclass;
     }
@@ -177,9 +179,9 @@ public abstract class GenericObjectList extends LinkedList<GenericObject> implem
     /**
      * Traverse the list given a list iterator
      */
-    protected GenericObject next(ListIterator iterator) {
+    protected GenericObject next(ListIterator<GenericObject> iterator) {
         try {
-            return (GenericObject) iterator.next();
+            return iterator.next();
         } catch (NoSuchElementException ex) {
             return null;
         }
@@ -324,8 +326,8 @@ public abstract class GenericObjectList extends LinkedList<GenericObject> implem
 
         if (mergeList == null)
             return;
-        Iterator it1 = this.listIterator();
-        Iterator it2 = mergeList.listIterator();
+        Iterator<GenericObject> it1 = this.listIterator();
+        Iterator<GenericObject> it2 = mergeList.listIterator();
         while (it1.hasNext()) {
             GenericObject outerObj = (GenericObject) it1.next();
             while (it2.hasNext()) {
@@ -345,7 +347,7 @@ public abstract class GenericObjectList extends LinkedList<GenericObject> implem
         if (this.isEmpty())
             return "";
         StringBuilder encoding = new StringBuilder();
-        ListIterator iterator = this.listIterator();
+        ListIterator<GenericObject> iterator = this.listIterator();
         if (iterator.hasNext()) {
             while (true) {
                 Object obj = iterator.next();
@@ -390,10 +392,10 @@ public abstract class GenericObjectList extends LinkedList<GenericObject> implem
         GenericObjectList that = (GenericObjectList) other;
         if (this.size() != that.size())
             return false;
-        ListIterator myIterator = this.listIterator();
+        ListIterator<GenericObject> myIterator = this.listIterator();
         while (myIterator.hasNext()) {
             Object myobj = myIterator.next();
-            ListIterator hisIterator = that.listIterator();
+            ListIterator<GenericObject> hisIterator = that.listIterator();
             try {
                 while (true) {
                     Object hisobj = hisIterator.next();
@@ -404,7 +406,7 @@ public abstract class GenericObjectList extends LinkedList<GenericObject> implem
                 return false;
             }
         }
-        ListIterator hisIterator = that.listIterator();
+        ListIterator<GenericObject> hisIterator = that.listIterator();
         while (hisIterator.hasNext()) {
             Object hisobj = hisIterator.next();
             myIterator = this.listIterator();
@@ -434,11 +436,11 @@ public abstract class GenericObjectList extends LinkedList<GenericObject> implem
         if (!this.getClass().equals(other.getClass()))
             return false;
         GenericObjectList that = (GenericObjectList) other;
-        ListIterator hisIterator = that.listIterator();
+        ListIterator<GenericObject> hisIterator = that.listIterator();
         outer: while (hisIterator.hasNext()) {
             Object hisobj = hisIterator.next();
             Object myobj = null;
-            ListIterator myIterator = this.listIterator();
+            ListIterator<GenericObject> myIterator = this.listIterator();
             while (myIterator.hasNext()) {
                 myobj = myIterator.next();
                 if (myobj instanceof GenericObject)

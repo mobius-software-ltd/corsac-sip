@@ -29,15 +29,32 @@
 package gov.nist.javax.sip.message;
 
 import java.text.ParseException;
-import javax.sip.header.*;
-
-import java.util.LinkedList;
 import java.util.List;
-import gov.nist.javax.sip.header.*;
 
-import javax.sip.message.*;
-import javax.sip.address.*;
-import gov.nist.javax.sip.parser.*;
+import javax.sip.address.URI;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContentTypeHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.ServerHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.UserAgentHeader;
+import javax.sip.message.MessageFactory;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+
+import gov.nist.javax.sip.header.CSeq;
+import gov.nist.javax.sip.header.CallID;
+import gov.nist.javax.sip.header.ContentType;
+import gov.nist.javax.sip.header.From;
+import gov.nist.javax.sip.header.MaxForwards;
+import gov.nist.javax.sip.header.RequestLine;
+import gov.nist.javax.sip.header.StatusLine;
+import gov.nist.javax.sip.header.To;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.parser.ParseExceptionListener;
+import gov.nist.javax.sip.parser.StringMsgParser;
 
 /**
  * Message Factory implementation
@@ -49,7 +66,7 @@ import gov.nist.javax.sip.parser.*;
  * @author Olivier Deruelle <br/>
  *
  */
-@SuppressWarnings("unchecked")
+
 public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
 
     private boolean testing = false;
@@ -120,7 +137,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
      */
     public Request createRequest(javax.sip.address.URI requestURI,
             String method, CallIdHeader callId, CSeqHeader cSeq,
-            FromHeader from, ToHeader to, List via,
+            FromHeader from, ToHeader to, @SuppressWarnings("rawtypes") List via,
             MaxForwardsHeader maxForwards, ContentTypeHeader contentType,
             Object content) throws ParseException {
         if (requestURI == null || method == null || callId == null
@@ -177,7 +194,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
      */
     public Request createRequest(URI requestURI, String method,
             CallIdHeader callId, CSeqHeader cSeq, FromHeader from, ToHeader to,
-            List via, MaxForwardsHeader maxForwards, byte[] content,
+            List<?> via, MaxForwardsHeader maxForwards, byte[] content,
             ContentTypeHeader contentType) throws ParseException {
         if (requestURI == null || method == null || callId == null
                 || cSeq == null || from == null || to == null || via == null
@@ -230,7 +247,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
      */
     public Request createRequest(URI requestURI, String method,
             CallIdHeader callId, CSeqHeader cSeq, FromHeader from, ToHeader to,
-            List via, MaxForwardsHeader maxForwards) throws ParseException {
+            @SuppressWarnings("rawtypes") List via, MaxForwardsHeader maxForwards) throws ParseException {
         if (requestURI == null || method == null || callId == null
                 || cSeq == null || from == null || to == null || via == null
                 || maxForwards == null)
@@ -284,7 +301,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
      *             while parsing the statusCode or the body.
      */
     public Response createResponse(int statusCode, CallIdHeader callId,
-            CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            CSeqHeader cSeq, FromHeader from, ToHeader to, List<?> via,
             MaxForwardsHeader maxForwards, Object content,
             ContentTypeHeader contentType) throws ParseException {
         if (callId == null || cSeq == null || from == null || to == null
@@ -341,7 +358,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
      *             while parsing the statusCode or the body.
      */
     public Response createResponse(int statusCode, CallIdHeader callId,
-            CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            CSeqHeader cSeq, FromHeader from, ToHeader to, List<?> via,
             MaxForwardsHeader maxForwards, byte[] content,
             ContentTypeHeader contentType) throws ParseException {
         if (callId == null || cSeq == null || from == null || to == null
@@ -388,7 +405,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
      *             while parsing the statusCode.
      */
     public Response createResponse(int statusCode, CallIdHeader callId,
-            CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            CSeqHeader cSeq, FromHeader from, ToHeader to, @SuppressWarnings("rawtypes") List via,
             MaxForwardsHeader maxForwards) throws ParseException {
         if (callId == null || cSeq == null || from == null || to == null
                 || via == null || maxForwards == null)
@@ -543,7 +560,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
      */
     public Request createRequest(javax.sip.address.URI requestURI,
             String method, CallIdHeader callId, CSeqHeader cSeq,
-            FromHeader from, ToHeader to, List via,
+            FromHeader from, ToHeader to, @SuppressWarnings("rawtypes") List via,
             MaxForwardsHeader maxForwards, ContentTypeHeader contentType,
             byte[] content) throws ParseException {
         if (requestURI == null || method == null || callId == null
@@ -596,7 +613,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
      *             while parsing the statusCode or the body.
      */
     public Response createResponse(int statusCode, CallIdHeader callId,
-            CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            CSeqHeader cSeq, FromHeader from, ToHeader to, @SuppressWarnings("rawtypes") List via,
             MaxForwardsHeader maxForwards, ContentTypeHeader contentType,
             Object content) throws ParseException {
         if (callId == null || cSeq == null || from == null || to == null
@@ -652,7 +669,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
      *             while parsing the statusCode or the body.
      */
     public Response createResponse(int statusCode, CallIdHeader callId,
-            CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            CSeqHeader cSeq, FromHeader from, ToHeader to, @SuppressWarnings("rawtypes") List via,
             MaxForwardsHeader maxForwards, ContentTypeHeader contentType,
             byte[] content) throws ParseException {
         if (callId == null || cSeq == null || from == null || to == null
@@ -706,7 +723,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
         ParseExceptionListener parseExceptionListener = new ParseExceptionListener() {
 
             public void handleException(ParseException ex,
-                    SIPMessage sipMessage, Class headerClass,
+                    SIPMessage sipMessage, Class<?> headerClass,
                     String headerText, String messageText)
                     throws ParseException {
                 // Rethrow the error for the essential headers. Otherwise bad
@@ -833,7 +850,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
             String[] contentType,
             String[] contentSubtype, 
             String[] contentBody) {
-        String boundary = multipartMimeCth.getParameter("boundary");
+        multipartMimeCth.getParameter("boundary");
         MultipartMimeContentImpl retval = new MultipartMimeContentImpl(multipartMimeCth);
         for (int i = 0 ;  i < contentType.length; i++ ) {
             ContentTypeHeader cth = new ContentType(contentType[i],contentSubtype[i]);

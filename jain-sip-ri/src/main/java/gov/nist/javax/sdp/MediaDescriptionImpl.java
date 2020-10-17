@@ -46,18 +46,19 @@ import gov.nist.core.*;
  *
  */
 public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
+	private static final long serialVersionUID = 1L;
 
-    protected MediaField mediaField;
+	protected MediaField mediaField;
 
     protected InformationField informationField;
 
     protected ConnectionField connectionField;
 
-    protected Vector bandwidthFields;
+    protected Vector<BandwidthField> bandwidthFields;
 
     protected KeyField keyField;
 
-    protected Vector attributeFields;
+    protected Vector<AttributeField> attributeFields;
 
     /**
      * Encode to a canonical form.
@@ -116,8 +117,8 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
     }
 
     public MediaDescriptionImpl() {
-        this.bandwidthFields = new Vector();
-        this.attributeFields = new Vector();
+        this.bandwidthFields = new Vector<BandwidthField>();
+        this.attributeFields = new Vector<AttributeField>();
 
         // issued by Miguel Freitas (AV) PTInovacao
         this.preconditionFields = new PreconditionFields();
@@ -139,7 +140,7 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
         return keyField;
     }
 
-    public Vector getAttributeFields() {
+    public Vector<AttributeField> getAttributeFields() {
         return attributeFields;
     }
 
@@ -181,7 +182,7 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
     /**
      * Set the attributeFields member
      */
-    public void setAttributeFields(Vector a) {
+    public void setAttributeFields(Vector<AttributeField> a) {
         attributeFields = a;
     }
 
@@ -300,7 +301,7 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
      * @return the Bandwidth or null if undefined
      */
 
-    public Vector getBandwidths(boolean create) {
+    public Vector<BandwidthField> getBandwidths(boolean create) {
         return bandwidthFields;
     }
 
@@ -312,7 +313,7 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
      * @throws SdpException
      *             if vector is null
      */
-    public void setBandwidths(Vector bandwidths) throws SdpException {
+    public void setBandwidths(Vector<BandwidthField> bandwidths) throws SdpException {
         if (bandwidths == null)
             throw new SdpException("The vector bandwidths is null");
         this.bandwidthFields = bandwidths;
@@ -446,7 +447,7 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
      *            no attributes exists for this Description
      * @return attributes for this Description
      */
-    public Vector getAttributes(boolean create) {
+    public Vector<AttributeField> getAttributes(boolean create) {
         return attributeFields;
     }
 
@@ -458,7 +459,7 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
      * @throws SdpException --
      *             if the attributes is null
      */
-    public void setAttributes(Vector attributes) throws SdpException {
+    public void setAttributes(Vector<AttributeField> attributes) throws SdpException {
         this.attributeFields = attributes;
     }
 
@@ -624,13 +625,13 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
      * @return a Vector containing a string indicating the MIME type for each of
      *         the codecs in this description
      */
-    public Vector getMimeTypes() throws SdpException {
+    public Vector<String> getMimeTypes() throws SdpException {
         MediaField mediaField = (MediaField) getMedia();
         String type = mediaField.getMediaType();
         String protocol = mediaField.getProtocol();
-        Vector formats = mediaField.getMediaFormats(false);
+        Vector<String> formats = mediaField.getMediaFormats(false);
 
-        Vector v = new Vector();
+        Vector<String> v = new Vector<String>();
         for (int i = 0; i < formats.size(); i++) {
             String result = null;
             if (protocol.equals("RTP/AVP")) {
@@ -669,12 +670,12 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
      * @return a Vector containing a string of parameters for each of the codecs
      *         in this description.
      */
-    public Vector getMimeParameters() throws SdpException {
+    public Vector<String> getMimeParameters() throws SdpException {
         String rate = getAttribute("rate");
         String ptime = getAttribute("ptime");
         String maxptime = getAttribute("maxptime");
         String ftmp = getAttribute("ftmp");
-        Vector result = new Vector();
+        Vector<String> result = new Vector<String>();
         result.addElement(rate);
         result.addElement(ptime);
         result.addElement(maxptime);
@@ -696,7 +697,7 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
      *             if either vector is null or empty. if the vector sizes are
      *             unequal.
      */
-    public void addDynamicPayloads(Vector payloadNames, Vector payloadValues)
+    public void addDynamicPayloads(Vector<String> payloadNames, Vector<String> payloadValues)
             throws SdpException {
 
         if (payloadNames == null || payloadValues == null)
@@ -709,8 +710,8 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
                     throw new SdpException(" The vector sizes are unequal");
                 else {
                     for (int i = 0; i < payloadNames.size(); i++) {
-                        String name = (String) payloadNames.elementAt(i);
-                        String value = (String) payloadValues.elementAt(i);
+                        String name = payloadNames.elementAt(i);
+                        String value = payloadValues.elementAt(i);
                         setAttribute(name, value);
                     }
                 }
@@ -742,7 +743,7 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
      *            Vector containing PreconditionFields
      * @throws SdpException
      */
-    public void setPreconditionFields(Vector precondition) throws SdpException {
+    public void setPreconditionFields(Vector<AttributeField> precondition) throws SdpException {
         this.preconditionFields.setPreconditions(precondition);
     }
 
@@ -771,7 +772,7 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription {
      *
      * @return Vector of attribute fields (segmented precondition)
      */
-    public Vector getPreconditionFields() {
+    public Vector<AttributeField> getPreconditionFields() {
         return this.preconditionFields.getPreconditions();
     }
 

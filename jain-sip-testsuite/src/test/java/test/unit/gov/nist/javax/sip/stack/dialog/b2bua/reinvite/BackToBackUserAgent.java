@@ -1,14 +1,8 @@
 package test.unit.gov.nist.javax.sip.stack.dialog.b2bua.reinvite;
 
-import gov.nist.javax.sip.DialogTimeoutEvent;
-import gov.nist.javax.sip.ListeningPointExt;
-import gov.nist.javax.sip.SipListenerExt;
-import gov.nist.javax.sip.SipProviderExt;
-
 import java.text.ParseException;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Properties;
 import java.util.Random;
 
 import javax.sip.ClientTransaction;
@@ -27,19 +21,20 @@ import javax.sip.SipStack;
 import javax.sip.TimeoutEvent;
 import javax.sip.TransactionAlreadyExistsException;
 import javax.sip.TransactionTerminatedEvent;
-import javax.sip.TransactionUnavailableException;
-import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.FromHeader;
-import javax.sip.header.HeaderFactory;
 import javax.sip.header.RouteHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import gov.nist.javax.sip.DialogTimeoutEvent;
+import gov.nist.javax.sip.ListeningPointExt;
+import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.SipProviderExt;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
 
@@ -52,8 +47,6 @@ public class BackToBackUserAgent implements SipListenerExt {
     private MessageFactory messageFactory;
     private Hashtable<Dialog,Response> lastResponseTable = new Hashtable<Dialog,Response>();
     private ProtocolObjects protocolObjects;
-    private HeaderFactory headerFactory;
-    private AddressFactory addressFactory;
     private boolean inviteOkSeen;
     private boolean dialogTimedOut;
     
@@ -94,7 +87,6 @@ public class BackToBackUserAgent implements SipListenerExt {
              newRequest.removeHeader(RouteHeader.NAME);
              FromHeader fromHeader = (FromHeader) newRequest.getHeader(FromHeader.NAME);
              fromHeader.setTag(Long.toString(Math.abs(new Random().nextLong())));
-             SipProvider peerProvider = getPeerProvider(provider);
              ViaHeader viaHeader = ((ListeningPointExt) ((SipProviderExt)
                      getPeerProvider(provider)).getListeningPoint("udp")).createViaHeader();
              newRequest.setHeader(viaHeader);
@@ -162,7 +154,6 @@ public class BackToBackUserAgent implements SipListenerExt {
                 Dialog peer = this.getPeer(dialog);
                 Response response = this.lastResponseTable.get(peer);
                 CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
-                String method = cseqHeader.getMethod();
                 long seqno = cseqHeader.getSeqNumber();
                 Request ack = peer.createAck(seqno);
                 peer.sendAck(ack);
@@ -233,14 +224,11 @@ public class BackToBackUserAgent implements SipListenerExt {
         SipFactory sipFactory = null;
         sipFactory = SipFactory.getInstance();
         sipFactory.setPathName("gov.nist");
-        Properties properties = new Properties();
         this.protocolObjects = new ProtocolObjects("backtobackua","gov.nist","udp",true,true, false);
 
      
         try {
-            headerFactory = protocolObjects.headerFactory;
-            addressFactory = protocolObjects.addressFactory;
-            messageFactory = protocolObjects.messageFactory;
+             messageFactory = protocolObjects.messageFactory;
             SipStack sipStack = protocolObjects.sipStack;
             ListeningPoint lp1 = sipStack.createListeningPoint("127.0.0.1", port1, "udp");
             ListeningPoint lp2 = sipStack.createListeningPoint("127.0.0.1", port2, "udp");

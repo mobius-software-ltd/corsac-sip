@@ -169,7 +169,6 @@ public class Shootme implements SipListener {
      */
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         Dialog dialog = requestEvent.getDialog();
         System.out.println("local party = " + dialog.getLocalParty());
@@ -189,7 +188,6 @@ public class Shootme implements SipListener {
 
     public void processCancel(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
             System.out.println("shootme:  got a cancel.");

@@ -1,15 +1,15 @@
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.parser.NioPipelineParser;
-import gov.nist.javax.sip.parser.SIPMessageListener;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
 import java.text.ParseException;
 import java.util.Properties;
+
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
 import javax.sip.SipStack;
+
+import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
 import junit.framework.Assert;
 
 public class NioPipelineParserTest extends junit.framework.TestCase {
@@ -87,7 +87,7 @@ public class NioPipelineParserTest extends junit.framework.TestCase {
         }
 
         @Override
-        public void handleException(ParseException ex, SIPMessage sipMessage, Class headerClass, String headerText, String messageText) throws ParseException {
+        public void handleException(ParseException ex, SIPMessage sipMessage, Class<?> headerClass, String headerText, String messageText) throws ParseException {
         }
 
         public int getProcessedMsgs() {

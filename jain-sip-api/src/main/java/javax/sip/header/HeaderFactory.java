@@ -338,7 +338,7 @@ public interface HeaderFactory {
      * type is not allowed.
      * @return the newly created List of Header objects.
      */
-    public List createHeaders(String headers) throws ParseException;
+    public List<?> createHeaders(String headers) throws ParseException;
 
 
     /**
@@ -570,7 +570,7 @@ public interface HeaderFactory {
      * unexpectedly while parsing the List of product values.
      * @return the newly created ServerHeader object.
      */
-    public ServerHeader createServerHeader(List product)
+    public ServerHeader createServerHeader(List<?> product)
                                 throws ParseException;
 
    /**
@@ -653,7 +653,7 @@ public interface HeaderFactory {
      * unexpectedly while parsing the List of product values.
      * @return the newly created UserAgentHeader object.
      */
-    public UserAgentHeader createUserAgentHeader(List product)
+    public UserAgentHeader createUserAgentHeader(List<?> product)
                             throws ParseException;
 
     /**

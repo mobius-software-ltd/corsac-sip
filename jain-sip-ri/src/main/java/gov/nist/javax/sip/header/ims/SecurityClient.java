@@ -35,7 +35,6 @@ package gov.nist.javax.sip.header.ims;
 
 import java.text.ParseException;
 
-import javax.sip.InvalidArgumentException;
 import javax.sip.header.ExtensionHeader;
 
 
@@ -56,7 +55,13 @@ public class SecurityClient
 
     // TODO serialVersionUID
 
-    public SecurityClient()
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	public SecurityClient()
     {
         super(SecurityClientHeader.NAME);
 

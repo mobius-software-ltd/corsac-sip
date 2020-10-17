@@ -35,9 +35,7 @@ package gov.nist.javax.sip.header.ims;
 import java.text.ParseException;
 
 import javax.sip.header.ExtensionHeader;
-import javax.sip.header.Parameters;
 
-import gov.nist.core.NameValueList;
 import gov.nist.javax.sip.header.SIPHeader;
 
 /**
@@ -51,8 +49,8 @@ public class Privacy
     extends SIPHeader
     implements PrivacyHeader, SIPHeaderNamesIms, ExtensionHeader
 {
-
-    /**
+	private static final long serialVersionUID = 1L;
+	/**
      * Privacy type
      */
     private String privacy;

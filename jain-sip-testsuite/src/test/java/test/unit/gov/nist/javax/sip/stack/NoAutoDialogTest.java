@@ -25,7 +25,6 @@ import javax.sip.TransactionTerminatedEvent;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
-import javax.sip.header.Header;
 import javax.sip.header.HeaderFactory;
 import javax.sip.header.ToHeader;
 import javax.sip.header.ViaHeader;
@@ -142,21 +141,11 @@ public class NoAutoDialogTest extends TestCase {
 
         protected SipProvider provider = null;
 
-        private boolean i_receivedInvite;
-
-        private boolean i_sent180;
-
-        private boolean i_receivedCancel;
-
-        private boolean i_sent200Cancel;
-
         private ServerTransaction inviteStx;
 
         private Request inviteRequest;
 
-        private boolean i_inviteTxTerm;
-
-
+        
         public Server() {
             try {
                 final Properties defaultProperties = new Properties();
@@ -210,7 +199,6 @@ public class NoAutoDialogTest extends TestCase {
             if (request.getMethod().equals(Request.INVITE)) {
                 try {
                     System.out.println("Received invite");
-                    this.i_receivedInvite = true;
                     this.inviteStx = provider
                             .getNewServerTransaction(request);
                     this.inviteRequest = request;
@@ -222,7 +210,6 @@ public class NoAutoDialogTest extends TestCase {
                             + Math.random());
                     inviteStx.sendResponse(response);
                     System.out.println("Sent 180:\n" + response);
-                    i_sent180 = true;
                 } catch (Exception e) {
                     e.printStackTrace();
                     fail("Unexpected exception");
@@ -232,12 +219,10 @@ public class NoAutoDialogTest extends TestCase {
 
                 System.out.println("Received CANCEL");
                 try {
-                    i_receivedCancel = true;
                     Response response = messageFactory.createResponse(200, requestEvent
                             .getRequest());
                     requestEvent.getServerTransaction().sendResponse(response);
-                    i_sent200Cancel = true;
-
+                    
                     Response inviteResponse =
                         messageFactory.createResponse(Response.REQUEST_TERMINATED,inviteRequest);
                     inviteStx.sendResponse(inviteResponse);
@@ -265,13 +250,11 @@ public class NoAutoDialogTest extends TestCase {
             if (ctx != null) {
                 String method = ctx.getRequest().getMethod();
                 if (method.equals(Request.INVITE)) {
-                    i_inviteTxTerm = true;
                     System.out.println("Invite term TERM");
                 }
             } else {
                 String method = stx.getRequest().getMethod();
                 if (method.equals(Request.INVITE)) {
-                    i_inviteTxTerm = true;
                     System.out.println("Invite term TERM");
                 }
             }
@@ -431,7 +414,7 @@ public class NoAutoDialogTest extends TestCase {
             inviteRequest.addHeader(getLocalVia(provider));
 
             // create and add the Route Header
-            Header h = headerFactory.createRouteHeader(_remoteAddress);
+            headerFactory.createRouteHeader(_remoteAddress);
 
             inviteRequest.setMethod(Request.INVITE);
             inviteRequest.addHeader(headerFactory.createMaxForwardsHeader(5));

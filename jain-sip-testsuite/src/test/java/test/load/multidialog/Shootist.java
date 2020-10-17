@@ -5,7 +5,6 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -292,7 +291,7 @@ public class Shootist implements SipListener {
                     + "a=rtpmap:0 PCMU/8000\r\n" + "a=rtpmap:4 G723/8000\r\n"
                     + "a=rtpmap:18 G729A/8000\r\n" + "a=ptime:20\r\n";
             //Create ViaHeaders
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory.createViaHeader(localHost, sipProvider.getListeningPoint(transport)
                     .getPort(), transport, null);
 

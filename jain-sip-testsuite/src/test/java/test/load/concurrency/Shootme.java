@@ -132,7 +132,6 @@ public class Shootme extends TestCase implements SipListener {
                 // System.out.println("response = " + response);
                 response.setContent(content, contentTypeHeader);
             }
-            Dialog dialog = st.getDialog();
             //System.out.println("dialog = " + dialog);
             st.sendResponse(response);
             response = messageFactory.createResponse(200, request);
@@ -198,12 +197,11 @@ public class Shootme extends TestCase implements SipListener {
 
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
         Transaction transaction;
-        Request request = null;
         if (timeoutEvent.isServerTransaction()) {
             transaction = timeoutEvent.getServerTransaction();
         } else {
             transaction = timeoutEvent.getClientTransaction();
-            request = ((ClientTransaction) transaction).getRequest();
+            ((ClientTransaction) transaction).getRequest();
         }
         /*
          * System.out.println("request = " + request); System.out.println("state = " +

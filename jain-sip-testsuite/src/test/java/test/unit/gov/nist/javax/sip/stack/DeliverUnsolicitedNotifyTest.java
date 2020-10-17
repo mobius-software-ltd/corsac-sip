@@ -198,7 +198,7 @@ public class DeliverUnsolicitedNotifyTest extends TestCase implements
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
 
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     port, transport, null);

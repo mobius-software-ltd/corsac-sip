@@ -16,7 +16,12 @@ import gov.nist.core.Separators;
 public class SdpException extends Exception {
 
    
-    /** Creates new SdpException
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/** Creates new SdpException
      */
     public SdpException() {
          super();

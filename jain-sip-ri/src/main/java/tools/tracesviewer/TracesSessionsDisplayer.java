@@ -6,8 +6,9 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class TracesSessionsDisplayer extends javax.swing.JFrame {
-
-    public TracesSessions tracesSessions;
+	private static final long serialVersionUID = 1L;
+	
+	public TracesSessions tracesSessions;
     public TextArea allmessagesTextArea;
     public List sessionsList;
 
@@ -70,14 +71,14 @@ public class TracesSessionsDisplayer extends javax.swing.JFrame {
         container.add(okButton, BorderLayout.SOUTH);
         okButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                hide();
+                setVisible(false);
             }
         });
     }
 
     public static String getTrueName(String name) {
         try {
-            int firstIndex = name.indexOf("//");
+            name.indexOf("//");
             int secondIndex = name.indexOf("/", 2);
             String fakeName = name.substring(2, secondIndex);
             if (fakeName.equals(TracesViewer.stackId))

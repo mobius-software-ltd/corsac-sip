@@ -67,7 +67,7 @@ public class NameMap implements SIPHeaderNames, PackageNames {
             className);
     }
 
-    public static Class getClassFromName(String headerName) {
+    public static Class<?> getClassFromName(String headerName) {
         String className = (String) nameMap.get(headerName.toLowerCase());
         if (className == null)
             return null;

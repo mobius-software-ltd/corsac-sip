@@ -24,7 +24,6 @@
 package gov.nist.javax.sip.header;
 
 import javax.sip.address.*;
-import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.Parameters;
 
@@ -44,7 +43,11 @@ import gov.nist.javax.sip.address.*;
  */
 public abstract class AddressParametersHeader extends ParametersHeader implements  Parameters {
 
-    protected AddressImpl address;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected AddressImpl address;
 
     /* (non-Javadoc)
      * @see gov.nist.javax.sip.header.AddressParameters#getAddress()

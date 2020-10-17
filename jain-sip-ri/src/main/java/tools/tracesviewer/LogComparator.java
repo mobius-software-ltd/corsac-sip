@@ -15,11 +15,9 @@ import java.util.Comparator;
 *
 */
 
-class LogComparator implements Comparator {
-    public int compare(Object obj1, Object obj2) {
+class LogComparator implements Comparator<TracesMessage> {
+    public int compare(TracesMessage m1, TracesMessage m2) {
         try {
-            TracesMessage m1 = (TracesMessage) obj1;
-            TracesMessage m2 = (TracesMessage) obj2;
             long ts1 = Long.parseLong(m1.getTime());
             long ts2 = Long.parseLong(m2.getTime());
             if ( m1.hashCode() == m2.hashCode()) {

@@ -29,7 +29,6 @@ import java.text.ParseException;
 
 import gov.nist.javax.sip.header.HeaderFactoryImpl;
 import gov.nist.javax.sip.header.ims.PUserDatabaseHeader;
-import gov.nist.javax.sip.parser.ims.PUserDatabaseParser;
 import gov.nist.javax.sip.parser.ParserTestCase;
 /**
  *

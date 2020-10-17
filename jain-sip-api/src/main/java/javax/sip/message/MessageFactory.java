@@ -61,7 +61,7 @@ public interface MessageFactory {
      * unexpectedly while parsing the method or the body.
      */
     public Request createRequest(URI requestURI, String method, CallIdHeader
-            callId, CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            callId, CSeqHeader cSeq, FromHeader from, ToHeader to, List<?> via,
                 MaxForwardsHeader maxForwards, ContentTypeHeader contentType,
                 Object content) throws ParseException;
 
@@ -85,7 +85,7 @@ public interface MessageFactory {
      * unexpectedly while parsing the method or the body.
      */
     public Request createRequest(URI requestURI, String method, CallIdHeader
-            callId, CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            callId, CSeqHeader cSeq, FromHeader from, ToHeader to, List<?> via,
                 MaxForwardsHeader maxForwards, ContentTypeHeader contentType,
                 byte[] content) throws ParseException;
 
@@ -106,7 +106,7 @@ public interface MessageFactory {
      * unexpectedly while parsing the method.
      */
     public Request createRequest(URI requestURI, String method, CallIdHeader
-            callId, CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            callId, CSeqHeader cSeq, FromHeader from, ToHeader to, List<?> via,
                 MaxForwardsHeader maxForwards) throws ParseException;
 
 
@@ -148,7 +148,7 @@ public interface MessageFactory {
      * unexpectedly while parsing the statusCode or the body.
      */
     public Response createResponse(int statusCode, CallIdHeader callId,
-            CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            CSeqHeader cSeq, FromHeader from, ToHeader to, List<?> via,
                 MaxForwardsHeader maxForwards, ContentTypeHeader contentType,
                 Object content) throws ParseException;
 
@@ -171,7 +171,7 @@ public interface MessageFactory {
      * unexpectedly while parsing the statusCode or the body.
      */
     public Response createResponse(int statusCode, CallIdHeader callId,
-            CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            CSeqHeader cSeq, FromHeader from, ToHeader to, List<?> via,
                 MaxForwardsHeader maxForwards, ContentTypeHeader contentType,
                 byte[] content) throws ParseException;
 
@@ -192,7 +192,7 @@ public interface MessageFactory {
      * unexpectedly while parsing the statusCode.
      */
     public Response createResponse(int statusCode, CallIdHeader callId,
-            CSeqHeader cSeq, FromHeader from, ToHeader to, List via,
+            CSeqHeader cSeq, FromHeader from, ToHeader to, List<?> via,
                 MaxForwardsHeader maxForwards) throws ParseException;
 
 // Response Creation methods based on a Request

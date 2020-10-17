@@ -118,7 +118,7 @@ public class LeakAudit {
             /// Action to be performed by this timer task
             public final void run() {
                 // That's all we need to do in order to check if there's any dialog or transaction leak
-                Set activeCallIDs = leakingApp.getActiveCallIDs();
+                Set<String> activeCallIDs = leakingApp.getActiveCallIDs();
                 String auditReport = ((SIPTransactionStack) sipStack).auditStack(activeCallIDs,
                         30 * 1000, // Note: We're using an unrealistically short value just for this test.
                                    // For real applications, see the suggested values in the README.txt.

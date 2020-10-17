@@ -5,13 +5,12 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-
-
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import java.util.*;
 
@@ -33,7 +32,7 @@ public class Shootme  extends TestCase implements SipListener {
 
     private static final String myAddress = "127.0.0.1";
 
-    private Hashtable serverTxTable = new Hashtable();
+    private Hashtable<String,ServerTransaction> serverTxTable = new Hashtable<String,ServerTransaction>();
 
     private SipProvider sipProvider;
 
@@ -41,13 +40,13 @@ public class Shootme  extends TestCase implements SipListener {
 
     private static String unexpectedException = "Unexpected exception ";
 
-    private static Logger logger = Logger.getLogger(Shootme.class);
+    private static Logger logger = LogManager.getLogger(Shootme.class);
 
     static {
         try {
-        logger.addAppender(new FileAppender(new SimpleLayout(),
-                    ProtocolObjects.logFileDirectory + "shootmeconsolelog.txt"));
-        //logger.addAppender( new ConsoleAppender(new SimpleLayout()));
+        	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+            Configuration configuration = logContext.getConfiguration();
+            configuration.addAppender(FileAppender.newBuilder().setName("Shootmeconsolelog").withFileName(ProtocolObjects.logFileDirectory + "shootmeconsolelog.txt").build());
         } catch (Exception ex) {
             throw new RuntimeException ("could not open log file");
         }
@@ -291,7 +290,10 @@ public class Shootme  extends TestCase implements SipListener {
     public static void main(String args[]) throws Exception {
         int myPort = new Integer(args[0]).intValue();
 
-        logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+        LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        
         ProtocolObjects.init("shootme_"+myPort,true);
         Shootme shootme = new Shootme(myPort);
         shootme.createProvider();

@@ -1,11 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack.forkedinvite;
 
-import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.header.HeaderExt;
-import gov.nist.javax.sip.header.ims.PPreferredServiceHeader;
-
 import java.util.Hashtable;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -18,8 +13,6 @@ import javax.sip.ListeningPoint;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
-import javax.sip.SipException;
-import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
@@ -36,12 +29,15 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import junit.framework.TestCase;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
+import gov.nist.javax.sip.header.HeaderExt;
+import gov.nist.javax.sip.header.ims.PPreferredServiceHeader;
+import junit.framework.TestCase;
 
 
 
@@ -59,7 +55,7 @@ public class Shootme   implements SipListener {
 
     private static final String myAddress = "127.0.0.1";
 
-    private Hashtable serverTxTable = new Hashtable();
+    private Hashtable<String,ServerTransaction> serverTxTable = new Hashtable<String,ServerTransaction>();
 
     private SipProvider sipProvider;
 
@@ -67,13 +63,13 @@ public class Shootme   implements SipListener {
 
     private static String unexpectedException = "Unexpected exception ";
 
-    private static Logger logger = Logger.getLogger(Shootme.class);
+    private static Logger logger = LogManager.getLogger(Shootme.class);
 
     static {
-        if (logger.getAllAppenders().equals(NullEnumeration.getInstance())) {
-
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
     

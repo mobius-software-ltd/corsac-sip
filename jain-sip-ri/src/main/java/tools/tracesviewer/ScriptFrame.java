@@ -15,7 +15,11 @@ import java.awt.event.*;
  */
 public class ScriptFrame extends Dialog {
 
-    public TextArea infoTextArea;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public TextArea infoTextArea;
     public Container container;
     public Button ok;
 

@@ -39,8 +39,7 @@ public class NIOParsingTest extends ScenarioHarness {
     	super("NIOParsingTest",true);
 	}
     private static final int OPEN_DELAY = 5000;
-    private static final int CLOSE_DELAY = 40000; 
-
+    
 	public final int SERVER_PORT = NetworkPortAssigner.retrieveNextPort();
 
     public final int CLIENT_PORT = NetworkPortAssigner.retrieveNextPort();
@@ -68,6 +67,8 @@ public class NIOParsingTest extends ScenarioHarness {
 		
 		client.sendGarbage();
 		Thread.sleep(1000);
+		
+		server.stop();
 	}
 	
 	
@@ -178,7 +179,7 @@ public class NIOParsingTest extends ScenarioHarness {
 				
 			Thread.sleep(OPEN_DELAY);          
             
-        	
+			test.close();
         }
     }
 

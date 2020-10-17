@@ -24,7 +24,6 @@
  */
 package gov.nist.javax.sip.parser;
 import gov.nist.javax.sip.address.*;
-import gov.nist.javax.sip.parser.*;
 import junit.framework.TestCase;
 
 /**

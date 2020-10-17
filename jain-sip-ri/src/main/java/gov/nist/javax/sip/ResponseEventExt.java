@@ -10,7 +10,11 @@ import javax.sip.message.Response;
  * @since v2.0
  */
 public class ResponseEventExt extends ResponseEvent {
-    private ClientTransactionExt m_originalTransaction;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private ClientTransactionExt m_originalTransaction;
     private boolean isForked;
     private boolean isRetransmission;
     private String remoteIpAddress;

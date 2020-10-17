@@ -3,7 +3,6 @@ package test.unit.gov.nist.javax.sip.stack.forkedinvitedialogtimeout;
 import gov.nist.javax.sip.DialogTimeoutEvent;
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.SipListenerExt;
-import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.ResponseExt;
 
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.SipException;
-import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
 import javax.sip.TransactionTerminatedEvent;
@@ -45,10 +43,12 @@ import javax.sip.message.Response;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+
 import test.tck.msgflow.callflows.TestAssertion;
 
 
@@ -80,13 +80,13 @@ public class Shootist implements SipListenerExt {
 
     private static String unexpectedException = "Unexpected exception ";
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
     static {
-        if (logger.getAllAppenders().equals(NullEnumeration.getInstance())) {
-
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
     
@@ -105,8 +105,6 @@ public class Shootist implements SipListenerExt {
     private HashSet<Dialog> timedOutDialog = new HashSet<Dialog>();
     
   
-    private boolean byeResponseSeen;
-
     private int counter;
 
     private static HeaderFactory headerFactory;
@@ -119,17 +117,11 @@ public class Shootist implements SipListenerExt {
 
     static boolean callerSendsBye  = true;
 
-    private boolean byeSent;
-
     private Timer timer = new Timer();
 
-    private ClientTransaction originalTransaction;
-    
     boolean isAutomaticDialogSupportEnabled = true;
 
     private boolean createDialogAfterRequest = false;
-
-    private boolean terminatedDialogWasOneOfCancelled;
 
     private boolean forkFirst;
     
@@ -284,7 +276,6 @@ public class Shootist implements SipListenerExt {
                     TestCase.assertFalse("retransmission flag should be false", responseReceivedEvent
                             .isRetransmission());
                     if (dialog == this.ackedDialog) {
-                        this.byeResponseSeen = true;
                     }
                 } else {
                     logger.info("Response method = " + cseq.getMethod());
@@ -401,7 +392,7 @@ public class Shootist implements SipListenerExt {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory
                     .createViaHeader(host, sipProvider.getListeningPoint(
                             transport).getPort(),
@@ -493,7 +484,6 @@ public class Shootist implements SipListenerExt {
 
             // Create the client transaction.
             inviteTid = sipProvider.getNewClientTransaction(request);
-            this.originalTransaction = inviteTid;
             Dialog dialog = null;
             if(isAutomaticDialogSupportEnabled) {
                 dialog = inviteTid.getDialog();
@@ -538,7 +528,6 @@ public class Shootist implements SipListenerExt {
         TestCase.assertTrue("Only want one DTE per dialog",!this.dialogTerminatedEvents.contains(dialogTerminatedEvent.getDialog()));
         this.dialogTerminatedEvents.add(dialogTerminatedEvent.getDialog());
         if(this.timedOutDialog.contains((Dialog)dialogTerminatedEvent.getDialog() )) {
-            terminatedDialogWasOneOfCancelled= true;
         }
 
     }

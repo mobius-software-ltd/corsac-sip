@@ -19,27 +19,44 @@
  */
 package test.unit.gov.nist.javax.sip.stack.no491;
 
-import gov.nist.javax.sip.DialogExt;
-import gov.nist.javax.sip.address.SipUri;
+import java.util.ArrayList;
 
-import javax.sip.*;
-import javax.sip.address.*;
-import javax.sip.header.*;
-import javax.sip.message.*;
+import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
+import javax.sip.DialogState;
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.IOExceptionEvent;
+import javax.sip.ListeningPoint;
+import javax.sip.RequestEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipListener;
+import javax.sip.SipProvider;
+import javax.sip.Transaction;
+import javax.sip.TransactionTerminatedEvent;
+import javax.sip.address.Address;
+import javax.sip.address.SipURI;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.ContentTypeHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.Header;
+import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.RouteHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
-import test.tck.TestHarness;
-import test.tck.msgflow.callflows.ProtocolObjects;
-
-import java.util.*;
-
-import junit.framework.TestCase;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
+import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
 
 /**
@@ -58,10 +75,6 @@ public class Shootist implements SipListener {
 
     private ListeningPoint listeningPoint;
 
-    private int counter;
-    
-    private final Shootme shootme;
-
     private String PEER_ADDRESS;
 
     private int PEER_PORT;
@@ -75,21 +88,15 @@ public class Shootist implements SipListener {
 
     protected ClientTransaction inviteTid;
 
-    private boolean okReceived;
-
-    private boolean byeOkRecieved;
-
-    private boolean byeSent;
-
     int reInviteReceivedCount;
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
     static {
-        if (logger.getAllAppenders().equals(NullEnumeration.getInstance())) {
-
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
 
@@ -102,8 +109,7 @@ public class Shootist implements SipListener {
     public Shootist(ProtocolObjects protocolObjects,Shootme shootme) {
         super();
         this.protocolObjects = protocolObjects;
-        this.shootme = shootme;
-        PEER_ADDRESS = shootme.myAddress;
+        PEER_ADDRESS = Shootme.myAddress;
         PEER_PORT = shootme.myPort;
         peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;        
     }
@@ -159,7 +165,6 @@ public class Shootist implements SipListener {
                 bye.addHeader(mf);
                 ClientTransaction ct = provider.getNewClientTransaction(bye);
                 dialog.sendRequest(ct);
-                this.byeSent = true;
             }
         } catch (Exception ex) {
             logger.error("unexpected exception", ex);
@@ -241,7 +246,6 @@ public class Shootist implements SipListener {
             } else if (response.getStatusCode() == Response.OK
                     && ((CSeqHeader) response.getHeader(CSeqHeader.NAME)).getMethod().equals(
                             Request.BYE)) {
-                this.byeOkRecieved = true;
             } 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -309,7 +313,7 @@ public class Shootist implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             int port = provider.getListeningPoint(protocolObjects.transport).getPort();
 
             ViaHeader viaHeader = protocolObjects.headerFactory.createViaHeader(myAddress, port,

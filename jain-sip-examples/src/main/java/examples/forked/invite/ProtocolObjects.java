@@ -2,7 +2,6 @@ package examples.forked.invite;
 
 import java.util.Properties;
 
-import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
 import javax.sip.SipFactory;
 import javax.sip.SipStack;
@@ -15,21 +14,21 @@ import javax.sip.message.MessageFactory;
  *
  */
 public class ProtocolObjects {
-    static  AddressFactory addressFactory;
+    public static  AddressFactory addressFactory;
 
-    static MessageFactory messageFactory;
+    public static MessageFactory messageFactory;
 
-    static HeaderFactory headerFactory;
+    public static HeaderFactory headerFactory;
 
-    static SipStack sipStack;
+    public static SipStack sipStack;
 
-    static int logLevel  = 32;
+    public static int logLevel  = 32;
 
-    static String logFileDirectory = "";
+    public static String logFileDirectory = "";
 
 
 
-    static void init(String stackname, boolean autoDialog)
+    public static void init(String stackname, boolean autoDialog)
     {
         SipFactory sipFactory = null;
 

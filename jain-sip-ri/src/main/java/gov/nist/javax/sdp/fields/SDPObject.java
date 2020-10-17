@@ -27,8 +27,13 @@
 * Product of NIST/ITL Advanced Networking Technologies Division (ANTD).        *
 *******************************************************************************/
 package gov.nist.javax.sdp.fields;
-import gov.nist.core.*;
-import java.lang.reflect.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+
+import gov.nist.core.GenericObject;
+import gov.nist.core.GenericObjectList;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.PackageNames;
 
 /**
 * Root class for everything in this package.
@@ -36,8 +41,9 @@ import java.lang.reflect.*;
 public abstract class SDPObject
     extends GenericObject
     implements SDPFieldNames {
+	private static final long serialVersionUID = 1L;
 
-    protected static final String SDPFIELDS_PACKAGE =
+	protected static final String SDPFIELDS_PACKAGE =
         PackageNames.SDP_PACKAGE + ".fields";
     protected static final String CORE_PACKAGE = PackageNames.CORE_PACKAGE;
 
@@ -69,9 +75,9 @@ public abstract class SDPObject
     public boolean equals(Object that) {
         if (!this.getClass().equals(that.getClass()))
             return false;
-        Class myclass = this.getClass();
+        Class<?> myclass = this.getClass();
         Field[] fields = myclass.getDeclaredFields();
-        Class hisclass = that.getClass();
+        Class<?> hisclass = that.getClass();
         Field[] hisfields = hisclass.getDeclaredFields();
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];
@@ -80,7 +86,7 @@ public abstract class SDPObject
             int modifier = f.getModifiers();
             if (modifier == Modifier.PRIVATE)
                 continue;
-            Class fieldType = f.getType();
+            Class<?> fieldType = f.getType();
             String fieldName = f.getName();
             if (fieldName.compareTo("stringRepresentation") == 0) {
                 continue;
@@ -137,7 +143,7 @@ public abstract class SDPObject
     */
     public String debugDump() {
         stringRepresentation = "";
-        Class myclass = getClass();
+        Class<?> myclass = getClass();
         sprint(myclass.getName());
         sprint("{");
         Field[] fields = myclass.getDeclaredFields();
@@ -147,7 +153,7 @@ public abstract class SDPObject
             int modifier = f.getModifiers();
             if (modifier == Modifier.PRIVATE)
                 continue;
-            Class fieldType = f.getType();
+            Class<?> fieldType = f.getType();
             String fieldName = f.getName();
             if (fieldName.compareTo("stringRepresentation") == 0) {
                 // avoid nasty recursions...
@@ -253,9 +259,9 @@ public abstract class SDPObject
         if (!this.getClass().equals(other.getClass()))
             return false;
         GenericObject that = (GenericObject) other;
-        Class myclass = this.getClass();
+        Class<?> myclass = this.getClass();
         Field[] fields = myclass.getDeclaredFields();
-        Class hisclass = other.getClass();
+        Class<?> hisclass = other.getClass();
         Field[] hisfields = hisclass.getDeclaredFields();
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];
@@ -264,7 +270,7 @@ public abstract class SDPObject
             int modifier = f.getModifiers();
             if (modifier == Modifier.PRIVATE)
                 continue;
-            Class fieldType = f.getType();
+            Class<?> fieldType = f.getType();
             String fieldName = f.getName();
             if (fieldName.compareTo("stringRepresentation") == 0) {
                 continue;

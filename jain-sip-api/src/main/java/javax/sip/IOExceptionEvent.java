@@ -48,7 +48,11 @@ import java.util.EventObject;
  */
 public class IOExceptionEvent extends EventObject {
 
-    /** Constructor
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/** Constructor
      *
      * @param source -- the object that is logically deemed to have caused the IO Exception (dialog/transaction/provider).
      * @param remoteHost -- host where the request/response was heading

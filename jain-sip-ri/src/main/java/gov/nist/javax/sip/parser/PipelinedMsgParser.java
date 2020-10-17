@@ -43,7 +43,6 @@ import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.stack.BlockingQueueDispatchAuditor;
 import gov.nist.javax.sip.stack.ConnectionOrientedMessageChannel;
 import gov.nist.javax.sip.stack.QueuedMessageDispatchBase;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
@@ -53,15 +52,9 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This implements a pipelined message parser suitable for use with a stream -
@@ -475,7 +468,7 @@ public final class PipelinedMsgParser implements Runnable {
                 } catch (ParseException ex) {
                     // Just ignore the parse exception.
                 	if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-                		this.logger.logDebug(
+                		PipelinedMsgParser.logger.logDebug(
                 				"Detected a parsing issue " + inputBuffer.toString() + " " + ex.getMessage());
 	            	}
                     continue;

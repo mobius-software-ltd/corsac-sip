@@ -31,9 +31,11 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import junit.framework.TestCase;
 
-import org.apache.log4j.Logger;
 import test.tck.msgflow.callflows.TestAssertion;
 
 /**
@@ -64,7 +66,7 @@ public class Shootist implements SipListener {
 
     private static String unexpectedException = "Unexpected exception ";
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
     private final SipStack sipStack;
 
@@ -198,7 +200,7 @@ public class Shootist implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory.createViaHeader(host, sipProvider.getListeningPoint(transport).getPort(), transport, null);
 
             // add via headers

@@ -5,7 +5,8 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import test.tck.TestHarness;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -13,8 +14,6 @@ import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
 
 import java.util.*;
-
-import junit.framework.TestCase;
 
 /**
  * This class is a UAC template. Shootist is the guy that shoots and shootme is
@@ -43,21 +42,13 @@ public class Shootist extends TestHarness implements SipListener {
 
     private String peerHostPort;
 
-    private int dialogTerminatedCount;
-
-    private int transctionTerminatedCount;
-
-    private int transactionCount;
-
-    private int dialogCount;
-
     private boolean byeReceived;
 
     private boolean redirectReceived;
 
     private SipURI requestURI;
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
 
 
@@ -92,7 +83,6 @@ public class Shootist extends TestHarness implements SipListener {
             Response response = protocolObjects.messageFactory.createResponse(
                     200, request);
             serverTransactionId.sendResponse(response);
-            this.transactionCount++;
             logger.info("shootist:  Sending OK.");
             logger.info("Dialog State = " + dialog.getState());
             ViaHeader via = (ViaHeader) request.getHeader(ViaHeader.NAME);
@@ -160,7 +150,7 @@ public class Shootist extends TestHarness implements SipListener {
                     CSeqHeader cseqNew = protocolObjects.headerFactory
                             .createCSeqHeader(++seqNo, "INVITE");
                     // Create ViaHeaders (either use tcp or udp)
-                    ArrayList viaHeaders = new ArrayList();
+                    ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                     ViaHeader viaHeader = protocolObjects.headerFactory
                             .createViaHeader("127.0.0.1", sipProvider
                                     .getListeningPoint(protocolObjects.transport).getPort(),
@@ -204,8 +194,7 @@ public class Shootist extends TestHarness implements SipListener {
                     logger.info("Sending INVITE to "
                             + contHdr.getAddress().getURI().toString());
                     inviteTid = sipProvider.getNewClientTransaction(invRequest);
-                    this.transactionCount++;
-
+                    
                     logger.info("New TID = " + inviteTid);
                     Thread.sleep(500);
                     inviteTid.sendRequest();
@@ -215,7 +204,6 @@ public class Shootist extends TestHarness implements SipListener {
                     logger.info("sendReqeust succeeded " + inviteTid);
                     Dialog dialog = inviteTid.getDialog();
                     assertTrue("Stack must allocate a new dialog", dialog != this.dialog);
-                    this.dialogCount ++;
                     this.dialog = dialog;
 
 
@@ -291,7 +279,7 @@ public class Shootist extends TestHarness implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = protocolObjects.headerFactory
                     .createViaHeader("127.0.0.1", sipProvider
                             .getListeningPoint(protocolObjects.transport).getPort(), protocolObjects.transport,
@@ -299,10 +287,6 @@ public class Shootist extends TestHarness implements SipListener {
 
             // add via headers
             viaHeaders.add(viaHeader);
-
-            // Create ContentTypeHeader
-            ContentTypeHeader contentTypeHeader = protocolObjects.headerFactory
-                    .createContentTypeHeader("application", "sdp");
 
             // Create a new CallId header
             CallIdHeader callIdHeader = sipProvider.getNewCallId();
@@ -366,13 +350,10 @@ public class Shootist extends TestHarness implements SipListener {
             inviteTid = sipProvider.getNewClientTransaction(request);
 
 
-            this.transactionCount ++;
-
             //assertTrue(inviteTid.getState() == TransactionState.CALLING);
 
             logger.info("client tx = " + inviteTid);
             this.dialog = inviteTid.getDialog();
-            this.dialogCount++;
             assertTrue(this.dialog != null);
             //assertTrue(dialog.getState() == null);
             //  send the request out.
@@ -402,14 +383,12 @@ public class Shootist extends TestHarness implements SipListener {
     public void processTransactionTerminated(
             TransactionTerminatedEvent transactionTerminatedEvent) {
         logger.info("Transaction terminated event recieved for " +
-                transactionTerminatedEvent.getClientTransaction());
-        this.transctionTerminatedCount++;
+                transactionTerminatedEvent.getClientTransaction());       
     }
 
     public void processDialogTerminated(
             DialogTerminatedEvent dialogTerminatedEvent) {
-        this.dialogTerminatedCount++;
-
+        
     }
     
     public TestAssertion getAssertion() {

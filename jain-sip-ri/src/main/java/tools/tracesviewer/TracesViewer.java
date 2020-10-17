@@ -20,8 +20,9 @@ import java.io.*;
  * @version 1.0
  */
 public class TracesViewer extends javax.swing.JFrame {
+	private static final long serialVersionUID = 1L;
 
-    private boolean standaloneViewer = false;
+	private boolean standaloneViewer = false;
 
     private String logFile;
 
@@ -79,13 +80,13 @@ public class TracesViewer extends javax.swing.JFrame {
     *
     */
     public TracesViewer(
-        Hashtable traces,
+        Hashtable<String,MessageLogList> traces,
         String logName,
         String logDescription,
         String auxInfo) {
         //System.out.println("**** TRACE ******:\n"+trace+"\n");
         TracesSessions tss = new TracesSessions();
-        Enumeration elements = traces.elements();
+        Enumeration<MessageLogList> elements = traces.elements();
         tss.setName(logName);
         logFile = logName;
         while (elements.hasMoreElements()) {
@@ -170,7 +171,7 @@ public class TracesViewer extends javax.swing.JFrame {
         // width, height
         this.setSize(670, 620);
         // this.setLocation(0,0);
-        this.show();
+        this.setVisible(true);
     }
 
     // Constructor for the Application only!!!!!
@@ -226,7 +227,7 @@ public class TracesViewer extends javax.swing.JFrame {
         // width, height
         this.setSize(670, 620);
         this.setLocation(0, 0);
-        this.show();
+        this.setVisible(true);
     }
 
     /*********** constructor for the proxy ****************************************/
@@ -234,7 +235,7 @@ public class TracesViewer extends javax.swing.JFrame {
     // Constructor for the Application only!!!!!
     public TracesViewer(
         String logFile,
-        Hashtable traces,
+        Hashtable<String,MessageLogList> traces,
         String logName,
         String logDescription,
         String auxInfo,
@@ -281,9 +282,9 @@ public class TracesViewer extends javax.swing.JFrame {
         TracesSessions tss = new TracesSessions();
         tss.setName(logName);
         if (traces != null) {
-            Enumeration elements = traces.elements();
+            Enumeration<MessageLogList> elements = traces.elements();
             while (elements.hasMoreElements()) {
-                MessageLogList mll = (MessageLogList) elements.nextElement();
+                MessageLogList mll = elements.nextElement();
                 TracesSession ts = new TracesSession(mll);
                 ts.setName(logName);
                 ts.setInfo(auxInfo);
@@ -336,7 +337,7 @@ public class TracesViewer extends javax.swing.JFrame {
         // width, height
         this.setSize(670, 620);
         this.setLocation(0, 0);
-        this.show();
+        this.setVisible(true);
 
     }
 
@@ -346,7 +347,7 @@ public class TracesViewer extends javax.swing.JFrame {
     public TracesViewer(
         String port,
         String logFile,
-        Hashtable traces,
+        Hashtable<String,MessageLogList> traces,
         String logName,
         String logDescription,
         String auxInfo,
@@ -381,7 +382,7 @@ public class TracesViewer extends javax.swing.JFrame {
         TracesSessions tss = new TracesSessions();
         tss.setName(logName);
         if (traces != null) {
-            Enumeration elements = traces.elements();
+            Enumeration<MessageLogList> elements = traces.elements();
             while (elements.hasMoreElements()) {
                 MessageLogList mll = (MessageLogList) elements.nextElement();
                 TracesSession ts = new TracesSession(mll);
@@ -417,7 +418,7 @@ public class TracesViewer extends javax.swing.JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        this.show();
+        this.setVisible(true);
     }
 
     /*****************************************************************************/
@@ -439,8 +440,8 @@ public class TracesViewer extends javax.swing.JFrame {
             //System.out.println("**** TRACE ******:\n"+trace+"\n");
             if (trace != null && !trace.equals("")) {
                 LogFileParser parser = new LogFileParser();
-                Hashtable traces = parser.parseLogsFromString(trace);
-                Enumeration elements = traces.elements();
+                Hashtable<String,MessageLogList> traces = parser.parseLogsFromString(trace);
+                Enumeration<MessageLogList> elements = traces.elements();
                 while (elements.hasMoreElements()) {
                     MessageLogList mll =
                         (MessageLogList) elements.nextElement();
@@ -599,7 +600,7 @@ public class TracesViewer extends javax.swing.JFrame {
             (TracesSession) tracesSessions.firstElement();
         String name = tracesSession.getName();
         String logDescription = tracesSession.getLogDescription();
-        String callId = tracesSessionsList.getCallId(name);
+        tracesSessionsList.getCallId(name);
         String origin = tracesSessionsList.getOrigin(name);
 
         // Warning: to put before for the canvas!!!!
@@ -850,8 +851,7 @@ public class TracesViewer extends javax.swing.JFrame {
             if (args.length == 0) {
                 System.out.println("Using default parameters!");
                 System.out.println(
-                    "Everything is Ok ... Launching the Traces viewer");
-                TracesViewer tracesViewer =
+                    "Everything is Ok ... Launching the Traces viewer");                
                     new TracesViewer(
                         "Traces viewer",
                         "127.0.0.1",
@@ -861,7 +861,7 @@ public class TracesViewer extends javax.swing.JFrame {
             } else if (args[0].equals("-debug_file")) {
                 String fileName = args[1];
                 LogFileParser parser = new LogFileParser();
-                Hashtable traces = parser.parseLogsFromDebugFile(fileName);
+                Hashtable<String,MessageLogList> traces = parser.parseLogsFromDebugFile(fileName);
 
                 new TracesViewer(
                     fileName,
@@ -874,14 +874,14 @@ public class TracesViewer extends javax.swing.JFrame {
                     "images/faces.jpg",
                     "images/comp.gif",
                     "images/nistBanner.jpg")
-                    .show();
+                    .setVisible(true);
 
                 return;
 
             } else if (args[0].equals("-server_file")) {
                 String fileName = args[1];
                 LogFileParser parser = new LogFileParser();
-                Hashtable traces = parser.parseLogsFromFile(fileName);
+                Hashtable<String,MessageLogList> traces = parser.parseLogsFromFile(fileName);
 
                 new TracesViewer(
                     fileName,
@@ -894,7 +894,7 @@ public class TracesViewer extends javax.swing.JFrame {
                     "images/faces.jpg",
                     "images/comp.gif",
                     "images/nistBanner.jpg")
-                    .show();
+                    .setVisible(true);
 
                 return;
 
@@ -915,7 +915,7 @@ public class TracesViewer extends javax.swing.JFrame {
                     }
                 }
                 LogFileParser parser = new LogFileParser();
-                Hashtable traces = parser.parseLogsFromFile(fileName);
+                Hashtable<String,MessageLogList> traces = parser.parseLogsFromFile(fileName);
 
                 new TracesViewer(
                     port,
@@ -929,7 +929,7 @@ public class TracesViewer extends javax.swing.JFrame {
                     "images/faces.jpg",
                     "images/comp.gif",
                     "images/nistBanner.jpg")
-                    .show();
+                    .setVisible(true);
 
                 return;
 
@@ -970,7 +970,6 @@ public class TracesViewer extends javax.swing.JFrame {
                     } else
                         usage();
                 }
-                TracesViewer tracesViewer;
                 if (rmiHost == null) {
                     System.out.println("Assuming RMI host = 127.0.0.1");
                 }
@@ -982,8 +981,7 @@ public class TracesViewer extends javax.swing.JFrame {
                     System.exit(2);
                 }
 
-                if (launcher)
-                    tracesViewer =
+                if (launcher)                   
                         new TracesViewer(
                             "Traces viewer",
                             rmiHost,
@@ -994,7 +992,6 @@ public class TracesViewer extends javax.swing.JFrame {
                             actors,
                             logoNist);
                 else
-                    tracesViewer =
                         new TracesViewer(
                             "Traces viewer",
                             rmiHost,

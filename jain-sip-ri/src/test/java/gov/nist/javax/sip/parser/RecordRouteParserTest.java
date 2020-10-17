@@ -1,8 +1,5 @@
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.parser.RecordRouteParser;
-import gov.nist.javax.sip.parser.RouteParser;
-
 public class RecordRouteParserTest extends ParserTestCase {
 
     public void testParser() {

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class SIPHeaderNamesCache
 {
-    private static final Map lowercaseMap = new ConcurrentHashMap();
+    private static final Map<String,String> lowercaseMap = new ConcurrentHashMap<String,String>();
 
     static {
         Field[] fields = SIPHeaderNames.class.getFields();

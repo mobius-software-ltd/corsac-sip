@@ -54,9 +54,10 @@ import gov.nist.core.NameValue;
  */
 public class PreconditionFields implements Serializable
 {
-
-    // Media Description attributes for precondition
-    protected Vector preconditionAttributes;
+	private static final long serialVersionUID = 1L;
+	
+	// Media Description attributes for precondition
+    protected Vector<AttributeField> preconditionAttributes;
 
 
     /**
@@ -65,7 +66,7 @@ public class PreconditionFields implements Serializable
      */
     public PreconditionFields()
     {
-        preconditionAttributes = new Vector();
+        preconditionAttributes = new Vector<AttributeField>();
     }
 
 
@@ -88,7 +89,7 @@ public class PreconditionFields implements Serializable
      *
      * @return Vector of attribute fields (segmented precondition)
      */
-    public Vector getPreconditions()
+    public Vector<AttributeField> getPreconditions()
     {
         return preconditionAttributes;
     }
@@ -100,7 +101,7 @@ public class PreconditionFields implements Serializable
      * @param preconditions - vector with precondition attributes
      * @throws SdpException -- if precondition attributes is null
      */
-    public void setPreconditions(Vector preconditions) throws SdpException
+    public void setPreconditions(Vector<AttributeField> preconditions) throws SdpException
     {
         if (preconditions == null)
             throw new SdpException("Precondition attributes are null");
@@ -497,7 +498,7 @@ public class PreconditionFields implements Serializable
      * (with only one element or null if none exists)
      * @throws SdpParseException
      */
-    public Vector getPreconditionCurr(String status)
+    public Vector<AttributeField> getPreconditionCurr(String status)
         throws SdpException, SdpParseException
     {
         if (status == null)
@@ -507,7 +508,7 @@ public class PreconditionFields implements Serializable
             return null;
         else
         {
-            Vector vCurr = new Vector();
+            Vector<AttributeField> vCurr = new Vector<AttributeField>();
             for (int i=0; i < preconditionAttributes.size(); i++)
             {
                 AttributeField af =
@@ -547,7 +548,7 @@ public class PreconditionFields implements Serializable
      * @return a vector with the attribute fields that match location-tag
      * @throws SdpParseException
      */
-    public Vector getPreconditionDes(String status)
+    public Vector<AttributeField> getPreconditionDes(String status)
         throws SdpException, SdpParseException
     {
         if (status == null)
@@ -557,7 +558,7 @@ public class PreconditionFields implements Serializable
             return null;
         else
         {
-            Vector vCurr = new Vector();
+            Vector<AttributeField> vCurr = new Vector<AttributeField>();
             for (int i=0; i < preconditionAttributes.size(); i++)
             {
                 AttributeField af =
@@ -599,13 +600,13 @@ public class PreconditionFields implements Serializable
      * @return a vector with the "conf" attribute fields
      * @throws SdpException
      */
-    public Vector getPreconditionConfirmStatus() throws SdpException
+    public Vector<AttributeField> getPreconditionConfirmStatus() throws SdpException
     {
         if (preconditionAttributes == null)
             return null;        // ignore or send SdpException?
         else
         {
-            Vector vCurr = new Vector();
+            Vector<AttributeField> vCurr = new Vector<AttributeField>();
             for (int i=0; i < preconditionAttributes.size(); i++)
             {
                 AttributeField af =

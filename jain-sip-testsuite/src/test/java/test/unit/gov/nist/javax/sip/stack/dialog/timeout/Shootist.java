@@ -15,13 +15,7 @@
  */
 package test.unit.gov.nist.javax.sip.stack.dialog.timeout;
 
-import gov.nist.javax.sip.DialogTimeoutEvent;
-import gov.nist.javax.sip.SipListenerExt;
-import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
-
 import java.util.ArrayList;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -32,7 +26,6 @@ import javax.sip.IOExceptionEvent;
 import javax.sip.ListeningPoint;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipFactory;
 import javax.sip.SipProvider;
 import javax.sip.TransactionTerminatedEvent;
@@ -52,12 +45,17 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
-import test.tck.msgflow.callflows.NetworkPortAssigner;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
+import gov.nist.javax.sip.DialogTimeoutEvent;
+import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
+import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.SipStackImpl;
+import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 
 /**
@@ -116,13 +114,13 @@ public class Shootist implements SipListenerExt {
     
     private Dialog dialog = null;
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
     static {
-        if (logger.getAllAppenders().equals(NullEnumeration.getInstance())) {
-
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
 
@@ -148,7 +146,7 @@ public class Shootist implements SipListenerExt {
         super();
         this.protocolObjects = protocolObjects;
         stateIsOk = protocolObjects.autoDialog;
-        PEER_ADDRESS = shootme.myAddress;
+        PEER_ADDRESS = ShootmeNotImplementingListener.myAddress;
         PEER_PORT = shootme.myPort;
         peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;         
     }    
@@ -157,7 +155,7 @@ public class Shootist implements SipListenerExt {
         super();
         this.protocolObjects = protocolObjects;
         stateIsOk = protocolObjects.autoDialog;
-        PEER_ADDRESS = shootme.myAddress;
+        PEER_ADDRESS = Shootme.myAddress;
         PEER_PORT = shootme.myPort;
         peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;         
     }
@@ -187,8 +185,7 @@ public class Shootist implements SipListenerExt {
         SipFactory sipFactory = null;
         sipFactory = SipFactory.getInstance();
         sipFactory.setPathName("gov.nist");
-        Properties properties = new Properties();
-
+        
         String localHost = myAddress;
 
         try {
@@ -279,9 +276,6 @@ public class Shootist implements SipListenerExt {
 
     public void processRequest(RequestEvent requestReceivedEvent) {
         Request request = requestReceivedEvent.getRequest();
-        ServerTransaction serverTransactionId = requestReceivedEvent
-                .getServerTransaction();
-
         System.out.println("GOT REQUEST (we shouldnt get that): "
                 + request.getMethod());
         DialogTimeoutTest.fail("Shouldnt receive any request:\n"
@@ -359,7 +353,7 @@ public class Shootist implements SipListenerExt {
                     + "a=rtpmap:0 PCMU/8000\r\n" + "a=rtpmap:4 G723/8000\r\n"
                     + "a=rtpmap:18 G729A/8000\r\n" + "a=ptime:20\r\n";
             // Create ViaHeaders
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory.createViaHeader(myAddress,
                     listeningPoint.getPort(), transport, null);
 

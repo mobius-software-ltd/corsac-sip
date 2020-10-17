@@ -327,7 +327,7 @@ public class MessageFlowHarness extends TestHarness {
         // Contact
         ContactHeader contact = headerFactory.createContactHeader(fromAddress);
 
-        List via = new LinkedList();
+        List<ViaHeader> via = new LinkedList<ViaHeader>();
         ViaHeader viaHeader = headerFactory.createViaHeader(srclp
                 .getIPAddress(), srclp.getPort(), srclp.getTransport(),
         // BUG: Use proper RFC3261 branch ID

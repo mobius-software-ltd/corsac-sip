@@ -67,10 +67,8 @@ public  class CallAnalyzer {
 	private MetricReferenceMap metricStatisticsMap = new MetricReferenceMap();
 	
 	private Timer timer = new Timer();
-	private SipStackImpl stack;
 	
-	public CallAnalyzer(SipStackImpl stack) {
-		this.stack = stack;
+	public CallAnalyzer(SipStackImpl stack) {		
 	}
 	
 	public static class TImeMetricInfo {
@@ -161,11 +159,6 @@ public  class CallAnalyzer {
 	}
 	
 	public static class MetricReferenceMap extends WeakHashMap<MetricReference, TImeMetricInfo> {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 393231609328924828L;
-
 		public TImeMetricInfo get(Object key) {
 			if(super.get(key) == null) {
 				super.put((MetricReference) key, new TImeMetricInfo());
@@ -309,7 +302,7 @@ public  class CallAnalyzer {
 	 * @param objectName
 	 * @return
 	 */
-	public Object getObject(Thread threadId, String objectName) {
+	public Object getObject(Thread threadId, Object objectName) {
 		return getAttributes(threadId).get(objectName);
 	}
 

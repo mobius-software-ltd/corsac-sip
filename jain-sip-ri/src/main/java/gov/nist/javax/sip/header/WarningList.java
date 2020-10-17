@@ -28,8 +28,6 @@
 *******************************************************************************/
 package gov.nist.javax.sip.header;
 
-import javax.sip.header.*;
-
 /**
  * A list of Warning headers.
  *

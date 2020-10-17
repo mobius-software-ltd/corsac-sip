@@ -20,8 +20,6 @@ public class HostNameParserTest extends TestCase {
             // "[3ffe:33:0:0:202:2dff:fe32:c31c%4:1234]"
     };
 
-    private final static String invalidHostNames[] = { ":1234", };
-
     public void testHostNameParser() {
         for (int i = 0; i < validHostNames.length; i++) {
             try {

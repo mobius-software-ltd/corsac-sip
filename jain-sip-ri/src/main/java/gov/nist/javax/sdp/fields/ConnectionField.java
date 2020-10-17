@@ -41,7 +41,11 @@ import javax.sdp.*;
 *
 */
 public class ConnectionField extends SDPField implements javax.sdp.Connection {
-    protected String nettype;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String nettype;
     protected String addrtype;
     protected ConnectionAddress address;
 

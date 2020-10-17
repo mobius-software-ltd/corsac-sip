@@ -24,9 +24,6 @@
  */
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.parser.*;
-
-
 /** Unit test case for Authorization parser
  *
  *  @author mranga

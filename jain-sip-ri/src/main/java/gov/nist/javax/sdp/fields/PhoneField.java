@@ -41,7 +41,11 @@ import javax.sdp.*;
 *
 */
 public class PhoneField extends SDPField implements javax.sdp.Phone {
-    protected String name;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String name;
     protected String phoneNumber;
 
     public PhoneField() {

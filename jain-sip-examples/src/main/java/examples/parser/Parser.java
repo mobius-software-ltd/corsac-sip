@@ -1,17 +1,15 @@
 package examples.parser;
 
-import gov.nist.javax.sip.header.ims.PAssertedIdentityHeader;
-import gov.nist.javax.sip.header.ims.PPreferredIdentityHeader;
-
 import javax.sdp.SdpFactory;
 import javax.sdp.SessionDescription;
 import javax.sip.SipFactory;
-import javax.sip.address.AddressFactory;
 import javax.sip.header.ExtensionHeader;
-import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+
+import gov.nist.javax.sip.header.ims.PAssertedIdentityHeader;
+import gov.nist.javax.sip.header.ims.PPreferredIdentityHeader;
 
 /**
  * This example shows you how you can use the message factory to parse SIP
@@ -24,15 +22,11 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         SipFactory sipFactory = null;
-        HeaderFactory headerFactory;
-        AddressFactory addressFactory;
         MessageFactory messageFactory;
 
         sipFactory = SipFactory.getInstance();
         sipFactory.setPathName("gov.nist");
 
-        headerFactory = sipFactory.createHeaderFactory();
-        addressFactory = sipFactory.createAddressFactory();
         messageFactory = sipFactory.createMessageFactory();
         // If you get a request from a socket, you can use the jsip api to parse it.
         String request = "INVITE sip:00001002000022@p25dr;user=TIA-P25-SU SIP/2.0\r\n"

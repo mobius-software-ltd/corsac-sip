@@ -24,12 +24,10 @@
  */
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.header.SIPHeader;
-import gov.nist.javax.sip.header.SIPHeaderList;
-import gov.nist.javax.sip.parser.HeaderParser;
-
 import java.lang.reflect.Constructor;
 
+import gov.nist.javax.sip.header.SIPHeader;
+import gov.nist.javax.sip.header.SIPHeaderList;
 import junit.framework.TestCase;
 
 /**
@@ -41,15 +39,13 @@ public abstract class ParserTestCase extends TestCase {
     static {
         SIPHeaderList.setPrettyEncode(false);
     }
-    protected HeaderParser createParser(Class parserClass, String header) {
+    protected HeaderParser createParser(Class<?> parserClass, String header) {
 
         try {
-            Constructor constructor = parserClass.getConstructor(new Class[] {
+            Constructor<?> constructor = parserClass.getConstructor(new Class[] {
                 String.class
             });
-            return (HeaderParser) constructor.newInstance(new String[] {
-                header
-            });
+            return (HeaderParser) constructor.newInstance(new Object[] { header });
         } catch (Exception ex) {
             ex.printStackTrace();
             System.out.println("fatal error");
@@ -67,7 +63,7 @@ public abstract class ParserTestCase extends TestCase {
         System.out.println("done " + getClass().getName());
     }
 
-    protected void testParser(Class parserClass, String[] headers) {
+    protected void testParser(Class<?> parserClass, String[] headers) {
         try {
             for (int i = 0; i < headers.length; i++) {
                 System.out.print(headers[i]);

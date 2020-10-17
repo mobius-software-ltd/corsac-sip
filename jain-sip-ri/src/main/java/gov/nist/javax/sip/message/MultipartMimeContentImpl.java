@@ -133,6 +133,8 @@ public class MultipartMimeContentImpl implements MultipartMimeContent {
     	    // delimiter when the body is a multiple of the buffer size
     	  }
       }
+      
+      scanner.close();
     } else {
       // No boundary had been set, we will consider the body as a single part
       ContentImpl content = parseBodyPart(body);

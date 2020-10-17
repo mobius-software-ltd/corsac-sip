@@ -3,9 +3,7 @@ package gov.nist.javax.sip.parser;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.parser.StringMsgParser;
 import junit.framework.Assert;
-import org.junit.Test;
 
 public class StringMsgParserTest extends junit.framework.TestCase {
 

@@ -28,8 +28,6 @@
 *******************************************************************************/
 package gov.nist.javax.sip.header;
 
-import java.util.List;
-
 import javax.sip.header.*;
 
 /**

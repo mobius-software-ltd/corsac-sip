@@ -30,12 +30,14 @@ package gov.nist.core;
 import java.io.*;
 import java.util.Properties;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 
 /**
  * A wrapper around log4j that is used for logging debug and errors. You can
@@ -107,8 +109,8 @@ public class LogWriter implements StackLogger {
             pw.close();
             String stackTrace = sw.getBuffer().toString();
             Level level = this.getLevel(traceLevel);
-            Priority priority = this.getLogPriority();
-            if ( level.isGreaterOrEqual(priority)) {
+            Level priority = this.getLogPriority();
+            if ( level.isMoreSpecificThan(priority)) {
                 logger.log(level,stackTrace);
             }
 
@@ -142,8 +144,9 @@ public class LogWriter implements StackLogger {
      * @param appender
      */
     public void addAppender(Appender appender) {
-
-        this.logger.addAppender(appender);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(appender);
 
     }
 
@@ -319,11 +322,10 @@ public class LogWriter implements StackLogger {
                                 .getProperty("gov.nist.javax.sip.LOG4J_LOGGER_NAME", this.stackName);
 
 
-        logger = Logger.getLogger(category);
+        logger = LogManager.getLogger(category);
         if (logLevel != null) {
             if (logLevel.equals("LOG4J")) {
-                CommonLogger.useLegacyLogger = false;
-                
+                CommonLogger.useLegacyLogger = false;               
             }
             else {
                 try {
@@ -350,17 +352,23 @@ public class LogWriter implements StackLogger {
 
                     this.setTraceLevel(ll);
                     this.needsLogging = true;
-                    if (traceLevel == TRACE_DEBUG) {
-                        logger.setLevel(Level.DEBUG);
-                    } else if (traceLevel == TRACE_INFO) {
-                        logger.setLevel(Level.INFO);
-                    } else if (traceLevel == TRACE_ERROR) {
-                        logger.setLevel(Level.ERROR);
-                    } else if (traceLevel == TRACE_NONE) {
-                        logger.setLevel(Level.OFF);
+                    LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+                    Configuration configuration = logContext.getConfiguration();
+                    LoggerConfig config=configuration.getLoggerConfig(logger.getName());
+                    if(config!=null) {
+                    	if (traceLevel == TRACE_DEBUG) {
+                    		config.setLevel(Level.DEBUG);
+                        } else if (traceLevel == TRACE_INFO) {
+                        	config.setLevel(Level.INFO);
+                        } else if (traceLevel == TRACE_ERROR) {
+                        	config.setLevel(Level.ERROR);
+                        } 
+                    }                    
+
+                    if (traceLevel == TRACE_NONE) {
+                    	config.setLevel(Level.OFF);
                         this.needsLogging = false;
                     }
-
                     /*
                      * If user specifies a logging file as part of the startup
                      * properties then we try to create the appender.
@@ -371,30 +379,16 @@ public class LogWriter implements StackLogger {
                                 configurationProperties.getProperty(
                                 "gov.nist.javax.sip.DEBUG_LOG_OVERWRITE"));
 
-                        FileAppender fa = null;
-                        try {
-                            fa = new FileAppender(new SimpleLayout(),
-                                    this.logFileName, !overwrite);
-                        } catch (FileNotFoundException fnf) {
-
-                            // Likely due to some directoy not existing. Create
-                            // them
-                            File logfile = new File(this.logFileName);
+                        FileAppender fa = FileAppender.newBuilder().setName(this.logFileName).withFileName(this.logFileName).withAppend(!overwrite).build();
+                        if(fa==null) {
+                        	File logfile = new File(this.logFileName);
                             logfile.getParentFile().mkdirs();
                             logfile.delete();
-
-                            try {
-                                fa = new FileAppender(new SimpleLayout(),
-                                        this.logFileName);
-                            } catch (IOException ioe) {
-                                ioe.printStackTrace(); // give up
-                            }
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
+                            fa = FileAppender.newBuilder().setName(this.logFileName).withFileName(this.logFileName).build();                            
                         }
-
-                        if (fa != null)
-                            logger.addAppender(fa);
+                                                
+                        if (fa != null)                        	
+                        	configuration.addAppender(fa);
                     }
 
                 } catch (NumberFormatException ex) {
@@ -482,17 +476,17 @@ public class LogWriter implements StackLogger {
 
     }
 
-    public Priority getLogPriority() {
+    public Level getLogPriority() {
          if ( this.traceLevel == TRACE_INFO ) {
-            return Priority.INFO;
+            return Level.INFO;
         } else if ( this.traceLevel == TRACE_ERROR ) {
-            return Priority.ERROR;
+            return Level.ERROR;
         } else if ( this.traceLevel == TRACE_DEBUG) {
-            return Priority.DEBUG;
+            return Level.DEBUG;
         } else if ( this.traceLevel == TRACE_TRACE) {
-            return Priority.DEBUG;
+            return Level.DEBUG;
         } else {
-            return Priority.FATAL;
+            return Level.FATAL;
         }
     }
 

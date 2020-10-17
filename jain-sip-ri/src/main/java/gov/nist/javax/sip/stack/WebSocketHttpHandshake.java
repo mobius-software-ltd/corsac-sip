@@ -25,17 +25,16 @@
  */
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.LogLevels;
-import gov.nist.core.StackLogger;
-
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.LogLevels;
+import gov.nist.core.StackLogger;
 
 /**
  * Websocket handshake rev 13 and rev 8
@@ -156,8 +155,7 @@ public class WebSocketHttpHandshake {
 			ex.printStackTrace();
 		}
 		byte[] digest = md.digest(key.getBytes());
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                String encodeBase64String = Base64.encodeBytes(digest);
+		String encodeBase64String = Base64.encodeBytes(digest);
 		return encodeBase64String;
 		
 	}

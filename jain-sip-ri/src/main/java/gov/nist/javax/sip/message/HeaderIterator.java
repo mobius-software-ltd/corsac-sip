@@ -35,7 +35,7 @@ import java.util.NoSuchElementException;
  * @version 1.2 $Revision: 1.8 $ $Date: 2009-07-17 18:57:53 $
  * @since 1.1
  */
-public class HeaderIterator implements ListIterator {
+public class HeaderIterator implements ListIterator<SIPHeader> {
     private boolean toRemove;
     private int index;
     private SIPMessage sipMessage;
@@ -46,20 +46,20 @@ public class HeaderIterator implements ListIterator {
         this.sipHeader = sipHeader;
     }
 
-    public Object next() throws NoSuchElementException {
+    public SIPHeader next() throws NoSuchElementException {
         if (sipHeader == null || index == 1)
             throw new NoSuchElementException();
         toRemove = true;
         index = 1;
-        return (Object) sipHeader;
+        return sipHeader;
     }
 
-    public Object previous() throws NoSuchElementException {
+    public SIPHeader previous() throws NoSuchElementException {
         if (sipHeader == null || index == 0)
             throw new NoSuchElementException();
         toRemove = true;
         index = 0;
-        return (Object) sipHeader;
+        return sipHeader;
     }
 
     public int nextIndex() {
@@ -70,11 +70,11 @@ public class HeaderIterator implements ListIterator {
         return index == 0 ? -1 : 0;
     }
 
-    public void set(Object header) {
+    public void set(SIPHeader header) {
         throw new UnsupportedOperationException();
     }
 
-    public void add(Object header) {
+    public void add(SIPHeader header) {
         throw new UnsupportedOperationException();
     }
 

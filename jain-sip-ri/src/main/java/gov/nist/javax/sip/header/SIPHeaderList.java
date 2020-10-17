@@ -48,6 +48,8 @@ import java.util.*;
  */
 public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader implements java.util.List<HDR>, Header {
 
+    private static final long serialVersionUID = 1L;
+	
     private static boolean prettyEncode = false;
     /**
      * hlist field.
@@ -86,7 +88,7 @@ public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader imp
      * @param objectToAdd
      */
     public boolean add(HDR objectToAdd) {
-        hlist.add((HDR)objectToAdd);
+        hlist.add(objectToAdd);
         return true;
     }
 
@@ -98,7 +100,7 @@ public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader imp
      *            Genericobject to set
      */
     public void addFirst(HDR obj) {
-        hlist.add(0,(HDR) obj);
+        hlist.add(0,obj);
     }
 
     /**
@@ -411,19 +413,19 @@ public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader imp
      * Template match against a template. null field in template indicates wild
      * card match.
      */
-    public boolean match(SIPHeaderList<?> template) {
+    public boolean match(SIPHeaderList<? extends HDR> template) {
         if (template == null)
             return true;
         if (!this.getClass().equals(template.getClass()))
             return false;
-        SIPHeaderList<SIPHeader> that = (SIPHeaderList<SIPHeader>) template;
+        SIPHeaderList<? extends HDR> that = (SIPHeaderList<? extends HDR>) template;
         if (this.hlist == that.hlist)
             return true;
         else if (this.hlist == null)
             return false;
         else {
 
-            for (Iterator<SIPHeader> it = that.hlist.iterator(); it.hasNext();) {
+            for (Iterator<? extends HDR> it = that.hlist.iterator(); it.hasNext();) {
                 SIPHeader sipHeader = (SIPHeader) it.next();
 
                 boolean found = false;
@@ -450,7 +452,8 @@ public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader imp
             Class<?> clazz = this.getClass();
 
             Constructor<?> cons = clazz.getConstructor((Class[])null);
-            SIPHeaderList<HDR> retval = (SIPHeaderList<HDR>) cons.newInstance((Object[])null);
+            @SuppressWarnings("unchecked")
+			SIPHeaderList<HDR> retval = (SIPHeaderList<HDR>) cons.newInstance((Object[])null);
             retval.headerName = this.headerName;
             retval.myClass  = this.myClass;
             return retval.clonehlist(this.hlist);
@@ -459,7 +462,8 @@ public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader imp
         }
     }
 
-    protected final SIPHeaderList<HDR> clonehlist(List<HDR> hlistToClone) {
+    @SuppressWarnings("unchecked")
+	protected final SIPHeaderList<HDR> clonehlist(List<HDR> hlistToClone) {
         if (hlistToClone != null) {
             for (Iterator<HDR> it = (Iterator<HDR>) hlistToClone.iterator(); it.hasNext();) {
                 Header h = it.next();

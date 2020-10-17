@@ -393,12 +393,6 @@ public class SIPEventInterceptorTest extends TestCase{
 
         private ListeningPoint udpListeningPoint;
 
-
-        private Dialog dialog;
-
-
-        private boolean timeoutRecieved;
-
         boolean messageSeen = false;
 
 
@@ -411,7 +405,7 @@ public class SIPEventInterceptorTest extends TestCase{
         private  String peerHostPort;
 
         public Shootist(Shootme shootme) {
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;             
         }
@@ -437,8 +431,9 @@ public class SIPEventInterceptorTest extends TestCase{
         public void processResponse(ResponseEvent responseReceivedEvent) {
         	lastResponseCode = responseReceivedEvent.getResponse().getStatusCode();
         	try {
-        		if(responseReceivedEvent.getResponse().getStatusCode() == 200) {
-        			Request r = responseReceivedEvent.getClientTransaction().createAck();
+        		if(responseReceivedEvent.getResponse().getStatusCode() == 200) {        			
+        			@SuppressWarnings("deprecation")
+					Request r = responseReceivedEvent.getClientTransaction().createAck();
         			sipProvider.sendRequest(r);
         		}
         		//responseReceivedEvent.getClientTransaction().sendRequest(r);
@@ -451,9 +446,7 @@ public class SIPEventInterceptorTest extends TestCase{
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
 
             System.out.println("Got a timeout " + timeoutEvent.getClientTransaction());
-
-            this.timeoutRecieved = true;
-        }
+       }
 
 
 
@@ -546,7 +539,7 @@ public class SIPEventInterceptorTest extends TestCase{
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -624,9 +617,8 @@ public class SIPEventInterceptorTest extends TestCase{
 
                 // Create the client transaction.
                 ClientTransaction inviteTid = sipProvider.getNewClientTransaction(request);
-            	Dialog d = null;
-				try {
-					d = sipProvider.getNewDialog(inviteTid);
+            	try {
+					sipProvider.getNewDialog(inviteTid);
 				} catch (SipException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -634,9 +626,6 @@ public class SIPEventInterceptorTest extends TestCase{
 
                 // send the request out.
                 inviteTid.sendRequest();
-
-                dialog = inviteTid.getDialog();
-
             } catch (Exception ex) {
                 fail("cannot create or send initial invite");
             }

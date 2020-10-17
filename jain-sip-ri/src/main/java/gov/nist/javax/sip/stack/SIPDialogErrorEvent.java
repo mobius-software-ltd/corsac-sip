@@ -30,6 +30,11 @@ public class SIPDialogErrorEvent extends EventObject {
 
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * This event ID indicates that the transaction has timed out.
      */
     public static final int DIALOG_ACK_NOT_RECEIVED_TIMEOUT = 1;

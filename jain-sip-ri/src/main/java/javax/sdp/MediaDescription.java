@@ -12,6 +12,7 @@ import java.util.*;
 // issued by Miguel Freitas - work-around
 import gov.nist.javax.sdp.fields.PreconditionFields;
 import gov.nist.javax.sdp.fields.AttributeField;
+import gov.nist.javax.sdp.fields.BandwidthField;
 // end //
 
 
@@ -78,13 +79,13 @@ public void setConnection(Connection conn)
  * @param create type of the Bandwidth to return
  * @return the Bandwidth or null if undefined
  */
-public Vector getBandwidths(boolean create);
+public Vector<BandwidthField> getBandwidths(boolean create);
 
 /** set the value of the Bandwidth with the specified type
  * @param bandwidths type of the Bandwidth object whose value is requested
  * @throws SdpException if vector is null
  */
-public void setBandwidths(Vector bandwidths)
+public void setBandwidths(Vector<BandwidthField> bandwidths)
                    throws SdpException;
 
 /** Returns the integer value of the specified bandwidth name.
@@ -125,13 +126,13 @@ public void setKey(Key key)
  * @param create specifies whether to return null or a new empty Vector in case no attributes exists for this Description
  * @return attributes for this Description
  */
-public Vector getAttributes(boolean create);
+public Vector<AttributeField> getAttributes(boolean create);
 
 /** Adds the specified Attribute to this Description object.
  * @param Attributes  the attribute to add
  * @throws SdpException if the attribute is null
  */
-public void setAttributes(Vector Attributes)
+public void setAttributes(Vector<AttributeField> Attributes)
                    throws SdpException;
 
 /** Returns the value of the specified attribute.
@@ -190,7 +191,7 @@ public void removeAttribute(String name);
  * @throws SdpException if there is a problem extracting the parameters.
  * @return a Vector containing a string indicating the MIME type for each of the codecs in this description
  */
-public Vector getMimeTypes()
+public Vector<?> getMimeTypes()
                     throws SdpException;
 
 /** Returns a Vector containing a string of parameters for each of the codecs in this description.
@@ -211,7 +212,7 @@ public Vector getMimeTypes()
  * @throws SdpException if there is a problem extracting the parameters.
  * @return a Vector containing a string of parameters for each of the codecs in this description.
  */
-public Vector getMimeParameters()
+public Vector<?> getMimeParameters()
                          throws SdpException;
 
 /** Adds dynamic media types to the description.
@@ -221,8 +222,8 @@ public Vector getMimeParameters()
  * @throws SdpException  if either vector is null or empty.
  * if the vector sizes are unequal.
  */
-public void addDynamicPayloads(Vector payloadNames,
-                               Vector payloadValues)
+public void addDynamicPayloads(Vector<String> payloadNames,
+                               Vector<String> payloadValues)
                         throws SdpException;
 
 
@@ -240,7 +241,7 @@ public void addDynamicPayloads(Vector payloadNames,
  * @param segPrecondition Vector with values to ser
  * @throws SdpException
  */
-public void setPreconditionFields(Vector segPrecondition) throws SdpException;
+public void setPreconditionFields(Vector<AttributeField> segPrecondition) throws SdpException;
 
 /**
  * <p>Set PreconditionFields for the Media Description</p>
@@ -256,7 +257,7 @@ public void setPreconditions(PreconditionFields segPrecondition);
  * issued by Miguel Freitas (IT) PTInovacao
  * @return Vector precondition fields
  */
-public Vector getPreconditionFields();
+public Vector<AttributeField> getPreconditionFields();
 
 /**
  * <p>Add Media Attribute based on an AttributeField value</p>

@@ -34,12 +34,12 @@ package gov.nist.javax.sip.header.ims;
 
 
 import java.text.ParseException;
+
 import javax.sip.InvalidArgumentException;
 import javax.sip.header.Parameters;
 
 import gov.nist.core.NameValue;
 import gov.nist.core.Separators;
-import gov.nist.javax.sip.header.ims.ParameterNamesIms;
 import gov.nist.javax.sip.header.ParametersHeader;
 
 
@@ -56,13 +56,14 @@ import gov.nist.javax.sip.header.ParametersHeader;
 public abstract class SecurityAgree
     extends ParametersHeader
 {
-    //TODO serialVersionUID
-    //private static final long serialVersionUID = -6671234553927258745L;
-
     //public static final String EALG = ParameterNamesIms.EALG;
     // ...
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/**
      * Security Mechanism value
      */
     private String secMechanism;

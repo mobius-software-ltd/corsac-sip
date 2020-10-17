@@ -55,6 +55,10 @@ import java.util.*;
 public class TimeoutEvent extends EventObject {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/**
     * Constructs a TimeoutEvent to indicate a server retransmission or transaction
     * timeout.
     *

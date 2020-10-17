@@ -25,30 +25,25 @@
  */
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.Host;
-import gov.nist.core.HostPort;
-import gov.nist.core.LogWriter;
-import gov.nist.core.StackLogger;
-import gov.nist.javax.sip.header.RecordRoute;
-import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.message.SIPRequest;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.sip.address.SipURI;
-import javax.sip.address.URI;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.RecordRouteHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.message.SIPRequest;
 
 
 public class NioWebSocketMessageChannel extends NioTcpMessageChannel{

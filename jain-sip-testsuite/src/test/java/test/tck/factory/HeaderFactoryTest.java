@@ -8,7 +8,9 @@ import javax.sip.address.TelURL;
 import javax.sip.address.URI;
 import javax.sip.header.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 // import gov.nist.core.*;
 import java.util.*;
 import java.text.*;
@@ -23,7 +25,7 @@ import test.tck.*;
 
 public class HeaderFactoryTest extends FactoryTestHarness {
 
-    private static Logger logger = Logger.getLogger(HeaderFactoryTest.class);
+    private static Logger logger = LogManager.getLogger(HeaderFactoryTest.class);
 
     // Header definitions for valid headers.
 
@@ -63,12 +65,10 @@ public class HeaderFactoryTest extends FactoryTestHarness {
     private void testGetMethods(Header refHeader, Header headerToTest)
         throws IllegalAccessException, InvocationTargetException {
         try {
-            Class implementationClass;
-            String name = refHeader.getName();
-
+            Class<? extends Header> implementationClass;
             implementationClass = refHeader.getClass();
 
-            Class[] implementedInterfaces = implementationClass.getInterfaces();
+            Class<?>[] implementedInterfaces = implementationClass.getInterfaces();
             int j = 0;
             for (j = 0; j < implementedInterfaces.length; j++) {
                 if (Header.class.isAssignableFrom(implementedInterfaces[j]))
@@ -79,8 +79,6 @@ public class HeaderFactoryTest extends FactoryTestHarness {
                     "Hmm... could not find it" + refHeader.getClass());
                 throw new TckInternalError("Header not implemented");
             }
-
-            String jainClassName = implementedInterfaces[j].getName();
 
             checkImplementsInterface(
                 headerToTest.getClass(),
@@ -93,7 +91,7 @@ public class HeaderFactoryTest extends FactoryTestHarness {
                 if ((!methodName.startsWith("get"))
                     || methodName.equals("getParameter"))
                     continue;
-                Class returnType = methods[i].getReturnType();
+                Class<?> returnType = methods[i].getReturnType();
                 Object refType = null;
                 try {
                     refType = methods[i].invoke(refHeader, (Object[]) null);
@@ -101,7 +99,6 @@ public class HeaderFactoryTest extends FactoryTestHarness {
                     ex1.getCause().printStackTrace();
                     throw new TckInternalError("Invocation failure " +methodName);
                 }
-                String ftype = returnType.toString();
                 if (returnType.isPrimitive()) {
                     Object testValue = methods[i].invoke(headerToTest, (Object[])null);
                     assertTrue(testValue.equals(refType));
@@ -126,7 +123,7 @@ public class HeaderFactoryTest extends FactoryTestHarness {
                 Parameters p1 = (Parameters) refHeader;
                 Parameters p2 = (Parameters) headerToTest;
 
-                for ( Iterator it = ((Parameters) refHeader).getParameterNames(); it.hasNext(); ) {
+                for ( Iterator<?> it = ((Parameters) refHeader).getParameterNames(); it.hasNext(); ) {
                     String pname = (String) it.next();
 
                     // too strict: equalsIgnoreCase is better
@@ -177,7 +174,6 @@ public class HeaderFactoryTest extends FactoryTestHarness {
                 }
 
                 Header riHeader = null;
-                Header tiHeader = null;
                 try {
 
                     riHeader =
@@ -201,9 +197,8 @@ public class HeaderFactoryTest extends FactoryTestHarness {
                 testGetMethods(riHeader, headerToTest);
             }
             for (int i = 0; i < multiHeaders.length; i++) {
-                StringBuffer value = new StringBuffer(multiHeaders[i]);
-                List riHeaders = null;
-                List tiHeaders = null;
+                List<?> riHeaders = null;
+                List<?> tiHeaders = null;
                 try {
 
                     riHeaders = riHeaderFactory.createHeaders(multiHeaders[i]);
@@ -215,11 +210,11 @@ public class HeaderFactoryTest extends FactoryTestHarness {
                 tiHeaders = tiHeaderFactory.createHeaders(multiHeaders[i]);
                 assertTrue(tiHeaders != null);
                 assertTrue(tiHeaders.size() == riHeaders.size());
-                ListIterator li = riHeaders.listIterator();
-                ListIterator li1 = tiHeaders.listIterator();
+                ListIterator<?> li = riHeaders.listIterator();
+                ListIterator<?> li1 = tiHeaders.listIterator();
                 while (li.hasNext()) {
-                    Header riHeader = (Header) li.next();
-                    Header headerToTest = (Header) li1.next();
+                    Header riHeader = (Header)li.next();
+                    Header headerToTest = (Header)li1.next();
                     testGetMethods(riHeader, headerToTest);
                 }
 

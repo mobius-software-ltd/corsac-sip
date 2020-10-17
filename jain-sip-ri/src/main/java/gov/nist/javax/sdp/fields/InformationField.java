@@ -38,7 +38,11 @@ import javax.sdp.*;
 */
 
 public class InformationField extends SDPField implements javax.sdp.Info {
-    protected String information;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String information;
 
     public InformationField() {
         super(INFORMATION_FIELD);

@@ -26,7 +26,6 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 import gov.nist.core.CommonLogger;

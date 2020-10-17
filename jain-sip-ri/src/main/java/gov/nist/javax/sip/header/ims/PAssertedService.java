@@ -35,7 +35,11 @@ import javax.sip.header.ExtensionHeader;
  */
 public class PAssertedService extends SIPHeader implements PAssertedServiceHeader, SIPHeaderNamesIms, ExtensionHeader{
 
-    private String subServiceIds;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String subServiceIds;
     private String subAppIds;
 
     protected PAssertedService(String name) {

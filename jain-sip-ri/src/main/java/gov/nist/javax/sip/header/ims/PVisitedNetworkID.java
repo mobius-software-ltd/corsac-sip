@@ -50,6 +50,11 @@ public class PVisitedNetworkID
     implements PVisitedNetworkIDHeader, SIPHeaderNamesIms, ExtensionHeader {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * visited Network ID
      */
     private String networkID;

@@ -1,6 +1,5 @@
 package gov.nist.javax.sip.parser.extensions;
 
-import gov.nist.javax.sip.parser.extensions.ReferencesParser;
 import gov.nist.javax.sip.parser.ParserTestCase;
 
 public class ReferencesParserTest extends ParserTestCase {

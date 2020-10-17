@@ -87,10 +87,7 @@ public class SSLStateMachine {
 			if(src != null) {
 				pendingOutboundBuffers.offer(new MessageSendItem(src, callback));
 			}
-			int iter = 0;
 			loop:while(true) {
-				iter ++;
-
 				MessageSendItem currentBuffer = pendingOutboundBuffers.peek();
 
 				// If there is no queued operations break out of the loop
@@ -181,7 +178,7 @@ public class SSLStateMachine {
 
 		SSLEngineResult result;
 		try {
-			loop:while(true) {
+				while(true) {
 				result = sslEngine.wrap(EMPTY_BUFFER, encryptedDataBuffer);
 				if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 					logger.logDebug("NonAppWrap result " + result + " buffers size "
@@ -224,6 +221,14 @@ public class SSLStateMachine {
 					break;
 				case NEED_TASK:
 					runDelegatedTasks(result);
+					break;
+				case NEED_UNWRAP:
+					break;
+				case NEED_WRAP:
+					break;
+				case NOT_HANDSHAKING:
+					break;
+				default:
 					break;
 				}
 
@@ -302,6 +307,7 @@ public class SSLStateMachine {
 				try {
 					result = sslEngine.unwrap(src, dst);
 				} catch (Exception e) {
+					e.printStackTrace();
 					// https://java.net/jira/browse/JSIP-464 
 					// Make sure to throw the exception so the result variable is not null below which makes the stack hang
 					if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -372,7 +378,7 @@ public class SSLStateMachine {
 						break;
 					} else {
 						if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-							this.logger.logDebug(
+							logger.logDebug(
 									"Handshake passed");
 						}
 						// Added for https://java.net/jira/browse/JSIP-483 
@@ -406,7 +412,7 @@ public class SSLStateMachine {
 							}
 
 							if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-								this.logger.logDebug(
+								logger.logDebug(
 										"TLS Security policy passed");
 							}
 						}

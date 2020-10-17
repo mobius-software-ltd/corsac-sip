@@ -171,7 +171,7 @@ public interface Message extends Cloneable, Serializable {
      *
      * @return the ListIterator over the set of all the Header Names in the Message.
      */
-    public ListIterator getHeaderNames();
+    public ListIterator<?> getHeaderNames();
 
     /**
      * Gets a ListIterator over all the Headers of the newly specified name
@@ -183,7 +183,7 @@ public interface Message extends Cloneable, Serializable {
      * the Message, this method returns an empty ListIterator if no Headers
      * exist of this header type.
      */
-    public ListIterator getHeaders(String headerName);
+    public ListIterator<?> getHeaders(String headerName);
 
     /**
      * Gets the Header of the specified name in this Message. If multiple
@@ -217,7 +217,7 @@ public interface Message extends Cloneable, Serializable {
      * represented as Strings, this method returns an empty ListIterator if no
      * UnrecognizedHeaders exist.
      */
-    public ListIterator getUnrecognizedHeaders();
+    public ListIterator<?> getUnrecognizedHeaders();
 
     /**
      * Sets the new Header to replace existings Header of that type in

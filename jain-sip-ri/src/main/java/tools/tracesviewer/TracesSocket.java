@@ -14,17 +14,12 @@ import java.io.*;
  */
 public class TracesSocket extends Thread {
 
-    private String fileName;
-    private String port;
     private InputStream is;
     private FileWriter fw;
 
     /** Creates a new instance of TracesSocket */
     public TracesSocket(String fileName, String port) throws Exception {
-        this.fileName = fileName;
-
-        this.port = port;
-
+        
         System.out.println("Waiting for a connection on port: " + port);
         ServerSocket serverSocket =
             new ServerSocket(Integer.valueOf(port).intValue());

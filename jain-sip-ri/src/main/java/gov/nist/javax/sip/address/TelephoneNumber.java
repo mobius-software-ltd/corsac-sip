@@ -38,7 +38,11 @@ import java.util.Iterator;
  *
  */
 public class TelephoneNumber extends NetObject {
-    public static final String POSTDIAL = ParameterNames.POSTDIAL;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public static final String POSTDIAL = ParameterNames.POSTDIAL;
     public static final String PHONE_CONTEXT_TAG =
         ParameterNames.PHONE_CONTEXT_TAG;
     public static final String ISUB = ParameterNames.ISUB;

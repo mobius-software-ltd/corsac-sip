@@ -240,7 +240,7 @@ public abstract class MessageChannel {
                                 }
                             }
                             
-                            public Object getThreadHash() {
+                            public String getThreadHash() {
                                 return sipMessage.getCallId().getCallId();
                             }
                         };
@@ -267,14 +267,14 @@ public abstract class MessageChannel {
         } catch (IOException ioe) {
             throw ioe;
         } catch (Exception ex) {
-            if (this.logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
-                this.logger.logError("Error self routing message cause by: ", ex);
+            if (MessageChannel.logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
+                MessageChannel.logger.logError("Error self routing message cause by: ", ex);
             }
             // TODO: When moving to Java 6, use the IOExcpetion(message, exception) constructor
             throw new IOException("Error self routing message");
         } finally {
         	messageTxId.remove();
-            if (this.logger.isLoggingEnabled(ServerLogger.TRACE_MESSAGES))
+            if (MessageChannel.logger.isLoggingEnabled(ServerLogger.TRACE_MESSAGES))
                 logMessage(sipMessage, hopAddr, hop.getPort(), time);
         }
     }

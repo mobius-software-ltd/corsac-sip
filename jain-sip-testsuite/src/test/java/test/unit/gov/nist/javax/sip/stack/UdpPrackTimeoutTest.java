@@ -21,7 +21,6 @@ import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.ContactHeader;
-import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderFactory;
 import javax.sip.header.MaxForwardsHeader;
@@ -32,10 +31,13 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.TestHarness;
-import static test.tck.TestHarness.assertTrue;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
@@ -48,13 +50,15 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
 
     protected Shootme shootme;
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
     
     private static final int TIMEOUT = 60000;    
 
     static {
-        if (!logger.isAttached(console)) {
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
 
@@ -139,9 +143,6 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
 
         private String transport;
 
-        private boolean prackTriggerReceived;
-        private boolean prackConfirmed;
-
         public final int myPort = NetworkPortAssigner.retrieveNextPort();
 
         private String toUser = "LittleGuy";
@@ -160,7 +161,7 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
             headerFactory = protObjects.headerFactory;
             sipStack = protObjects.sipStack;
             transport = protObjects.transport;
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;            
         }
@@ -223,10 +224,6 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
             logger.info("Response received : Status Code = "
                     + response.getStatusCode() + " " + cseq);
 
-            if (cseq.getMethod() == Request.PRACK) {
-                prackConfirmed = true;
-            }
-
             if (tid == null) {
                 logger.info("Stray response -- dropping ");
                 return;
@@ -234,7 +231,6 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
             logger.info("transaction state is " + tid.getState());
             logger.info("Dialog = " + tid.getDialog());
             logger.info("Dialog State is " + tid.getDialog().getState());
-            SipProvider provider = (SipProvider) responseReceivedEvent.getSource();
             dialog = tid.getDialog();
 
             try {
@@ -304,17 +300,13 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                         sipProvider.getListeningPoint(transport).getPort(),
                         transport, null);
 
                 // add via headers
                 viaHeaders.add(viaHeader);
-
-                // Create ContentTypeHeader
-                ContentTypeHeader contentTypeHeader = headerFactory
-                        .createContentTypeHeader("application", "sdp");
 
                 // Create a new CallId header
                 CallIdHeader callIdHeader = sipProvider.getNewCallId();
@@ -436,10 +428,6 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
 
         private String transport;
 
-        private boolean prackRequestReceived;
-
-        private boolean inviteReceived;
-
         private boolean errorResponseSent;
 
         private boolean transactionTimedOut;
@@ -477,7 +465,6 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
 
         private void processPrack(RequestEvent requestEvent,
                 ServerTransaction serverTransactionId) {
-            prackRequestReceived = true;
             try {
                 logger.info("shootme: got an PRACK! ");
                 logger.info("Dialog State = " + dialog.getState());
@@ -542,7 +529,6 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
          */
         public void processInvite(RequestEvent requestEvent,
                 ServerTransaction serverTransaction) {
-            inviteReceived = true;
             SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             try {
@@ -620,9 +606,6 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
                             transaction.getRequest());
                     ServerTransaction st = (ServerTransaction) transaction;
 
-                    if (st == null) {
-                        st = sipProvider.getNewServerTransaction(transaction.getRequest());
-                    }
                     dialog = st.getDialog();
 
                     st.sendResponse(response);

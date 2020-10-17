@@ -56,7 +56,13 @@ public class SecurityVerify
 
     // TODO serialVersionUID
 
-    public SecurityVerify()
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	public SecurityVerify()
     {
         super(SecurityVerifyHeader.NAME);
 

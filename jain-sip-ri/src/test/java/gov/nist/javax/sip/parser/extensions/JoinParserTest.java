@@ -1,6 +1,5 @@
 package gov.nist.javax.sip.parser.extensions;
 
-import gov.nist.javax.sip.parser.extensions.JoinParser;
 import gov.nist.javax.sip.parser.ParserTestCase;
 
 public class JoinParserTest extends ParserTestCase {

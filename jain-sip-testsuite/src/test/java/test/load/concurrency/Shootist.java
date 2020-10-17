@@ -297,7 +297,7 @@ public class Shootist extends TestCase implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             SipProvider sipProvider = getNextProvider();
             int port = sipProvider.getListeningPoint(transport).getPort();
             ViaHeader viaHeader = headerFactory.createViaHeader(sipProvider

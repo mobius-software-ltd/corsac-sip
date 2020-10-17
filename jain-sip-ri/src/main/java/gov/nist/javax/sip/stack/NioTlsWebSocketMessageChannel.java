@@ -151,8 +151,6 @@ public class NioTlsWebSocketMessageChannel extends NioWebSocketMessageChannel im
 						NioTlsWebSocketMessageChannel.super.sendTCPMessage(bytes,
 								NioTlsWebSocketMessageChannel.super.peerAddress, NioTlsWebSocketMessageChannel.super.peerPort, false);
 
-						final Boolean sent=false;
-
 						try {
 							sslStateMachine.wrap(b1, ByteBufferFactory.getInstance().allocateDirect(netBufferMax), new MessageSendCallback() {
 

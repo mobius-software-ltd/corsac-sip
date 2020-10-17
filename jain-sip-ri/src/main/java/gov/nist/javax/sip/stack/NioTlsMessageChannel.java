@@ -35,8 +35,6 @@ import gov.nist.javax.sip.stack.SSLStateMachine.MessageSendCallback;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;

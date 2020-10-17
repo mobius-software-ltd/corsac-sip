@@ -15,8 +15,6 @@
  */
 package gov.nist.javax.sip;
 
-import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
-
 import javax.sip.IOExceptionEvent;
 
 /**
@@ -25,8 +23,9 @@ import javax.sip.IOExceptionEvent;
  * @author : Alex Vinogradov
  */
 public class IOExceptionEventExt extends IOExceptionEvent {
-
-    private final String myHost;
+	private static final long serialVersionUID = 1L;
+	
+	private final String myHost;
     private final int myPort;   
     private Reason reason = null;
     public enum Reason {KeepAliveTimeout};

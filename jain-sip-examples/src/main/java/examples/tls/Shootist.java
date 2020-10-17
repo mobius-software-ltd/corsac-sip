@@ -1,9 +1,6 @@
 package examples.tls;
 import gov.nist.javax.sip.ClientTransactionExt;
 import gov.nist.javax.sip.TlsSecurityPolicy;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-import gov.nist.javax.sip.stack.SIPTransaction;
-
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.sip.*;
 import javax.sip.address.*;
@@ -12,7 +9,6 @@ import javax.sip.message.*;
 
 import test.unit.gov.nist.javax.sip.stack.tls.TlsTest;
 
-import java.io.IOException;
 import java.security.cert.Certificate;
 import java.util.*;
 
@@ -36,8 +32,7 @@ public class Shootist implements SipListener, TlsSecurityPolicy {
     private int reInviteCount;
     private ContactHeader contactHeader;
     private ListeningPoint tlsListeningPoint;
-    private int counter;
-
+    
     protected ClientTransaction inviteTid;
 
     protected static final String usageString =
@@ -294,7 +289,7 @@ public class Shootist implements SipListener, TlsSecurityPolicy {
 
             // Create ViaHeaders
 
-           ArrayList viaHeaders = new ArrayList();
+           ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
            ViaHeader viaHeader =
                 headerFactory.createViaHeader(
                     "127.0.0.1",

@@ -35,7 +35,6 @@ package gov.nist.javax.sip.header.ims;
 
 
 import gov.nist.javax.sip.header.SIPHeaderList;
-import gov.nist.javax.sip.header.ims.SecurityVerify;
 
 
 /**

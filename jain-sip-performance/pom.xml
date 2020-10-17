@@ -4,14 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>javax.sip</groupId>
-		<version>7.1.3</version>
+		<version>8.0.0-SNAPSHOT</version>
 		<artifactId>jain-sip</artifactId>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-    <groupId>javax.sip</groupId>
-	<artifactId>jain-sip-performance</artifactId>
-	<version>7.0.3-TelScale-SNAPSHOT</version>
+    <artifactId>jain-sip-performance</artifactId>
 	<packaging>jar</packaging>
 	<url>http://code.google.com/p/jain-sip/</url>
 	<build>
@@ -20,10 +18,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.8</source>
+					<target>1.8</target>
 					<includes>
 						<include>performance/**</include>
 					</includes>
@@ -40,7 +37,6 @@
 				<plugin>
 				  <groupId>org.codehaus.mojo</groupId>
 				  <artifactId>buildnumber-maven-plugin</artifactId>
-				  <version>1.0</version>
 				  <executions>
 	    			  	<execution>
 				                <phase>validate</phase>
@@ -61,12 +57,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.14</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>javax.sip</groupId>
 			<artifactId>jain-sip-ri</artifactId>
 			<version>${project.version}</version>
@@ -79,38 +69,13 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
 		</dependency>                                  
                 
 	</dependencies>
 
-	<!-- repositories -->
-	<repositories>
-		<repository>
-			<id>maven2-repository.dev.java.net</id>
-			<name>Java.net Repository for Maven</name>
-			<url>http://download.java.net/maven/2/</url>
-			<layout>default</layout>
-		</repository>
-		<repository>
-			  <id>mobicents-public-repository-group</id>
-			  <name>Mobicens Public Maven Repository Group</name>
-			  <url>https://oss.sonatype.org/content/groups/public</url>
-			  <layout>default</layout>
-			  <releases>
-			    <enabled>true</enabled>
-			    <updatePolicy>never</updatePolicy>
-			  </releases>
-			  <snapshots>
-			    <enabled>true</enabled>
-			    <updatePolicy>never</updatePolicy>
-			  </snapshots>
-		</repository>
-	</repositories>	
-
 	<scm>
-                <connection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</connection>
-                <developerConnection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</developerConnection>
-                <url>https://bitbucket.org/telestax/telscale-jsip</url>
-        </scm>
+		<connection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</connection>
+		<developerConnection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</developerConnection>
+		<url>https://bitbucket.org/telestax/telscale-jsip</url>
+	</scm>
 </project>

@@ -42,7 +42,11 @@ import javax.sdp.*;
 *
 */
 public class AttributeField extends SDPField implements javax.sdp.Attribute {
-    protected NameValue attribute;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected NameValue attribute;
 
     public NameValue getAttribute() {
         return attribute;

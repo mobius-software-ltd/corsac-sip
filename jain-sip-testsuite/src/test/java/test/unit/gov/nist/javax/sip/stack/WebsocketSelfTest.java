@@ -1,7 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack;
 
 import gov.nist.javax.sip.DialogExt;
-import gov.nist.javax.sip.SipProviderExt;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 import java.util.ArrayList;
@@ -40,10 +39,13 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import test.unit.gov.nist.javax.sip.stack.tls.TlsTest;
 import junit.framework.TestCase;
@@ -327,7 +329,6 @@ public class WebsocketSelfTest extends TestCase {
         private SipStack sipStack;
         private ContactHeader contactHeader;
         private ListeningPoint udpListeningPoint;
-        private Dialog dialog;
         public boolean okByeReceived;
         public String initialInvitePayload = "v=0\r\n"
                 + "o=4855 13760799956958020 13760799956958020"
@@ -462,7 +463,7 @@ public class WebsocketSelfTest extends TestCase {
         		requestURI.setHeader("Host", "dev.nist.gov");
         		requestURI.setHeader("Location", "/sip");
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -511,17 +512,13 @@ public class WebsocketSelfTest extends TestCase {
                 request.setContent(contents, contentTypeHeader);
               
                 ClientTransaction inviteTid = sipProvider.getNewClientTransaction(request);
-            	Dialog d = null;
-				try {
-					d = sipProvider.getNewDialog(inviteTid);
+            	try {
+					sipProvider.getNewDialog(inviteTid);
 				} catch (SipException e1) {
 					e1.printStackTrace();
 				}
 
                 inviteTid.sendRequest();
-
-                dialog = inviteTid.getDialog();
-
             } catch (Exception ex) {
             	ex.printStackTrace();
                 fail("cannot create or send initial invite");
@@ -554,13 +551,18 @@ public class WebsocketSelfTest extends TestCase {
 		System.setProperty( "javax.net.ssl.trustStore", TlsTest.class.getResource("testkeys").getPath() );
 		System.setProperty( "javax.net.ssl.keyStorePassword", "passphrase" );
 		System.setProperty( "javax.net.ssl.keyStoreType", "jks" );
-    	ConsoleAppender console = new ConsoleAppender();
-    	console.setName("Console app");
+		
     	String PATTERN = "%d [%p|%c|%C{1}] %m%n";
-    	console.setLayout(new PatternLayout(PATTERN)); 
-    	console.setThreshold(Level.DEBUG);
-    	console.activateOptions();
-    	Logger.getRootLogger().addAppender(console);
+    	ConsoleAppender console = ConsoleAppender.newBuilder().setName("ConsoleApp").setLayout(PatternLayout.newBuilder().withPattern(PATTERN).build()).build();
+    	
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	configuration.addAppender(console);
+    	
+    	LoggerConfig loggerConfig = configuration.getLoggerConfig(LogManager.ROOT_LOGGER_NAME); 
+		loggerConfig.setLevel(Level.DEBUG);
+		logContext.updateLoggers();
+		
     	this.websocketServer = new WebsocketServer();
     	this.websocketBrowser = new WebsocketBrowser(websocketServer);
     }

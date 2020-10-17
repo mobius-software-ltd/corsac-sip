@@ -68,7 +68,6 @@ public class Shootme implements SipListener {
      */
     public void processAck(RequestEvent requestEvent,
             ServerTransaction serverTransaction) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         try {
             System.out.println("shootme: got an ACK "
                     + requestEvent.getRequest());

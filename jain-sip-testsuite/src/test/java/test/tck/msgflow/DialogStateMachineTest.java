@@ -219,7 +219,8 @@ public class DialogStateMachineTest extends MessageFlowHarness {
     /**
      * Tests state transitions of a client side dialog
      */
-    public void testServerDialogStates() {
+    @SuppressWarnings("deprecation")
+	public void testServerDialogStates() {
         try {
             ClientTransaction inviteTransaction = null;
             Request invite = createRiInviteRequest(null, null, null);

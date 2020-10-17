@@ -53,6 +53,11 @@ public class PPreferredIdentity
     implements PPreferredIdentityHeader, SIPHeaderNamesIms , ExtensionHeader {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * constructor
      * @param address address to set
      */

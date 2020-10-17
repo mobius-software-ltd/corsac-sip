@@ -59,6 +59,10 @@ import javax.sip.message.Response;
 public class ResponseEvent extends EventObject {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/**
     * Constructs a ResponseEvent encapsulating the Response that has been received
     * by the underlying SipProvider. This ResponseEvent once created is passed to
     * {@link SipListener#processResponse(ResponseEvent)} method of the SipListener

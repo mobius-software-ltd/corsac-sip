@@ -40,6 +40,7 @@ import com.sun.nio.sctp.SctpChannel;
  *
  * @author Jeroen van Bemmel
  */
+@SuppressWarnings("restriction")
 final class SCTPMessageChannel extends MessageChannel
     implements ParseExceptionListener, Comparable<SCTPMessageChannel> {
     private static StackLogger logger = CommonLogger.getLogger(SCTPMessageChannel.class);
@@ -356,7 +357,7 @@ final class SCTPMessageChannel extends MessageChannel
      * JvB: copied from UDPMessageChannel, TODO restructure!
      */
     public void handleException(ParseException ex, SIPMessage sipMessage,
-            Class hdrClass, String header, String message)
+            Class<?> hdrClass, String header, String message)
             throws ParseException {
     	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Parsing Exception: " , ex);

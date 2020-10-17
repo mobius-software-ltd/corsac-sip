@@ -2,7 +2,6 @@ package gov.nist.javax.sip.parser.extensions;
 
 
 import gov.nist.javax.sip.parser.ParserTestCase;
-import gov.nist.javax.sip.parser.extensions.MinSEParser;
 
 public class MinSEParserTest extends ParserTestCase {
 

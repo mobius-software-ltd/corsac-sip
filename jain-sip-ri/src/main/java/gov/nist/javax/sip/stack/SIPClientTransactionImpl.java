@@ -186,7 +186,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @version 1.2 $Revision: 1.144 $ $Date: 2010-12-02 22:04:16 $
  */
 public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPClientTransaction {
-  private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.class);
+  /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.class);
   // a SIP Client transaction may belong simultaneously to multiple
   // dialogs in the early state. These dialogs all have
   // the same call ID and same From tag but different to tags.
@@ -264,7 +269,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     }
     
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
@@ -297,7 +302,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     }
     
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
@@ -714,7 +719,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
             }
             
             @Override
-            public Object getThreadHash() {
+            public String getThreadHash() {
                 Request request = getRequest();
                 if (request != null && request instanceof SIPRequest) {
                     return ((SIPRequest)request).getCallIdHeader().getCallId();

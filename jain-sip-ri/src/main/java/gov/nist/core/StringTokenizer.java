@@ -145,7 +145,7 @@ public class StringTokenizer {
     public char getNextChar() throws ParseException {
         if (ptr >= bufferLen)
             throw new ParseException(
-                buffer + " getNextChar: End of buffer",
+                buffer.toString() + " getNextChar: End of buffer",
                 ptr);
         else
             return buffer[ptr++];

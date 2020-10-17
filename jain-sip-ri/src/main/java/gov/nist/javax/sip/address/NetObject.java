@@ -43,7 +43,11 @@ import java.lang.reflect.*;
  */
 public abstract class NetObject extends GenericObject {
 
-    protected static final String CORE_PACKAGE = PackageNames.CORE_PACKAGE;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected static final String CORE_PACKAGE = PackageNames.CORE_PACKAGE;
     protected static final String NET_PACKAGE = PackageNames.NET_PACKAGE;
     protected static final String PARSER_PACKAGE = PackageNames.PARSER_PACKAGE;
     protected static final String UDP = "udp";

@@ -3,6 +3,7 @@ package test.unit.gov.nist.javax.sip.stack;
 
 
 import gov.nist.javax.sip.ListeningPointImpl;
+import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 import java.util.Arrays;
@@ -76,10 +77,10 @@ public class MultipleContactsTest extends ScenarioHarness {
 		Request serverLastRequestReceived = server.getLastRequestReceived();
 		assertNotNull(serverLastRequestReceived);
 		
-		ListIterator<ContactHeader> iterator = serverLastRequestReceived.getHeaders(ContactHeader.NAME);
+		ListIterator<?> iterator = serverLastRequestReceived.getHeaders(ContactHeader.NAME);
 		assertTrue(iterator.hasNext());
-		String first = iterator.next().getAddress().getURI().toString();
-		String second = iterator.next().getAddress().getURI().toString();		
+		String first = ((ContactHeader)iterator.next()).getAddress().getURI().toString();
+		String second = ((ContactHeader)iterator.next()).getAddress().getURI().toString();		
 		
 		assertEquals("sip:here@somewhereelse:5080", second);
 		assertEquals("sip:here@somewhere:5070", first);		
@@ -142,9 +143,7 @@ public class MultipleContactsTest extends ScenarioHarness {
         private SipFactory sipFactory;
         private SipStack sipStack;
         private SipProvider provider;
-        private boolean o_sentInvite, o_received180, o_sentCancel, o_receiver200Cancel,
-                o_inviteTxTerm, o_dialogTerinated;
-
+        
         public Client() {
             try {
                 final Properties defaultProperties = new Properties();
@@ -184,7 +183,7 @@ public class MultipleContactsTest extends ScenarioHarness {
 			CSeqHeader cSeq = headerFactory.createCSeqHeader(1l, Request.REGISTER);
 			FromHeader from = headerFactory.createFromHeader(fromAddress, "1234");
 			ToHeader to = headerFactory.createToHeader(addressFactory.createAddress("server@"+host+":"+SERVER_PORT), null);
-			List via = Arrays.asList(((ListeningPointImpl)provider.getListeningPoint(testProtocol)).getViaHeader());			
+			List<Via> via = Arrays.asList(((ListeningPointImpl)provider.getListeningPoint(testProtocol)).getViaHeader());			
 			MaxForwardsHeader maxForwards = headerFactory.createMaxForwardsHeader(10);
     		
     		URI requestURI = addressFactory.createURI("sip:test@"+host+":"+SERVER_PORT);

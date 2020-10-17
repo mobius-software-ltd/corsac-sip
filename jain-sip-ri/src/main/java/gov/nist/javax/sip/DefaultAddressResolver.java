@@ -25,9 +25,6 @@
 */
 package gov.nist.javax.sip;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import javax.sip.address.Hop;
 
 import gov.nist.core.net.AddressResolver;

@@ -27,7 +27,8 @@ import javax.sip.header.ToHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -100,7 +101,7 @@ import test.tck.TiUnexpectedError;
 public class InviteClientTransactionsStateMachineTest extends
         MessageFlowHarness {
 
-    private static Logger logger = Logger
+    private static Logger logger = LogManager
             .getLogger(InviteClientTransactionsStateMachineTest.class);
 
     public InviteClientTransactionsStateMachineTest(String name) {

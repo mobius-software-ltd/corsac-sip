@@ -17,7 +17,11 @@ import java.awt.event.*;
 */
 public class HelpBox extends Dialog {
 
-    TextArea helpTextArea;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	TextArea helpTextArea;
     Button ok;
 
     /** Creates new HelpBox */

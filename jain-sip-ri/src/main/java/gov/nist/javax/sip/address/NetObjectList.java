@@ -27,11 +27,10 @@
 * Product of NIST/ITL Advanced Networking Technologies Division (ANTD).        *
 *******************************************************************************/
 package gov.nist.javax.sip.address;
-import gov.nist.core.*;
 import java.util.ListIterator;
-import java.util.LinkedList;
-import java.util.Iterator;
-import java.lang.reflect.*;
+
+import gov.nist.core.GenericObject;
+import gov.nist.core.GenericObjectList;
 
 /**
 * Root class for all the collection objects in this list:
@@ -119,8 +118,8 @@ public class NetObjectList extends GenericObjectList {
      * @param li ListIterator to set
      * @return GenericObject
      */
-    public GenericObject next(ListIterator li) {
-        return (NetObject) super.next(li);
+    public GenericObject next(ListIterator<GenericObject> li) {
+        return super.next(li);
     }
 
 
@@ -128,7 +127,7 @@ public class NetObjectList extends GenericObjectList {
     /** set the class
      * @param cl Class to set
      */
-    public void setMyClass(Class cl) {
+    public void setMyClass(Class<?> cl) {
         super.setMyClass(cl);
     }
 

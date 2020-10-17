@@ -5,10 +5,11 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.msgflow.callflows.ProtocolObjects;
 
@@ -69,20 +70,20 @@ public class Shootist implements SipListener {
 
     private boolean stateIsOk = true;
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
     static {
-        if (logger.getAllAppenders().equals(NullEnumeration.getInstance())) {
-
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
 
     public Shootist(ProtocolObjects protocolObjects,Shootme shootme) {
         super();
         this.protocolObjects = protocolObjects;
-        PEER_ADDRESS = shootme.myAddress;
+        PEER_ADDRESS = Shootme.myAddress;
         PEER_PORT = shootme.myPort;
         peerHostPort = PEER_ADDRESS + ":" + PEER_PORT; 
     }
@@ -112,8 +113,7 @@ public class Shootist implements SipListener {
         SipFactory sipFactory = null;
         sipFactory = SipFactory.getInstance();
         sipFactory.setPathName("gov.nist");
-        Properties properties = new Properties();
-
+        
         String localHost = myAddress;
 
         try {
@@ -198,9 +198,7 @@ public class Shootist implements SipListener {
 
     public void processRequest(RequestEvent requestReceivedEvent) {
         Request request = requestReceivedEvent.getRequest();
-        ServerTransaction serverTransactionId = requestReceivedEvent
-                .getServerTransaction();
-
+        
         System.out.println("GOT REQUEST (we shouldnt get that): "
                 + request.getMethod());
         DialogTerminationOn50XTest.fail("Shouldnt receive any request:\n"
@@ -230,7 +228,8 @@ public class Shootist implements SipListener {
                 if (tid == null)
                     System.out.println("null txID");
 
-                Thread.currentThread().sleep(100);
+                Thread.currentThread();
+				Thread.sleep(100);
                 System.out.println("Sending INFO");
                 Request infoRequest = dialog.createRequest(Request.INFO);
                 ClientTransaction infoCTX = sipProvider
@@ -276,7 +275,7 @@ public class Shootist implements SipListener {
                     + "a=rtpmap:0 PCMU/8000\r\n" + "a=rtpmap:4 G723/8000\r\n"
                     + "a=rtpmap:18 G729A/8000\r\n" + "a=ptime:20\r\n";
             // Create ViaHeaders
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory.createViaHeader(myAddress,
                     listeningPoint.getPort(), transport, null);
 

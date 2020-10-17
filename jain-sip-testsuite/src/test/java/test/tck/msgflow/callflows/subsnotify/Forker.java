@@ -24,11 +24,11 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.msgflow.callflows.ProtocolObjects;
 
@@ -70,12 +70,13 @@ public class Forker implements SipListener {
      */
     private static boolean nonRFC3261Proxy;
 
-    private static Logger logger = Logger.getLogger(Forker.class);
+    private static Logger logger = LogManager.getLogger(Forker.class);
 
     static {
         try {
-            logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "target/logs/forkeroutputlog.txt"));
+        	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+            Configuration configuration = logContext.getConfiguration();
+            configuration.addAppender(FileAppender.newBuilder().setName("Forkeroutputlog").withFileName("target/logs/forkeroutputlog.txt").build());            
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -189,7 +190,7 @@ public class Forker implements SipListener {
      * Mapping of Via branch IDs to the corresponding ServerTransaction, used
      * for forwarding responses
      */
-    private final Map CTtoST = new HashMap();
+    private final Map<ClientTransaction,ServerTransaction> CTtoST = new HashMap<ClientTransaction,ServerTransaction>();
 
     private String transport;
 

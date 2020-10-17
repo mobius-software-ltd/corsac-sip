@@ -47,8 +47,11 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.Logger;
-import static test.tck.TestHarness.assertTrue;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 
@@ -71,11 +74,13 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
     
     private static final int TIMEOUT = 50000;    
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
 
     static {
-        if (!logger.isAttached(console)) {
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(console);
         }
     }
 
@@ -90,13 +95,7 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
 
         public final int myPort = NetworkPortAssigner.retrieveNextPort();
 
-        private ServerTransaction inviteTid;
-
-
         private Dialog dialog;
-
-        private ServerTransaction reSendSt = null;
-        private Response reSendResponse = null;
         private int dropAckCount = 0;
 
 
@@ -117,7 +116,8 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
                 Field field = ConnectionOrientedMessageProcessor.class.getDeclaredField("messageChannels");
                 field.setAccessible(true);
 
-                Map<String, ConnectionOrientedMessageChannel> tcpMessageChannels = (Map<String, ConnectionOrientedMessageChannel>) field.get(processor);
+                @SuppressWarnings("unchecked")
+				Map<String, ConnectionOrientedMessageChannel> tcpMessageChannels = (Map<String, ConnectionOrientedMessageChannel>) field.get(processor);
                 Iterator<ConnectionOrientedMessageChannel> itr = tcpMessageChannels.values().iterator();
                 while (itr.hasNext()) {
                     ConnectionOrientedMessageChannel tcpMessageChannel = itr.next();
@@ -192,10 +192,7 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
                 // Application is supposed to set.
                 response.addHeader(contactHeader);
                 st.sendResponse(response);
-                reSendSt = st;
-                reSendResponse = response;
                 logger.info("TxState after sendResponse = " + st.getState());
-                this.inviteTid = st;
             } catch (Exception ex) {
                 String s = "unexpected exception";
 
@@ -342,7 +339,7 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
                 
                 if(((SipStackImpl)shootist.protocolObjects.sipStack).isAlive() && (keepAliveToSend < 0 || keepAliveSent <= keepAliveToSend)) {
                     try {
-                        ((ListeningPointExt)shootist.listeningPoint).sendHeartbeat( shootme.myAddress, shootme.myPort);
+                        ((ListeningPointExt)shootist.listeningPoint).sendHeartbeat( Shootme.myAddress, shootme.myPort);
                         keepAliveSent++;
                     } catch (Exception e) {
                         logger.info("keepAliveSender received Exception =" + e + " ,cancelling keepalivesender timer");
@@ -351,7 +348,7 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
 //                      fail();
                     }
                     if(keepAliveSent > keepAliveToSend) {
-                        ((SIPTransactionStack)protocolObjects.sipStack).setKeepAliveTimeout(myAddress, myPort, transport, shootme.myAddress, shootme.myPort, -1);   
+                        ((SIPTransactionStack)protocolObjects.sipStack).setKeepAliveTimeout(myAddress, myPort, transport, Shootme.myAddress, shootme.myPort, -1);   
                     }
                 } else {
                     this.cancel();
@@ -384,7 +381,6 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
                 logger.info("Dialog State is "
                         + responseReceivedEvent.getDialog().getState());
             }
-            SipProvider provider = (SipProvider) responseReceivedEvent.getSource();
 
             try {
                 if (response.getStatusCode() == Response.OK
@@ -469,11 +465,11 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
 
                 // create Request URI addressed to me
                 SipURI requestURI = protocolObjects.addressFactory.createSipURI(
-                        toUser, shootme.myAddress + ":" + shootme.myPort);
+                        toUser, Shootme.myAddress + ":" + shootme.myPort);
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 int port = provider.getListeningPoint(protocolObjects.transport)
                         .getPort();
 
@@ -583,7 +579,8 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
                 Field field = ConnectionOrientedMessageProcessor.class.getDeclaredField("messageChannels");
                 field.setAccessible(true);
 
-                Map<String, TCPMessageChannel> tcpMessageChannels = (Map<String, TCPMessageChannel>) field.get(processor);
+                @SuppressWarnings("unchecked")
+				Map<String, TCPMessageChannel> tcpMessageChannels = (Map<String, TCPMessageChannel>) field.get(processor);
                 return tcpMessageChannels.values().iterator().next();
             } catch (Exception e) {
                 e.printStackTrace();

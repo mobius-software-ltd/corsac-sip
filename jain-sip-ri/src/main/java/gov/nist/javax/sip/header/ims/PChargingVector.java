@@ -34,9 +34,6 @@ import java.text.ParseException;
 import javax.sip.SipException;
 import javax.sip.header.ExtensionHeader;
 
-import gov.nist.javax.sip.header.ims.PChargingVectorHeader;
-import gov.nist.javax.sip.header.ims.ParameterNamesIms;
-
 /**
  * P-Charging-Vector header SIP Private Header: RFC 3455.
  *
@@ -45,8 +42,9 @@ import gov.nist.javax.sip.header.ims.ParameterNamesIms;
 
 public class PChargingVector extends gov.nist.javax.sip.header.ParametersHeader
         implements PChargingVectorHeader, SIPHeaderNamesIms, ExtensionHeader {
+	private static final long serialVersionUID = 1L;
 
-    /**
+	/**
      * Default Constructor
      */
     public PChargingVector() {

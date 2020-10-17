@@ -471,7 +471,7 @@ public abstract class SIPTransactionStack implements
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return null;
         }         
 
@@ -508,7 +508,7 @@ public abstract class SIPTransactionStack implements
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return null;
         }         
 
@@ -703,7 +703,7 @@ public abstract class SIPTransactionStack implements
      *
      */
     public void disableLogging() {
-        this.logger.disableLogging();
+        logger.disableLogging();
     }
 
     /**
@@ -711,7 +711,7 @@ public abstract class SIPTransactionStack implements
      *
      */
     public void enableLogging() {
-        this.logger.enableLogging();
+        logger.enableLogging();
     }
 
     /**
@@ -720,7 +720,7 @@ public abstract class SIPTransactionStack implements
      */
     public void printDialogTable() {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            this.logger.logDebug(
+            logger.logDebug(
                     "dialog table  = " + this.dialogTable);
         }
     }
@@ -927,8 +927,7 @@ public abstract class SIPTransactionStack implements
      *            -- dialog to remove.
      */
     public void removeDialog(SIPDialog dialog) {
-
-        String id = dialog.getDialogId();
+    	String id = dialog.getDialogId();
 
         String earlyId = dialog.getEarlyDialogId();
 
@@ -1082,7 +1081,7 @@ public abstract class SIPTransactionStack implements
             //https://github.com/RestComm/jain-sip/issues/60
             //take into account dialogId, so we can try and match the proper TX
             String dialogId = notifyMessage.getDialogId(true);
-            Iterator it = clientTransactionTable.values().iterator();
+            Iterator<SIPClientTransaction> it = clientTransactionTable.values().iterator();
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("ct table size = "
                         + clientTransactionTable.size());
@@ -1386,11 +1385,11 @@ public abstract class SIPTransactionStack implements
      */
     public SIPServerTransaction findPendingTransaction(
             String transactionId) {
-        if (this.logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            this.logger.logDebug("looking for pending tx for :"
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("looking for pending tx for :"
                     + transactionId);
         }
-        return (SIPServerTransaction) pendingTransactions.get(transactionId);
+        return pendingTransactions.get(transactionId);
 
     }
 
@@ -1452,8 +1451,8 @@ public abstract class SIPTransactionStack implements
      *            -- pending transaction to remove.
      */
     public void removePendingTransaction(SIPServerTransaction tr) {
-        if (this.logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            this.logger.logDebug("removePendingTx: "
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("removePendingTx: "
                     + tr.getTransactionId());
         }
         this.pendingTransactions.remove(tr.getTransactionId());
@@ -1736,7 +1735,7 @@ public abstract class SIPTransactionStack implements
                 // JvB: Need to log before passing the response to the client
                 // app, it
                 // gets modified!
-                if (this.logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
+                if (logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
                     responseMessageChannel.logResponse(responseReceived, System
                             .currentTimeMillis(), "before processing");
                 }
@@ -1752,7 +1751,7 @@ public abstract class SIPTransactionStack implements
         boolean acquired = currentTransaction.acquireSem();
         // Set ths transaction's encapsulated response interface
         // from the superclass
-        if (this.logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
+        if (logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
             currentTransaction.getMessageChannel().logResponse(responseReceived, System
                     .currentTimeMillis(), "before processing");
         }
@@ -1763,8 +1762,8 @@ public abstract class SIPTransactionStack implements
             if (sri != null) {
                 currentTransaction.setResponseInterface(sri);
             } else {
-                if (this.logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    this.logger
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger
                             .logDebug("returning null - serverResponseInterface is null!");
                 }
                 currentTransaction.releaseSem();
@@ -2551,7 +2550,7 @@ public abstract class SIPTransactionStack implements
             int sourcePort, Hop nextHop) throws UnknownHostException {
         Host targetHost;
         HostPort targetHostPort;
-        Iterator processorIterator;
+        Iterator<MessageProcessor> processorIterator;
         MessageProcessor nextProcessor;
         MessageChannel newChannel;
 
@@ -2676,7 +2675,7 @@ public abstract class SIPTransactionStack implements
      *
      * @return Audit report, null if no leaks were found
      */
-    public String auditStack(Set activeCallIDs, long leakedDialogTimer,
+    public String auditStack(Set<String> activeCallIDs, long leakedDialogTimer,
             long leakedTransactionTimer) {
         String auditReport = null;
         String leakedDialogs = auditDialogs(activeCallIDs, leakedDialogTimer);
@@ -2704,7 +2703,7 @@ public abstract class SIPTransactionStack implements
      *
      * @return Audit report, null if no dialog leaks were found
      */
-    private String auditDialogs(Set activeCallIDs, long leakedDialogTimer) {
+    private String auditDialogs(Set<String> activeCallIDs, long leakedDialogTimer) {
         String auditReport = "  Leaked dialogs:\n";
         int leakedDialogs = 0;
         long currentTime = System.currentTimeMillis();
@@ -2712,9 +2711,9 @@ public abstract class SIPTransactionStack implements
         // Make a shallow copy of the dialog list.
         // This copy will remain intact as leaked dialogs are removed by the
         // stack.
-        LinkedList dialogs;
+        LinkedList<SIPDialog> dialogs;
         synchronized (dialogTable) {
-            dialogs = new LinkedList(dialogTable.values());
+            dialogs = new LinkedList<SIPDialog>(dialogTable.values());
         }
 
         // Iterate through the dialogDialog, get the callID of each dialog and
@@ -2722,10 +2721,10 @@ public abstract class SIPTransactionStack implements
         // list of active calls passed by the application. If it isn't, start
         // the timer on it.
         // If the timer has expired, kill the dialog.
-        Iterator it = dialogs.iterator();
+        Iterator<SIPDialog> it = dialogs.iterator();
         while (it.hasNext()) {
             // Get the next dialog
-            SIPDialog itDialog = (SIPDialog) it.next();
+            SIPDialog itDialog = it.next();
 
             // Get the call id associated with this dialog
             CallIdHeader callIdHeader = (itDialog != null ? itDialog
@@ -2781,7 +2780,7 @@ public abstract class SIPTransactionStack implements
      *
      * @return Audit report, null if no transaction leaks were found
      */
-    private String auditTransactions(ConcurrentHashMap transactionsMap,
+    private String auditTransactions(ConcurrentHashMap<String, ? extends SIPTransaction> transactionsMap,
             long a_nLeakedTransactionTimer) {
         String auditReport = "  Leaked transactions:\n";
         int leakedTransactions = 0;
@@ -2790,10 +2789,10 @@ public abstract class SIPTransactionStack implements
         // Make a shallow copy of the transaction list.
         // This copy will remain intact as leaked transactions are removed by
         // the stack.
-        LinkedList transactionsList = new LinkedList(transactionsMap.values());
+        LinkedList<SIPTransaction> transactionsList = new LinkedList<SIPTransaction>(transactionsMap.values());
 
         // Iterate through our copy
-        Iterator it = transactionsList.iterator();
+        Iterator<SIPTransaction> it = transactionsList.iterator();
         while (it.hasNext()) {
             SIPTransaction sipTransaction = (SIPTransaction) it.next();
             if (sipTransaction != null) {
@@ -3250,7 +3249,7 @@ public abstract class SIPTransactionStack implements
      * @return the aggressiveCleanup
      */
     public boolean isAggressiveCleanup() {
-    	if(releaseReferencesStrategy == releaseReferencesStrategy.None)
+    	if(releaseReferencesStrategy == ReleaseReferencesStrategy.None)
     		return false;
     	else
     		return true;

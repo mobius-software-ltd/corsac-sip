@@ -25,7 +25,6 @@
 package gov.nist.javax.sip.parser.ims;
 
 import gov.nist.javax.sip.parser.HeaderParser;
-import gov.nist.javax.sip.parser.ims.PAssertedIdentityParser;
 import gov.nist.javax.sip.parser.ParserTestCase;
 
 public class PAssertedIdentityParserTest extends ParserTestCase

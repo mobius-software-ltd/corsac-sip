@@ -52,7 +52,7 @@ public interface UserAgentHeader extends Header {
      *
      * @return the List of strings identifying the software of this ServerHeader
      */
-    public ListIterator getProduct();
+    public ListIterator<?> getProduct();
 
     /**
      * Sets the List of product values of the ServerHeader.
@@ -61,7 +61,7 @@ public interface UserAgentHeader extends Header {
      * @throws ParseException which signals that an error has been reached
      * unexpectedly while parsing the List of product value strings.
      */
-    public void setProduct(List product) throws ParseException;
+    public void setProduct(List<?> product) throws ParseException;
 
     /**
      * Name of UserAgentHeader

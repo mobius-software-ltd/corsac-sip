@@ -254,9 +254,6 @@ public class RejectOutOfSequenceMessageTest extends TestCase {
 
         private Dialog dialog;
 
-
-        private boolean timeoutRecieved;
-
         private boolean saw500;
 
 
@@ -270,7 +267,7 @@ public class RejectOutOfSequenceMessageTest extends TestCase {
         private  String peerHostPort;
 
         public Shootist(Shootme shootme) {
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;             
         }
@@ -324,8 +321,6 @@ public class RejectOutOfSequenceMessageTest extends TestCase {
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
 
             System.out.println("Got a timeout " + timeoutEvent.getClientTransaction());
-
-            this.timeoutRecieved = true;
         }
 
 
@@ -416,7 +411,7 @@ public class RejectOutOfSequenceMessageTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),

@@ -171,8 +171,8 @@ public class NameValue extends GenericObject implements Entry<String,String> {
     }
 
     public StringBuilder encode(StringBuilder buffer) {
-        if (name != null && value != null && !isFlagParameter) {
-            if (GenericObject.isMySubclass(value.getClass())) {
+    	if (name != null && value != null && !isFlagParameter) {
+    		if (GenericObject.isMySubclass(value.getClass())) {
                 GenericObject gv = (GenericObject) value;
                 buffer.append(name).append(separator).append(quotes);
                 gv.encode(buffer);

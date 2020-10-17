@@ -19,14 +19,25 @@
 */
 package test.tck.msgflow;
 
-import junit.framework.*;
+import java.util.Iterator;
+import java.util.TooManyListenersException;
 
-import javax.sip.*;
-import javax.sip.message.*;
-import javax.sip.header.*;
-import java.util.*;
-import java.text.*;
-import test.tck.*;
+import javax.sip.ClientTransaction;
+import javax.sip.RequestEvent;
+import javax.sip.SipException;
+import javax.sip.TransactionUnavailableException;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.Request;
+
+import junit.framework.Test;
+import junit.framework.TestSuite;
+import test.tck.TckInternalError;
+import test.tck.TiUnexpectedError;
 
 /**
  * <p>Title: TCK</p>
@@ -102,7 +113,7 @@ public class ClientTransactionTest extends MessageFlowHarness {
             assertTrue(
                 "There was no ViaHeader in the cancel request",
                 cancel.getHeaders(ViaHeader.NAME).hasNext());
-            Iterator cancelVias = cancel.getHeaders(ViaHeader.NAME);
+            Iterator<?> cancelVias = cancel.getHeaders(ViaHeader.NAME);
             ViaHeader cancelVia = ((ViaHeader) cancelVias.next());
             ViaHeader inviteVia =
                 ((ViaHeader) invite.getHeaders(ViaHeader.NAME).next());

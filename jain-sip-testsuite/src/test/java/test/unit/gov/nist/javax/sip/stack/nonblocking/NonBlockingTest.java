@@ -1,12 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack.nonblocking;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.javax.sip.ListeningPointImpl;
-import gov.nist.javax.sip.header.CSeq;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-import gov.nist.javax.sip.stack.NioTcpMessageProcessor;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,15 +14,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
 import javax.sip.ClientTransaction;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
-import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
-import javax.sip.SipException;
 import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
@@ -51,6 +43,11 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import gov.nist.core.CommonLogger;
+import gov.nist.javax.sip.ListeningPointImpl;
+import gov.nist.javax.sip.header.CSeq;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import junit.framework.Assert;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ScenarioHarness;
@@ -78,7 +75,7 @@ public class NonBlockingTest extends ScenarioHarness {
     
 
     public void setUp() throws Exception {
-        testResources = new HashSet();
+        testResources = new HashSet<Closeable>();
     }
     
     class PoolCloser implements Closeable {
@@ -126,13 +123,14 @@ public class NonBlockingTest extends ScenarioHarness {
         Thread.sleep(THREAD_ASSERT_TIME);
         Assert.assertTrue(!client.responses.isEmpty());
         Assert.assertEquals(503, client.responses.get(0).getResponse().getStatusCode());
+        client.close();
     }
 
     public void testConnReestablished() throws Exception {
         final Client client = new Client();
         ExecutorService pool = Executors.newFixedThreadPool(NUM_THREADS);
         testResources.add(new PoolCloser(pool));     
-        Set<Closeable> servers = new HashSet();
+        Set<Closeable> servers = new HashSet<Closeable>();
         final int serverPort = NetworkPortAssigner.retrieveNextPort();
     	Server server = new Server(serverPort);
     	servers.add(server);        
@@ -180,6 +178,7 @@ public class NonBlockingTest extends ScenarioHarness {
         }
         Thread.sleep(THREAD_ASSERT_TIME);
         Assert.assertEquals(NUM_THREADS, client.responses.size()); 
+        client.close();
     }    
 
     public class Server extends SipAdapter implements Closeable {

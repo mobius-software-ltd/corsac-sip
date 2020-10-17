@@ -38,7 +38,11 @@ import gov.nist.core.*;
 *
 */
 public class Email extends SDPObject {
-    protected String userName;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String userName;
     protected String hostName;
     public String getUserName() {
         return userName;

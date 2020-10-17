@@ -27,14 +27,16 @@
 * Product of NIST/ITL Advanced Networking Technologies Division (ANTD).        *
 *******************************************************************************/
 package gov.nist.javax.sdp.fields;
-import gov.nist.core.*;
-import java.util.ListIterator;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.lang.reflect.*;
+
+import gov.nist.core.GenericObject;
+import gov.nist.core.GenericObjectList;
+import gov.nist.core.PackageNames;
 
 public class SDPObjectList extends GenericObjectList {
-    protected static final String SDPFIELDS_PACKAGE =
+	private static final long serialVersionUID = 1L;
+	
+	protected static final String SDPFIELDS_PACKAGE =
         PackageNames.SDP_PACKAGE + ".fields";
 
     /**

@@ -42,7 +42,11 @@ import javax.sdp.*;
 */
 
 public class BandwidthField extends SDPField implements javax.sdp.BandWidth {
-    protected String bwtype;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String bwtype;
     protected int bandwidth;
     public BandwidthField() {
         super(SDPFieldNames.BANDWIDTH_FIELD);

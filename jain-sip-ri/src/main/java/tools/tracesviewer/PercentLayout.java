@@ -14,7 +14,7 @@ import java.util.*;
 public class PercentLayout implements LayoutManager2 {
     public void addLayoutComponent(Component component, Object constraint) {
         if (constraint instanceof PercentLayoutConstraint) {
-            hash.put(component, constraint);
+            hash.put(component, (PercentLayoutConstraint)constraint);
         } else {
             throw new IllegalArgumentException("Invalid constraint");
 
@@ -31,9 +31,9 @@ public class PercentLayout implements LayoutManager2 {
         int prefx = 0;
         int prefy = 0;
 
-        Enumeration keys = hash.keys();
+        Enumeration<Component> keys = hash.keys();
         while (keys.hasMoreElements()) {
-            Component comp = (Component) keys.nextElement();
+            Component comp = keys.nextElement();
             PercentLayoutConstraint constraint =
                 (PercentLayoutConstraint) hash.get(comp);
             Dimension pref = comp.getPreferredSize();
@@ -47,11 +47,10 @@ public class PercentLayout implements LayoutManager2 {
         int minx = 0;
         int miny = 0;
 
-        Enumeration keys = hash.keys();
+        Enumeration<Component> keys = hash.keys();
         while (keys.hasMoreElements()) {
-            Component comp = (Component) keys.nextElement();
-            PercentLayoutConstraint constraint =
-                (PercentLayoutConstraint) hash.get(comp);
+            Component comp = keys.nextElement();
+            PercentLayoutConstraint constraint = hash.get(comp);
             Dimension min = comp.getMinimumSize();
             int mx = (int) (min.width * 100 / constraint.width);
             int my = (int) (min.height * 100 / constraint.height);
@@ -66,11 +65,10 @@ public class PercentLayout implements LayoutManager2 {
         int maxx = Integer.MAX_VALUE;
         int maxy = Integer.MAX_VALUE;
 
-        Enumeration keys = hash.keys();
+        Enumeration<Component> keys = hash.keys();
         while (keys.hasMoreElements()) {
-            Component comp = (Component) keys.nextElement();
-            PercentLayoutConstraint constraint =
-                (PercentLayoutConstraint) hash.get(comp);
+            Component comp = keys.nextElement();
+            PercentLayoutConstraint constraint = hash.get(comp);
             Dimension max = comp.getMaximumSize();
             int mx =
                 max.width == Integer.MAX_VALUE
@@ -89,11 +87,10 @@ public class PercentLayout implements LayoutManager2 {
     }
     public void layoutContainer(Container p1) {
         Dimension size = p1.getSize();
-        Enumeration keys = hash.keys();
+        Enumeration<Component> keys = hash.keys();
         while (keys.hasMoreElements()) {
-            Component comp = (Component) keys.nextElement();
-            PercentLayoutConstraint constraint =
-                (PercentLayoutConstraint) hash.get(comp);
+            Component comp = keys.nextElement();
+            PercentLayoutConstraint constraint =hash.get(comp);
             int x = (int) (size.width * constraint.x / 100);
             int y = (int) (size.height * constraint.y / 100);
             int width = (int) (size.width * constraint.width / 100);
@@ -110,6 +107,6 @@ public class PercentLayout implements LayoutManager2 {
         return 0.5f;
     }
 
-    private Hashtable hash = new Hashtable();
+    private Hashtable<Component,PercentLayoutConstraint> hash = new Hashtable<Component,PercentLayoutConstraint>();
 
 }

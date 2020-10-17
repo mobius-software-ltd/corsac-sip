@@ -44,7 +44,11 @@ import javax.sdp.SdpParseException;
 *
 */
 public class OriginField extends SDPField implements javax.sdp.Origin {
-    protected String username;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String username;
     //protected long sessId;
     //protected long sessVersion;
     protected String nettype; // IN

@@ -5,7 +5,10 @@ import java.util.Hashtable;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -16,13 +19,13 @@ import test.tck.msgflow.callflows.ScenarioHarness;
  * @author Jeroen van Bemmel
  *
  */
-public class AbstractRecRouteTestCase extends ScenarioHarness implements
+public abstract class AbstractRecRouteTestCase extends ScenarioHarness implements
         SipListener {
 
 
     protected Shootist shootist;
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
 
 
     protected Shootme shootme;
@@ -32,8 +35,11 @@ public class AbstractRecRouteTestCase extends ScenarioHarness implements
     private static final int TIMEOUT = 5000;
 
     static {
-        if ( !logger.isAttached(console))
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(console);
+        }
     }
 
     // private Appender appender;
@@ -43,7 +49,7 @@ public class AbstractRecRouteTestCase extends ScenarioHarness implements
         super("TCPRecRouteTest", true);
 
         try {
-            providerTable = new Hashtable();
+            providerTable = new Hashtable<SipProvider,SipListener>();
 
         } catch (Exception ex) {
             logger.error("unexpected exception", ex);

@@ -66,7 +66,7 @@ public class RepeatField extends SDPField implements javax.sdp.RepeatTime {
         offsets.add(offset);
     }
 
-    public LinkedList getOffsets() {
+    public LinkedList<?> getOffsets() {
         return offsets;
     }
 
@@ -129,10 +129,10 @@ public class RepeatField extends SDPField implements javax.sdp.RepeatTime {
      * @return the list of offsets
      */
     public int[] getOffsetArray() throws SdpParseException {
-        LinkedList linkedList = getOffsets();
+        LinkedList<?> linkedList = getOffsets();
         int[] result = new int[linkedList.size()];
         for (int i = 0; i < linkedList.size(); i++) {
-            TypedTime typedTime = (TypedTime) linkedList.get(i);
+            TypedTime typedTime = (TypedTime)linkedList.get(i);
             result[i] = typedTime.getTime();
         }
         return result;
@@ -193,7 +193,7 @@ public class RepeatField extends SDPField implements javax.sdp.RepeatTime {
       .append(repeatInterval.encode())
             .append(Separators.SP)
           .append(activeDuration.encode());
-        ListIterator li = offsets.listIterator();
+        ListIterator<?> li = offsets.listIterator();
         while (li.hasNext()) {
             TypedTime off = (TypedTime) li.next();
             retval.append (Separators.SP).append (off.encode());

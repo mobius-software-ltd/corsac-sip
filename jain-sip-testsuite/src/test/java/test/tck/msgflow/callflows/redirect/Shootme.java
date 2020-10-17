@@ -5,17 +5,15 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import test.tck.TestHarness;
-import test.tck.msgflow.MessageFlowHarness;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
 
 import java.util.*;
-
-import junit.framework.TestCase;
 
 /**
  * This class is a UAC template. Shootist is the guy that shoots and shootme is
@@ -36,23 +34,17 @@ public class Shootme extends TestHarness implements SipListener {
 
     private Response okResponse;
 
-    private Request inviteRequest;
-
     private Dialog dialog;
 
     private SipProvider sipProvider;
 
     private int inviteCount = 0;
 
-    private int dialogTerminationCount = 0;
-
-    private int dialogCount;
-
     private int byeOkRecieved;
 
     private int ackCount;
 
-    private static Logger logger = Logger.getLogger(Shootme.class);
+    private static Logger logger = LogManager.getLogger(Shootme.class);
 
     class MyTimerTask extends TimerTask {
         Shootme shootme;
@@ -155,7 +147,6 @@ public class Shootme extends TestHarness implements SipListener {
             Dialog dialog = st.getDialog();
 
             assertTrue(this.dialog != dialog);
-            this.dialogCount++;
             this.dialog = dialog;
 
             logger.info("Shootme: dialog = " + dialog);
@@ -197,7 +188,6 @@ public class Shootme extends TestHarness implements SipListener {
                 okResponse.addHeader(contactHeader);
                 this.inviteTid = st;
                 // Defer sending the OK to simulate the phone ringing.
-                this.inviteRequest = request;
 
                 new Timer().schedule(new MyTimerTask(this), 500);
 
@@ -271,7 +261,6 @@ public class Shootme extends TestHarness implements SipListener {
             DialogTerminatedEvent dialogTerminatedEvent) {
         logger.info("Dialog terminated event recieved dialog = "
                 + dialogTerminatedEvent.getDialog());
-        this.dialogTerminationCount++;
 
     }
     

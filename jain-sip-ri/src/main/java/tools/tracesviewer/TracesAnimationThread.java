@@ -6,7 +6,7 @@ public class TracesAnimationThread implements Runnable {
 
     public Thread tracesThread;
     TracesCanvas tracesCanvas;
-    Hashtable arrows;
+    Hashtable<String,Arrow> arrows;
     int delay;
 
     public TracesAnimationThread(TracesCanvas tracesCanvas) {

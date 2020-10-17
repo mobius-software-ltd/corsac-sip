@@ -32,6 +32,11 @@ package javax.sip;
 public class PeerUnavailableException extends SipException {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Constructs a new <code>PeerUnavailableException</code>.
      */
     public PeerUnavailableException() {

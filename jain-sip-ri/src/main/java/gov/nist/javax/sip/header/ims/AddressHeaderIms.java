@@ -42,7 +42,11 @@ import gov.nist.javax.sip.header.SIPHeader;
 
 public abstract class AddressHeaderIms extends SIPHeader {
 
-    protected AddressImpl address;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected AddressImpl address;
 
     /**
      * get the Address field

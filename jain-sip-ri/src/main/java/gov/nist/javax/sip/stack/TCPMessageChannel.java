@@ -434,7 +434,7 @@ public class TCPMessageChannel extends ConnectionOrientedMessageChannel {
      *             Thrown if we want to reject the message.
      */
     public void handleException(ParseException ex, SIPMessage sipMessage,
-            Class hdrClass, String header, String message)
+            Class<?> hdrClass, String header, String message)
             throws ParseException {
     	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Parsing Exception: " , ex);

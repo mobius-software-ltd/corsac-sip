@@ -5,12 +5,13 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import java.util.*;
 
@@ -41,14 +42,17 @@ public class Referer implements SipListener {
 
     private int count;
 
-    private static Logger logger = Logger.getLogger(Referer.class);
+    private static Logger logger = LogManager.getLogger(Referer.class);
 
     static {
         try {
-            logger.setLevel(Level.INFO);
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-            logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "refereroutputlog.txt"));
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+            Configuration configuration = logContext.getConfiguration();
+            configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+            configuration.addAppender(FileAppender.newBuilder().setName("Referee").withFileName("refereroutputlog.txt").build());
+            
+            configuration.getLoggerConfig(logger.getName()).setLevel(Level.INFO);
+            logContext.updateLoggers();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -191,7 +195,7 @@ public class Referer implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             int port = sipProvider.getListeningPoint(transport).getPort();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     port, transport, null);

@@ -1,10 +1,31 @@
 package examples.busy;
 
-import javax.sip.*;
-import javax.sip.address.*;
-import javax.sip.header.*;
-import javax.sip.message.*;
-import java.util.*;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.sip.Dialog;
+import javax.sip.DialogState;
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.IOExceptionEvent;
+import javax.sip.InvalidArgumentException;
+import javax.sip.ListeningPoint;
+import javax.sip.PeerUnavailableException;
+import javax.sip.RequestEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipException;
+import javax.sip.SipFactory;
+import javax.sip.SipListener;
+import javax.sip.SipProvider;
+import javax.sip.SipStack;
+import javax.sip.Transaction;
+import javax.sip.TransactionState;
+import javax.sip.TransactionTerminatedEvent;
+import javax.sip.header.ToHeader;
+import javax.sip.message.MessageFactory;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
 
 /**
  * This class is a UAC template. Shootist is the guy that shoots and shootme is
@@ -15,17 +36,9 @@ import java.util.*;
 
 public class Shootme implements SipListener {
 
-    private static AddressFactory addressFactory;
-
     private static MessageFactory messageFactory;
 
-    private static HeaderFactory headerFactory;
-
     private static SipStack sipStack;
-
-    private static final String myAddress = "127.0.0.1";
-
-    private static final int myPort = 5070;
 
     protected ServerTransaction inviteTid;
 
@@ -151,7 +164,6 @@ public class Shootme implements SipListener {
      */
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
             System.out.println("shootme:  got a bye sending OK.");
@@ -169,7 +181,6 @@ public class Shootme implements SipListener {
 
     public void processCancel(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
             System.out.println("shootme:  got a cancel.");
@@ -237,8 +248,6 @@ public class Shootme implements SipListener {
         }
 
         try {
-            headerFactory = sipFactory.createHeaderFactory();
-            addressFactory = sipFactory.createAddressFactory();
             messageFactory = sipFactory.createMessageFactory();
             ListeningPoint lp = sipStack.createListeningPoint("127.0.0.1",5070, "udp");
 

@@ -52,7 +52,7 @@ public class ListenerTracesViewer {
                     debug.afterDebug,
                     debug.debugLine);
 
-            debugWindow.show();
+            debugWindow.setVisible(true);
         }
     }
 
@@ -61,12 +61,12 @@ public class ListenerTracesViewer {
     }
 
     public void helpMenuMouseEvent(MouseEvent evt) {
-        helpBox.show();
+        helpBox.setVisible(true);
     }
 
     public void aboutMenuMouseEvent(MouseEvent evt) {
         aboutFrame.animationThread.start();
-        aboutFrame.show();
+        aboutFrame.setVisible(true);
     }
 
     public void animationActionPerformed(ActionEvent evt) {

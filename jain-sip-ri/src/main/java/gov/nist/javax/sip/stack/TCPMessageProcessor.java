@@ -166,13 +166,13 @@ public class TCPMessageProcessor extends ConnectionOrientedMessageProcessor impl
             e.printStackTrace();
         }
 
-        Collection en = messageChannels.values();
-        for (Iterator it = en.iterator(); it.hasNext();) {
+        Collection<ConnectionOrientedMessageChannel> en = messageChannels.values();
+        for (Iterator<ConnectionOrientedMessageChannel> it = en.iterator(); it.hasNext();) {
             TCPMessageChannel next = (TCPMessageChannel) it.next();
             next.close();
         }
         // RRPN: fix
-        for (Iterator incomingMCIterator = incomingMessageChannels.values().iterator(); incomingMCIterator
+        for (Iterator<ConnectionOrientedMessageChannel> incomingMCIterator = incomingMessageChannels.values().iterator(); incomingMCIterator
                 .hasNext();) {
             TCPMessageChannel next = (TCPMessageChannel) incomingMCIterator.next();
             next.close();

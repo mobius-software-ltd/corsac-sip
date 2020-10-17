@@ -38,7 +38,13 @@ import javax.sip.header.ExtensionHeader;
  */
 public class PProfileKey extends AddressParametersHeader implements PProfileKeyHeader, SIPHeaderNamesIms , ExtensionHeader {
 
-    public PProfileKey( ) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	public PProfileKey( ) {
         super(P_PROFILE_KEY);
 
     }

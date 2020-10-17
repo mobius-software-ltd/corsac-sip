@@ -53,10 +53,11 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 
@@ -74,11 +75,14 @@ public class AckReTransmissionTest extends ScenarioHarness implements SipListene
 
     private Shootme shootme;
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
 
     static {
-        if (!logger.isAttached(console))
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(console);
+        }
     }
 
      class Shootme  implements SipListener {
@@ -91,9 +95,6 @@ public class AckReTransmissionTest extends ScenarioHarness implements SipListene
             public static final String myAddress = "127.0.0.1";
 
             public final int myPort = NetworkPortAssigner.retrieveNextPort();
-
-            private ServerTransaction inviteTid;
-
 
             private Dialog dialog;
 
@@ -213,7 +214,6 @@ public class AckReTransmissionTest extends ScenarioHarness implements SipListene
                     reSendSt = st;
                     reSendResponse = response;
                     logger.info("TxState after sendResponse = " + st.getState());
-                    this.inviteTid = st;
                 } catch (Exception ex) {
                     String s = "unexpected exception";
 
@@ -329,13 +329,9 @@ public class AckReTransmissionTest extends ScenarioHarness implements SipListene
 
         private SipProvider provider;
 
-        private int reInviteCount;
-
         private ContactHeader contactHeader;
 
         private ListeningPoint listeningPoint;
-
-        private int counter;
 
         private  String PEER_ADDRESS;
 
@@ -364,7 +360,7 @@ public class AckReTransmissionTest extends ScenarioHarness implements SipListene
         public Shootist(ProtocolObjects protocolObjects, Shootme shootme) {
             super();
             this.protocolObjects = protocolObjects;
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;  
         }
@@ -415,8 +411,7 @@ public class AckReTransmissionTest extends ScenarioHarness implements SipListene
 				logger.info("Dialog State is "
 						+ responseReceivedEvent.getDialog().getState());
 			}
-            SipProvider provider = (SipProvider) responseReceivedEvent.getSource();
-
+            
             try {
                 if (response.getStatusCode() == Response.OK
                         && ((CSeqHeader) response.getHeader(CSeqHeader.NAME))
@@ -500,7 +495,7 @@ public class AckReTransmissionTest extends ScenarioHarness implements SipListene
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 int port = provider.getListeningPoint(protocolObjects.transport)
                         .getPort();
 

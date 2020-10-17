@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.net.SocketFactory;
-import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.sip.ClientTransaction;
 import javax.sip.DialogTerminatedEvent;
@@ -92,6 +91,8 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
 
 		Request serverLastRequestReceived = server.getLastRequestReceived();
 		assertNotNull(serverLastRequestReceived);
+		
+		server.stop();
 	}
 
 
@@ -120,7 +121,7 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 defaultProperties.setProperty("gov.nist.javax.sip.NIO_MAX_SOCKET_IDLE_TIME", "" + CLOSE_DELAY / 4);
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE", "DisabledAll");
-                defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1");
+                defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1.2");
                 this.sipFactory = SipFactory.getInstance();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
@@ -169,7 +170,7 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS","false");
                 defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE", "DisabledAll");
-                defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1");
+                defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1.2");
 
                 this.sipFactory = SipFactory.getInstance();
                 this.sipFactory.setPathName("gov.nist");

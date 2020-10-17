@@ -4,7 +4,11 @@ import java.io.*;
 
 public class TracesMessage implements Serializable {
 
-    String messageFrom = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	String messageFrom = null;
     String messageTo = null;
     String messageTime = null;
     String messageTimeStamp = null;

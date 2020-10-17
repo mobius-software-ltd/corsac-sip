@@ -1,11 +1,8 @@
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.message.MessageFactoryImpl;
-
 import java.text.ParseException;
 
-import javax.sip.message.Request;
-
+import gov.nist.javax.sip.message.MessageFactoryImpl;
 import junit.framework.TestCase;
 
 public class JunkAtEndOfMessageTest extends TestCase {
@@ -13,7 +10,7 @@ public class JunkAtEndOfMessageTest extends TestCase {
     public void testMessageSyntax() {
         MessageFactoryImpl messageFactory = new MessageFactoryImpl();
         try {
-            Request request = messageFactory
+            messageFactory
                     .createRequest("BYE sip:127.0.0.1:5080;transport=tcp SIP/2.0\r\n"
                             + "Via: SIP/2.0/TCP 127.0.0.1:5060;rport=5060;branch=z9hG4bKd2c87858eb0a7a09becc7a115c608d27\r\n"
                             + "CSeq: 2 BYE\r\n"
@@ -41,7 +38,7 @@ public class JunkAtEndOfMessageTest extends TestCase {
         MessageFactoryImpl messageFactory = new MessageFactoryImpl();
 
         try {
-            Request request = messageFactory
+            messageFactory
                     .createRequest("BYE sip:127.0.0.1:5080;transport=tcp SIP/2.0\r\n"
                             + "Via: SIP/2.0/TCP 127.0.0.1:5060;rport=5060;branch=z9hG4bKd2c87858eb0a7a09becc7a115c608d27\r\n"
                             + "CSeq: 2 BYE\r\n"

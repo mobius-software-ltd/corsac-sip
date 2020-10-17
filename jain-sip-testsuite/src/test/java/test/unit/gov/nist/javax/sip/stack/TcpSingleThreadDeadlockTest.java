@@ -40,7 +40,6 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import junit.framework.TestCase;
-import static test.tck.TestHarness.assertTrue;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.TestAssertion;
@@ -374,12 +373,6 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
 
         private ListeningPoint udpListeningPoint;
 
-
-        private Dialog dialog;
-
-
-        private boolean timeoutRecieved;
-
         boolean messageSeen = false;
         
         private final int myPort = NetworkPortAssigner.retrieveNextPort();        
@@ -391,7 +384,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
         private  String peerHostPort;
 
         public Shootist(Shootme shootme) {
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;             
         }
@@ -460,8 +453,6 @@ boolean inUse = false;
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
 
             System.out.println("Got a timeout " + timeoutEvent.getClientTransaction());
-
-            this.timeoutRecieved = true;
         }
 
 
@@ -556,7 +547,7 @@ boolean inUse = false;
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -634,9 +625,8 @@ boolean inUse = false;
 
                 // Create the client transaction.
                 ClientTransaction inviteTid = sipProvider.getNewClientTransaction(request);
-            	Dialog d = null;
-				try {
-					d = sipProvider.getNewDialog(inviteTid);
+            	try {
+					sipProvider.getNewDialog(inviteTid);
 				} catch (SipException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -644,8 +634,6 @@ boolean inUse = false;
 
                 // send the request out.
                 inviteTid.sendRequest();
-
-                dialog = inviteTid.getDialog();
 
             } catch (Exception ex) {
             	ex.printStackTrace();

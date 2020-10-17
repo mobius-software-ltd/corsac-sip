@@ -1,7 +1,5 @@
 package test.tck.msgflow.callflows.prack;
 
-import test.tck.msgflow.callflows.prack.AbstractPrackTestCase;
-
 public class UdpPrackTest extends AbstractPrackTestCase {
     boolean myFlag;
     public void setUp() throws Exception {

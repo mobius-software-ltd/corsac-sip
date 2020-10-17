@@ -1,16 +1,34 @@
 package examples.reinvite;
 
-import javax.sip.*;
-import javax.sip.address.*;
-import javax.sip.header.*;
-import javax.sip.message.*;
+import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.IOExceptionEvent;
+import javax.sip.ListeningPoint;
+import javax.sip.RequestEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipListener;
+import javax.sip.SipProvider;
+import javax.sip.Transaction;
+import javax.sip.TransactionTerminatedEvent;
+import javax.sip.address.Address;
+import javax.sip.address.SipURI;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.ContentTypeHeader;
+import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-
-import java.util.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import junit.framework.TestCase;
 
@@ -35,12 +53,13 @@ public class Shootme  implements SipListener {
     private ServerTransaction inviteTid;
 
 
-    private static Logger logger = Logger.getLogger(Shootme.class);
+    private static Logger logger = LogManager.getLogger(Shootme.class);
 
     static {
         try {
-        logger.addAppender(new FileAppender(new SimpleLayout(),
-                    ProtocolObjects.logFileDirectory + "shootmeconsolelog.txt"));
+        	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+            Configuration configuration = logContext.getConfiguration();
+            configuration.addAppender(FileAppender.newBuilder().setName("Shootmeconsolelog").withFileName(ProtocolObjects.logFileDirectory + "shootmeconsolelog.txt").build());
         } catch (Exception ex) {
             throw new RuntimeException ("could not open log file");
         }
@@ -201,7 +220,6 @@ public class Shootme  implements SipListener {
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
 
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
             logger.info("shootme:  got a bye sending OK.");
@@ -282,7 +300,9 @@ public class Shootme  implements SipListener {
 
 
     public static void main(String args[]) throws Exception {
-        logger.addAppender( new ConsoleAppender(new SimpleLayout()));
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         ProtocolObjects.init("shootme", true);
         Shootme shootme = new Shootme();
         shootme.createSipProvider().addSipListener(shootme);

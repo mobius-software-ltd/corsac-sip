@@ -23,6 +23,7 @@ import gov.nist.javax.sip.stack.SIPTransactionStack;
  * 
  * @author Jeroen van Bemmel
  */
+@SuppressWarnings("restriction")
 public final class SCTPMessageProcessor extends MessageProcessor  implements Runnable{
 
 	private SctpServerChannel sctpServerChannel;

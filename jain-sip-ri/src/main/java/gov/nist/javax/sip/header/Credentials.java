@@ -42,15 +42,6 @@ public class Credentials extends SIPObject {
      */
     private static final long serialVersionUID = -6335592791505451524L;
 
-    private static String DOMAIN = ParameterNames.DOMAIN;
-    private static String REALM = ParameterNames.REALM;
-    private static String OPAQUE = ParameterNames.OPAQUE;
-    private static String RESPONSE = ParameterNames.RESPONSE;
-    private static String URI = ParameterNames.URI;
-    private static String NONCE = ParameterNames.NONCE;
-    private static String CNONCE = ParameterNames.CNONCE;
-    private static String USERNAME = ParameterNames.USERNAME;
-
     protected String scheme;
 
     /**

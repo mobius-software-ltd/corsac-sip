@@ -41,7 +41,11 @@ import java.util.*;
 *
 */
 public class TimeField extends SDPField implements Time {
-    protected long startTime;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected long startTime;
     protected long stopTime;
     public TimeField() {
         super(TIME_FIELD);

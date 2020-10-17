@@ -47,7 +47,7 @@ public interface TimeZoneAdjustment extends Field {
      * @throws SdpParseException
      * @return create - when true, an empty Hashtable is created, if it is null.
      */    
-    public Hashtable getZoneAdjustments(boolean create)
+    public Hashtable<Date,Integer> getZoneAdjustments(boolean create)
                              throws SdpParseException;
     
     /** Sets the Hashtable of adjustment times, where:
@@ -56,7 +56,7 @@ public interface TimeZoneAdjustment extends Field {
      * @param map Hashtable to set
      * @throws SdpException if the parameter is null
      */    
-    public void setZoneAdjustments(Hashtable map)
+    public void setZoneAdjustments(Hashtable<Date,Integer> map)
                         throws SdpException;
     
     /** Sets whether the field will be output as a typed time or a integer value.

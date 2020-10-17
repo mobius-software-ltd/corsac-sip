@@ -29,11 +29,13 @@ public class ServerLoggerImpl implements ServerLogger {
     
     }
 
-    public void logException(Exception exception) {
+    @SuppressWarnings("deprecation")
+	public void logException(Exception exception) {
         sipStack.getStackLogger().logStackTrace();
     }
 
-    public void logMessage(SIPMessage message, String source, String destination, boolean isSender, long timeStamp) {
+    @SuppressWarnings("deprecation")
+	public void logMessage(SIPMessage message, String source, String destination, boolean isSender, long timeStamp) {
         String firstLine = message.getFirstLine();
         String tid = message.getTransactionId();
         String callId = message.getCallId().getCallId();
@@ -48,7 +50,8 @@ public class ServerLoggerImpl implements ServerLogger {
         logMessage(message, from, to, status, sender, System.currentTimeMillis());
     }
 
-    public void logMessage(SIPMessage message, String source, String destination, String status, boolean isSender,
+    @SuppressWarnings("deprecation")
+	public void logMessage(SIPMessage message, String source, String destination, String status, boolean isSender,
             long timeStamp) {
         // TODO Auto-generated method stub
         CallID cid = (CallID) message.getCallId();

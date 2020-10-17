@@ -33,6 +33,11 @@ import javax.sip.SipException;
 public class TooManyHopsException extends SipException {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Constructs a new <code>TooManyHopsException</code>
      */
     public TooManyHopsException(){

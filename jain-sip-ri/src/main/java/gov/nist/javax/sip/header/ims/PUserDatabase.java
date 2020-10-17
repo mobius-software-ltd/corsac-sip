@@ -35,7 +35,11 @@ import javax.sip.header.ExtensionHeader;
  */
 public class PUserDatabase extends gov.nist.javax.sip.header.ParametersHeader  implements PUserDatabaseHeader,SIPHeaderNamesIms, ExtensionHeader{
 
-    private String databaseName;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String databaseName;
 
     /**
      *

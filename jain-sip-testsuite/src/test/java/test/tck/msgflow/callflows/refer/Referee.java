@@ -2,8 +2,6 @@ package test.tck.msgflow.callflows.refer;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Properties;
-
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
@@ -11,12 +9,10 @@ import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
-import javax.sip.PeerUnavailableException;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.SipException;
-import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
@@ -42,10 +38,12 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.TestHarness;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -81,7 +79,7 @@ public class Referee implements SipListener {
 
     protected Dialog dialog;
 
-    private static Logger logger = Logger.getLogger(Referee.class);
+    private static Logger logger = LogManager.getLogger(Referee.class);
 
     private boolean tryingSent;
 
@@ -91,9 +89,12 @@ public class Referee implements SipListener {
 
     static {
         try {
-            logger.setLevel(Level.INFO);
-            logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "target/logs/refereeoutputlog.txt"));
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+            Configuration configuration = logContext.getConfiguration();
+            configuration.addAppender(FileAppender.newBuilder().setName("Refereeoutputlog").withFileName("target/logs/refereeoutputlog.txt").build());
+            
+            configuration.getLoggerConfig(logger.getName()).setLevel(Level.INFO);
+            logContext.updateLoggers();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -373,7 +374,7 @@ public class Referee implements SipListener {
             ListeningPoint lp = mySipProvider.getListeningPoint(transport);
 
             // Create ViaHeaders
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     lp.getPort(), transport, null);
 

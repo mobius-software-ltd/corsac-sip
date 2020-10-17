@@ -564,8 +564,8 @@ Caused by: java.text.ParseException: Scheme for contact should be sips:sip:proxy
      * 
      * @return a linked list containing the request line and headers encoded as strings.
      */
-    public LinkedList getMessageAsEncodedStrings() {
-        LinkedList retval = super.getMessageAsEncodedStrings();
+    public LinkedList<String> getMessageAsEncodedStrings() {
+        LinkedList<String> retval = super.getMessageAsEncodedStrings();
         if (requestLine != null) {
             this.setRequestLineDefaults();
             retval.addFirst(requestLine.encode());
@@ -919,7 +919,7 @@ Caused by: java.text.ParseException: Scheme for contact should be sips:sip:proxy
          * routed properly through any downstream stateless proxies.
          */
         if (this.getRouteHeaders() != null) {
-            newRequest.setHeader((SIPHeaderList) this.getRouteHeaders().clone());
+            newRequest.setHeader((SIPHeaderList<?>) this.getRouteHeaders().clone());
         }
         if (MessageFactoryImpl.getDefaultUserAgentHeader() != null) {
             newRequest.setHeader(MessageFactoryImpl.getDefaultUserAgentHeader());

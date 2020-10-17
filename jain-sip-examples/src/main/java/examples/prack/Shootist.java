@@ -236,17 +236,13 @@ public class Shootist implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     sipProvider.getListeningPoint(transport).getPort(),
                     transport, null);
 
             // add via headers
             viaHeaders.add(viaHeader);
-
-            // Create ContentTypeHeader
-            ContentTypeHeader contentTypeHeader = headerFactory
-                    .createContentTypeHeader("application", "sdp");
 
             // Create a new CallId header
             CallIdHeader callIdHeader = sipProvider.getNewCallId();

@@ -1,8 +1,6 @@
 package gov.nist.javax.sip.message;
 
 import java.util.Iterator;
-import java.util.List;
-
 import javax.sip.header.ContentTypeHeader;
 
 public interface MultipartMimeContent {

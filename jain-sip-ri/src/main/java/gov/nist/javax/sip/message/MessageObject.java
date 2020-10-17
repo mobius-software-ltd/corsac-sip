@@ -44,7 +44,12 @@ import java.lang.reflect.*;
  *
  */
 public abstract class MessageObject extends GenericObject {
-    public abstract String encode();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public abstract String encode();
 
     public void dbgPrint() {
         super.dbgPrint();

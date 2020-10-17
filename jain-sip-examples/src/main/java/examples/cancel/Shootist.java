@@ -5,9 +5,11 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import java.util.*;
 
@@ -58,11 +60,7 @@ public class Shootist extends TestCase implements SipListener {
 
     private boolean requestTerminated;
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
-
-
-
-
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
     public void processRequest(RequestEvent requestReceivedEvent) {
         Request request = requestReceivedEvent.getRequest();
@@ -267,7 +265,7 @@ public class Shootist extends TestCase implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = ProtocolObjects.headerFactory
                     .createViaHeader(host, sipProvider.getListeningPoint(
                             transport).getPort(), transport, null);
@@ -366,9 +364,10 @@ public class Shootist extends TestCase implements SipListener {
         }
     }
 
-    public static void main(String args[]) throws Exception {
-
-        logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+    public static void main(String args[]) throws Exception {    	
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         ProtocolObjects.init("shootist");
         Shootist shootist = new Shootist();
         shootist.createSipProvider();

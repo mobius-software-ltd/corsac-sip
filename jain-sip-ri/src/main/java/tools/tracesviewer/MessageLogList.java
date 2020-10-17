@@ -17,8 +17,10 @@ import java.util.*;
 *
 */
 
-public class MessageLogList extends TreeSet {
-    protected String description;
+public class MessageLogList extends TreeSet<TracesMessage> {
+	private static final long serialVersionUID = 1L;
+
+	protected String description;
     protected static long startTime;
 
     static {
@@ -28,7 +30,7 @@ public class MessageLogList extends TreeSet {
     /** Constructor.
     *@param comp comparator for sorting the logs
     */
-    public MessageLogList(Comparator comp) {
+    public MessageLogList(Comparator<TracesMessage> comp) {
         super(comp);
     }
 
@@ -44,19 +46,18 @@ public class MessageLogList extends TreeSet {
     *@param comp is the comparator to sort the log records.
     */
 
-    public MessageLogList(String callId, Comparator comp) {
+    public MessageLogList(String callId, Comparator<TracesMessage> comp) {
         super(comp);
     }
 
     /** Add a comparable object to the messgageLog
     *@param obj is the comparable object to add to the message log.
     */
-    public synchronized boolean add(Object obj) {
-        TracesMessage log = (TracesMessage) obj;
+    public synchronized boolean add(TracesMessage log) {
         long ts = Long.parseLong(log.getTime());
         if (ts < startTime || startTime < 0)
             startTime = ts;
-        return super.add(obj);
+        return super.add(log);
     }
 
 }

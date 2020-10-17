@@ -39,7 +39,11 @@ package gov.nist.javax.sdp.fields;
 *
 */
 public class SDPFormat extends SDPObject {
-    protected String format;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String format;
 
     public void setFormat(String fmt) {
         format = fmt;

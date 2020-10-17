@@ -1,23 +1,53 @@
 package test.unit.gov.nist.javax.sip.stack.subsnotify;
 
+import java.util.ArrayList;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
+import javax.sip.DialogState;
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.IOExceptionEvent;
+import javax.sip.ListeningPoint;
+import javax.sip.RequestEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipFactory;
+import javax.sip.SipListener;
+import javax.sip.SipProvider;
+import javax.sip.SipStack;
+import javax.sip.Transaction;
+import javax.sip.TransactionTerminatedEvent;
+import javax.sip.address.Address;
+import javax.sip.address.AddressFactory;
+import javax.sip.address.SipURI;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.EventHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.HeaderFactory;
+import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.RouteHeader;
+import javax.sip.header.SubscriptionStateHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.MessageFactory;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
-
-import javax.sip.*;
-import javax.sip.address.*;
-import javax.sip.header.*;
-import javax.sip.message.*;
-
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-
-
-import java.util.*;
-
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 
@@ -52,14 +82,17 @@ public class Subscriber implements SipListener {
 
     private boolean inDialogSubcribe;
 
-    private static Logger logger = Logger.getLogger(Subscriber.class);
+    private static Logger logger = LogManager.getLogger(Subscriber.class);
 
     static {
         try {
-            logger.setLevel(Level.INFO);
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-            logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "subscriberoutputlog.txt"));
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        	Configuration configuration = logContext.getConfiguration();
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        	configuration.addAppender(FileAppender.newBuilder().setName("Subscriberoutputlog").withFileName("subscriberoutputlog.txt").build());
+        	
+        	configuration.getLoggerConfig(logger.getName()).setLevel(Level.INFO);
+            logContext.updateLoggers();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -257,7 +290,7 @@ public class Subscriber implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             int port = sipProvider.getListeningPoint(transport).getPort();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     port, transport, null);
@@ -403,7 +436,7 @@ public class Subscriber implements SipListener {
     }
 
 	public void tearDown() {
-		this.sipStack.stop();
+		sipStack.stop();
 		
 	}
 

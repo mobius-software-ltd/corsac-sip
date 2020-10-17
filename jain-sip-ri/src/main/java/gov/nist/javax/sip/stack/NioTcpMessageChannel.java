@@ -25,6 +25,17 @@
  */
 package gov.nist.javax.sip.stack;
 
+import static javax.sip.message.Response.SERVICE_UNAVAILABLE;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+import java.text.ParseException;
+import java.util.Queue;
+
+import javax.net.ssl.SSLException;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
@@ -41,20 +52,6 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.NioPipelineParser;
 import gov.nist.javax.sip.stack.NioTcpMessageProcessor.PendingData;
-
-import static javax.sip.message.Response.SERVICE_UNAVAILABLE;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import javax.net.ssl.SSLException;
-import javax.sip.TransactionState;
 
 public class NioTcpMessageChannel extends ConnectionOrientedMessageChannel {
 	private static StackLogger logger = CommonLogger
@@ -377,7 +374,7 @@ public class NioTcpMessageChannel extends ConnectionOrientedMessageChannel {
 	 *             Thrown if we want to reject the message.
 	 */
 	public void handleException(ParseException ex, SIPMessage sipMessage,
-			Class hdrClass, String header, String message)
+			Class<?> hdrClass, String header, String message)
 			throws ParseException {
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Parsing Exception: " , ex);

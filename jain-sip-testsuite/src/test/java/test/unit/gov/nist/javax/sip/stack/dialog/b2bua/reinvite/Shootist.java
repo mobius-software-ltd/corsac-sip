@@ -1,10 +1,7 @@
 package test.unit.gov.nist.javax.sip.stack.dialog.b2bua.reinvite;
 
-import gov.nist.javax.sip.SipStackImpl;
-
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -17,8 +14,6 @@ import javax.sip.ListeningPoint;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
-import javax.sip.SipException;
-import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
@@ -41,9 +36,10 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import junit.framework.TestCase;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
+import junit.framework.TestCase;
 
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
@@ -77,11 +73,7 @@ public class Shootist implements SipListener {
 
     private static String unexpectedException = "Unexpected exception ";
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
-
-
-
-    private Dialog originalDialog;
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
     private HashSet<Dialog> forkedDialogs = new HashSet<Dialog>();
 
@@ -92,9 +84,7 @@ public class Shootist implements SipListener {
     private HashSet<Dialog> canceledDialog = new HashSet<Dialog>();
 
     private boolean byeResponseSeen;
-
-    private int counter;
-
+    
     private static HeaderFactory headerFactory;
 
     private static MessageFactory messageFactory;
@@ -104,8 +94,6 @@ public class Shootist implements SipListener {
     private static final String transport = "udp";
 
     static boolean callerSendsBye  = true;
-
-    private boolean byeSent;
 
     private Timer timer = new Timer();
 
@@ -362,7 +350,7 @@ public class Shootist implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory
                     .createViaHeader(host, sipProvider.getListeningPoint(
                             transport).getPort(),
@@ -461,8 +449,6 @@ public class Shootist implements SipListener {
 
             // send the request out.
             inviteTid.sendRequest();
-
-            this.originalDialog = dialog;
 
         } catch (Exception ex) {
             logger.error(unexpectedException, ex);

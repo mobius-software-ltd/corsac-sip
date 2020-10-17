@@ -33,7 +33,9 @@ import javax.sip.SipProvider;
 import javax.sip.TimeoutEvent;
 import javax.sip.TransactionTerminatedEvent;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.msgflow.callflows.ScenarioHarness;
 
@@ -48,11 +50,12 @@ public class TlsTest extends ScenarioHarness implements SipListener {
 
     private Shootme shootme;
 
-    private static Logger logger = Logger.getLogger("test.tck");
-
     static {
-        if (!logger.isAttached(console))
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(console);
+        }
     }
 
     private SipListener getSipListener(EventObject sipEvent) {

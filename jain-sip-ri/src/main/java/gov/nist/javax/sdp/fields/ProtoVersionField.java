@@ -42,7 +42,11 @@ import javax.sdp.*;
 *
 */
 public class ProtoVersionField extends SDPField implements javax.sdp.Version {
-    protected int protoVersion;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected int protoVersion;
 
     public ProtoVersionField() {
         super(PROTO_VERSION_FIELD);

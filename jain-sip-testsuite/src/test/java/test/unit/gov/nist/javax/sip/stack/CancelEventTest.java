@@ -1,7 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
@@ -39,12 +37,15 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import junit.framework.TestCase;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 
-import org.apache.log4j.Logger;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
-
 import test.tck.msgflow.callflows.ScenarioHarness;
 import test.tck.msgflow.callflows.TestAssertion;
 
@@ -59,11 +60,13 @@ public class CancelEventTest extends ScenarioHarness {
 
     private int peerPort = NetworkPortAssigner.retrieveNextPort();
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
 
     static {
-        if (!logger.isAttached(console)) {
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(console);
         }
     }
 
@@ -74,8 +77,6 @@ public class CancelEventTest extends ScenarioHarness {
     class Shootist implements SipListener {
 
         private SipProvider sipProvider;
-
-        private ContactHeader contactHeader;
 
         private ListeningPoint listeningPoint;
 
@@ -261,13 +262,6 @@ public class CancelEventTest extends ScenarioHarness {
 
         public void sendInvite() {
 
-            String fromName = "BigGuy";
-            // String fromSipAddress = "here.com";
-            String fromDisplayName = "The Master Blaster";
-
-            // String toSipAddress = "there.com";
-            String toUser = "LittleGuy";
-            String toDisplayName = "The Little Blister";
             String localAddress = sipProvider.getListeningPoint("udp")
                     .getIPAddress();
             int localPort = sipProvider.getListeningPoint("udp").getPort();
@@ -310,15 +304,13 @@ public class CancelEventTest extends ScenarioHarness {
                 routeHeader = headerFactory.createRouteHeader(routeAddress);
 
                 // LETS CREATE OUR REQUEST AND
-                ArrayList list = new ArrayList();
+                ArrayList<ViaHeader> list = new ArrayList<ViaHeader>();
                 list.add(viaHeader);
                 URI requestURI = null;
                 Request request = null;
-                Request cancel = null;
-                Request inviteRequest = null;
-
+                
                 requestURI = addressFactory.createURI("sip:" + localAddress);
-                inviteRequest = request = messageFactory.createRequest(
+                request = messageFactory.createRequest(
                         requestURI, Request.INVITE, callIdHeader, cseqHeader,
                         fromHeader, toHeader, list, maxForwardsHeader,
                         contentTypeHeader, "CANCEL".getBytes());

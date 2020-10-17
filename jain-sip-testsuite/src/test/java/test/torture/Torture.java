@@ -89,7 +89,7 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
 
     private PrintStream testLogWriter;
 
-    private Hashtable exceptionTable;
+    private Hashtable<String,ExpectedException> exceptionTable;
 
     private StringMsgParser stringParser;
 
@@ -102,13 +102,7 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
 
     private boolean sipURLContext;
 
-    private boolean testCaseContext;
-
     private boolean descriptionContext;
-
-    private boolean expectExceptionContext;
-
-    private boolean expectExtensionContext;
 
     private boolean exceptionMessageContext;
 
@@ -144,7 +138,7 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
 
         protected String exceptionMessage;
 
-        protected Class exceptionClass;
+        protected Class<?> exceptionClass;
 
         protected ExpectedException(String className, String headerString) {
             try {
@@ -165,7 +159,7 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
     }
 
     public void handleException(ParseException ex, SIPMessage sipMessage,
-            Class headerClass, String headerText, String messageText)
+            Class<?> headerClass, String headerText, String messageText)
             throws ParseException {
         String exceptionString = headerText;
         if (debugFlag) {
@@ -306,17 +300,15 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
             failureFlag = false;
             successFlag = false;
             messageContext = false;
-            testCaseContext = false;
             messageContext = false;
             descriptionContext = false;
-            expectExtensionContext = false;
             sipHeaderContext = false;
             sipURLContext = false;
             testDescription = null;
             testMessage = null;
             encodedMessage = null;
             exceptionMessage = null;
-            exceptionTable = new Hashtable();
+            exceptionTable = new Hashtable<String,ExpectedException>();
         } else if (name.compareTo(MESSAGE) == 0) {
             testMessageType = MESSAGE;
             messageContext = true;
@@ -329,7 +321,6 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
         } else if (name.compareTo(DESCRIPTION) == 0) {
             descriptionContext = true;
         } else if (name.compareTo(EXPECT_EXCEPTION) == 0) {
-            expectExceptionContext = true;
             exceptionClassName = attrs.getValue(EXCEPTION_CLASS);
         } else if (name.compareTo(EXCEPTION_MESSAGE) == 0) {
             exceptionMessageContext = true;
@@ -352,7 +343,6 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
     public void endElement(String namespaceURI, String local, String name)
             throws SAXException {
         if (name.compareTo(TESTCASE) == 0) {
-            testCaseContext = false;
             stringParser = new StringMsgParser();
             // stringParser.disableInputTracking();
 
@@ -365,7 +355,7 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
                     sipMessage = stringParser.parseSIPMessage(testMessage.getBytes(), true, false, (ParseExceptionListener) this);
                     encodedMessage = sipMessage.encode();
                 } else if (testMessageType.equals(SIP_HEADER)) {
-                    sipHeader = stringParser.parseSIPHeader(testMessage);
+                    sipHeader = StringMsgParser.parseSIPHeader(testMessage);
                     encodedMessage = sipHeader.encode();
                 } else if (testMessageType.equals(SIP_URL)) {
                     sipURL = stringParser.parseSIPUrl(testMessage.trim());
@@ -388,7 +378,7 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
                 junit.framework.TestCase.fail("Exit JVM");
 
             }
-            Enumeration e = exceptionTable.elements();
+            Enumeration<ExpectedException> e = exceptionTable.elements();
             while (e.hasMoreElements()) {
                 ExpectedException ex = (ExpectedException) e.nextElement();
                 if (!ex.fired) {
@@ -441,7 +431,6 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
         } else if (name.compareTo(EXCEPTION_TEXT) == 0) {
             exceptionTextContext = false;
         } else if (name.compareTo(EXPECT_EXCEPTION) == 0) {
-            expectExceptionContext = false;
             ExpectedException ex = new ExpectedException(exceptionClassName,
                     exceptionHeader);
             if (exceptionHeader != null) {
@@ -632,7 +621,9 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
             saxParser.setContentHandler(this);
             saxParser
                     .setFeature("http://xml.org/sax/features/validation", true);
-            saxParser.parse(new InputSource ( Torture.class.getResourceAsStream(fileName)));
+            
+            InputStream is=Torture.class.getResourceAsStream(fileName);
+            saxParser.parse(new InputSource (is));
             System.out.println("Elapsed time = "
                     + (System.currentTimeMillis() - startTime) / counter);
 

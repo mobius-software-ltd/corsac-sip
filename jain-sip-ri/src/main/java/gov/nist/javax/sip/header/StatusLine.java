@@ -77,7 +77,6 @@ public final class StatusLine extends SIPObject implements SipStatusLine {
             return false;
         if (sl.statusCode != 0) {
             if (matchStatusClass) {
-                int hiscode = sl.statusCode;
                 String codeString = Integer.toString(sl.statusCode);
                 String mycode = Integer.toString(statusCode);
                 if (codeString.charAt(0) != mycode.charAt(0))

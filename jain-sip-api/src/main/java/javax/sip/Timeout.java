@@ -110,6 +110,11 @@ import java.io.*;
 public final class Timeout implements Serializable{
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Constructor for the Timeout
      *
      * @param  timeout the integer value for the Timeout

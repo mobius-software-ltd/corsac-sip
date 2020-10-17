@@ -49,7 +49,7 @@ public class UserAgent extends SIPHeader implements UserAgentHeader {
     private static final long serialVersionUID = 4561239179796364295L;
     /** Product tokens.
     */
-    protected List productTokens;
+    protected List<String> productTokens;
 
     /**
      * Return canonical form.
@@ -58,7 +58,7 @@ public class UserAgent extends SIPHeader implements UserAgentHeader {
      */
     private StringBuilder encodeProduct(StringBuilder tokens) {
 //        StringBuilder tokens = new StringBuilder();
-        ListIterator it = productTokens.listIterator();
+        ListIterator<String> it = productTokens.listIterator();
 
         while (it.hasNext()) {
             tokens.append((String) it.next());
@@ -79,7 +79,7 @@ public class UserAgent extends SIPHeader implements UserAgentHeader {
      */
     public UserAgent() {
         super(NAME);
-        productTokens = new LinkedList();
+        productTokens = new LinkedList<String>();
     }
 
     /** Encode only the body of this header.
@@ -94,7 +94,7 @@ public class UserAgent extends SIPHeader implements UserAgentHeader {
     *
     * @return the software of this UserAgentHeader
     */
-    public ListIterator getProduct() {
+    public ListIterator<String> getProduct() {
         if (productTokens == null || productTokens.isEmpty())
             return null;
         else
@@ -108,19 +108,21 @@ public class UserAgent extends SIPHeader implements UserAgentHeader {
      * @throws ParseException which signals that an error has been reached
      * unexpectedly while parsing the product value.
      */
-    public void setProduct(List product) throws ParseException {
+    @SuppressWarnings("unchecked")
+	public void setProduct(@SuppressWarnings("rawtypes") List product) throws ParseException {
         if (product == null)
             throw new NullPointerException(
                 "JAIN-SIP Exception, UserAgent, "
                     + "setProduct(), the "
                     + " product parameter is null");
-        productTokens = product;
+        
+        productTokens = (List<String>)product;
     }
 
     public Object clone() {
         UserAgent retval = (UserAgent) super.clone();
         if (productTokens != null)
-            retval.productTokens = new LinkedList (productTokens);
+            retval.productTokens = new LinkedList<String> (productTokens);
         return retval;
     }
 

@@ -219,12 +219,12 @@ public class TLSMessageProcessor extends ConnectionOrientedMessageProcessor impl
             e.printStackTrace();
         }
 
-        Collection en = messageChannels.values();
-        for (Iterator it = en.iterator(); it.hasNext();) {
+        Collection<ConnectionOrientedMessageChannel> en = messageChannels.values();
+        for (Iterator<ConnectionOrientedMessageChannel> it = en.iterator(); it.hasNext();) {
             TLSMessageChannel next = (TLSMessageChannel) it.next();
             next.close();
         }
-        for (Iterator incomingMCIterator = incomingMessageChannels.values().iterator(); incomingMCIterator
+        for (Iterator<ConnectionOrientedMessageChannel> incomingMCIterator = incomingMessageChannels.values().iterator(); incomingMCIterator
                 .hasNext();) {
             TLSMessageChannel next = (TLSMessageChannel) incomingMCIterator.next();
             next.close();

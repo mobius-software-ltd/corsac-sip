@@ -23,7 +23,7 @@ public class ThreadAffinityExecutor implements ScheduledExecutorService {
     private final AtomicInteger nextThread = new AtomicInteger(0);
 
     public ThreadAffinityExecutor(int corePoolSize) {
-        executors = new ArrayList();
+        executors = new ArrayList<MDCScheduledTHExecutor>();
         NamingThreadFactory namingThreadFactory = new NamingThreadFactory("AffinityJAIN");
         for (int i = 0; i < corePoolSize; i++) {
             executors.add(new MDCScheduledTHExecutor(1, namingThreadFactory));

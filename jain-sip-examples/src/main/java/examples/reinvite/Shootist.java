@@ -7,10 +7,12 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import java.util.*;
 
@@ -25,8 +27,6 @@ import junit.framework.TestCase;
  */
 
 public class Shootist  implements SipListener {
-
-    private boolean reInviteFlag;
 
     private SipProvider provider;
 
@@ -59,12 +59,13 @@ public class Shootist  implements SipListener {
             + "examples.shootist.Shootist \n"
             + ">>>> is your class path set to the root?";
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
     static {
         try {
-            logger.addAppender(new FileAppender(new SimpleLayout(),
-                    ProtocolObjects.logFileDirectory + "shootistconsolelog.txt"));
+        	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+            Configuration configuration = logContext.getConfiguration();
+            configuration.addAppender(FileAppender.newBuilder().setName("Shootistconsolelog").withFileName(ProtocolObjects.logFileDirectory + "shootistconsolelog.txt").build());
         } catch (Exception ex) {
             throw new RuntimeException("could not open shootistconsolelog.txt");
         }
@@ -362,7 +363,7 @@ public class Shootist  implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             int port = provider.getListeningPoint(ProtocolObjects.transport)
                     .getPort();
 
@@ -507,7 +508,9 @@ public class Shootist  implements SipListener {
     public static void main(String args[]) {
         try {
             ProtocolObjects.init("shootist", true);
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+            Configuration configuration = logContext.getConfiguration();
+            configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
             Shootist shootist = new Shootist(10);
             shootist.createSipProvider();
             shootist.provider.addSipListener(shootist);

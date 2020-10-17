@@ -1,7 +1,6 @@
 package gov.nist.javax.sip.parser;
 
 import gov.nist.javax.sip.header.RetryAfter;
-import gov.nist.javax.sip.parser.RetryAfterParser;
 
 
 

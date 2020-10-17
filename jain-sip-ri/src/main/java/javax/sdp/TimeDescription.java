@@ -9,6 +9,8 @@ package javax.sdp;
 import java.io.*;
 import java.util.*;
 
+import gov.nist.javax.sdp.fields.RepeatField;
+
 /** A TimeDescription represents the fields present within a SDP time description.
  *
  * Quoting from RFC 2327:
@@ -62,13 +64,13 @@ public interface TimeDescription extends Serializable, Cloneable {
      * @param create boolean to set
      * @return Vector
      */    
-    public Vector getRepeatTimes(boolean create);
+    public Vector<RepeatField> getRepeatTimes(boolean create);
     
     /** Returns the list of repeat times (r= fields) specified in the SessionDescription.
      * @param repeatTimes Vector to set
      * @throws SdpException if the parameter is null
      */    
-    public void setRepeatTimes(Vector repeatTimes)
+    public void setRepeatTimes(Vector<RepeatField> repeatTimes)
                     throws SdpException;
     
 }

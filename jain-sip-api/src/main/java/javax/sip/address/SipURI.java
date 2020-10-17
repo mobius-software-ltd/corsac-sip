@@ -238,7 +238,7 @@ public interface SipURI extends URI, Parameters {
      *
      * @return an Iterator over all the header names
      */
-    public Iterator getHeaderNames();
+    public Iterator<?> getHeaderNames();
 
 //Param Covenience methods
 

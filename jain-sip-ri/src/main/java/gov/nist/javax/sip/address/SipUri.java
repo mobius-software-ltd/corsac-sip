@@ -148,7 +148,6 @@ public class SipUri extends GenericURI implements javax.sip.address.SipURI , Sip
      *    header equality enforced in comparison
      *
      */
-    @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object that) {
 
@@ -174,7 +173,7 @@ public class SipUri extends GenericURI implements javax.sip.address.SipURI , Sip
             if (a.getPort() != b.getPort()) return false;
 
             // URI parameters
-            for (Iterator i = a.getParameterNames(); i.hasNext();) {
+            for (Iterator<?> i = a.getParameterNames(); i.hasNext();) {
                 String pname = (String) i.next();
 
                 String p1 = a.getParameter(pname);
@@ -203,7 +202,7 @@ public class SipUri extends GenericURI implements javax.sip.address.SipURI , Sip
                     Debug.logError("Cannot get the header factory to parse the header of the sip uris to compare", e);
                     return false;
                 }
-                for (Iterator i = a.getHeaderNames(); i.hasNext();) {
+                for (Iterator<?> i = a.getHeaderNames(); i.hasNext();) {
                     String hname = (String) i.next();
 
                     String h1 = a.getHeader(hname);

@@ -18,7 +18,11 @@ import javax.swing.*;
 */
 public class AlertFrame extends JOptionPane {
 
-    public String finalInputValue;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public String finalInputValue;
 
     /** Creates new AlertFrame */
     public AlertFrame(String text, int messageType) {

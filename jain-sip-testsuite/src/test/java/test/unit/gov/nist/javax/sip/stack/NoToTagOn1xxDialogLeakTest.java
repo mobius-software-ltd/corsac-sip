@@ -48,7 +48,6 @@ import javax.sip.message.Response;
 
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
-import test.tck.msgflow.callflows.ProtocolObjects;
 /**
  * This test aims to test the fact when a 1xx is received with no to tag it was letting a dialog in the sip stack not being removed
  * See Issue 178
@@ -59,13 +58,6 @@ import test.tck.msgflow.callflows.ProtocolObjects;
 public class NoToTagOn1xxDialogLeakTest extends TestCase {
 
     public static final int BALANCER_PORT = 5050;
-
-    private static AddressFactory addressFactory;
-
-    private static MessageFactory messageFactory;
-
-    private static HeaderFactory headerFactory;
-
 
     Shootist shootist;
 
@@ -242,7 +234,6 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
          */
         public void processBye(RequestEvent requestEvent,
                 ServerTransaction serverTransactionId) {
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             Dialog dialog = requestEvent.getDialog();
             System.out.println("local party = " + dialog.getLocalParty());
@@ -262,7 +253,6 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
 
         public void processCancel(RequestEvent requestEvent,
                 ServerTransaction serverTransactionId) {
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             try {
                 System.out.println("shootme:  got a cancel.");
@@ -401,8 +391,6 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
         
         public final int myPort = NetworkPortAssigner.retrieveNextPort();
 
-        private Response lastResponse;
-        
         private  String PEER_ADDRESS;
 
         private  int PEER_PORT;
@@ -410,7 +398,7 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
         private  String peerHostPort;   
         
         public Shootist(Shootme shootme) {
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;            
         }        
@@ -658,7 +646,7 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -769,10 +757,10 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
     }
 
     public static void stopSipStack(SipStack sipStack, SipListener listener) {
-        Iterator<SipProvider> sipProviderIterator = sipStack.getSipProviders();
+        Iterator<?> sipProviderIterator = sipStack.getSipProviders();
         try{
             while (sipProviderIterator.hasNext()) {
-                SipProvider sipProvider = sipProviderIterator.next();
+                SipProvider sipProvider = (SipProvider)sipProviderIterator.next();
                 ListeningPoint[] listeningPoints = sipProvider.getListeningPoints();
                 for (ListeningPoint listeningPoint : listeningPoints) {
                     sipProvider.removeListeningPoint(listeningPoint);

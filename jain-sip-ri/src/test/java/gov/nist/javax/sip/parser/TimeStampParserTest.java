@@ -19,8 +19,6 @@
 */
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.parser.TimeStampParser;
-import gov.nist.javax.sip.parser.ParserTestCase;
 public class TimeStampParserTest extends ParserTestCase {
 
     public void testParser() {

@@ -6,7 +6,11 @@ import java.awt.event.*;
 
 public class DebugWindow extends javax.swing.JFrame {
 
-    public JPanel mainPanel;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public JPanel mainPanel;
     public JButton okButton;
 
     public DebugWindow(String beforeDebug, String afterDebug, String title) {

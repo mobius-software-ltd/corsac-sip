@@ -40,7 +40,11 @@ import gov.nist.core.*;
 *
 */
 public class ZoneAdjustment extends SDPObject {
-    protected long time;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected long time;
     protected String sign;
     protected TypedTime offset;
 

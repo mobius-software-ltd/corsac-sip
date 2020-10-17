@@ -24,14 +24,13 @@
  */
 package javax.sip;
 
+import java.io.Serializable;
+import java.util.Iterator;
+
 import javax.sip.address.Address;
+import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-
-import java.text.ParseException;
-import java.util.Iterator;
-import javax.sip.header.CallIdHeader;
-import java.io.Serializable;
 
 /**
  * A dialog represents a peer-to-peer SIP relationship between two user agents
@@ -356,7 +355,7 @@ public interface Dialog extends Serializable {
      * @return an Iterator over a list of route headers to be used for
      *         forwarding.
      */
-    public Iterator getRouteSet();
+    public Iterator<?> getRouteSet();
 
     /**
      * Returns true if this Dialog is secure, for example if the request was sent over a

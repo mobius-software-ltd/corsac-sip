@@ -1,21 +1,34 @@
 package test.tck.msgflow.callflows.forkedinvite;
 
-import javax.sip.*;
-import javax.sip.address.*;
-import javax.sip.header.*;
-import javax.sip.message.*;
+import java.util.Hashtable;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import javax.sip.Dialog;
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.IOExceptionEvent;
+import javax.sip.ListeningPoint;
+import javax.sip.RequestEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipListener;
+import javax.sip.SipProvider;
+import javax.sip.Transaction;
+import javax.sip.TransactionState;
+import javax.sip.TransactionTerminatedEvent;
+import javax.sip.address.Address;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import test.tck.TestHarness;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
-
-import java.util.*;
-
-import junit.framework.TestCase;
 
 /**
  * This class is a UAC template. Shootist is the guy that shoots and shootme is
@@ -31,7 +44,7 @@ public class Shootme   implements SipListener {
 
     private static final String myAddress = "127.0.0.1";
 
-    private Hashtable serverTxTable = new Hashtable();
+    private Hashtable<String,ServerTransaction> serverTxTable = new Hashtable<String,ServerTransaction>();
 
     private SipProvider sipProvider;
 
@@ -39,7 +52,7 @@ public class Shootme   implements SipListener {
 
     private static String unexpectedException = "Unexpected exception ";
 
-    private static Logger logger = Logger.getLogger(Shootme.class);
+    private static Logger logger = LogManager.getLogger(Shootme.class);
 
     private ProtocolObjects protocolObjects;
 

@@ -152,12 +152,12 @@ import javax.sip.header.WarningHeader;
 public class ParserFactory {
 	//jeand : moving to concurrent structures to avoid blocking witnessed during profiling
     private static Map<String,Class<? extends HeaderParser>> parserTable;
-    private static Class[] constructorArgs;
-    private static ConcurrentHashMap<Class, Constructor> parserConstructorCache;
+    private static Class<?>[] constructorArgs;
+    private static ConcurrentHashMap<Class<?>, Constructor<?>> parserConstructorCache;
 
     static {
         parserTable = new ConcurrentHashMap<String,Class<? extends HeaderParser>>(90);
-        parserConstructorCache = new ConcurrentHashMap<Class, Constructor>();
+        parserConstructorCache = new ConcurrentHashMap<Class<?>, Constructor<?>>();
         constructorArgs = new Class[1];
         constructorArgs[0] = String.class;
         parserTable.put(ReplyToHeader.NAME.toLowerCase(), ReplyToParser.class);
@@ -407,10 +407,10 @@ public class ParserFactory {
         if (headerName == null || headerValue == null)
             throw new ParseException("The header name or value is null", 0);
 
-        Class parserClass = (Class) parserTable.get(SIPHeaderNamesCache.toLowerCase(headerName));
+        Class<?> parserClass = parserTable.get(SIPHeaderNamesCache.toLowerCase(headerName));
         if (parserClass != null) {
             try {
-                Constructor cons = (Constructor) parserConstructorCache.get(parserClass);
+                Constructor<?> cons = parserConstructorCache.get(parserClass);
                 if (cons == null) {
                     cons = parserClass.getConstructor(constructorArgs);
                     parserConstructorCache.putIfAbsent(parserClass, cons);

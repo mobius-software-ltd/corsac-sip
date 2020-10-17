@@ -17,7 +17,11 @@ package javax.sdp;
  */
 public class SdpFactoryException extends  SdpException {
 
-    /** Chained exception.
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/** Chained exception.
      */    
     protected Exception ex;
     

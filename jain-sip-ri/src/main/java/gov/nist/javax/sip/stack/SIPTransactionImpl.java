@@ -88,6 +88,8 @@ import java.util.regex.Pattern;
  * @version 1.2 $Revision: 1.100 $ $Date: 2010-12-02 22:04:13 $
  */
 public abstract class SIPTransactionImpl implements SIPTransaction {
+	private static final long serialVersionUID = 1L;
+
 	private static StackLogger logger = CommonLogger.getLogger(SIPTransaction.class);
 
 	// Contribution on http://java.net/jira/browse/JSIP-417 from Alexander Saveliev
@@ -210,8 +212,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     // and a lock for reetrant listener to avoid race conditions
     // when 2 responses 180/200 OK arrives at the same time
     class TransactionSemaphore {
-
-        private static final long serialVersionUID = -1634100711669020804L;
         Semaphore sem = null;
         ReentrantLock lock = null;
 
@@ -294,7 +294,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         }
 
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
@@ -338,7 +338,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         }
 
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
@@ -857,7 +857,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             						}
             					}
 
-                                                public Object getThreadHash() {
+                                                public String getThreadHash() {
                                                     return messageToSend.getCallId().getCallId();
                                                 }
             				};
@@ -889,7 +889,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             						}
             					}
 
-                                                public Object getThreadHash() {
+                                                public String getThreadHash() {
                                                     return messageToSend.getCallId().getCallId();
                                                 }
             				};
@@ -917,7 +917,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     								}
     							}
 
-                                                        public Object getThreadHash() {
+                                                        public String getThreadHash() {
                                                             return messageToSend.getCallId().getCallId();
                                                         }
     						};

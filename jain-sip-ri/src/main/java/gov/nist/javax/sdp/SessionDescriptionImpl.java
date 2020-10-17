@@ -50,7 +50,9 @@ import java.text.ParseException;
  *
  */
 public class SessionDescriptionImpl implements SessionDescription {
-    private TimeDescriptionImpl currentTimeDescription;
+	private static final long serialVersionUID = 1L;
+
+	private TimeDescriptionImpl currentTimeDescription;
 
     private MediaDescriptionImpl currentMediaDescription;
 
@@ -68,19 +70,19 @@ public class SessionDescriptionImpl implements SessionDescription {
 
     protected KeyField keyImpl;
 
-    protected Vector timeDescriptions;
+    protected Vector<TimeDescription> timeDescriptions;
 
-    protected Vector mediaDescriptions;
+    protected Vector<MediaDescription> mediaDescriptions;
 
-    protected Vector zoneAdjustments;
+    protected Vector<ZoneField> zoneAdjustments;
 
-    protected Vector emailList;
+    protected Vector<EmailField> emailList;
 
-    protected Vector phoneList;
+    protected Vector<PhoneField> phoneList;
 
-    protected Vector bandwidthList;
+    protected Vector<BandwidthField> bandwidthList;
 
-    protected Vector attributesList;
+    protected Vector<AttributeField> attributesList;
 
     /** Creates new SessionDescriptionImpl */
     public SessionDescriptionImpl() {
@@ -145,20 +147,20 @@ public class SessionDescriptionImpl implements SessionDescription {
         }
 
         // Deep copy each vector, starting with time descriptions
-        Vector otherTimeDescriptions = otherSessionDescription.getTimeDescriptions(false);
+        Vector<TimeDescription> otherTimeDescriptions = otherSessionDescription.getTimeDescriptions(false);
         if (otherTimeDescriptions != null) {
-            Vector newTDs = new Vector();
-            Iterator itTimeDescriptions = otherTimeDescriptions.iterator();
+            Vector<TimeDescription> newTDs = new Vector<TimeDescription>();
+            Iterator<TimeDescription> itTimeDescriptions = otherTimeDescriptions.iterator();
             while (itTimeDescriptions.hasNext()) {
                 TimeDescriptionImpl otherTimeDescription = (TimeDescriptionImpl) itTimeDescriptions.next();
                 if (otherTimeDescription != null) {
                     TimeField otherTimeField = (TimeField) otherTimeDescription.getTime().clone();
                     TimeDescriptionImpl newTD = new TimeDescriptionImpl(otherTimeField);
-                    Vector otherRepeatTimes = otherTimeDescription.getRepeatTimes(false);
+                    Vector<RepeatField> otherRepeatTimes = otherTimeDescription.getRepeatTimes(false);
                     if (otherRepeatTimes != null) {
-                        Iterator itRepeatTimes = otherRepeatTimes.iterator();
+                        Iterator<RepeatField> itRepeatTimes = otherRepeatTimes.iterator();
                         while (itRepeatTimes.hasNext()) {
-                            RepeatField otherRepeatField = (RepeatField) itRepeatTimes.next();
+                            RepeatField otherRepeatField = itRepeatTimes.next();
                             if (otherRepeatField != null) {
                                 // RepeatField clone is a deep copy
                                 RepeatField newRF = (RepeatField) otherRepeatField.clone();
@@ -173,12 +175,12 @@ public class SessionDescriptionImpl implements SessionDescription {
         }
 
         // Deep copy the email list
-        Vector otherEmails = otherSessionDescription.getEmails(false);
+        Vector<EmailField> otherEmails = otherSessionDescription.getEmails(false);
         if (otherEmails != null) {
-            Vector newEmails = new Vector();
-            Iterator itEmails = otherEmails.iterator();
+            Vector<EmailField> newEmails = new Vector<EmailField>();
+            Iterator<EmailField> itEmails = otherEmails.iterator();
             while (itEmails.hasNext()) {
-                EmailField otherEmailField = (EmailField) itEmails.next();
+                EmailField otherEmailField = itEmails.next();
                 if (otherEmailField != null) {
                     // Email field clone is a deep copy
                     EmailField newEF = (EmailField) otherEmailField.clone();
@@ -189,12 +191,12 @@ public class SessionDescriptionImpl implements SessionDescription {
         }
 
         // Deep copy the phone list
-        Vector otherPhones = otherSessionDescription.getPhones(false);
+        Vector<PhoneField> otherPhones = otherSessionDescription.getPhones(false);
         if (otherPhones != null) {
-            Vector newPhones = new Vector();
-            Iterator itPhones = otherPhones.iterator();
+            Vector<PhoneField> newPhones = new Vector<PhoneField>();
+            Iterator<PhoneField> itPhones = otherPhones.iterator();
             while (itPhones.hasNext()) {
-                PhoneField otherPhoneField = (PhoneField) itPhones.next();
+                PhoneField otherPhoneField = itPhones.next();
                 if (otherPhoneField != null) {
                     // Phone field clone is a deep copy
                     PhoneField newPF = (PhoneField) otherPhoneField.clone();
@@ -205,12 +207,12 @@ public class SessionDescriptionImpl implements SessionDescription {
         }
 
         // Deep copy the zone adjustments list
-        Vector otherZAs = otherSessionDescription.getZoneAdjustments(false);
+        Vector<ZoneField> otherZAs = otherSessionDescription.getZoneAdjustments(false);
         if (otherZAs != null) {
-            Vector newZAs = new Vector();
-            Iterator itZAs = otherZAs.iterator();
+            Vector<ZoneField> newZAs = new Vector<ZoneField>();
+            Iterator<ZoneField> itZAs = otherZAs.iterator();
             while (itZAs.hasNext()) {
-                ZoneField otherZoneField = (ZoneField) itZAs.next();
+                ZoneField otherZoneField = itZAs.next();
                 if (otherZoneField != null) {
                     // Zone field clone is a deep copy
                     ZoneField newPF = (ZoneField) otherZoneField.clone();
@@ -221,10 +223,10 @@ public class SessionDescriptionImpl implements SessionDescription {
         }
 
         // Deep copy the bandwidth list
-        Vector otherBandwidths = otherSessionDescription.getBandwidths(false);
+        Vector<BandwidthField> otherBandwidths = otherSessionDescription.getBandwidths(false);
         if (otherBandwidths != null) {
-            Vector newBandwidths = new Vector();
-            Iterator itBandwidths = otherBandwidths.iterator();
+            Vector<BandwidthField> newBandwidths = new Vector<BandwidthField>();
+            Iterator<BandwidthField> itBandwidths = otherBandwidths.iterator();
             while (itBandwidths.hasNext()) {
                 BandwidthField otherBandwidthField = (BandwidthField) itBandwidths.next();
                 if (otherBandwidthField != null) {
@@ -237,12 +239,12 @@ public class SessionDescriptionImpl implements SessionDescription {
         }
 
         // Deep copy the attribute list
-        Vector otherAttributes = otherSessionDescription.getAttributes(false);
+        Vector<AttributeField> otherAttributes = otherSessionDescription.getAttributes(false);
         if (otherAttributes != null) {
-            Vector newAttributes = new Vector();
-            Iterator itAttributes = otherAttributes.iterator();
+            Vector<AttributeField> newAttributes = new Vector<AttributeField>();
+            Iterator<AttributeField> itAttributes = otherAttributes.iterator();
             while (itAttributes.hasNext()) {
-                AttributeField otherAttributeField = (AttributeField) itAttributes.next();
+                AttributeField otherAttributeField = itAttributes.next();
                 if (otherAttributeField != null) {
                     // Attribute field clone() makes a deep copy but be careful: it may use reflection to copy one of its members
                     AttributeField newBF = (AttributeField) otherAttributeField.clone();
@@ -253,10 +255,10 @@ public class SessionDescriptionImpl implements SessionDescription {
         }
 
         // Deep copy the media descriptions
-        Vector otherMediaDescriptions = otherSessionDescription.getMediaDescriptions(false);
+        Vector<MediaDescription> otherMediaDescriptions = otherSessionDescription.getMediaDescriptions(false);
         if (otherMediaDescriptions != null) {
-            Vector newMDs = new Vector();
-            Iterator itMediaDescriptions = otherMediaDescriptions.iterator();
+            Vector<MediaDescription> newMDs = new Vector<MediaDescription>();
+            Iterator<MediaDescription> itMediaDescriptions = otherMediaDescriptions.iterator();
             while (itMediaDescriptions.hasNext()) {
                 MediaDescriptionImpl otherMediaDescription = (MediaDescriptionImpl) itMediaDescriptions.next();
                 if (otherMediaDescription != null) {
@@ -271,10 +273,10 @@ public class SessionDescriptionImpl implements SessionDescription {
                         newMF.setPort(otherMediaField.getPort());
                         newMF.setNports(otherMediaField.getNports());
                         newMF.setProto(otherMediaField.getProto());
-                        Vector otherFormats = otherMediaField.getFormats();
+                        Vector<String> otherFormats = otherMediaField.getFormats();
                         if (otherFormats != null) {
-                            Vector newFormats = new Vector();
-                            Iterator itFormats = otherFormats.iterator();
+                            Vector<String> newFormats = new Vector<String>();
+                            Iterator<String> itFormats = otherFormats.iterator();
                             while (itFormats.hasNext()) {
                                 Object otherFormat = itFormats.next();
                                 if (otherFormat != null) {
@@ -300,12 +302,12 @@ public class SessionDescriptionImpl implements SessionDescription {
                     }
 
                     // Copy the bandwidth fields
-                    Vector otherBFs = otherMediaDescription.getBandwidths(false);
+                    Vector<BandwidthField> otherBFs = otherMediaDescription.getBandwidths(false);
                     if (otherBFs != null) {
-                        Vector newBFs = new Vector();
-                        Iterator itBFs = otherBFs.iterator();
+                        Vector<BandwidthField> newBFs = new Vector<BandwidthField>();
+                        Iterator<BandwidthField> itBFs = otherBFs.iterator();
                         while (itBFs.hasNext()) {
-                            BandwidthField otherBF = (BandwidthField) itBFs.next();
+                            BandwidthField otherBF = itBFs.next();
                             if (otherBF != null) {
                                 // BandwidthField is a shallow object, ok to use clone
                                 newBFs.add((BandwidthField) otherBF.clone());
@@ -321,12 +323,12 @@ public class SessionDescriptionImpl implements SessionDescription {
                     }
 
                     // Copy the attributes
-                    Vector otherAFs = otherMediaDescription.getAttributeFields();
+                    Vector<AttributeField> otherAFs = otherMediaDescription.getAttributeFields();
                     if (otherAFs != null) {
-                        Vector newAFs = new Vector();
-                        Iterator itAFs = otherAFs.iterator();
+                        Vector<AttributeField> newAFs = new Vector<AttributeField>();
+                        Iterator<AttributeField> itAFs = otherAFs.iterator();
                         while (itAFs.hasNext()) {
-                            AttributeField otherAF = (AttributeField) itAFs.next();
+                            AttributeField otherAF = itAFs.next();
                             if (otherAF != null) {
                                 // AttributeField clone() already makes a deep copy, but be careful. It will use reflection
                                 // unless the attribute is a String or any other immutable object.
@@ -370,13 +372,13 @@ public class SessionDescriptionImpl implements SessionDescription {
                 else
                     keyImpl = (KeyField) sdpField;
             } else if (sdpField instanceof EmailField) {
-                getEmails(true).add(sdpField);
+                getEmails(true).add((EmailField)sdpField);
             } else if (sdpField instanceof PhoneField) {
-                getPhones(true).add(sdpField);
+                getPhones(true).add((PhoneField)sdpField);
             } else if (sdpField instanceof TimeField) {
                 currentTimeDescription = new TimeDescriptionImpl(
                         (TimeField) sdpField);
-                getTimeDescriptions(true).add(currentTimeDescription);
+                getTimeDescriptions(true).add((TimeDescription)currentTimeDescription);
             } else if (sdpField instanceof RepeatField) {
                 if (currentTimeDescription == null) {
                     throw new ParseException("no time specified", 0);
@@ -385,22 +387,20 @@ public class SessionDescriptionImpl implements SessionDescription {
                             .addRepeatField((RepeatField) sdpField);
                 }
             } else if (sdpField instanceof ZoneField) {
-                getZoneAdjustments(true).add(sdpField);
+                getZoneAdjustments(true).add((ZoneField)sdpField);
             } else if (sdpField instanceof BandwidthField) {
                 if (currentMediaDescription != null)
                     currentMediaDescription
                             .addBandwidthField((BandwidthField) sdpField);
                 else
-                    getBandwidths(true).add(sdpField);
+                    getBandwidths(true).add((BandwidthField)sdpField);
             } else if (sdpField instanceof AttributeField) {
                 if (currentMediaDescription != null) {
-                    AttributeField af = (AttributeField) sdpField;
-                    String s = af.getName();
                     // Bug report from Andreas Bystrom
                     currentMediaDescription
                             .addAttribute((AttributeField) sdpField);
                 } else {
-                    getAttributes(true).add(sdpField);
+                    getAttributes(true).add((AttributeField)sdpField);
                 }
 
             } else if (sdpField instanceof MediaField) {
@@ -585,10 +585,10 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpParseException
      * @return the email address.
      */
-    public Vector getEmails(boolean create) throws SdpParseException {
+    public Vector<EmailField> getEmails(boolean create) throws SdpParseException {
         if (emailList == null) {
             if (create)
-                emailList = new Vector();
+                emailList = new Vector<EmailField>();
         }
         return emailList;
     }
@@ -602,7 +602,7 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      *             if the vector is null
      */
-    public void setEmails(Vector emails) throws SdpException {
+    public void setEmails(Vector<EmailField> emails) throws SdpException {
         if (emails == null)
             throw new SdpException("The parameter is null");
         else
@@ -618,10 +618,10 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      * @return the phone number.
      */
-    public Vector getPhones(boolean create) throws SdpException {
+    public Vector<PhoneField> getPhones(boolean create) throws SdpException {
         if (phoneList == null) {
             if (create)
-                phoneList = new Vector();
+                phoneList = new Vector<PhoneField>();
         }
         return phoneList;
     }
@@ -635,7 +635,7 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      *             if the vector is null
      */
-    public void setPhones(Vector phones) throws SdpException {
+    public void setPhones(Vector<PhoneField> phones) throws SdpException {
         if (phones == null)
             throw new SdpException("The parameter is null");
         else
@@ -652,10 +652,10 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      * @return the Time Field.
      */
-    public Vector getTimeDescriptions(boolean create) throws SdpException {
+    public Vector<TimeDescription> getTimeDescriptions(boolean create) throws SdpException {
         if (timeDescriptions == null) {
             if (create)
-                timeDescriptions = new Vector();
+                timeDescriptions = new Vector<TimeDescription>();
         }
         return timeDescriptions;
     }
@@ -670,7 +670,7 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      *             if the vector is null
      */
-    public void setTimeDescriptions(Vector times) throws SdpException {
+    public void setTimeDescriptions(Vector<TimeDescription> times) throws SdpException {
         if (times == null)
             throw new SdpException("The parameter is null");
         else {
@@ -687,10 +687,10 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @return a Hashtable containing the zone adjustments, where the key is the
      *         Adjusted Time Zone and the value is the offset.
      */
-    public Vector getZoneAdjustments(boolean create) throws SdpException {
+    public Vector<ZoneField> getZoneAdjustments(boolean create) throws SdpException {
         if (zoneAdjustments == null) {
             if (create)
-                zoneAdjustments = new Vector();
+                zoneAdjustments = new Vector<ZoneField>();
         }
         return zoneAdjustments;
     }
@@ -705,7 +705,7 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      *             if the vector is null
      */
-    public void setZoneAdjustments(Vector zoneAdjustments) throws SdpException {
+    public void setZoneAdjustments(Vector<ZoneField> zoneAdjustments) throws SdpException {
         if (zoneAdjustments == null)
             throw new SdpException("The parameter is null");
         else
@@ -749,10 +749,10 @@ public class SessionDescriptionImpl implements SessionDescription {
      *            type - type of the Bandwidth to return
      * @return the Bandwidth or null if undefined
      */
-    public Vector getBandwidths(boolean create) {
+    public Vector<BandwidthField> getBandwidths(boolean create) {
         if (bandwidthList == null) {
             if (create)
-                bandwidthList = new Vector();
+                bandwidthList = new Vector<BandwidthField>();
         }
         return bandwidthList;
     }
@@ -765,7 +765,7 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      *             if the vector is null
      */
-    public void setBandwidths(Vector bandwidthList) throws SdpException {
+    public void setBandwidths(Vector<BandwidthField> bandwidthList) throws SdpException {
         if (bandwidthList == null)
             throw new SdpException("The parameter is null");
         else
@@ -922,10 +922,10 @@ public class SessionDescriptionImpl implements SessionDescription {
      *            Vector in case no attributes exists for this Description
      * @return attributes for this Description
      */
-    public Vector getAttributes(boolean create) {
+    public Vector<AttributeField> getAttributes(boolean create) {
         if (attributesList == null) {
             if (create)
-                attributesList = new Vector();
+                attributesList = new Vector<AttributeField>();
         }
         return attributesList;
     }
@@ -994,7 +994,7 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      *             if the vector is null
      */
-    public void setAttributes(Vector attributes) throws SdpException {
+    public void setAttributes(Vector<AttributeField> attributes) throws SdpException {
         if (attributes == null)
             throw new SdpException("The parameter is null");
         else
@@ -1010,10 +1010,10 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      * @return media - the field to add.
      */
-    public Vector getMediaDescriptions(boolean create) throws SdpException {
+    public Vector<MediaDescription> getMediaDescriptions(boolean create) throws SdpException {
         if (mediaDescriptions == null) {
             if (create)
-                mediaDescriptions = new Vector();
+                mediaDescriptions = new Vector<MediaDescription>();
         }
         return mediaDescriptions;
     }
@@ -1026,7 +1026,7 @@ public class SessionDescriptionImpl implements SessionDescription {
      * @throws SdpException
      *             if the parameter is null
      */
-    public void setMediaDescriptions(Vector mediaDescriptions)
+    public void setMediaDescriptions(Vector<MediaDescription> mediaDescriptions)
             throws SdpException {
         if (mediaDescriptions == null)
             throw new SdpException("The parameter is null");
@@ -1034,7 +1034,7 @@ public class SessionDescriptionImpl implements SessionDescription {
             this.mediaDescriptions = mediaDescriptions;
     }
 
-    private String encodeVector(Vector vector) {
+    private String encodeVector(Vector<?> vector) {
         StringBuilder encBuff = new StringBuilder();
 
         for (int i = 0; i < vector.size(); i++)

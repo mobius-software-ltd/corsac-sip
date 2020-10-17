@@ -16,7 +16,7 @@ import java.util.*;
  * Parse the log files - sort them and organize by call id.
  */
 public class LogFileParser extends DefaultHandler {
-    protected Hashtable messageLogs;
+    protected Hashtable<String,MessageLogList> messageLogs;
 
     private XMLReader xmlReader;
 
@@ -55,7 +55,7 @@ public class LogFileParser extends DefaultHandler {
     private TracesMessage messageLog;
 
     public LogFileParser() {
-        messageLogs = new Hashtable();
+        messageLogs = new Hashtable<String,MessageLogList>();
         try {
             SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
             SAXParser saxParser = saxParserFactory.newSAXParser();
@@ -74,7 +74,7 @@ public class LogFileParser extends DefaultHandler {
 
     }
 
-    public Hashtable parseLogs(InputSource inputSource) {
+    public Hashtable<String,MessageLogList> parseLogs(InputSource inputSource) {
         try {
             this.xmlReader.parse(inputSource);
             return messageLogs;
@@ -134,7 +134,7 @@ public class LogFileParser extends DefaultHandler {
             String qName // qualified name
     ) throws SAXException {
         if (qName.equalsIgnoreCase("message")) {
-            boolean sflag = isSender.equals("true");
+            isSender.equals("true");
             messageLog = new TracesMessage(from, to, time, firstLine, message
                     .toString(), statusMessage, transactionId,
                     messageTimeStamp, debugLine);
@@ -191,7 +191,7 @@ public class LogFileParser extends DefaultHandler {
     /**
      * Generate a file that can be digested by the trace viewer.
      */
-    public Hashtable parseLogsFromDebugFile(String logFileName) {
+    public Hashtable<String,MessageLogList> parseLogsFromDebugFile(String logFileName) {
         try {
 
             // FileWriter fw=new FileWriter(logFileName);
@@ -223,7 +223,7 @@ public class LogFileParser extends DefaultHandler {
     /**
      * Generate a file that can be digested by the trace viewer.
      */
-    public Hashtable parseLogsFromFile(String logFileName) {
+    public Hashtable<String,MessageLogList> parseLogsFromFile(String logFileName) {
         try {
 
             // FileWriter fw=new FileWriter(logFileName);
@@ -252,7 +252,7 @@ public class LogFileParser extends DefaultHandler {
         }
     }
 
-    public Hashtable parseLogsFromString(String logString) {
+    public Hashtable<String,MessageLogList> parseLogsFromString(String logString) {
         StringBuffer sb = new StringBuffer();
         sb.append("<?xml version='1.0' encoding='us-ascii'?>\n").append(
                 "<messages>\n").append(logString).append("</messages>\n");

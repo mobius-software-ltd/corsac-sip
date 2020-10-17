@@ -7,13 +7,13 @@ import java.util.HashSet;
 
 import javax.sip.SipProvider;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+
 import junit.framework.TestCase;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.SimpleLayout;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 
 /**
@@ -22,9 +22,9 @@ import test.tck.msgflow.callflows.NetworkPortAssigner;
  */
 public class InviteTest extends TestCase {
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
 
-    protected static final Appender console = new ConsoleAppender(new SimpleLayout());    
+    protected static final Appender console = ConsoleAppender.newBuilder().setName("Console").build();    
    
 
     protected HashSet<Shootme> shootme = new HashSet<Shootme>();

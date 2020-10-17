@@ -56,8 +56,11 @@ public class MergedSystemProperties extends Properties {
 
 
     public synchronized void save(OutputStream out, String comments) {
-
-        parent.save(out, comments);
+        try {
+			parent.store(out, comments);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 
 

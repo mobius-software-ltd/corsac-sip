@@ -60,7 +60,7 @@ public class URLParser extends Parser {
         this.lexer.selectLexer("sip_urlLexer");
     }
     
-    public static final Set<Character> MARK_SET = new HashSet(Arrays.asList('-','_','.','!','~','*','\'','(',')'));    
+    public static final Set<Character> MARK_SET = new HashSet<Character>(Arrays.asList('-','_','.','!','~','*','\'','(',')'));    
     protected static boolean isMark(char next) {
         return MARK_SET.contains(next);
     }
@@ -116,13 +116,13 @@ public class URLParser extends Parser {
 
     }
     
-    public static final Set<Character> PARAM_UNRESERVED_SET = new HashSet(Arrays.asList('[', ']','/', ':', '&', '+', '$'));
+    public static final Set<Character> PARAM_UNRESERVED_SET = new HashSet<Character>(Arrays.asList('[', ']','/', ':', '&', '+', '$'));
     public static boolean isParamUnreserved(char c) {
         return PARAM_UNRESERVED_SET.contains(c);
     }
     
     //MARK and PARAM UNRESERVED
-    public static final Set<Character> PARAM_CHAR_SET = new HashSet(Arrays.asList('[', ']','/', ':', '&', '+', '$', '-','_','.','!','~','*','\'','(',')'));
+    public static final Set<Character> PARAM_CHAR_SET = new HashSet<Character>(Arrays.asList('[', ']','/', ':', '&', '+', '$', '-','_','.','!','~','*','\'','(',')'));
     
 
     /** Name or value of a parameter.

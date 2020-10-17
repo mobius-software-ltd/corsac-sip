@@ -1,7 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack;
 
 import test.tck.msgflow.callflows.forkedinvite.AbstractForkedInviteTestCase;
-import junit.framework.TestCase;
 
 public class NonRfc3261ForkedInviteTest extends AbstractForkedInviteTestCase {
 

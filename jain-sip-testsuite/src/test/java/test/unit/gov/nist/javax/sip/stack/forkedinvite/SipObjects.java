@@ -1,6 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack.forkedinvite;
 
-import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 import java.util.Properties;
@@ -54,8 +53,7 @@ public class SipObjects {
         try {
             // Create SipStack object
             sipStack = sipFactory.createSipStack(properties);
-            String logFileDirectory = "./target/logs/";
-
+            
             /* SipFoundryAppender sfa = new SipFoundryAppender(new SipFoundryLayout(),
                     logFileDirectory + "sip" + stackname + ".log");
 

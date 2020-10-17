@@ -5,9 +5,8 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import test.tck.TestHarness;
 import test.tck.msgflow.callflows.ProtocolObjects;
@@ -32,7 +31,7 @@ public class Shootme   implements SipListener {
 
     private static final String myAddress = "127.0.0.1";
 
-    private Hashtable serverTxTable = new Hashtable();
+    private Hashtable<String,ServerTransaction> serverTxTable = new Hashtable<String,ServerTransaction>();
 
     private SipProvider sipProvider;
 
@@ -40,7 +39,7 @@ public class Shootme   implements SipListener {
 
     private static String unexpectedException = "Unexpected exception ";
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
 
     private ProtocolObjects protocolObjects;
 
@@ -53,8 +52,6 @@ public class Shootme   implements SipListener {
     private boolean ackSeen;
 
     private boolean actAsNonRFC3261UAS;
-
-    private boolean infoSeen;
 
     /**
      * Causes this UAS to act as a non-RFC3261 UAS, i.e. does not set a to-tag
@@ -266,7 +263,6 @@ public class Shootme   implements SipListener {
                 }
                 logger.info("shootme:  dialogState = " + requestEvent.getDialog().getState());
 
-                this.infoSeen = true;
                 Dialog dialog = requestEvent.getDialog();
                 Request infoRequest = dialog.createRequest(Request.INFO);
                 SipProvider provider = (SipProvider) requestEvent.getSource();

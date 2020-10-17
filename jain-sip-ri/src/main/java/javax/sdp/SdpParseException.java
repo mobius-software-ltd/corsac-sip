@@ -12,8 +12,9 @@ package javax.sdp;
  * @version 1.0
  */
 public class SdpParseException extends SdpException {
-   
-    private int lineNumber;
+	private static final long serialVersionUID = 1L;
+	
+	private int lineNumber;
     private int charOffset;
     
     /** Constructs a new SdpParseException when the parser needs to throw an exception

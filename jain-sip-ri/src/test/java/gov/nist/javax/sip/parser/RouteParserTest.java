@@ -19,9 +19,6 @@
 */
 package gov.nist.javax.sip.parser;
 
-
-import gov.nist.javax.sip.parser.RouteParser;
-
 public class RouteParserTest extends ParserTestCase {
 
     public void testParser() {

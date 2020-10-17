@@ -1,7 +1,5 @@
 package examples.tls;
 import gov.nist.javax.sip.TransactionExt;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
 import java.security.cert.Certificate;
 import java.util.Properties;
 

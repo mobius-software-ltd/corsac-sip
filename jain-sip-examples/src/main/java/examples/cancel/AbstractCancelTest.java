@@ -3,10 +3,9 @@
  */
 package examples.cancel;
 
+import java.io.File;
 import java.util.EventObject;
 import java.util.Hashtable;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
@@ -17,13 +16,9 @@ import javax.sip.SipProvider;
 import javax.sip.TimeoutEvent;
 import javax.sip.TransactionTerminatedEvent;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import junit.framework.TestCase;
 
@@ -33,18 +28,17 @@ import junit.framework.TestCase;
  */
 public abstract class AbstractCancelTest extends TestCase implements SipListener {
 
-    private Hashtable providerTable;
+    private Hashtable<SipProvider,SipListener> providerTable;
 
     protected Shootist shootist;
 
-    private static Logger logger = Logger.getLogger(AbstractCancelTest.class);
-
     static {
-        if (logger.getAllAppenders() instanceof NullEnumeration )
-            PropertyConfigurator.configure("log4j.properties");
-
-
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) { 
+    		File file = new File("log4j2.xml");
+    		logContext.setConfigLocation(file.toURI());
+    	}
     }
 
     //private Appender appender;
@@ -61,7 +55,7 @@ public abstract class AbstractCancelTest extends TestCase implements SipListener
         try {
             ProtocolObjects.logFileDirectory = "logs/";
             ProtocolObjects.init("canceltest");
-            providerTable = new Hashtable();
+            providerTable = new Hashtable<SipProvider,SipListener>();
             shootist = new Shootist();
             SipProvider shootistProvider = shootist.createSipProvider();
             providerTable.put(shootistProvider, shootist);
@@ -79,7 +73,7 @@ public abstract class AbstractCancelTest extends TestCase implements SipListener
     public void setUp() {
 
             try {
-                //appender = new ConsoleAppender(new SimpleLayout());
+                //appender = ConsoleAppender.newBuilder().setName("Console").build();
                 //logger.addAppender(appender);
 
             } catch (Exception ex) {

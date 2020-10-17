@@ -1,17 +1,64 @@
 package examples.ims;
 
-import gov.nist.javax.sip.header.AllowList;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
+import javax.sip.DialogState;
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.IOExceptionEvent;
+import javax.sip.ListeningPoint;
+import javax.sip.PeerUnavailableException;
+import javax.sip.RequestEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipException;
+import javax.sip.SipFactory;
+import javax.sip.SipListener;
+import javax.sip.SipProvider;
+import javax.sip.SipStack;
+import javax.sip.TransactionTerminatedEvent;
+import javax.sip.address.Address;
+import javax.sip.address.AddressFactory;
+import javax.sip.address.SipURI;
+import javax.sip.address.TelURL;
+import javax.sip.header.AllowHeader;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.ContentTypeHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.Header;
+import javax.sip.header.HeaderFactory;
+import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.RequireHeader;
+import javax.sip.header.SupportedHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.MessageFactory;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+
 import gov.nist.javax.sip.header.HeaderFactoryImpl;
-import gov.nist.javax.sip.header.RequireList;
-import gov.nist.javax.sip.header.SupportedList;
-import gov.nist.javax.sip.header.ims.*;
-
-import javax.sip.*;
-import javax.sip.address.*;
-import javax.sip.header.*;
-import javax.sip.message.*;
-
-import java.util.*;
+import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
+import gov.nist.javax.sip.header.ims.PAssertedIdentityHeader;
+import gov.nist.javax.sip.header.ims.PAssociatedURIHeader;
+import gov.nist.javax.sip.header.ims.PCalledPartyIDHeader;
+import gov.nist.javax.sip.header.ims.PChargingFunctionAddressesHeader;
+import gov.nist.javax.sip.header.ims.PChargingVectorHeader;
+import gov.nist.javax.sip.header.ims.PMediaAuthorizationHeader;
+import gov.nist.javax.sip.header.ims.PPreferredIdentityHeader;
+import gov.nist.javax.sip.header.ims.PVisitedNetworkIDHeader;
+import gov.nist.javax.sip.header.ims.PathHeader;
+import gov.nist.javax.sip.header.ims.PrivacyHeader;
+import gov.nist.javax.sip.header.ims.SecurityClientHeader;
+import gov.nist.javax.sip.header.ims.SecurityServerHeader;
+import gov.nist.javax.sip.header.ims.SecurityVerifyHeader;
 
 /**
  * <p>This class is a UAC template.</p>
@@ -123,7 +170,7 @@ public class Shootist implements SipListener {
 
             RequireHeader require = null;
             String requireOptionTags = new String();
-            ListIterator li = ok.getHeaders(RequireHeader.NAME);
+            ListIterator<?> li = ok.getHeaders(RequireHeader.NAME);
             if (li != null) {
                 try {
                     while(li.hasNext())
@@ -143,10 +190,9 @@ public class Shootist implements SipListener {
 
             // this is only to illustrate the usage of this headers
             // send Security-Verify (based on Security-Server) if Require: sec-agree
-            SecurityVerifyList secVerifyList = null;
             if (requireOptionTags.indexOf("sec-agree") != -1)
             {
-                ListIterator secServerReceived =
+                ListIterator<?> secServerReceived =
                     ok.getHeaders(SecurityServerHeader.NAME);
                 if (secServerReceived != null && secServerReceived.hasNext())
                 {
@@ -164,7 +210,7 @@ public class Shootist implements SipListener {
                         }
 
                         try {
-                            Iterator parameters = security.getParameterNames();
+                            Iterator<?> parameters = security.getParameterNames();
                             SecurityVerifyHeader newSecVerify = headerFactoryImpl.createSecurityVerifyHeader();
                             newSecVerify.setSecurityMechanism(security.getSecurityMechanism());
                             while (parameters.hasNext())
@@ -189,14 +235,6 @@ public class Shootist implements SipListener {
 
             CSeqHeader cseq = (CSeqHeader) ok.getHeader(CSeqHeader.NAME);
             ackRequest = dialog.createAck( cseq.getSeqNumber() );
-
-            if (secVerifyList != null && !secVerifyList.isEmpty())
-            {
-                RequireHeader requireSecAgree = headerFactory.createRequireHeader("sec-agree");
-                ackRequest.setHeader(requireSecAgree);
-
-                ackRequest.setHeader(secVerifyList);
-            }
 
             System.out.println("Sending ACK");
             dialog.sendAck(ackRequest);
@@ -383,7 +421,7 @@ public class Shootist implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     sipProvider.getListeningPoint(transport).getPort(),
                     transport, null);

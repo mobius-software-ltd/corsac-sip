@@ -31,8 +31,6 @@ import javax.sip.header.ToHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-import static junit.framework.Assert.assertTrue;
-
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -231,21 +229,11 @@ public class TransactionAlreadyExistsExceptionTest extends TestCase {
 
         private SipProvider sipProvider;
 
-        private AddressFactory addressFactory;
-
         private MessageFactory messageFactory;
-
-        private HeaderFactory headerFactory;
 
         private SipStack sipStack;
 
-        private ContactHeader contactHeader;
-
         private ListeningPoint udpListeningPoint;
-
-        private Dialog dialog;
-
-        private boolean timeoutRecieved;
 
         boolean sawOk;
         
@@ -258,7 +246,7 @@ public class TransactionAlreadyExistsExceptionTest extends TestCase {
         private  String peerHostPort;
 
         public Shootist(Shootme shootme) {
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;             
         }
@@ -298,8 +286,6 @@ public class TransactionAlreadyExistsExceptionTest extends TestCase {
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
 
             System.out.println("Got a timeout " + timeoutEvent.getClientTransaction());
-
-            this.timeoutRecieved = true;
         }
 
         public void init() {
@@ -347,8 +333,6 @@ public class TransactionAlreadyExistsExceptionTest extends TestCase {
             }
 
             try {
-                headerFactory = sipFactory.createHeaderFactory();
-                addressFactory = sipFactory.createAddressFactory();
                 messageFactory = sipFactory.createMessageFactory();
                 udpListeningPoint = sipStack.createListeningPoint("127.0.0.1", myPort, "udp");
                 sipProvider = sipStack.createSipProvider(udpListeningPoint);

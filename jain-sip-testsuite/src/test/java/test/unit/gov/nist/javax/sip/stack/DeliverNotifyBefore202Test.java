@@ -41,15 +41,19 @@ import javax.sip.message.Response;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 
 public class DeliverNotifyBefore202Test extends TestCase {
-    private static Logger logger = Logger.getLogger(DeliverNotifyBefore202Test.class);
+    private static Logger logger = LogManager.getLogger(DeliverNotifyBefore202Test.class);
     private static AddressFactory addressFactory;
 
     private static MessageFactory messageFactory;
@@ -65,11 +69,15 @@ public class DeliverNotifyBefore202Test extends TestCase {
         try {
             sipFactory = SipFactory.getInstance();
             sipFactory.setPathName("gov.nist");
-            logger.setLevel(Level.DEBUG);
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-            logger.addAppender(new FileAppender(new SimpleLayout(), "subscriberoutputlog.txt"));
-
-          
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        	Configuration configuration = logContext.getConfiguration();        	
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        	configuration.addAppender(FileAppender.newBuilder().setName("Subscriberoutputlog").withFileName("subscriberoutputlog.txt").build());        	
+        	
+        	LoggerConfig loggerConfig = configuration.getLoggerConfig(logger.getName()); 
+        	loggerConfig.setLevel(Level.DEBUG);
+        	logContext.updateLoggers();
+        	
             sipFactory.setPathName("gov.nist");
             headerFactory = sipFactory.createHeaderFactory();
             addressFactory = sipFactory.createAddressFactory();
@@ -226,7 +234,7 @@ public class DeliverNotifyBefore202Test extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 int port = udpProvider.getListeningPoint(transport).getPort();
                 ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1", port, transport,
                         null);
@@ -317,8 +325,10 @@ public class DeliverNotifyBefore202Test extends TestCase {
         public Subscriber(int notifierPort, int port) throws Exception {
             this.notifierPort = notifierPort;
             this.port = port;
-            logger.addAppender(new FileAppender(new SimpleLayout(), "subscriberoutputlog_" + port
-                    + ".txt"));
+            
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        	Configuration configuration = logContext.getConfiguration();
+        	configuration.addAppender(FileAppender.newBuilder().setName("Subscriberoutputlog_" + port).withFileName("subscriberoutputlog_" + port + ".txt").build());	            
             
             Properties properties = new Properties();
 
@@ -477,7 +487,7 @@ public class DeliverNotifyBefore202Test extends TestCase {
                 String ipAddress = sipProvider.getListeningPoint("udp").getIPAddress();
                 int port = sipProvider.getListeningPoint("udp").getPort();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress, port, "udp", null);
-                LinkedList llist = new LinkedList<ViaHeader>();
+                LinkedList<ViaHeader> llist = new LinkedList<ViaHeader>();
                 llist.add(viaHeader);
 
                 MaxForwardsHeader maxForwards = headerFactory.createMaxForwardsHeader(70);
@@ -526,7 +536,7 @@ public class DeliverNotifyBefore202Test extends TestCase {
 
         public synchronized void processResponse(ResponseEvent responseReceivedEvent) {
             Response response = (Response) responseReceivedEvent.getResponse();
-            Transaction tid = responseReceivedEvent.getClientTransaction();
+            responseReceivedEvent.getClientTransaction();
 
             if (response.getStatusCode() != 200) {
                 this.notifyCount--;
@@ -569,9 +579,11 @@ public class DeliverNotifyBefore202Test extends TestCase {
         public Notifier(int port) throws Exception {
             this.port = port;
             Properties properties = new Properties();
-            logger.addAppender(new FileAppender(new SimpleLayout(), "notifieroutputlog_" + port
-                    + ".txt"));
-
+            
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        	Configuration configuration = logContext.getConfiguration();
+        	configuration.addAppender(FileAppender.newBuilder().setName("Notifieroutputlog_" + port).withFileName("notifieroutputlog_" + port + ".txt").build());	            
+            
             properties.setProperty("javax.sip.STACK_NAME", "notifier" + port);
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.

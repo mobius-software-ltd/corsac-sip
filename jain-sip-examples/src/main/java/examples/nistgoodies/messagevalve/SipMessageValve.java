@@ -1,12 +1,5 @@
 package examples.nistgoodies.messagevalve;
 
-import examples.nistgoodies.threadaudit.ThreadAudit;
-import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.stack.MessageChannel;
-import gov.nist.javax.sip.stack.SIPMessageValve;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
-
 import java.io.IOException;
 import java.util.Properties;
 
@@ -22,6 +15,11 @@ import javax.sip.SipProvider;
 import javax.sip.SipStack;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.message.Response;
+
+import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.MessageChannel;
+import gov.nist.javax.sip.stack.SIPMessageValve;
 
 
 public class SipMessageValve implements SIPMessageValve {

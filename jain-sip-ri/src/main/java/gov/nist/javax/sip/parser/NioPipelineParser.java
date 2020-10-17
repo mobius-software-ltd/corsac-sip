@@ -164,7 +164,7 @@ public class NioPipelineParser {
 		}
 
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return callId;
         }
     };
@@ -302,7 +302,7 @@ public class NioPipelineParser {
                         sipMessage = smp.parseSIPMessage(msgBytes, false, false, null);
 						sipMessage.setMessageContent(msgBodyBytes);
 					} catch (ParseException e) {
-						this.logger.logDebug(
+						NioPipelineParser.logger.logDebug(
 		                        "Parsing issue !  " + new String(msgLines.getBytes("UTF-8")) + " " + e.getMessage());
 					}
 				

@@ -97,7 +97,7 @@ public interface Media extends Field {
      * @throws SdpException
      * @return the Vector.
      */    
-    public Vector getMediaFormats(boolean create)
+    public Vector<String> getMediaFormats(boolean create)
     throws SdpParseException;
     
     /** Adds a media format to the media description.
@@ -106,7 +106,7 @@ public interface Media extends Field {
      * @param mediaFormats the format to add.
      * @throws SdpException if the vector is null
      */    
-    public void setMediaFormats(Vector mediaFormats)
+    public void setMediaFormats(Vector<String> mediaFormats)
     throws SdpException;
     
     /** Generates a string description of this object.

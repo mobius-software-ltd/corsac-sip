@@ -41,14 +41,16 @@ import java.util.ListIterator;
 */
 
 public abstract class SDPFieldList extends SDPField {
-    protected SDPObjectList sdpFields;
+	private static final long serialVersionUID = 1L;
+
+	protected SDPObjectList sdpFields;
 
     public SDPFieldList() {
     }
 
     /** Return a list iterator for the embedded field list.
     */
-    public ListIterator listIterator() {
+    public ListIterator<?> listIterator() {
         return sdpFields.listIterator();
     }
 
@@ -83,7 +85,7 @@ public abstract class SDPFieldList extends SDPField {
     */
     public String encode() {
         StringBuilder retval = new StringBuilder();
-        ListIterator li = sdpFields.listIterator();
+        ListIterator<?> li = sdpFields.listIterator();
         while (li.hasNext()) {
             SDPField sdphdr = (SDPField) li.next();
             retval.append(sdphdr.encode());

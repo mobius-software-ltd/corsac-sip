@@ -22,10 +22,6 @@
  */
 package test.unit.gov.nist.javax.sip.stack.no491;
 
-import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.parser.PipelinedMsgParser;
-import gov.nist.javax.sip.parser.PostParseExecutorServices;
-
 import java.util.EventObject;
 
 import javax.sip.DialogTerminatedEvent;
@@ -37,12 +33,10 @@ import javax.sip.SipProvider;
 import javax.sip.TimeoutEvent;
 import javax.sip.TransactionTerminatedEvent;
 
-import org.apache.log4j.Logger;
-import static test.tck.TestHarness.assertTrue;
+import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.parser.PostParseExecutorServices;
 import test.tck.msgflow.callflows.AssertUntil;
-
 import test.tck.msgflow.callflows.ScenarioHarness;
-import test.tck.msgflow.callflows.TestAssertion;
 
 /**
  * @author M. Ranganathan
@@ -55,8 +49,6 @@ public class ReInviteTCPPostParserThreadPoolTest extends ScenarioHarness impleme
 
     private Shootme shootme;
 
-    private static Logger logger = Logger.getLogger("test.tck");
-    
     private static final int TIMEOUT = 60000;    
 
    

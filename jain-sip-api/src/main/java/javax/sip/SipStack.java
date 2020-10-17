@@ -357,7 +357,7 @@ public interface SipStack {
      *
      * @return the list of Providers attached to this Sipstack.
      */
-    public Iterator getSipProviders();
+    public Iterator<?> getSipProviders();
 
 
     /**
@@ -429,7 +429,7 @@ public interface SipStack {
      *         this SipStack. Returns an empty Iterator if no ListeningPoints
      *         exist.
      */
-    public Iterator getListeningPoints();
+    public Iterator<?> getListeningPoints();
 
     // Configuration methods
 

@@ -41,15 +41,17 @@ import java.util.*;
 *
 */
 public class MediaField extends SDPField implements Media {
-    protected String media;
+	private static final long serialVersionUID = 1L;
+
+	protected String media;
     protected int port;
     protected int nports;
     protected String proto;
-    protected Vector formats;
+    protected Vector<String> formats;
 
     public MediaField() {
         super(SDPFieldNames.MEDIA_FIELD);
-        formats = new Vector();
+        formats = new Vector<String>();
     }
 
     public String getMedia() {
@@ -64,7 +66,7 @@ public class MediaField extends SDPField implements Media {
     public String getProto() {
         return proto;
     }
-    public Vector getFormats() {
+    public Vector<String> getFormats() {
         return formats;
     }
     /**
@@ -94,7 +96,7 @@ public class MediaField extends SDPField implements Media {
     /**
     * Set the fmt member
     */
-    public void setFormats(Vector formats) {
+    public void setFormats(Vector<String> formats) {
         this.formats = formats;
     }
     /** Returns the type (audio,video etc) of the
@@ -181,7 +183,7 @@ public class MediaField extends SDPField implements Media {
      * @throws SdpException
      * @return the Vector.
      */
-    public Vector getMediaFormats(boolean create) throws SdpParseException {
+    public Vector<String> getMediaFormats(boolean create) throws SdpParseException {
 
         if (!create && formats.size() == 0)
             return null;
@@ -195,7 +197,7 @@ public class MediaField extends SDPField implements Media {
      * @param mediaFormats the format to add.
      * @throws SdpException if the vector is null
      */
-    public void setMediaFormats(Vector mediaFormats) throws SdpException {
+    public void setMediaFormats(Vector<String> mediaFormats) throws SdpException {
         if (mediaFormats == null)
             throw new SdpException("The mediaFormats is null");
         this.formats = mediaFormats;
@@ -235,10 +237,11 @@ public class MediaField extends SDPField implements Media {
         return encoded_string;
     }
 
-    public Object clone() {
+    @SuppressWarnings("unchecked")
+	public Object clone() {
         MediaField retval = (MediaField) super.clone();
         if (this.formats != null)
-            retval.formats = (Vector) this.formats.clone();
+            retval.formats = (Vector<String>) this.formats.clone();
         return retval;
     }
 }

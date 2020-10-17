@@ -29,9 +29,8 @@ package gov.nist.javax.sip.header.extensions;
 
 import java.text.ParseException;
 
-import javax.sip.header.*;
-
-import gov.nist.javax.sip.header.*;
+import javax.sip.header.Header;
+import javax.sip.header.Parameters;
 
 
 

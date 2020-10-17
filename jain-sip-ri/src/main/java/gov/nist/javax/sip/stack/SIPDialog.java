@@ -28,6 +28,55 @@
 /**************************************************************************/
 package gov.nist.javax.sip.stack;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.io.StringWriter;
+import java.net.InetAddress;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
+import javax.sip.DialogDoesNotExistException;
+import javax.sip.DialogState;
+import javax.sip.IOExceptionEvent;
+import javax.sip.InvalidArgumentException;
+import javax.sip.ListeningPoint;
+import javax.sip.ObjectInUseException;
+import javax.sip.SipException;
+import javax.sip.Transaction;
+import javax.sip.TransactionDoesNotExistException;
+import javax.sip.TransactionState;
+import javax.sip.address.Address;
+import javax.sip.address.Hop;
+import javax.sip.address.SipURI;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.EventHeader;
+import javax.sip.header.OptionTag;
+import javax.sip.header.ProxyAuthorizationHeader;
+import javax.sip.header.RAckHeader;
+import javax.sip.header.RSeqHeader;
+import javax.sip.header.ReasonHeader;
+import javax.sip.header.RequireHeader;
+import javax.sip.header.RouteHeader;
+import javax.sip.header.SupportedHeader;
+import javax.sip.header.TimeStampHeader;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogLevels;
@@ -70,58 +119,6 @@ import gov.nist.javax.sip.parser.AddressParser;
 import gov.nist.javax.sip.parser.CallIDParser;
 import gov.nist.javax.sip.parser.ContactParser;
 import gov.nist.javax.sip.parser.RecordRouteParser;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.sip.ClientTransaction;
-import javax.sip.Dialog;
-import javax.sip.DialogDoesNotExistException;
-import javax.sip.DialogState;
-import javax.sip.IOExceptionEvent;
-import javax.sip.InvalidArgumentException;
-import javax.sip.ListeningPoint;
-import javax.sip.ObjectInUseException;
-import javax.sip.SipException;
-import javax.sip.Transaction;
-import javax.sip.TransactionDoesNotExistException;
-import javax.sip.TransactionState;
-import javax.sip.address.Address;
-import javax.sip.address.Hop;
-import javax.sip.address.SipURI;
-import javax.sip.header.CSeqHeader;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.ContactHeader;
-import javax.sip.header.EventHeader;
-import javax.sip.header.OptionTag;
-import javax.sip.header.ProxyAuthorizationHeader;
-import javax.sip.header.RAckHeader;
-import javax.sip.header.RSeqHeader;
-import javax.sip.header.ReasonHeader;
-import javax.sip.header.RequireHeader;
-import javax.sip.header.RouteHeader;
-import javax.sip.header.SupportedHeader;
-import javax.sip.header.TimeStampHeader;
-import javax.sip.message.Request;
-import javax.sip.message.Response;
 
 /*
  * Acknowledgements:
@@ -371,8 +368,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     }
 
     class EarlyStateTimerTask extends SIPStackTimerTask implements Serializable {
+		private static final long serialVersionUID = 1L;
 
-        public EarlyStateTimerTask() {
+		public EarlyStateTimerTask() {
         	super(EarlyStateTimerTask.class.getSimpleName());
 
         }
@@ -396,7 +394,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         }
 
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return getCallId().getCallId();
         }
 
@@ -443,8 +441,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                 long timeToWait = 0;
                 long startTime = System.currentTimeMillis();
                 boolean dialogTimedOut = false;
-                boolean busyWait = false;
-
+                
                 // If we have an INVITE transaction, make sure that it is TERMINATED
                 // before sending a re-INVITE.. Not the cleanest solution but it works.
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -533,8 +530,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     }
 
     class LingerTimer extends SIPStackTimerTask implements Serializable {
+		private static final long serialVersionUID = 1L;
 
-    	LingerTimer(){
+		LingerTimer(){
     		super(LingerTimer.class.getSimpleName());
     	}
         public void runTask() {
@@ -551,14 +549,16 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         }
 
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return getCallId().getCallId();
         }
 
     }
 
     class DialogTimerTask extends SIPStackTimerTask implements Serializable {
-        int nRetransmissions;
+        private static final long serialVersionUID = 1L;
+
+		int nRetransmissions;
 
         SIPServerTransaction transaction;
 
@@ -622,7 +622,6 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                         // the IOException occurs
                         // Note that this firing also
                         // drives Listener timeout.
-                        SIPTransactionStack stack = dialog.sipStack;
                         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                             logger.logDebug(
                                     "resend 200 response from " + dialog);
@@ -651,7 +650,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         }
 
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return getCallId().getCallId();
         }
 
@@ -663,8 +662,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      */
 
     class DialogDeleteTask extends SIPStackTimerTask implements Serializable {
+		private static final long serialVersionUID = 1L;
 
-    	DialogDeleteTask() {
+		DialogDeleteTask() {
     		super(DialogDeleteTask.class.getSimpleName());
     	}
         public void runTask() {
@@ -672,7 +672,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         }
 
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return getCallId().getCallId();
         }
 
@@ -685,7 +685,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
     class DialogDeleteIfNoAckSentTask extends SIPStackTimerTask implements
             Serializable {
-        private long seqno;
+		private static final long serialVersionUID = 1L;
+
+		private long seqno;
 
         public DialogDeleteIfNoAckSentTask(long seqno) {
         	super(DialogDeleteIfNoAckSentTask.class.getSimpleName());
@@ -693,7 +695,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return getCallId().getCallId();
         }        
 
@@ -793,8 +795,6 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         SIPRequest sipRequest = (SIPRequest) transaction.getRequest();
         this.callIdHeader = sipRequest.getCallId();
         this.earlyDialogId = sipRequest.getDialogId(false);
-        if (transaction == null)
-            throw new NullPointerException("Null tx");
         this.sipStack = transaction.getSIPStack();
 
         // this.defaultRouter = new DefaultRouter((SipStack) sipStack,
@@ -908,17 +908,6 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     // ///////////////////////////////////////////////////////////
     // Private methods
     // ///////////////////////////////////////////////////////////
-    /**
-     * A debugging print routine.
-     */
-    private void printRouteList() {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("this : " + this);
-            logger.logDebug(
-                    "printRouteList : " + this.routeList.encode());
-        }
-    }
-
     /**
      * Raise an io exception for asyncrhonous retransmission of responses
      * 
@@ -1039,7 +1028,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                 this.routeList = new RouteList();
                 // start at the end of the list and walk backwards
 
-                ListIterator li = recordRouteList.listIterator(recordRouteList
+                ListIterator<RecordRoute> li = recordRouteList.listIterator(recordRouteList
                         .size());
                 while (li.hasPrevious()) {
                     RecordRoute rr = (RecordRoute) li.previous();
@@ -1060,7 +1049,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                 // route list in the same order as the addresses in the
                 // incoming request.
                 this.routeList = new RouteList();
-                ListIterator li = recordRouteList.listIterator();
+                ListIterator<RecordRoute> li = recordRouteList.listIterator();
                 while (li.hasNext()) {
                     RecordRoute rr = (RecordRoute) li.next();
 
@@ -1076,7 +1065,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             }
         } finally {
             if (logger.isLoggingEnabled()) {
-                Iterator it = routeList.iterator();
+                Iterator<Route> it = routeList.iterator();
 
                 while (it.hasNext()) {
                     SipURI sipUri = (SipURI) (((Route) it.next()).getAddress()
@@ -1199,7 +1188,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("getRouteList " + this);
         // Find the top via in the route list.
-        ListIterator li;
+        ListIterator<Route> li;
         RouteList retval = new RouteList();
 
         retval = new RouteList();
@@ -1766,9 +1755,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      *         forwarding. Empty iterator is returned if route has not been
      *         established.
      */
-    public Iterator getRouteSet() {
+    public Iterator<Route> getRouteSet() {
         if (this.routeList == null) {
-            return new LinkedList().listIterator();
+            return new LinkedList<Route>().listIterator();
         } else {
             return this.getRouteList().listIterator();
         }
@@ -2749,7 +2738,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         if (this.getRemoteTag() != null && to.getTag() != null
                 && !to.getTag().equals(this.getRemoteTag())) {
             if (logger.isLoggingEnabled())
-                this.logger.logWarning(
+                logger.logWarning(
                         "SIPDialog::sendRequest:To header tag mismatch expecting "
                                 + this.getRemoteTag());
         }
@@ -3790,7 +3779,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
     }
 
-    private static final boolean optionPresent(ListIterator l, String option) {
+    private static final boolean optionPresent(ListIterator<SIPHeader> l, String option) {
         while (l.hasNext()) {
             OptionTag opt = (OptionTag) l.next();
             if (opt != null && option.equalsIgnoreCase(opt.getOptionTag()))
@@ -3973,8 +3962,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             throw new SipException(
                     "Badly formatted response -- To tag mandatory for Reliable Provisional Response");
         }
-        ListIterator requireList = (ListIterator) relResponse
-                .getHeaders(RequireHeader.NAME);
+        ListIterator<?> requireList = relResponse.getHeaders(RequireHeader.NAME);
         boolean found = false;
 
         if (requireList != null) {
@@ -4224,11 +4212,11 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     }
 
     public synchronized void doDeferredDeleteIfNoAckSent(long seqno) {
-        if (sipStack.getTimer() == null) {
+    	if (sipStack.getTimer() == null) {
             this.setState(TERMINATED_STATE);
         } else if (dialogDeleteIfNoAckSentTask == null) {
             // Delete the transaction after the max ack timeout.
-            dialogDeleteIfNoAckSentTask = new DialogDeleteIfNoAckSentTask(seqno);
+        	dialogDeleteIfNoAckSentTask = new DialogDeleteIfNoAckSentTask(seqno);
             if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
             	int delay = SIPTransactionStack.BASE_TIMER_INTERVAL;
             	if(lastTransaction != null) {

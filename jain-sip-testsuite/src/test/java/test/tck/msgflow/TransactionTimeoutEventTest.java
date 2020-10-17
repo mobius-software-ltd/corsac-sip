@@ -32,7 +32,8 @@ import javax.sip.header.ToHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import test.tck.TckInternalError;
 import test.tck.TiUnexpectedError;
@@ -46,7 +47,7 @@ import test.tck.TiUnexpectedError;
  */
 
 public class TransactionTimeoutEventTest extends MessageFlowHarness {
-    private static Logger logger = Logger
+    private static Logger logger = LogManager
             .getLogger(InviteClientTransactionsStateMachineTest.class);
 
     public TransactionTimeoutEventTest(String name) {

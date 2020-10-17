@@ -26,7 +26,6 @@
 package gov.nist.javax.sip;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.text.ParseException;
 
 import javax.sip.*;
@@ -57,6 +56,11 @@ import gov.nist.javax.sip.stack.*;
  *
  */
 public class ListeningPointImpl implements javax.sip.ListeningPoint, gov.nist.javax.sip.ListeningPointExt {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private static StackLogger logger = CommonLogger.getLogger(ListeningPointImpl.class);
 
     protected String transport;

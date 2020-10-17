@@ -3,10 +3,10 @@ package test.tck.msgflow.callflows.prack;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.ScenarioHarness;
@@ -29,11 +29,13 @@ public abstract class AbstractPrackTestCase extends ScenarioHarness implements
     
     private static final int TIMEOUT = 2000;
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
 
     static {
-        if (!logger.isAttached(console)) {
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(console);
         }
     }
 

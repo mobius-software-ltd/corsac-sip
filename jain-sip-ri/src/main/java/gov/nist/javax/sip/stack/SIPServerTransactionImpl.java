@@ -177,7 +177,9 @@ import javax.sip.message.Response;
  *
  */
 public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPServerTransaction {
-    private static StackLogger logger = CommonLogger.getLogger(SIPServerTransaction.class);
+	private static final long serialVersionUID = 1L;
+
+	private static StackLogger logger = CommonLogger.getLogger(SIPServerTransaction.class);
     private int rseqNumber = -1;
 
     // private LinkedList pendingRequests;
@@ -264,7 +266,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
@@ -326,7 +328,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
@@ -375,7 +377,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
@@ -434,7 +436,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
@@ -1665,7 +1667,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                         }
                         
                         @Override
-                        public Object getThreadHash() {
+                        public String getThreadHash() {
                             Request request = getRequest();
                             if (request != null && request instanceof SIPRequest) {
                                 return ((SIPRequest)request).getCallIdHeader().getCallId();

@@ -199,7 +199,7 @@ public class Utils implements UtilsExt {
     		byte bid[] = digester.digest(Long.toString(num).getBytes());
     		// prepend with a magic cookie to indicate we are bis09 compatible.
     		return SIPConstants.BRANCH_MAGIC_COOKIE + "-"
-    		+ this.signature + "-" + Utils.toHexString(bid);
+    		+ signature + "-" + Utils.toHexString(bid);
     	}
     }
 
@@ -207,7 +207,7 @@ public class Utils implements UtilsExt {
         Via topmostVia = response.getTopmostVia();
         String branch = topmostVia.getBranch();
         return branch != null && branch.startsWith(
-                   SIPConstants.BRANCH_MAGIC_COOKIE + "-" + this.signature);
+                   SIPConstants.BRANCH_MAGIC_COOKIE + "-" + signature);
     }
 
     public static String getSignature() {
@@ -215,7 +215,7 @@ public class Utils implements UtilsExt {
     }
 
     public static void main(String[] args) {
-    	final HashSet branchIds = new HashSet();
+    	final HashSet<String> branchIds = new HashSet<String>();
     	Executor e = Executors.newFixedThreadPool(100);
     	for(int q=0; q<100; q++) {
     		e.execute(new Runnable() {

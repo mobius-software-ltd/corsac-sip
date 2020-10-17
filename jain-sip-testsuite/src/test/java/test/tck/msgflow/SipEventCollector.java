@@ -21,7 +21,8 @@ package test.tck.msgflow;
 
 import javax.sip.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.TooManyListenersException;
 import test.tck.*;
@@ -63,7 +64,7 @@ class SipEventCollector {
 
     private TransactionTerminationCollector transactionTerminationCollector = null;
 
-    private static Logger logger = Logger.getLogger(SipEventCollector.class);
+    private static Logger logger = LogManager.getLogger(SipEventCollector.class);
 
     private void initCollectors(SipProvider sipProvider) {
         this.requestCollector = new RequestCollector(sipProvider);
@@ -314,41 +315,6 @@ class SipEventCollector {
 
         // Wait for the message queue to go empty
         MessageFlowHarness.sleep(MESSAGE_QUEUE_EMPTIES_FOR);
-    }
-
-    private void assertInitialState(Class eventClass) {
-        boolean failureFlag = false;
-        if (eventClass.equals(RequestEvent.class)) {
-            if (requestCollector != null
-                    && requestCollector.collectedEvent != null) {
-                failureFlag = true;
-            }
-        } else if (eventClass.equals(ResponseEvent.class)) {
-            if (responseCollector != null
-                    && responseCollector.collectedEvent != null) {
-
-                failureFlag = true;
-            }
-        } else if (eventClass.equals(TimeoutEvent.class)) {
-            if (timeoutCollector != null
-                    && timeoutCollector.collectedEvent != null) {
-                failureFlag = true;
-            }
-        } else if (eventClass.equals(TransactionTerminatedEvent.class)) {
-            if (this.transactionTerminationCollector != null
-                    && this.transactionTerminationCollector.collectedEvent != null)
-                failureFlag = true;
-
-        } else if (eventClass.equals(DialogTerminatedEvent.class)) {
-            if (this.dialogTerminationCollector != null
-                    && this.dialogTerminationCollector.collectedEvent != null)
-                failureFlag = true;
-        }
-
-        if (failureFlag)
-            throw new TckInternalError(
-                    "Attempting to start a collect operation "
-                            + "on a collector that is not in initial state!");
     }
 
     // ========================= COLLECTOR

@@ -23,8 +23,6 @@ package javax.sip.header;
 
 import java.text.ParseException;
 
-import javax.sip.header.Header;
-
 /**
  * This interface represents the SIP-ETag header, as defined by
  * <a href = "http://www.ietf.org/rfc/rfc3903.txt">RFC3903</a>.

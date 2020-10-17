@@ -5,9 +5,11 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import java.util.*;
 
@@ -42,10 +44,6 @@ public class Shootist extends TestCase implements SipListener {
 
     private int dialogTerminatedCount;
 
-    private int transctionTerminatedCount;
-
-    private int transactionCount;
-
     private int dialogCount;
 
     private boolean byeReceived;
@@ -54,7 +52,7 @@ public class Shootist extends TestCase implements SipListener {
 
     private SipURI requestURI;
 
-    private static Logger logger = Logger.getLogger(Shootist.class);
+    private static Logger logger = LogManager.getLogger(Shootist.class);
 
 
 
@@ -89,7 +87,6 @@ public class Shootist extends TestCase implements SipListener {
             Response response = protocolObjects.messageFactory.createResponse(
                     200, request);
             serverTransactionId.sendResponse(response);
-            this.transactionCount++;
             logger.info("shootist:  Sending OK.");
             logger.info("Dialog State = " + dialog.getState());
             assertTrue(serverTransactionId.getState() == TransactionState.COMPLETED);
@@ -151,7 +148,7 @@ public class Shootist extends TestCase implements SipListener {
                     CSeqHeader cseqNew = protocolObjects.headerFactory
                             .createCSeqHeader(++seqNo, "INVITE");
                     // Create ViaHeaders (either use tcp or udp)
-                    ArrayList viaHeaders = new ArrayList();
+                    ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                     ViaHeader viaHeader = protocolObjects.headerFactory
                             .createViaHeader("127.0.0.1", sipProvider
                                     .getListeningPoint(protocolObjects.transport).getPort(),
@@ -195,8 +192,7 @@ public class Shootist extends TestCase implements SipListener {
                     logger.info("Sending INVITE to "
                             + contHdr.getAddress().getURI().toString());
                     inviteTid = sipProvider.getNewClientTransaction(invRequest);
-                    this.transactionCount++;
-
+                    
                     logger.info("New TID = " + inviteTid);
                     inviteTid.sendRequest();
                     assertTrue(inviteTid.getState() == TransactionState.CALLING);
@@ -279,7 +275,7 @@ public class Shootist extends TestCase implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = protocolObjects.headerFactory
                     .createViaHeader("127.0.0.1", sipProvider
                             .getListeningPoint(protocolObjects.transport).getPort(), protocolObjects.transport,
@@ -371,8 +367,6 @@ public class Shootist extends TestCase implements SipListener {
             // send the request out.
             inviteTid.sendRequest();
 
-            this.transactionCount ++;
-
             assertTrue(inviteTid.getState() == TransactionState.CALLING);
 
             logger.info("client tx = " + inviteTid);
@@ -395,7 +389,10 @@ public class Shootist extends TestCase implements SipListener {
 
     public static void main(String args[]) throws Exception {
         ProtocolObjects  protocolObjects = new ProtocolObjects ("shootist",true,"udp","");
-        logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+        LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        
         Shootist shootist = new Shootist(protocolObjects);
         shootist.createProvider();
         shootist.sipProvider.addSipListener(shootist);
@@ -414,7 +411,6 @@ public class Shootist extends TestCase implements SipListener {
             TransactionTerminatedEvent transactionTerminatedEvent) {
         logger.info("Transaction terminated event recieved for " +
                 transactionTerminatedEvent.getClientTransaction());
-        this.transctionTerminatedCount++;
     }
 
     public void processDialogTerminated(

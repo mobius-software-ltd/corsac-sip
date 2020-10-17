@@ -17,11 +17,11 @@ public class MyRouter implements Router {
 
     /** Always send requests to the default route location.
     */
-    public ListIterator getNextHops(Request sipRequest) {
-        LinkedList ll = null;
+    public ListIterator<Hop> getNextHops(Request sipRequest) {
+        LinkedList<Hop> ll = null;
         if (defaultRoute != null) {
             if (ll == null)
-                ll = new LinkedList();
+                ll = new LinkedList<Hop>();
             ll.add(defaultRoute);
             return ll.listIterator();
         } else

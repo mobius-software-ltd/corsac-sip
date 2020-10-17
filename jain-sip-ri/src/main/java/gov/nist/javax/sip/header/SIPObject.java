@@ -48,8 +48,10 @@ import java.lang.reflect.Modifier;
  */
 
 public abstract class SIPObject extends GenericObject {
+	private static final long serialVersionUID = 1L;
 
-    /** default Constructor
+
+	/** default Constructor
      */
     protected SIPObject() {
         super();
@@ -83,8 +85,8 @@ public abstract class SIPObject extends GenericObject {
         if (!this.getClass().equals(other.getClass()))
             return false;
         SIPObject that = (SIPObject) other;
-        Class myclass = this.getClass();
-        Class hisclass = other.getClass();
+        Class<?> myclass = this.getClass();
+        Class<?> hisclass = other.getClass();
         while (true) {
             Field[] fields = myclass.getDeclaredFields();
             if (!hisclass.equals(myclass))
@@ -97,7 +99,7 @@ public abstract class SIPObject extends GenericObject {
                 int modifier = f.getModifiers();
                 if ((modifier & Modifier.PRIVATE) == Modifier.PRIVATE)
                     continue;
-                Class fieldType = f.getType();
+                Class<?> fieldType = f.getType();
                 String fieldName = f.getName();
                 if (fieldName.compareTo("stringRepresentation") == 0) {
                     continue;
@@ -176,8 +178,8 @@ public abstract class SIPObject extends GenericObject {
         if (!this.getClass().equals(other.getClass()))
             return false;
         GenericObject that = (GenericObject) other;
-        Class myclass = this.getClass();
-        Class hisclass = other.getClass();
+        Class<?> myclass = this.getClass();
+        Class<?> hisclass = other.getClass();
         while (true) {
             Field[] fields = myclass.getDeclaredFields();
             Field[] hisfields = hisclass.getDeclaredFields();
@@ -188,7 +190,7 @@ public abstract class SIPObject extends GenericObject {
                 int modifier = f.getModifiers();
                 if ((modifier & Modifier.PRIVATE) == Modifier.PRIVATE)
                     continue;
-                Class fieldType = f.getType();
+                Class<?> fieldType = f.getType();
                 String fieldName = f.getName();
                 if (fieldName.compareTo("stringRepresentation") == 0) {
                     continue;
@@ -289,7 +291,7 @@ public abstract class SIPObject extends GenericObject {
      */
     public String debugDump() {
         stringRepresentation = "";
-        Class myclass = getClass();
+        Class<?> myclass = getClass();
         sprint(myclass.getName());
         sprint("{");
         Field[] fields = myclass.getDeclaredFields();
@@ -299,7 +301,7 @@ public abstract class SIPObject extends GenericObject {
             int modifier = f.getModifiers();
             if ((modifier & Modifier.PRIVATE) == Modifier.PRIVATE)
                 continue;
-            Class fieldType = f.getType();
+            Class<?> fieldType = f.getType();
             String fieldName = f.getName();
             if (fieldName.compareTo("stringRepresentation") == 0) {
                 // avoid nasty recursions...

@@ -147,7 +147,7 @@ public class EventScanner implements Runnable {
         } else if (sipEvent instanceof ResponseEvent) {
         	deliverResponseEvent((ResponseEvent)sipEvent, eventWrapper, sipListener);
         } else if (sipEvent instanceof TimeoutEvent) {
-            deliverTimeoutEvent((TimeoutEvent) sipEvent, eventWrapper, sipListener);
+        	deliverTimeoutEvent((TimeoutEvent) sipEvent, eventWrapper, sipListener);
         } else if (sipEvent instanceof DialogTimeoutEvent) {
         	deliverDialogTimeoutEvent((DialogTimeoutEvent) sipEvent, eventWrapper, sipListener);
         } else if (sipEvent instanceof IOExceptionEvent) {
@@ -299,7 +299,6 @@ public class EventScanner implements Runnable {
 
     private void deliverResponseEvent(ResponseEvent responseEvent, EventWrapper eventWrapper, SipListener sipListener) {
     	try {
-            
             SIPResponse sipResponse = (SIPResponse) responseEvent
                     .getResponse();
             SIPDialog sipDialog = ((SIPDialog) responseEvent.getDialog());
@@ -410,10 +409,10 @@ public class EventScanner implements Runnable {
     private void deliverDialogTimeoutEvent(DialogTimeoutEvent dialogTimeoutEvent, EventWrapper eventWrapper, SipListener sipListener) {
 	    try {
 	        // Check for null as listener could be removed.
-	        if (sipListener != null && sipListener instanceof SipListenerExt) {
-	            ((SipListenerExt)sipListener).processDialogTimeout(dialogTimeoutEvent);                    
+	    	if (sipListener != null && sipListener instanceof SipListenerExt) {
+	        	((SipListenerExt)sipListener).processDialogTimeout(dialogTimeoutEvent);                    
 	        } else {
-	            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+	        	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 	                logger.logDebug("DialogTimeoutEvent not delivered" );
 	            }
 	        }

@@ -30,17 +30,17 @@ public class SniffMessage implements ParseExceptionListener {
     public SniffMessage() {
     }
 
-    public SniffMessage(ArrayList sniffMsgList) throws ParseException {
+    public SniffMessage(ArrayList<String> sniffMsgList) throws ParseException {
         getTime(sniffMsgList);
         getIPAddresses(sniffMsgList);
         getSipMessage(sniffMsgList);
     }
 
-    private void getTime(ArrayList sniffMsgList) {
-        Iterator i = sniffMsgList.iterator();
+    private void getTime(ArrayList<String> sniffMsgList) {
+        Iterator<String> i = sniffMsgList.iterator();
         //Date d = new Date(System.currentTimeMillis());
         while (i.hasNext()) {
-            String line = (String) i.next();
+            String line = i.next();
             if (line.startsWith("Arrival Time")) {
                 time = line.substring(line.indexOf(":") + 1).trim();
                 time = time.substring(0, time.length() - 6);
@@ -54,10 +54,10 @@ public class SniffMessage implements ParseExceptionListener {
         }
     }
 
-    private void getIPAddresses(ArrayList sniffMsgList) {
-        Iterator i = sniffMsgList.iterator();
+    private void getIPAddresses(ArrayList<String> sniffMsgList) {
+        Iterator<String> i = sniffMsgList.iterator();
         while (i.hasNext()) {
-            String line = (String) i.next();
+            String line = i.next();
             if (line.startsWith("Internet Protocol")) {
                 StringTokenizer st = new StringTokenizer(line, ",");
                 while (st.hasMoreTokens()) {
@@ -78,10 +78,10 @@ public class SniffMessage implements ParseExceptionListener {
         }
     }
 
-    private int indexOfSDP(ArrayList sniffMsgList) {
-        Iterator i = sniffMsgList.iterator();
+    private int indexOfSDP(ArrayList<String> sniffMsgList) {
+        Iterator<String> i = sniffMsgList.iterator();
         while (i.hasNext()) {
-            String line = (String) i.next();
+            String line = i.next();
             if (line.startsWith("Session Description Protocol")) {
                 return sniffMsgList.indexOf(line);
             }
@@ -89,10 +89,10 @@ public class SniffMessage implements ParseExceptionListener {
         return sniffMsgList.size();
     }
 
-    private int indexOfSIP(ArrayList sniffMsgList) {
-        Iterator i = sniffMsgList.iterator();
+    private int indexOfSIP(ArrayList<String> sniffMsgList) {
+        Iterator<String> i = sniffMsgList.iterator();
         while (i.hasNext()) {
-            String line = (String) i.next();
+            String line = i.next();
             if (line.startsWith("Session Initiation Protocol")) {
                 return sniffMsgList.indexOf(line);
             }
@@ -100,7 +100,7 @@ public class SniffMessage implements ParseExceptionListener {
         return sniffMsgList.size();
     }
 
-    private void getSipMessage(ArrayList sniffMsgList) throws ParseException {
+    private void getSipMessage(ArrayList<String> sniffMsgList) throws ParseException {
         int sipIndex = indexOfSIP(sniffMsgList);
         int sdpIndex = indexOfSDP(sniffMsgList);
         String msgBuffer = new String();
@@ -189,7 +189,7 @@ public class SniffMessage implements ParseExceptionListener {
     public void handleException(
         ParseException ex,
         SIPMessage sipMessage,
-        Class headerClass,
+        Class<?> headerClass,
         String headerText,
         String messageText)
         throws ParseException {

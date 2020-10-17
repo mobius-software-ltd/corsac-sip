@@ -29,7 +29,6 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.Serializable;
-import java.util.StringTokenizer;
 /*
  * IPv6 Support added by Emil Ivov (emil_ivov@yahoo.com)<br/>
  * Network Research Team (http://www-r2.u-strasbg.fr))<br/>
@@ -51,7 +50,11 @@ import java.util.StringTokenizer;
  *
  */
 public final class HopImpl extends Object implements javax.sip.address.Hop, Serializable {
-    protected String host;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String host;
     protected int port;
     protected String transport;
 

@@ -39,7 +39,7 @@ public class MessageFactoryTest extends FactoryTestHarness {
     protected ToHeader tito;
     protected MaxForwardsHeader timaxForwards;
     protected ContentTypeHeader ticontentType;
-    protected List tivia;
+    protected List<ViaHeader> tivia;
     protected CSeqHeader ticSeq;
     protected ExtensionHeader tiextensionHeader;
 
@@ -49,7 +49,7 @@ public class MessageFactoryTest extends FactoryTestHarness {
     protected ToHeader rito;
     protected MaxForwardsHeader rimaxForwards;
     protected ContentTypeHeader ricontentType;
-    protected List rivia;
+    protected List<ViaHeader> rivia;
     protected CSeqHeader ricSeq;
     protected ExtensionHeader riextensionHeader;
 
@@ -268,11 +268,11 @@ public class MessageFactoryTest extends FactoryTestHarness {
     throws IllegalAccessException,
         InvocationTargetException {
     try {
-        Class implementationClass;
+        Class<?> implementationClass;
 
         implementationClass = refRequest.getClass();
 
-        Class[] implementedInterfaces = implementationClass.getInterfaces();
+        Class<?>[] implementedInterfaces = implementationClass.getInterfaces();
         int j = 0;
 
         // Do a TCK consistency check.
@@ -287,7 +287,7 @@ public class MessageFactoryTest extends FactoryTestHarness {
         throw new TckInternalError("Request not implemented");
         }
 
-        String jainClassName = implementedInterfaces[j].getName();
+        implementedInterfaces[j].getName();
 
         // Make sure that all the methods of the interface are implemented
         checkImplementsInterface(requestToTest.getClass(),
@@ -300,14 +300,14 @@ public class MessageFactoryTest extends FactoryTestHarness {
             if  (! methodName.startsWith("get") ) continue;
             // Testing only null argument gets
             if ( methods[i].getParameterTypes().length != 0) continue;
-            Class returnType = methods[i].getReturnType();
+            Class<?> returnType = methods[i].getReturnType();
             Object refType = null;
             try {
                 refType = methods[i].invoke(refRequest,(Object[])null);
             } catch (Exception ex) {
                 throw new TckInternalError("Invocation failure " + methodName);
             }
-            String ftype = returnType.toString();
+            returnType.toString();
             if (returnType.isPrimitive()) {
                 Object testValue = methods[i].invoke( requestToTest, (Object[])null);
                 assertEquals( refType, testValue );
@@ -317,8 +317,8 @@ public class MessageFactoryTest extends FactoryTestHarness {
                 if (refType != null) {
                     assertTrue(testValue != null);
                     // Find the jain type implemented by the interface.
-                    Class fclass = refType.getClass();
-                    Class[] fInterfaces = fclass.getInterfaces();
+                    Class<?> fclass = refType.getClass();
+                    Class<?>[] fInterfaces = fclass.getInterfaces();
                     // Find what JAIN interface this is implementing.
                     int k = 0;
                     for ( k = 0; k < fInterfaces.length; k++) {
@@ -384,9 +384,9 @@ public class MessageFactoryTest extends FactoryTestHarness {
                     ticSeq,tifrom,tito,tivia,timaxForwards,
                     ticontentType,
                     contentObject);
-            ListIterator li = request.getHeaderNames();
+            ListIterator<?> li = request.getHeaderNames();
             // Use a tree set with case insensitive ordering & comparison
-            TreeSet set = new TreeSet(String.CASE_INSENSITIVE_ORDER);
+            TreeSet<String> set = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
             while (li.hasNext()) {
                 String hdrName = (String) li.next();
                 set.add(hdrName);
@@ -398,7 +398,7 @@ public class MessageFactoryTest extends FactoryTestHarness {
             assertTrue (  set.contains(MaxForwardsHeader.NAME) ) ;
             assertTrue ( set.contains(ContentTypeHeader.NAME) ) ;
             assertTrue (  set.contains(CallIdHeader.NAME) ) ;
-            Response response = tiMessageFactory.createResponse
+            tiMessageFactory.createResponse
             (   statusCode,  ticallId,
                 ticSeq,  tifrom,  tito,  tivia,
                 timaxForwards,  ticontentType, contentObject);
@@ -436,7 +436,7 @@ public class MessageFactoryTest extends FactoryTestHarness {
             (tiRequestURI, method, ticallId, ticSeq,tifrom,tito,tivia,timaxForwards,
                     ticontentType, contentObject);
             request.addHeader(tiextensionHeader);
-            ListIterator  viaHeaders = request.getHeaders(ViaHeader.NAME);
+            ListIterator<?>  viaHeaders = request.getHeaders(ViaHeader.NAME);
             ViaHeader viaHeader = (ViaHeader) viaHeaders.next();
             assertTrue ( viaHeader.equals(tivia.iterator().next())) ;
             Header header  = request.getHeader("My-Header");
@@ -540,8 +540,8 @@ public class MessageFactoryTest extends FactoryTestHarness {
             ticontentType = tiHeaderFactory.createContentTypeHeader("application", "sdp");
             ricontentType = riHeaderFactory.createContentTypeHeader("application", "sdp");
 
-            tivia = new LinkedList();
-            rivia = new LinkedList();
+            tivia = new LinkedList<ViaHeader>();
+            rivia = new LinkedList<ViaHeader>();
 
             ViaHeader tiviaHeader = tiHeaderFactory.createViaHeader("127.0.0.1",5060, "udp", null);
             tivia.add(tiviaHeader);

@@ -19,16 +19,31 @@
  */
 package test.tck.msgflow;
 
-import junit.framework.*;
-
-import javax.sip.*;
-import javax.sip.message.*;
-import javax.sip.header.*;
+import java.text.ParseException;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.*;
-import java.text.*;
-import org.junit.Ignore;
-import test.tck.*;
+import java.util.TooManyListenersException;
+
+import javax.sip.ClientTransaction;
+import javax.sip.RequestEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipException;
+import javax.sip.TransactionAlreadyExistsException;
+import javax.sip.TransactionUnavailableException;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+
+import junit.framework.Test;
+import junit.framework.TestSuite;
+import test.tck.TckInternalError;
+import test.tck.TiUnexpectedError;
 
 /**
  * <p>
@@ -59,7 +74,6 @@ public class SipProviderTest extends MessageFlowHarness {
         try {
             //create an empty invite request.
             Request invite = createTiInviteRequest(null, null, null);
-            Request receivedRequest = null;
             try {
                 //Send using TI and collect using RI
                 eventCollector.collectRequestEvent(riSipProvider);
@@ -278,8 +292,8 @@ public class SipProviderTest extends MessageFlowHarness {
             //Create an ok response. We are not testing the message factory so let's
             //not leave it a chance to mess something up and specify the response
             //as completely as possible.
-            List via = new LinkedList();
-            via.add(receivedRequest.getHeader(ViaHeader.NAME));
+            List<ViaHeader> via = new LinkedList<ViaHeader>();
+            via.add((ViaHeader)receivedRequest.getHeader(ViaHeader.NAME));
             Response ok = null;
             try {
                 ok

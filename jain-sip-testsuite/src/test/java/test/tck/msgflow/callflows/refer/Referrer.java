@@ -32,10 +32,12 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.TestHarness;
 import test.tck.msgflow.callflows.ProtocolObjects;
@@ -69,13 +71,16 @@ public class Referrer implements SipListener {
 
     public int count;//< Number of NOTIFYs
 
-    private static Logger logger = Logger.getLogger(Referrer.class);
+    private static Logger logger = LogManager.getLogger(Referrer.class);
 
     static {
         try {
-            logger.setLevel(Level.INFO);
-            logger.addAppender(new FileAppender(new SimpleLayout(),
-                    "target/logs/refereroutputlog.txt"));
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+            Configuration configuration = logContext.getConfiguration();
+            configuration.addAppender(FileAppender.newBuilder().setName("Refereroutputlog").withFileName("target/logs/refereroutputlog.txt").build());
+            
+            configuration.getLoggerConfig(logger.getName()).setLevel(Level.INFO);
+            logContext.updateLoggers();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -266,7 +271,7 @@ public class Referrer implements SipListener {
             requestURI.setTransportParam(transport);
 
             // Create ViaHeaders
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             int port = sipProvider.getListeningPoint(transport).getPort();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     port, transport, null);

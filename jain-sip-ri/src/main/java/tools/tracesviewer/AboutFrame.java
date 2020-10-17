@@ -21,7 +21,11 @@ import java.awt.event.*;
 */
 public class AboutFrame extends JFrame {
 
-    public TracesAnimationThread animationThread;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public TracesAnimationThread animationThread;
 
     /** Creates new AboutFrame */
     public AboutFrame() {
@@ -39,7 +43,7 @@ public class AboutFrame extends JFrame {
         this.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 animationThread.stop();
-                hide();
+                setVisible(false);
             }
         });
 

@@ -29,12 +29,6 @@
 
 package gov.nist.javax.sip.header.ims;
 
-import java.text.ParseException;
-
-import javax.sip.InvalidArgumentException;
-import javax.sip.header.Header;
-import javax.sip.header.Parameters;
-
 
 /**
  * Security-Server header

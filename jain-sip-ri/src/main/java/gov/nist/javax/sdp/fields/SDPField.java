@@ -40,7 +40,11 @@ package gov.nist.javax.sdp.fields;
 */
 
 public abstract class SDPField extends SDPObject {
-    protected String fieldName;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String fieldName;
 
     public abstract String encode();
 

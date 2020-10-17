@@ -24,14 +24,13 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import test.tck.TestHarness;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
-
-import java.util.*;
 
 /**
  * This class is a UAC template.
@@ -65,7 +64,7 @@ public class Shootme implements SipListener {
 
     public static final int myPort = NetworkPortAssigner.retrieveNextPort();
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
 
     public Shootme(ProtocolObjects protObjects) {
         addressFactory = protObjects.addressFactory;

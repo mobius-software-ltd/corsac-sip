@@ -34,7 +34,11 @@ import gov.nist.javax.sip.header.SIPHeader;
  */
 public class PPreferredService extends SIPHeader implements PPreferredServiceHeader, SIPHeaderNamesIms, ExtensionHeader{
 
-    private String subServiceIds;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String subServiceIds;
     private String subAppIds;
 
     protected PPreferredService(String name) {

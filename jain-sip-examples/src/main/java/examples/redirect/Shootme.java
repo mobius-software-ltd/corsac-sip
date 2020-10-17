@@ -6,9 +6,11 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import java.util.*;
 
@@ -34,19 +36,15 @@ public class Shootme extends TestCase implements SipListener {
 
     private Response okResponse;
 
-    private Request inviteRequest;
-
     private Dialog dialog;
 
     private SipProvider sipProvider;
-
-    private int inviteCount = 0;
 
     private int dialogTerminationCount = 0;
 
     private int dialogCount;
 
-    private static Logger logger = Logger.getLogger(Shootme.class);
+    private static Logger logger = LogManager.getLogger(Shootme.class);
 
     class MyTimerTask extends TimerTask {
         Shootme shootme;
@@ -130,7 +128,6 @@ public class Shootme extends TestCase implements SipListener {
         SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
-            this.inviteCount++;
             logger.info("shootme: got an Invite " + request);
             assertTrue(request.getHeader(ContactHeader.NAME) != null );
             Response response = protocolObjects.messageFactory.createResponse(
@@ -188,7 +185,6 @@ public class Shootme extends TestCase implements SipListener {
                 okResponse.addHeader(contactHeader);
                 this.inviteTid = st;
                 // Defer sending the OK to simulate the phone ringing.
-                this.inviteRequest = request;
 
 
                 new Timer().schedule(new MyTimerTask(this), 1000);
@@ -227,7 +223,6 @@ public class Shootme extends TestCase implements SipListener {
      */
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
             logger.info("shootme:  got a bye sending OK.");
@@ -271,7 +266,10 @@ public class Shootme extends TestCase implements SipListener {
 
     public static void main(String args[]) throws Exception {
         Shootme shootme = new Shootme(new ProtocolObjects("shootme", true,"udp",""));
-        logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+        LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        
         shootme.createProvider();
         shootme.sipProvider.addSipListener(shootme);
 

@@ -58,7 +58,7 @@ public interface ParseExceptionListener {
     public void handleException(
         ParseException ex,
         SIPMessage sipMessage,
-        Class headerClass,
+        Class<?> headerClass,
         String headerText,
         String messageText)
         throws ParseException;

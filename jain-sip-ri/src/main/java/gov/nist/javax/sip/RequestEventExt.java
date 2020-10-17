@@ -14,7 +14,12 @@ import javax.sip.message.Request;
 
 
 public class RequestEventExt extends RequestEvent {
-    private String remoteIpAddress;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private String remoteIpAddress;
     
     private int    remotePort;
     

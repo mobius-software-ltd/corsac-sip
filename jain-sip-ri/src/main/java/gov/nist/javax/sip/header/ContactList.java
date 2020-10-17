@@ -30,8 +30,6 @@ package gov.nist.javax.sip.header;
 
 import javax.sip.header.*;
 
-import java.util.ListIterator;
-
 /**
  * List of contact headers.ContactLists are also maintained in a hashtable
  * for quick lookup.

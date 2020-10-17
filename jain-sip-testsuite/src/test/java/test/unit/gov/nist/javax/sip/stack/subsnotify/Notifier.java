@@ -14,7 +14,13 @@ import java.util.*;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 
 /**
@@ -42,7 +48,7 @@ public class Notifier implements SipListener {
     protected SipProvider udpProvider;
 
   
-    private static Logger logger = Logger.getLogger(Notifier.class) ;
+    private static Logger logger = LogManager.getLogger(Notifier.class) ;
 
     protected int notifyCount = 0;
 
@@ -134,7 +140,7 @@ public class Notifier implements SipListener {
                  * the subscription is not active.
                  */
     
-                Dialog dialog = sipProvider.getNewDialog(st);
+                sipProvider.getNewDialog(st);
                 
                 Address toAddress = ((ResponseExt)response).getFromHeader().getAddress();
                 String toTag = ((ResponseExt)response).getFromHeader().getTag();
@@ -145,7 +151,7 @@ public class Notifier implements SipListener {
                 // Create a new Cseq header
                 CSeqHeader cSeqHeader = headerFactory.createCSeqHeader(1L,
                         Request.NOTIFY);
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String transport = "udp";
                 int port = sipProvider.getListeningPoint(transport).getPort();
                 ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
@@ -242,9 +248,10 @@ public class Notifier implements SipListener {
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
 
-        logger.addAppender(new FileAppender
-            ( new SimpleLayout(),"notifieroutputlog_" + port + ".txt" ));
-
+        LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(FileAppender.newBuilder().setName("Notifieroutputlog_" + port).withFileName("notifieroutputlog_" + port + ".txt").build());
+        
         properties.setProperty("javax.sip.STACK_NAME", "notifier" + port );
         // You need 16 for logging traces. 32 for debug + traces.
         // Your code will limp at 32 but it is best for debugging.
@@ -319,8 +326,11 @@ public class Notifier implements SipListener {
 
     public static Notifier createNotifier() throws Exception {
         int port = NetworkPortAssigner.retrieveNextPort();
-        logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-        initFactories( port );
+        LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+    	
+    	initFactories( port );
         Notifier notifier = new Notifier( port );
         notifier.createProvider( );
         notifier.udpProvider.addSipListener(notifier);
@@ -345,7 +355,7 @@ public class Notifier implements SipListener {
     }
 
 	public void tearDown() {
-		this.sipStack.stop();
+		sipStack.stop();
 		
 	}
 

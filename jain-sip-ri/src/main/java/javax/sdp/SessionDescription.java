@@ -9,6 +9,12 @@ package javax.sdp;
 import java.io.*;
 import java.util.*;
 
+import gov.nist.javax.sdp.fields.AttributeField;
+import gov.nist.javax.sdp.fields.BandwidthField;
+import gov.nist.javax.sdp.fields.EmailField;
+import gov.nist.javax.sdp.fields.PhoneField;
+import gov.nist.javax.sdp.fields.ZoneField;
+
 /** A SessionDescription represents the data defined by the Session Description 
  * Protocol (see
  * IETF RFC 2327) and holds information about the originitor of a session, 
@@ -108,7 +114,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      * @throws SdpException
      * @return the email address.
      */    
-    public Vector getEmails(boolean create)
+    public Vector<EmailField> getEmails(boolean create)
                  throws SdpParseException;
     
     /** Sets a an email address to contact for further information about the session.
@@ -116,7 +122,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      * @param emails email - the email address.
      * @throws SdpException if the vector is null
      */    
-    public void setEmails(Vector emails)
+    public void setEmails(Vector<EmailField> emails)
                throws SdpException;
     
     /** Returns a phone number to contact for further information about the session. This
@@ -125,7 +131,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      * @throws SdpException
      * @return the phone number.
      */    
-    public Vector getPhones(boolean create)
+    public Vector<PhoneField> getPhones(boolean create)
                  throws SdpException;
     
     /** Sets a phone number to contact for further information about the session. This
@@ -133,7 +139,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      * @param phones phone - the phone number.
      * @throws SdpException if the vector is null
      */    
-    public void setPhones(Vector phones)
+    public void setPhones(Vector<PhoneField> phones)
                throws SdpException;
     
     /** Returns a TimeField indicating the start, stop, repetition and time zone
@@ -143,7 +149,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      * @throws SdpException
      * @return the Time Field.
      */    
-    public Vector getTimeDescriptions(boolean create)
+    public Vector<TimeDescription> getTimeDescriptions(boolean create)
                            throws SdpException;
     
     /** Sets a TimeField indicating the start, stop, repetition and time zone 
@@ -152,7 +158,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      * @param times time - the TimeField.
      * @throws SdpException if the vector is null
      */    
-    public void setTimeDescriptions(Vector times)
+    public void setTimeDescriptions(Vector<TimeDescription> times)
                          throws SdpException;
     
     /** Returns the time zone adjustments for the Session
@@ -162,7 +168,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      * Adjusted Time
      *          Zone and the value is the offset.
      */    
-    public Vector getZoneAdjustments(boolean create)
+    public Vector<ZoneField> getZoneAdjustments(boolean create)
                           throws SdpException;
     
     /** Sets the time zone adjustment for the TimeField.
@@ -171,7 +177,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      *          is the Adjusted Time Zone and the value is the offset.
      * @throws SdpException if the vector is null
      */    
-    public void setZoneAdjustments(Vector zoneAdjustments)
+    public void setZoneAdjustments(Vector<ZoneField> zoneAdjustments)
                         throws SdpException;
     
     /** Returns the connection information associated with this object. This may 
@@ -193,13 +199,13 @@ public interface SessionDescription extends Serializable, Cloneable{
      * @param create type - type of the Bandwidth to return
      * @return the Bandwidth or null if undefined
      */    
-    public Vector getBandwidths(boolean create);
+    public Vector<BandwidthField> getBandwidths(boolean create);
     
     /** set the value of the Bandwidth with the specified type.
      * @param bandwidths to set
      * @throws SdpException if the vector is null
      */    
-    public void setBandwidths(Vector bandwidths)
+    public void setBandwidths(Vector<BandwidthField> bandwidths)
                    throws SdpException;
     
     /** Returns the integer value of the specified bandwidth name.
@@ -253,7 +259,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      *          attributes exists for this Description
      * @return attributes for this Description
      */ 
-    public Vector getAttributes(boolean create);
+    public Vector<AttributeField> getAttributes(boolean create);
     
     /** Removes the attribute specified by the value parameter.
      * @param name name - the name of the attribute
@@ -273,7 +279,7 @@ public interface SessionDescription extends Serializable, Cloneable{
      * @param Attributes attribute - the attribute to add
      * @throws SdpException if the vector is null
      */    
-    public void setAttributes(Vector Attributes)
+    public void setAttributes(Vector<AttributeField> Attributes)
                    throws SdpException;
     
     /** Adds a MediaDescription to the session description. These correspond to the m=
@@ -282,14 +288,14 @@ public interface SessionDescription extends Serializable, Cloneable{
      * @throws SdpException
      * @return media - the field to add.
      */    
-    public Vector getMediaDescriptions(boolean create)
+    public Vector<MediaDescription> getMediaDescriptions(boolean create)
                             throws SdpException;
     
     /** Removes all MediaDescriptions from the session description.
      * @param mediaDescriptions to set
      * @throws SdpException if the parameter is null
      */    
-    public void setMediaDescriptions(Vector mediaDescriptions)
+    public void setMediaDescriptions(Vector<MediaDescription> mediaDescriptions)
                           throws SdpException;
 }
 

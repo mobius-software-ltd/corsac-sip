@@ -98,9 +98,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
 
     protected String peerProtocol;
 	
-	private volatile long lastKeepAliveReceivedTime;
-
-    private SIPStackTimerTask pingKeepAliveTimeoutTask;
+	private SIPStackTimerTask pingKeepAliveTimeoutTask;
     private Semaphore keepAliveSemaphore;
     
     private long keepAliveTimeout;    
@@ -198,7 +196,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
                     }
 
                     @Override
-                    public Object getThreadHash() {
+                    public String getThreadHash() {
                         return sipMessage.getCallId().getCallId();
                     }
                 };
@@ -565,7 +563,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
                     }
                 } else {
                 	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        this.logger.logDebug("null sipServerResponse as could not acquire semaphore or the valve dropped the message.");
+                        ConnectionOrientedMessageChannel.logger.logDebug("null sipServerResponse as could not acquire semaphore or the valve dropped the message.");
                 }
             }
         } finally {
@@ -723,7 +721,6 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
      * @see gov.nist.javax.sip.parser.SIPMessageListener#sendSingleCLRF()
      */
 	public void sendSingleCLRF() throws Exception {
-        lastKeepAliveReceivedTime = System.currentTimeMillis();
 
 		if(mySock != null && !mySock.isClosed()) {
 			sendMessage("\r\n".getBytes("UTF-8"), false);
@@ -849,7 +846,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
     		super(KeepAliveTimeoutTimerTask.class.getSimpleName());
     	}
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return null;
         } 
         

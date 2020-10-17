@@ -31,7 +31,11 @@ import gov.nist.core.*;
 import javax.sdp.*;
 
 public class SessionNameField extends SDPField implements SessionName {
-    protected String sessionName;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String sessionName;
 
     public SessionNameField() {
         super(SDPFieldNames.SESSION_NAME_FIELD);

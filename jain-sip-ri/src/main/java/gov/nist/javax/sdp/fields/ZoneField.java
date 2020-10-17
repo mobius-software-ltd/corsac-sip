@@ -46,8 +46,9 @@ import javax.sdp.*;
 public class ZoneField
     extends SDPField
     implements javax.sdp.TimeZoneAdjustment {
+	private static final long serialVersionUID = 1L;
 
-    protected SDPObjectList zoneAdjustments;
+	protected SDPObjectList zoneAdjustments;
 
     /**
     * Constructor.
@@ -79,7 +80,7 @@ public class ZoneField
     */
     public String encode() {
         StringBuilder retval = new StringBuilder(ZONE_FIELD);
-        ListIterator li = zoneAdjustments.listIterator();
+        ListIterator<GenericObject> li = zoneAdjustments.listIterator();
         int num = 0;
         while (li.hasNext()) {
             ZoneAdjustment za = (ZoneAdjustment) li.next();
@@ -99,14 +100,14 @@ public class ZoneField
      * @throws SdpParseException
      * @return create - when true, an empty Hashtable is created, if it is null.
      */
-    public Hashtable getZoneAdjustments(boolean create)
+    public Hashtable<Date,Integer> getZoneAdjustments(boolean create)
         throws SdpParseException {
-        Hashtable result = new Hashtable();
+        Hashtable<Date,Integer> result = new Hashtable<Date,Integer>();
         SDPObjectList zoneAdjustments = getZoneAdjustments();
         ZoneAdjustment zone;
         if (zoneAdjustments == null)
             if (create)
-                return new Hashtable();
+                return new Hashtable<Date,Integer>();
             else
                 return null;
         else {
@@ -126,11 +127,11 @@ public class ZoneField
      * @param map Hashtable to set
      * @throws SdpException if the parameter is null
      */
-    public void setZoneAdjustments(Hashtable map) throws SdpException {
+    public void setZoneAdjustments(Hashtable<Date,Integer> map) throws SdpException {
         if (map == null)
             throw new SdpException("The map is null");
         else {
-            for (Enumeration e = map.keys(); e.hasMoreElements();) {
+            for (Enumeration<Date> e = map.keys(); e.hasMoreElements();) {
                 Object o = e.nextElement();
                 if (o instanceof Date) {
                     Date date = (Date) o;

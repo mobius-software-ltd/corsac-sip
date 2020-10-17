@@ -226,21 +226,21 @@ public class LexerCore extends StringTokenizer {
             if (tok == ID) {
                 // Generic ID sought.
                 if (!startsId())
-                    throw new ParseException(buffer + "\nID expected", ptr);
+                    throw new ParseException(buffer.toString() + "\nID expected", ptr);
                 String id = getNextId();
                 this.currentMatch = new Token();
                 this.currentMatch.tokenValue = id;
                 this.currentMatch.tokenType = ID;
             } else if (tok == SAFE) {
                 if (!startsSafeToken())
-                    throw new ParseException(buffer + "\nID expected", ptr);
+                    throw new ParseException(buffer.toString() + "\nID expected", ptr);
                 String id = ttokenSafe();
                 this.currentMatch = new Token();
                 this.currentMatch.tokenValue = id;
                 this.currentMatch.tokenType = SAFE;
             } else if (tok == ID_NO_WHITESPACE) {
                 if (!startsIdNoWhiteSpace())
-                    throw new ParseException(buffer + "\nID no white space expected", ptr);
+                    throw new ParseException(buffer.toString() + "\nID no white space expected", ptr);
                 String id = getNextIdNoWhiteSpace();
                 this.currentMatch = new Token();
                 this.currentMatch.tokenValue = id;
@@ -251,7 +251,7 @@ public class LexerCore extends StringTokenizer {
 
                 if (cur == null || cur.intValue() != tok)
                     throw new ParseException(
-                        buffer + "\nUnexpected Token : " + nexttok,
+                        buffer.toString() + "\nUnexpected Token : " + nexttok,
                         ptr);
                 this.currentMatch = new Token();
                 this.currentMatch.tokenValue = nexttok;
@@ -262,7 +262,7 @@ public class LexerCore extends StringTokenizer {
             char next = lookAhead(0);
             if (tok == DIGIT) {
                 if (!isDigit(next))
-                    throw new ParseException(buffer + "\nExpecting DIGIT", ptr);
+                    throw new ParseException(buffer.toString() + "\nExpecting DIGIT", ptr);
                 this.currentMatch = new Token();
                 this.currentMatch.tokenValue =
                     String.valueOf(next);
@@ -271,7 +271,7 @@ public class LexerCore extends StringTokenizer {
 
             } else if (tok == ALPHA) {
                 if (!isAlpha(next))
-                    throw new ParseException(buffer + "\nExpecting ALPHA", ptr);
+                    throw new ParseException(buffer.toString() + "\nExpecting ALPHA", ptr);
                 this.currentMatch = new Token();
                 this.currentMatch.tokenValue =
                     String.valueOf(next);
@@ -296,7 +296,7 @@ public class LexerCore extends StringTokenizer {
                 consume(1);
             } else
                 throw new ParseException(
-                    buffer + "\nExpecting  >>>" + ch + "<<< got >>>"
+                    buffer.toString() + "\nExpecting  >>>" + ch + "<<< got >>>"
                     + next + "<<<", ptr);
         }
         return this.currentMatch;
@@ -633,14 +633,14 @@ public class LexerCore extends StringTokenizer {
                 break;
             } else if (next == '\0') {
                 throw new ParseException(
-                    this.buffer + " :unexpected EOL",
+                    this.buffer.toString() + " :unexpected EOL",
                     this.ptr);
             } else if (next == '\\') {
                 retval.append(next);
                 next = getNextChar();
                 if (next == '\0')
                     throw new ParseException(
-                        this.buffer + " : unexpected EOL",
+                        this.buffer.toString() + " : unexpected EOL",
                         this.ptr);
                 retval.append(next);
             } else {
@@ -738,7 +738,7 @@ public class LexerCore extends StringTokenizer {
         try {
             if (!isDigit(lookAhead(0))) {
                 throw new ParseException(
-                    buffer + ": Unexpected token at " + lookAhead(0),
+                    buffer.toString() + ": Unexpected token at " + lookAhead(0),
                     ptr);
             }
             consume(1);
@@ -792,7 +792,7 @@ public class LexerCore extends StringTokenizer {
 
             if (next == '\0') {
                 throw new ParseException(
-                    this.buffer + "unexpected EOL",
+                    this.buffer.toString() + "unexpected EOL",
                     this.ptr);
             } else if (next == c) {
                 consume(1);
@@ -802,7 +802,7 @@ public class LexerCore extends StringTokenizer {
                 char nextchar = lookAhead(0);
                 if (nextchar == '\0') {
                     throw new ParseException(
-                        this.buffer + "unexpected EOL",
+                        this.buffer.toString() + "unexpected EOL",
                         this.ptr);
                 } else {
                     consume(1);

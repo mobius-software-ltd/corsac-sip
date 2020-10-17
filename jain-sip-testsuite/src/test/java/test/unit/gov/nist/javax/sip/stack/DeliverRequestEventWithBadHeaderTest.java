@@ -4,10 +4,8 @@ import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Properties;
 
-import javax.security.sasl.SaslException;
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogTerminatedEvent;
@@ -25,17 +23,10 @@ import javax.sip.Transaction;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
-import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
-import javax.sip.header.CallIdHeader;
 import javax.sip.header.ContactHeader;
-import javax.sip.header.ContentTypeHeader;
-import javax.sip.header.FromHeader;
-import javax.sip.header.Header;
 import javax.sip.header.HeaderFactory;
-import javax.sip.header.MaxForwardsHeader;
 import javax.sip.header.ToHeader;
-import javax.sip.header.ViaHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -244,21 +235,11 @@ public class DeliverRequestEventWithBadHeaderTest extends TestCase {
 
         private SipProvider sipProvider;
 
-        private AddressFactory addressFactory;
-
         private MessageFactory messageFactory;
-
-        private HeaderFactory headerFactory;
 
         private SipStack sipStack;
 
-        private ContactHeader contactHeader;
-
         private ListeningPoint udpListeningPoint;
-
-        private Dialog dialog;
-
-        private boolean timeoutRecieved;
 
         boolean sawOk;
         
@@ -272,7 +253,7 @@ public class DeliverRequestEventWithBadHeaderTest extends TestCase {
 
         public Shootist( Shootme shootme) {
             super();
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;  
         }         
@@ -303,8 +284,6 @@ public class DeliverRequestEventWithBadHeaderTest extends TestCase {
 
             System.out.println("Got a timeout "
                     + timeoutEvent.getClientTransaction());
-
-            this.timeoutRecieved = true;
         }
 
         public void init() {
@@ -356,8 +335,6 @@ public class DeliverRequestEventWithBadHeaderTest extends TestCase {
             }
 
             try {
-                headerFactory = sipFactory.createHeaderFactory();
-                addressFactory = sipFactory.createAddressFactory();
                 messageFactory = sipFactory.createMessageFactory();
                 udpListeningPoint = sipStack.createListeningPoint("127.0.0.1",
                         myPort, "udp");
@@ -396,8 +373,6 @@ public class DeliverRequestEventWithBadHeaderTest extends TestCase {
 
                 // send the request out.
                 inviteTid.sendRequest();
-
-                dialog = inviteTid.getDialog();
 
             } catch (Exception ex) {
                 ex.printStackTrace();

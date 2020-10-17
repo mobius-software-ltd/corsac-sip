@@ -192,7 +192,7 @@ public class ServerLog implements ServerLogger {
                         + "\"\n auxInfo=\"" + auxInfo + "\"/>\n ");
                 if (auxInfo != null) {
 
-                    if (sipStack.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    if (stackLogger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                         stackLogger
                                 .logDebug("Here are the stack configuration properties \n"
                                         + "javax.sip.IP_ADDRESS= "
@@ -232,7 +232,7 @@ public class ServerLog implements ServerLogger {
                     }
                 } else {
 
-                    if (sipStack.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    if (stackLogger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                         stackLogger.logDebug("Here are the stack configuration properties \n"
                                 + configurationProperties + "\n");
                         stackLogger.logDebug(" ]]>");
@@ -287,7 +287,7 @@ public class ServerLog implements ServerLogger {
         if (printWriter != null) {
             printWriter.println(logInfo);
         }
-        if (sipStack.isLoggingEnabled()) {
+        if (stackLogger.isLoggingEnabled()) {
             stackLogger.logInfo(logInfo);
 
         }
@@ -420,6 +420,7 @@ public class ServerLog implements ServerLogger {
         this.auxInfo = auxInfo;
     }
 
+	@SuppressWarnings("deprecation")
 	public void setSipStack(SipStack sipStack) {
 		if(sipStack instanceof SIPTransactionStack) {
 			this.sipStack = (SIPTransactionStack)sipStack;

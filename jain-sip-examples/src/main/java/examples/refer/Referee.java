@@ -5,12 +5,14 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+
 import java.text.ParseException;
 import java.util.*;
-
-import org.apache.log4j.*;
-
-
 
 /**
  * This example shows an out-of-dialog REFER scenario:
@@ -41,7 +43,7 @@ public class Referee implements SipListener {
 
     protected Dialog dialog;
 
-    private static Logger logger = Logger.getLogger(Referee.class) ;
+    private static Logger logger = LogManager.getLogger(Referee.class) ;
 
     private EventHeader referEvent;
 
@@ -291,7 +293,7 @@ public class Referee implements SipListener {
 
             // Create ViaHeaders
 
-            ArrayList viaHeaders = new ArrayList();
+            ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
             ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                     lp.getPort(), transport, null);
 
@@ -349,8 +351,9 @@ public class Referee implements SipListener {
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
 
-        logger.addAppender(new FileAppender
-            ( new SimpleLayout(),"refereeoutputlog.txt" ));
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(FileAppender.newBuilder().setName("Referee").withFileName("refereeoutputlog.txt").build());            
 
         properties.setProperty("javax.sip.STACK_NAME", "referee" );
         // You need 16 for logging traces. 32 for debug + traces.

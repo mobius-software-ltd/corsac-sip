@@ -13,18 +13,20 @@ import java.util.*;
  *
  *@author Tim Bardzil <bardzil@colorado.edu>
  */
-public class SniffMessageList extends ArrayList {
-    protected static String fileName;
+public class SniffMessageList extends ArrayList<SniffMessage> {
+	private static final long serialVersionUID = 1L;
+
+	protected static String fileName;
 
     public String getCallID() {
-        SniffMessage temp = (SniffMessage) super.get(0);
+        SniffMessage temp = super.get(0);
         return temp.getCallID();
     }
 
     public String toXML() {
 
         String xmlMessages = new String();
-        ListIterator i = super.listIterator();
+        ListIterator<SniffMessage> i = super.listIterator();
         while (i.hasNext()) {
             xmlMessages += ((SniffMessage) i.next()).toXML();
         }

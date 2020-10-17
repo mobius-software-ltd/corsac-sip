@@ -27,7 +27,7 @@ import java.util.Map;
  * @author Christopher Berry
  * @author <a href="mailto:jstrachan@apache.org">James Strachan</a>
  */
-public interface MultiMap extends Map {
+public interface MultiMap<K,V> extends Map<K,V> {
 
     public Object removeMulti(Object key, Object item);
 

@@ -133,8 +133,9 @@ import javax.sip.message.Request;
  */
 public abstract class SIPMessage extends MessageObject implements javax.sip.message.Message,
         MessageExt {
+	private static final long serialVersionUID = 1L;
 
-    // JvB: use static here?
+	// JvB: use static here?
     private String contentEncodingCharset = MessageFactoryImpl.getDefaultContentEncodingCharset();
 
     /*
@@ -735,7 +736,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @throws IndexOutOfBoundsException If the index specified is greater than
      * the number of headers that are in this message.
      */
-    public void attachHeader(SIPHeader header, boolean replaceFlag, boolean top)
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	public void attachHeader(SIPHeader header, boolean replaceFlag, boolean top)
             throws SIPDuplicateHeaderException {
         if (header == null) {
             throw new NullPointerException("null header");
@@ -784,10 +786,11 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             headers.add(h);
         } else {
             if (h instanceof SIPHeaderList) {
-                SIPHeaderList< ?> hdrlist = (SIPHeaderList< ?>) headerTable
+                SIPHeaderList<?> hdrlist = (SIPHeaderList<?>) headerTable
                         .get(headerNameLowerCase);
+                
                 if (hdrlist != null) {
-                    hdrlist.concatenate((SIPHeaderList) h, top);
+                	hdrlist.concatenate((SIPHeaderList)h, top);
                 } else {
                     headerTable.put(headerNameLowerCase, h);
                 }
@@ -961,7 +964,6 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             // from various fields of the request.
             StringBuilder retval = new StringBuilder();
             From from = (From) this.getFrom();
-            To to = (To) this.getTo();
             // String hpFrom = from.getUserAtHostPort();
             // retval.append(hpFrom).append(":");
             if (from != null && from.hasTag()) {
@@ -1036,7 +1038,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         }
         SIPHeader sipHeader = (SIPHeader) headerTable.get(lowerCaseHeaderName);
         if (sipHeader instanceof SIPHeaderList) {
-            return (Header) ((SIPHeaderList) sipHeader).getFirst();
+            return (Header) ((SIPHeaderList<?>) sipHeader).getFirst();
         } else {
             return (Header) sipHeader;
         }
@@ -1124,9 +1126,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *
      * @param viaList a list of via headers to add.
      */
-    public void setVia(java.util.List viaList) {
+    public void setVia(List<?> viaList) {
         ViaList vList = new ViaList();
-        ListIterator it = viaList.listIterator();
+        ListIterator<?> it = viaList.listIterator();
         while (it.hasNext()) {
             Via via = (Via) it.next();
             vList.add(via);

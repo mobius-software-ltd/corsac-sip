@@ -1,11 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack.tls;
 
-import gov.nist.javax.sip.ClientTransactionExt;
-import gov.nist.javax.sip.TlsSecurityPolicy;
-import gov.nist.javax.sip.TransactionExt;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
-
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,13 +39,21 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+
+import gov.nist.javax.sip.ClientTransactionExt;
+import gov.nist.javax.sip.TlsSecurityPolicy;
+import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
-
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 
 
 public class DeadSocketTlsTest extends TestCase {
@@ -63,10 +65,14 @@ public class DeadSocketTlsTest extends TestCase {
 
 	public void setUp() {
 
-		Logger root = Logger.getRootLogger();
-		root.setLevel(Level.DEBUG);
-		root.addAppender(new ConsoleAppender(
-				new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
+		LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	
+    	LoggerConfig loggerConfig = configuration.getLoggerConfig(LogManager.ROOT_LOGGER_NAME); 
+		loggerConfig.setLevel(Level.DEBUG);
+		logContext.updateLoggers();
+		
+		configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").setLayout(PatternLayout.newBuilder().withPattern(PatternLayout.TTCC_CONVERSION_PATTERN).build()).build());
 		// setup TLS properties
 		System.setProperty( "javax.net.ssl.keyStore",  TlsTest.class.getResource("testkeys").getPath() );
 		System.setProperty( "javax.net.ssl.trustStore", TlsTest.class.getResource("testkeys").getPath() );
@@ -140,11 +146,8 @@ public class DeadSocketTlsTest extends TestCase {
 		private int reInviteCount;
 		private ContactHeader contactHeader;
 		private ListeningPoint tlsListeningPoint;
-		private int counter;
 		
-
 		protected ClientTransaction inviteTid;
-		private boolean byeSeen;
 		private boolean enforceTlsPolicyCalled;
 
 		protected static final String usageString =
@@ -199,8 +202,6 @@ public class DeadSocketTlsTest extends TestCase {
 				serverTransactionId.sendResponse(response);
 				System.out.println("shootist:  Sending OK.");
 				System.out.println("Dialog State = " + dialog.getState());
-
-				this.byeSeen = true;
 
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -372,7 +373,7 @@ public class DeadSocketTlsTest extends TestCase {
 
 				// Create ViaHeaders
 
-				ArrayList viaHeaders = new ArrayList();
+				ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
 				ViaHeader viaHeader =
 						headerFactory.createViaHeader(
 								"127.0.0.1",
@@ -549,7 +550,7 @@ public class DeadSocketTlsTest extends TestCase {
 		}
 
 		public void stop() {
-			this.sipStack.stop();
+			sipStack.stop();
 		}
 
 		public static void main(String args[]) throws Exception {
@@ -878,7 +879,7 @@ public class DeadSocketTlsTest extends TestCase {
 		}
 
 		public void stop() {
-			this.sipStack.stop();
+			sipStack.stop();
 		}
 
 		public static void main(String args[]) throws Exception {

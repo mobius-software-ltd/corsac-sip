@@ -60,7 +60,7 @@ public interface Parameters {
      *
      * @return an Iterator over all the parameter names
      */
-    public Iterator getParameterNames();
+    public Iterator<?> getParameterNames();
 
     /**
      * Removes the specified parameter from Parameters of this ParametersHeader.

@@ -1,21 +1,51 @@
 package examples.websocket;
 
-import javax.sip.*;
-import javax.sip.address.*;
-import javax.sip.header.*;
-import javax.sip.message.*;
-
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-
-import examples.simplecallsetup.Shootist;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
-import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.IOExceptionEvent;
+import javax.sip.ListeningPoint;
+import javax.sip.PeerUnavailableException;
+import javax.sip.RequestEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipFactory;
+import javax.sip.SipListener;
+import javax.sip.SipProvider;
+import javax.sip.SipStack;
+import javax.sip.Transaction;
+import javax.sip.TransactionTerminatedEvent;
+import javax.sip.address.Address;
+import javax.sip.address.AddressFactory;
+import javax.sip.address.SipURI;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.ContentTypeHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.Header;
+import javax.sip.header.HeaderFactory;
+import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.MessageFactory;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 /**
  * This class is a B2BUA using Websocket transport. You can use any two Websocket SIP phones
@@ -190,7 +220,7 @@ public class B2BUA implements SipListener {
 		SipURI fromUri = (SipURI) from.getAddress().getURI();
 		registrar.put(fromUri.getUser(), contactUri);
 		try {
-			Response response = this.messageFactory.createResponse(200, request);
+			Response response = messageFactory.createResponse(200, request);
 			ServerTransaction serverTransaction = sipProvider.getNewServerTransaction(request);
 			serverTransaction.sendResponse(response);
 		} catch (Exception e) {
@@ -217,15 +247,18 @@ public class B2BUA implements SipListener {
 
 	public void init() {
 
-		ConsoleAppender console = new ConsoleAppender(); //create appender
-		//configure the appender
 		String PATTERN = "%d [%p|%c|%C{1}] %m%n";
-		console.setLayout(new PatternLayout(PATTERN)); 
-		console.setThreshold(Level.DEBUG);
-		console.activateOptions();
+		ConsoleAppender console = ConsoleAppender.newBuilder().setName("Console").setLayout(PatternLayout.newBuilder().withPattern(PATTERN).build()).build();
 		//add appender to any Logger (here is root)
-		Logger.getRootLogger().addAppender(console);
-		SipFactory sipFactory = null;
+		LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(console);
+                
+        LoggerConfig loggerConfig = configuration.getLoggerConfig(LogManager.ROOT_LOGGER_NAME); 
+        loggerConfig.setLevel(Level.DEBUG);
+        logContext.updateLoggers();
+        
+        SipFactory sipFactory = null;
 		sipStack = null;
 		sipFactory = SipFactory.getInstance();
 		sipFactory.setPathName("gov.nist");
@@ -335,7 +368,7 @@ public class B2BUA implements SipListener {
 
 			// Create ViaHeaders
 
-			ArrayList viaHeaders = new ArrayList();
+			ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
 			String ipAddress = listeningPoint.getIPAddress();
 			ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
 					sipProvider.getListeningPoint(transport).getPort(),

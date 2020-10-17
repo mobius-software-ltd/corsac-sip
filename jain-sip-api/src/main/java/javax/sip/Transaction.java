@@ -25,7 +25,6 @@
  */
 package javax.sip;
 
-import javax.sip.Dialog;
 import javax.sip.message.Request;
 import java.io.Serializable;
 

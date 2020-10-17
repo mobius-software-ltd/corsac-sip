@@ -52,8 +52,6 @@ import gov.nist.javax.sip.stack.SIPServerTransaction;
 import gov.nist.javax.sip.stack.SIPTransaction;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.ServerRequestInterface;
-import gov.nist.javax.sip.stack.ServerResponseInterface;
-
 import java.io.IOException;
 
 import javax.sip.ClientTransaction;
@@ -1381,8 +1379,6 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         }
 
         SIPClientTransaction transaction = (SIPClientTransaction) this.transactionChannel;
-        SIPTransactionStack sipStackImpl = sipProvider.sipStack;
-
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
             logger.logDebug(
                     "Transaction = " + transaction);

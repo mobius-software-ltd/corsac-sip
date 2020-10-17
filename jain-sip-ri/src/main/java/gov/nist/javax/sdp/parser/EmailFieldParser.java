@@ -108,7 +108,7 @@ public class EmailFieldParser extends SDPParser {
 
                 } else {
                     int i = rest.indexOf("@");
-                    int j = rest.indexOf("\n");
+                    rest.indexOf("\n");
                     if (i != -1) {
                         email.setUserName(rest.substring(0, i));
                         email.setHostName(rest.substring(i + 1));

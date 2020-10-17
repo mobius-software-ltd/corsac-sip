@@ -1,7 +1,6 @@
 package gov.nist.javax.sip.parser.ims;
 
 import gov.nist.javax.sip.parser.HeaderParser;
-import gov.nist.javax.sip.parser.ims.PChargingVectorParser;
 import gov.nist.javax.sip.parser.ParserTestCase;
 
 public class PChargingVectorParserTest extends ParserTestCase {

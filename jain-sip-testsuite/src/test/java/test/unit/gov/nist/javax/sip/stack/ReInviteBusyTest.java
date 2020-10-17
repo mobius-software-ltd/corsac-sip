@@ -69,10 +69,12 @@ import javax.sip.message.Response;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -94,16 +96,18 @@ public class ReInviteBusyTest extends TestCase {
 
     private ProtocolObjects shootmeProtocolObjs;
 
-    protected static final Appender console = new ConsoleAppender(new SimpleLayout());
+    protected static final Appender console = ConsoleAppender.newBuilder().setName("Console").build();
 
-    protected static Logger logger = Logger.getLogger(ReInviteBusyTest.class);
+    protected static Logger logger = LogManager.getLogger(ReInviteBusyTest.class);
     
     
 
     static {
-
-        if (!logger.isAttached(console))
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(console);
+        }
     }
     
     private static final int TIMEOUT = 10000;
@@ -210,16 +214,16 @@ public class ReInviteBusyTest extends TestCase {
 
         public synchronized void destroy() {
 
-            HashSet hashSet = new HashSet();
+            HashSet<SipProvider> hashSet = new HashSet<SipProvider>();
 
-            for (Iterator it = sipStack.getSipProviders(); it.hasNext();) {
+            for (Iterator<?> it = sipStack.getSipProviders(); it.hasNext();) {
 
                 SipProvider sipProvider = (SipProvider) it.next();
                 hashSet.add(sipProvider);
             }
 
-            for ( Iterator it = hashSet.iterator(); it.hasNext();) {
-                SipProvider sipProvider = (SipProvider) it.next();
+            for ( Iterator<SipProvider> it = hashSet.iterator(); it.hasNext();) {
+                SipProvider sipProvider = it.next();
 
                 for (int j = 0; j < 5; j++) {
                     try {
@@ -259,8 +263,6 @@ public class ReInviteBusyTest extends TestCase {
         private ServerTransaction inviteTid;
 
         private Dialog dialog;
-
-        private boolean okRecieved;
 
         private int reInviteCount;
 
@@ -408,7 +410,6 @@ public class ReInviteBusyTest extends TestCase {
          */
         public void processBye(RequestEvent requestEvent, ServerTransaction serverTransactionId) {
 
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             try {
                 logger.info("shootme:  got a bye sending OK.");
@@ -439,7 +440,6 @@ public class ReInviteBusyTest extends TestCase {
                 if (response.getStatusCode() == Response.OK
                         && ((CSeqHeader) response.getHeader(CSeqHeader.NAME)).getMethod().equals(
                                 Request.INVITE)) {
-                    this.okRecieved = true;
                     ReInviteBusyTest.assertNotNull("INVITE 200 response should match a transaction",
                             tid);
                     Dialog dialog = tid.getDialog();
@@ -555,16 +555,12 @@ public class ReInviteBusyTest extends TestCase {
 
         protected ClientTransaction inviteTid;
 
-        private boolean okReceived;
-
         int reInviteReceivedCount;
 
         private ProtocolObjects protocolObjects;
 
         private Dialog dialog;
 
-        private boolean busyHereReceived;
-        
         private  String PEER_ADDRESS;
 
         private  int PEER_PORT;
@@ -574,7 +570,7 @@ public class ReInviteBusyTest extends TestCase {
         public Shootist(ProtocolObjects protocolObjects,Shootme shootme) {
             super();
             this.protocolObjects = protocolObjects;
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT; 
         }
@@ -682,7 +678,6 @@ public class ReInviteBusyTest extends TestCase {
                     logger.info("RE-INVITE sent");
 
                 } else if (response.getStatusCode() == Response.BUSY_HERE) {
-                    this.busyHereReceived = true;
                     TestCase.assertEquals("Dialog State must be CONFIRMED", dialog.getState(), DialogState.CONFIRMED);
                 }
             } catch (Exception ex) {
@@ -755,7 +750,7 @@ public class ReInviteBusyTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 int port = provider.getListeningPoint(protocolObjects.transport).getPort();
 
                 ViaHeader viaHeader = protocolObjects.headerFactory.createViaHeader(myAddress,

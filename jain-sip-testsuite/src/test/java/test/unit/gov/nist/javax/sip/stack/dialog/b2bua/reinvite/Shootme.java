@@ -1,11 +1,7 @@
 package test.unit.gov.nist.javax.sip.stack.dialog.b2bua.reinvite;
 
-import gov.nist.javax.sip.SipStackImpl;
-
 import java.util.Hashtable;
-import java.util.Properties;
 import java.util.Random;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TooManyListenersException;
 
@@ -17,8 +13,6 @@ import javax.sip.ListeningPoint;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
-import javax.sip.SipException;
-import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
@@ -35,10 +29,10 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import junit.framework.TestCase;
-
-import org.apache.log4j.Logger;
-
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
 
@@ -58,7 +52,7 @@ public class Shootme   implements SipListener {
 
     private static final String myAddress = "127.0.0.1";
 
-    private Hashtable serverTxTable = new Hashtable();
+    private Hashtable<String,ServerTransaction> serverTxTable = new Hashtable<String,ServerTransaction>();
 
     private SipProvider sipProvider;
 
@@ -66,7 +60,7 @@ public class Shootme   implements SipListener {
 
     private static String unexpectedException = "Unexpected exception ";
 
-    private static Logger logger = Logger.getLogger(Shootme.class);
+    private static Logger logger = LogManager.getLogger(Shootme.class);
 
     private boolean inviteSeen;
 
@@ -78,10 +72,6 @@ public class Shootme   implements SipListener {
 
     private SipStack sipStack;
 
-    private int delay;
-
-    private int ringingDelay;
-
     private boolean sendRinging;
 
     private static AddressFactory addressFactory;
@@ -91,9 +81,6 @@ public class Shootme   implements SipListener {
     private static HeaderFactory headerFactory;
 
     private static final String transport = "udp";
-
-    private static Timer timer = new Timer();
-
 
     class MyTimerTask extends TimerTask {
         RequestEvent  requestEvent;
@@ -346,7 +333,6 @@ public class Shootme   implements SipListener {
 
     public Shootme( int myPort, boolean sendRinging, int delay ) throws TooManyListenersException {
         this.myPort = myPort;
-        this.delay = delay;
         this.sendRinging = sendRinging;
 
         ProtocolObjects sipObjects = new ProtocolObjects("shootme","gov.nist","udp",true,false, false);

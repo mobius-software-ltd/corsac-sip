@@ -51,7 +51,9 @@ import javax.sip.header.Parameters;
 public abstract class ParametersHeader
     extends SIPHeader
     implements javax.sip.header.Parameters, ParametersExt, Serializable {
-    protected NameValueList parameters;
+ 	private static final long serialVersionUID = 1L;
+
+	protected NameValueList parameters;
     
     protected DuplicateNameValueList duplicates;
     
@@ -577,11 +579,10 @@ public abstract class ParametersHeader
 
     //-------------------------------
     
-    @SuppressWarnings("unchecked")
     protected final boolean equalParameters( Parameters other ) {
         if (this==other) return true;
 
-        for ( Iterator i = this.getParameterNames(); i.hasNext();) {
+        for ( Iterator<String> i = this.getParameterNames(); i.hasNext();) {
             String pname = (String) i.next();
 
             String p1 = this.getParameter( pname );
@@ -594,7 +595,7 @@ public abstract class ParametersHeader
         }
 
         // Also compare other's parameters; some duplicate testing here...
-        for ( Iterator i = other.getParameterNames(); i.hasNext();) {
+        for ( Iterator<?> i = other.getParameterNames(); i.hasNext();) {
             String pname = (String) i.next();
 
             String p1 = other.getParameter( pname );

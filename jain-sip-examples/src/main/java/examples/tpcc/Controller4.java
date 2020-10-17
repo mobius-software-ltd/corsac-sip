@@ -5,10 +5,12 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import java.util.*;
 import java.io.IOException;
@@ -70,7 +72,7 @@ public class Controller4 implements SipListener {
     private Dialog firstDialog;
 
     private Dialog secondDialog;
-    private static Logger logger = Logger.getLogger(Controller4.class);
+    private static Logger logger = LogManager.getLogger(Controller4.class);
 
     private String auser = "AGuy";
 
@@ -282,7 +284,7 @@ public class Controller4 implements SipListener {
         SipURI requestURI = addressFactory.createSipURI(toVal, peerHostPort);
 
         // Create ViaHeaders
-        ArrayList viaHeaders = new ArrayList();
+        ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
         ViaHeader viaHeader = headerFactory.createViaHeader("127.0.0.1",
                 sipProvider.getListeningPoint(transport).getPort(), transport,
                 null);
@@ -354,10 +356,11 @@ public class Controller4 implements SipListener {
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
         properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
 
-        logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-        logger.addAppender(new FileAppender(new SimpleLayout(),
-                "controllerconsolelog.txt"));
-
+        LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        configuration.addAppender(FileAppender.newBuilder().setName("Controllerconsolelog").withFileName("controllerconsolelog.txt").build());
+        
         try {
             sipStack = sipFactory.createSipStack(properties);
             logger.info("createSipStack " + sipStack);

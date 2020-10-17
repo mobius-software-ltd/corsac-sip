@@ -1,7 +1,5 @@
 package gov.nist.javax.sip.address;
 
-import gov.nist.javax.sip.address.SipUri;
-
 import java.text.ParseException;
 
 import javax.sip.address.SipURI;
@@ -101,7 +99,7 @@ public class JainSipUriTest extends junit.framework.TestCase {
     
     public void testGoodURIs() throws Exception {
         for (int i = 0; i < goodURIs.length; i++) {
-        	URI uri = uri(goodURIs[i]);
+        	uri(goodURIs[i]);
         }
     }
     

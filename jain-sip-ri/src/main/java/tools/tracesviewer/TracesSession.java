@@ -3,9 +3,10 @@ package tools.tracesviewer;
 import java.util.*;
 import java.io.*;
 
-public class TracesSession extends Vector implements Serializable {
+public class TracesSession extends Vector<TracesMessage> implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-    protected String logDescription = null;
+	protected String logDescription = null;
     protected String name = null;
     protected String info = null;
 
@@ -45,9 +46,9 @@ public class TracesSession extends Vector implements Serializable {
     public TracesSession(MessageLogList messageLogList) {
         super();
         this.logDescription = messageLogList.description;
-        Iterator it = messageLogList.iterator();
+        Iterator<TracesMessage> it = messageLogList.iterator();
         while (it.hasNext()) {
-            TracesMessage tracesMessage = (TracesMessage) it.next();
+            TracesMessage tracesMessage = it.next();
             super.add(tracesMessage);
         }
     }

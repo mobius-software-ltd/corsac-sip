@@ -59,6 +59,10 @@ import javax.sip.message.Request;
 public class RequestEvent extends EventObject {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/**
     * Constructs a RequestEvent encapsulating the Request that has been received
     * by the underlying SipProvider. This RequestEvent once created is passed to
     * {@link javax.sip.SipListener#processRequest(RequestEvent)} method of the SipListener

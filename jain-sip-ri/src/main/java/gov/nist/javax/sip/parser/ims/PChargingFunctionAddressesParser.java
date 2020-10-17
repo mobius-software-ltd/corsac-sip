@@ -68,11 +68,8 @@ public class PChargingFunctionAddressesParser
     implements TokenTypes {
 
 
-    public PChargingFunctionAddressesParser(String charging) {
-
-        super(charging);
-
-
+    public PChargingFunctionAddressesParser(String charging) {    	
+        super(charging);                
     }
 
 

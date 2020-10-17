@@ -28,22 +28,31 @@
  ******************************************************************************/
 package gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.message.*;
-import gov.nist.javax.sip.address.*;
-import gov.nist.javax.sip.header.*;
-import gov.nist.javax.sip.*;
-import gov.nist.core.*;
-import gov.nist.core.net.AddressResolver;
-
-import javax.sip.*;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-import javax.sip.header.RouteHeader;
+import javax.sip.ListeningPoint;
+import javax.sip.SipException;
+import javax.sip.SipStack;
+import javax.sip.address.Hop;
+import javax.sip.address.Router;
+import javax.sip.address.SipURI;
+import javax.sip.address.URI;
 import javax.sip.header.ViaHeader;
-import javax.sip.message.*;
-import javax.sip.address.*;
+import javax.sip.message.Request;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
+import gov.nist.core.net.AddressResolver;
+import gov.nist.javax.sip.SIPConstants;
+import gov.nist.javax.sip.address.AddressImpl;
+import gov.nist.javax.sip.address.SipUri;
+import gov.nist.javax.sip.header.RequestLine;
+import gov.nist.javax.sip.header.Route;
+import gov.nist.javax.sip.header.RouteList;
+import gov.nist.javax.sip.message.SIPRequest;
 
 /*
  * Bug reported by Will Scullin -- maddr was being ignored when routing
@@ -104,7 +113,7 @@ public class DefaultRouter implements Router {
 
     private Hop defaultRoute;
 
-    private DefaultRouter() {
+    public DefaultRouter() {
 
     }
 
@@ -252,7 +261,7 @@ public class DefaultRouter implements Router {
         } else {
             // The internal router should never be consulted for non-sip URIs.
             InternalErrorHandler.handleException("Unexpected non-sip URI",
-                    this.logger);
+                    logger);
             return null;
         }
 
@@ -342,9 +351,9 @@ public class DefaultRouter implements Router {
      *
      * @see javax.sip.address.Router#getNextHop(javax.sip.message.Request)
      */
-    public ListIterator getNextHops(Request request) {
+    public ListIterator<Hop> getNextHops(Request request) {
         try {
-            LinkedList llist = new LinkedList();
+            LinkedList<Hop> llist = new LinkedList<Hop>();
             llist.add(this.getNextHop(request));
             return llist.listIterator();
         } catch (SipException ex) {

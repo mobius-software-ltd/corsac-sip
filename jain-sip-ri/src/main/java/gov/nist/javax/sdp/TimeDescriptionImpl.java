@@ -41,15 +41,16 @@ import java.util.*;
  *
  */
 public class TimeDescriptionImpl implements TimeDescription {
+	private static final long serialVersionUID = 1L;
 
-    private TimeField timeImpl;
+	private TimeField timeImpl;
 
-    private Vector repeatList;
+    private Vector<RepeatField> repeatList;
 
     /** Creates new TimeDescriptionImpl */
     public TimeDescriptionImpl() {
         timeImpl = new TimeField();
-        repeatList = new Vector();
+        repeatList = new Vector<RepeatField>();
 
     }
 
@@ -61,7 +62,7 @@ public class TimeDescriptionImpl implements TimeDescription {
      */
     public TimeDescriptionImpl(TimeField timeField) {
         this.timeImpl = timeField;
-        repeatList = new Vector();
+        repeatList = new Vector<RepeatField>();
     }
 
     /**
@@ -101,7 +102,7 @@ public class TimeDescriptionImpl implements TimeDescription {
      *            boolean to set
      * @return Vector
      */
-    public Vector getRepeatTimes(boolean create) {
+    public Vector<RepeatField> getRepeatTimes(boolean create) {
         return this.repeatList;
     }
 
@@ -114,7 +115,7 @@ public class TimeDescriptionImpl implements TimeDescription {
      * @throws SdpException
      *             if the parameter is null
      */
-    public void setRepeatTimes(Vector repeatTimes) throws SdpException {
+    public void setRepeatTimes(Vector<RepeatField> repeatTimes) throws SdpException {
         this.repeatList = repeatTimes;
     }
 

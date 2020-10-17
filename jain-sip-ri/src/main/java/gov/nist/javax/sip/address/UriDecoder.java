@@ -87,7 +87,7 @@ public class UriDecoder {
         return decodedUri.toString();
     }
     
-    static final Set<Character> CHARACHTERS_DONT_NEED_ENCODING = new HashSet(Arrays.asList('-', '_','.', '*','"'));
+    static final Set<Character> CHARACHTERS_DONT_NEED_ENCODING = new HashSet<Character>(Arrays.asList('-', '_','.', '*','"'));
     
     static final int CHARACTER_CASE_DIFF = ('a' - 'A');
 

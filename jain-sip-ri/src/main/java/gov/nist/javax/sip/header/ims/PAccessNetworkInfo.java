@@ -30,7 +30,6 @@ package gov.nist.javax.sip.header.ims;
 
 import java.text.ParseException;
 
-import javax.sip.header.ContactHeader;
 import javax.sip.header.ExtensionHeader;
 
 import gov.nist.javax.sip.header.ParametersHeader;
@@ -49,7 +48,12 @@ public class PAccessNetworkInfo
 
     // TODO: serialVersionUID
 
-    private String accessType;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private String accessType;
 
     private Object extendAccessInfo;
 

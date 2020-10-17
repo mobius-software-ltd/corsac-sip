@@ -24,8 +24,6 @@
  */
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.parser.*;
-
 
 public class ErrorInfoParserTest extends ParserTestCase {
 

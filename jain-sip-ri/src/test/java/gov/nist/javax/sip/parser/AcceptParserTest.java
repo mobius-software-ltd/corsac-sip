@@ -19,8 +19,6 @@
 */
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.parser.*;
-
 public class AcceptParserTest extends ParserTestCase {
 
     public void testParser() {

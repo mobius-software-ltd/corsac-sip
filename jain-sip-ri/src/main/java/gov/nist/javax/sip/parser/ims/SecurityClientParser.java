@@ -30,20 +30,13 @@
 
 package gov.nist.javax.sip.parser.ims;
 
-/**
- * Security-Client header parser.
- *
- * @author Miguel Freitas (IT) PT-Inovacao
- */
-
-
-import gov.nist.core.Token;
-import gov.nist.javax.sip.header.SIPHeader;
-import gov.nist.javax.sip.parser.Lexer;
-import gov.nist.javax.sip.parser.TokenTypes;
 import java.text.ParseException;
+
+import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.ims.SecurityClient;
 import gov.nist.javax.sip.header.ims.SecurityClientList;
+import gov.nist.javax.sip.parser.Lexer;
+import gov.nist.javax.sip.parser.TokenTypes;
 
 
 public class SecurityClientParser extends SecurityAgreeParser

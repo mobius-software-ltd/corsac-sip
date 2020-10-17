@@ -5,7 +5,11 @@ import java.awt.event.*;
 
 public class TracesSessionsList extends List {
 
-    protected TracesSessions tracesSessions;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected TracesSessions tracesSessions;
     protected TracesCanvas tracesCanvas;
     protected int index = 0;
 
@@ -42,7 +46,7 @@ public class TracesSessionsList extends List {
     */
     public String getOrigin(String name) {
         try {
-            int firstIndex = name.indexOf("//");
+            name.indexOf("//");
             int secondIndex = name.indexOf("/", 2);
             String origin = name.substring(2, secondIndex);
             if (origin.equals(TracesViewer.stackId))
@@ -101,7 +105,6 @@ public class TracesSessionsList extends List {
 
         String name = tracesSession.getName();
         String logDescription = tracesSession.getLogDescription();
-        String callId = getCallId(name);
         String origin = getOrigin(name);
         if (name.equals("No available session, refresh")) {
             tracesCanvas.refreshTracesCanvas(tracesSession, "unknown");
@@ -124,7 +127,6 @@ public class TracesSessionsList extends List {
             (TracesSession) tracesSessions.elementAt(index);
         String name = tracesSession.getName();
         String logDescription = tracesSession.getLogDescription();
-        String callId = getCallId(name);
         String origin = getOrigin(name);
         if (name.equals("No available session, refresh")) {
             tracesCanvas.refreshTracesCanvas(tracesSession, "unknown");

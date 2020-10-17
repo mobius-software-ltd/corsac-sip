@@ -46,7 +46,11 @@ import java.util.*;
 */
 
 public abstract class GenericObject implements Serializable, Cloneable {
-    // Useful constants.
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	// Useful constants.
     protected static final String SEMICOLON = Separators.SEMICOLON;
     protected static final String COLON = Separators.COLON;
     protected static final String COMMA = Separators.COMMA;

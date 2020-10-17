@@ -52,7 +52,7 @@ public class References extends ParametersHeader  implements ReferencesHeader,Ex
     }
 
     
-    public Iterator getParameterNames() {
+    public Iterator<String> getParameterNames() {
         return super.getParameterNames();
     }
 

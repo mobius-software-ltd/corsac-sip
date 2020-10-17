@@ -5,10 +5,13 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.text.ParseException;
 import java.util.*;
@@ -194,7 +197,6 @@ public class Shootme implements SipListener {
      */
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         Dialog dialog = requestEvent.getDialog();
         System.out.println("local party = " + dialog.getLocalParty());
@@ -214,7 +216,6 @@ public class Shootme implements SipListener {
 
     public void processCancel(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
             System.out.println("shootme:  got a cancel.");
@@ -253,14 +254,18 @@ public class Shootme implements SipListener {
 
     public void init() {
     	
-    	ConsoleAppender console = new ConsoleAppender(); //create appender
-    	  //configure the appender
-    	  String PATTERN = "%d [%p|%c|%C{1}] %m%n";
-    	  console.setLayout(new PatternLayout(PATTERN)); 
-    	  console.setThreshold(Level.DEBUG);
-    	  console.activateOptions();
-    	  //add appender to any Logger (here is root)
-    	  Logger.getRootLogger().addAppender(console);
+    	//configure the appender
+    	String PATTERN = "%d [%p|%c|%C{1}] %m%n";
+    	ConsoleAppender console=ConsoleAppender.newBuilder().setName("Console").setLayout(PatternLayout.newBuilder().withPattern(PATTERN).build()).build();
+    	//add appender to any Logger (here is root)
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(console);
+        
+        LoggerConfig loggerConfig = configuration.getLoggerConfig(LogManager.ROOT_LOGGER_NAME); 
+		loggerConfig.setLevel(Level.DEBUG);
+		logContext.updateLoggers();
+		
         SipFactory sipFactory = null;
         sipStack = null;
         sipFactory = SipFactory.getInstance();

@@ -7,15 +7,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
-import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
-import javax.sip.SipProvider;
 import javax.sip.SipStack;
-import javax.sip.TransportNotSupportedException;
 
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import junit.framework.Assert;
@@ -79,7 +74,7 @@ public class AddconcurrentProviderTest extends TestCase {
                     try {
                         int port = NetworkPortAssigner.retrieveNextPort();
                         udpListeningPoint = sipStack.createListeningPoint("127.0.0.1", port, "udp");
-                        SipProvider sipProvider = sipStack.createSipProvider(udpListeningPoint);
+                        sipStack.createSipProvider(udpListeningPoint);
                     } catch (Exception e) {
                         failed.set(true);
                     }
@@ -91,7 +86,7 @@ public class AddconcurrentProviderTest extends TestCase {
                 @Override
                 public void run() {
                     try {
-                        Iterator it = sipStack.getSipProviders();
+                        Iterator<?> it = sipStack.getSipProviders();
                         if (it.hasNext()) {
                             it.next();
                         }

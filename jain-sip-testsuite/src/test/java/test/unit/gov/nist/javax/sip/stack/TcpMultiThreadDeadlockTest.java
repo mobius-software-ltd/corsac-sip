@@ -1,9 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.DialogExt;
-import gov.nist.javax.sip.SipProviderExt;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -39,13 +35,17 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-import static junit.framework.Assert.assertTrue;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
+import gov.nist.javax.sip.DialogExt;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -291,10 +291,15 @@ public class TcpMultiThreadDeadlockTest extends TestCase {
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "LOG4J");
-            Logger root = Logger.getRootLogger();
-            root.setLevel(Level.WARN);
-            root.addAppender(new ConsoleAppender(
-                new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
+
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        	Configuration configuration = logContext.getConfiguration();
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").setLayout(PatternLayout.newBuilder().withPattern(PatternLayout.TTCC_CONVERSION_PATTERN).build()).build());
+        	
+        	LoggerConfig loggerConfig = configuration.getLoggerConfig(LogManager.ROOT_LOGGER_NAME); 
+    		loggerConfig.setLevel(Level.WARN);
+    		logContext.updateLoggers();
+    		
             properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
                     "shootmedebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
@@ -388,12 +393,6 @@ public class TcpMultiThreadDeadlockTest extends TestCase {
 
         private ListeningPoint udpListeningPoint;
 
-
-        private Dialog dialog;
-
-
-        private boolean timeoutRecieved;
-
         boolean messageSeen = false;
 
 
@@ -406,7 +405,7 @@ public class TcpMultiThreadDeadlockTest extends TestCase {
         private  String peerHostPort;
 
         public Shootist(Shootme shootme) {
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;             
         }
@@ -471,10 +470,7 @@ boolean inUse = false;
         }
 
         public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
-
             System.out.println("Got a timeout " + timeoutEvent.getClientTransaction());
-
-            this.timeoutRecieved = true;
         }
 
 
@@ -568,7 +564,7 @@ boolean inUse = false;
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -646,9 +642,8 @@ boolean inUse = false;
 
                 // Create the client transaction.
                 ClientTransaction inviteTid = sipProvider.getNewClientTransaction(request);
-            	Dialog d = null;
-				try {
-					d = sipProvider.getNewDialog(inviteTid);
+            	try {
+					sipProvider.getNewDialog(inviteTid);
 				} catch (SipException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -656,9 +651,7 @@ boolean inUse = false;
 
                 // send the request out.
                 inviteTid.sendRequest();
-
-                dialog = inviteTid.getDialog();
-
+                inviteTid.getDialog();
             } catch (Exception ex) {
             	ex.printStackTrace();
                 fail("cannot create or send initial invite");

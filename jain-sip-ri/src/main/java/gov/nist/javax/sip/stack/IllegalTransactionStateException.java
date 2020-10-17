@@ -33,6 +33,10 @@ import javax.sip.SipException;
  */
 public class IllegalTransactionStateException extends SipException {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	Reason reason = Reason.GenericReason;
 	
 	public enum Reason {

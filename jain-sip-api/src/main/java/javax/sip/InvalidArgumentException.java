@@ -32,6 +32,11 @@ package javax.sip;
 public class InvalidArgumentException extends Exception {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Create an <code>InvalidArgumentException</code> with no detail message.
      */
     public InvalidArgumentException() {}

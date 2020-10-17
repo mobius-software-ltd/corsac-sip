@@ -31,9 +31,12 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Properties;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 
 /**
  * A wrapper around log4j that is used for logging debug and errors. You can
@@ -104,9 +107,9 @@ public class CommonLoggerLog4j implements StackLogger {
      * @param appender
      */
     public void addAppender(Appender appender) {
-
-        this.logger.addAppender(appender);
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(appender);
     }
 
     /**
@@ -146,13 +149,6 @@ public class CommonLoggerLog4j implements StackLogger {
      */
     public void logTrace(String message) {
     	logger.debug(message);
-    }
-
-    /**
-     * Set the trace level for the stack.
-     */
-    private void setTraceLevel(int level) {
-        // Nothing
     }
 
     /**
@@ -209,7 +205,7 @@ public class CommonLoggerLog4j implements StackLogger {
      * @param logLevel
      */
     public boolean isLoggingEnabled(int logLevel) {
-        return logger.isEnabledFor(intToLevel(logLevel));
+        return logger.isEnabled(intToLevel(logLevel));
     }
 
 

@@ -34,7 +34,6 @@ import java.text.ParseException;
 import javax.sip.header.ExtensionHeader;
 
 import gov.nist.javax.sip.address.AddressImpl;
-import gov.nist.javax.sip.header.ims.PathHeader;
 
 /**
  * @author ALEXANDRE MIGUEL SILVA SANTOS - Nú 10045401
@@ -43,8 +42,10 @@ import gov.nist.javax.sip.header.ims.PathHeader;
 public class Path
     extends gov.nist.javax.sip.header.AddressParametersHeader
     implements PathHeader, SIPHeaderNamesIms , ExtensionHeader{
+	
+	private static final long serialVersionUID = 1L;
 
-    /**
+	/**
      * constructor
      * @param address address to set
      */

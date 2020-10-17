@@ -15,9 +15,6 @@
  */
 package test.unit.gov.nist.javax.sip.stack.dialog.timeout;
 
-import gov.nist.javax.sip.DialogTimeoutEvent;
-import gov.nist.javax.sip.stack.SIPDialog;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -42,11 +39,12 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
+import gov.nist.javax.sip.DialogTimeoutEvent;
 import test.tck.msgflow.callflows.ProtocolObjects;
 
 /**
@@ -123,13 +121,11 @@ public class ShootmeNotImplementingListener implements SipListener {
 
     public final int myPort = 5070;
 
-    private static Logger logger = Logger.getLogger(ShootmeNotImplementingListener.class);
-
     static {
-        if (logger.getAllAppenders().equals(NullEnumeration.getInstance())) {
-
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
 
@@ -162,7 +158,6 @@ public class ShootmeNotImplementingListener implements SipListener {
      * Process the ACK request. Send the bye and complete the call flow.
      */
     public void processAck(RequestEvent requestEvent, ServerTransaction serverTransaction) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         try {
             // System.out.println("*** shootme: got an ACK "
             // + requestEvent.getRequest());
@@ -260,7 +255,6 @@ public class ShootmeNotImplementingListener implements SipListener {
      */
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         Dialog dialog = requestEvent.getDialog();
         System.out.println("local party = " + dialog.getLocalParty());

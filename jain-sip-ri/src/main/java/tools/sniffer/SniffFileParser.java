@@ -22,14 +22,15 @@ public class SniffFileParser {
 
     public SniffFileParser(String messageFile) {
         String buffer = new String();
-        ArrayList sniffMsgList;
+        ArrayList<String> sniffMsgList;
         sniffSessionList = new SniffSessionList();
 
+        BufferedReader in = null;
         try {
-            BufferedReader in = new BufferedReader(new FileReader(messageFile));
+            in = new BufferedReader(new FileReader(messageFile));
             buffer = in.readLine();
             while (buffer != null) { //read until EOF
-                sniffMsgList = new ArrayList();
+                sniffMsgList = new ArrayList<String>();
                 while (buffer != null
                     && buffer.length() > 0) { //read one frame
                     sniffMsgList.add(buffer.trim());
@@ -41,6 +42,12 @@ public class SniffFileParser {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+        	if(in!=null)
+        		try {
+        			in.close();
+        		} catch (IOException e2) {
+				}
         }
     }
 
@@ -67,9 +74,9 @@ public class SniffFileParser {
         SniffSessionList sniffSessions = sfp.getSniffSessionList();
         //String[] sessionNames = sniffSessions.getCallIds();
         LogFileParser parser = new LogFileParser();
-        Hashtable traces = parser.parseLogsFromString(sniffSessions.toXML());
+        Hashtable<String,MessageLogList> traces = parser.parseLogsFromString(sniffSessions.toXML());
         new TracesViewer(traces, fileName, "Ethereal Sniffer Trace", null)
-            .show();
+            .setVisible(true);
 
     }
 }

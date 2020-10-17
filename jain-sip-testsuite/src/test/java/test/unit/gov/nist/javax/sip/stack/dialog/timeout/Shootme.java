@@ -15,11 +15,6 @@
  */
 package test.unit.gov.nist.javax.sip.stack.dialog.timeout;
 
-import gov.nist.javax.sip.DialogTimeoutEvent;
-import gov.nist.javax.sip.SipListenerExt;
-import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
-import gov.nist.javax.sip.stack.SIPDialog;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -43,12 +38,15 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.helpers.NullEnumeration;
-import test.tck.msgflow.callflows.NetworkPortAssigner;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
+import gov.nist.javax.sip.DialogTimeoutEvent;
+import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
+import gov.nist.javax.sip.SipListenerExt;
+import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 
 /**
@@ -126,19 +124,17 @@ public class Shootme implements SipListenerExt {
 
     public final int myPort = NetworkPortAssigner.retrieveNextPort();
 
-    private static Logger logger = Logger.getLogger(Shootme.class);
-
     static {
-        if (logger.getAllAppenders().equals(NullEnumeration.getInstance())) {
-
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
-
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
 
     public Shootme(ProtocolObjects protocolObjects) {
         this.protocolObjects = protocolObjects;
-        stateIsOk = protocolObjects.autoDialog;
+        stateIsOk = protocolObjects.autoDialog;	
     }
 
     public boolean checkState() {
@@ -165,7 +161,6 @@ public class Shootme implements SipListenerExt {
      * Process the ACK request. Send the bye and complete the call flow.
      */
     public void processAck(RequestEvent requestEvent, ServerTransaction serverTransaction) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         try {
             // System.out.println("*** shootme: got an ACK "
             // + requestEvent.getRequest());
@@ -260,7 +255,6 @@ public class Shootme implements SipListenerExt {
      */
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         Dialog dialog = requestEvent.getDialog();
         System.out.println("local party = " + dialog.getLocalParty());
@@ -333,7 +327,7 @@ public class Shootme implements SipListenerExt {
             return;
         }        
         if(dialogAckTimeoutEvent.getReason() == Reason.AckNotReceived) {
-            stateIsOk = true;
+        	stateIsOk = true;
         }
         TimerTask timerTask = new CheckAppData(timeoutDialog);
         new Timer().schedule(timerTask, 9000);
@@ -372,7 +366,7 @@ public class Shootme implements SipListenerExt {
         public void run() {             
             System.out.println("Checking app data " + dialog.getApplicationData());
             if(dialog.getApplicationData() == null || !dialog.getApplicationData().equals("some junk")) {
-                stateIsOk = false;
+            	stateIsOk = false;
                 DialogTimeoutTest.fail("application data should never be null except if nullified by the application !");
             }            
         }

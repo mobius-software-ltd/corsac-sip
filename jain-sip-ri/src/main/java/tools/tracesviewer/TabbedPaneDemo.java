@@ -10,7 +10,12 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class TabbedPaneDemo extends JPanel {
-    public TabbedPaneDemo() {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public TabbedPaneDemo() {
         ImageIcon icon = new ImageIcon("images/middle.gif");
         JTabbedPane tabbedPane = new JTabbedPane();
 

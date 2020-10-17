@@ -259,7 +259,7 @@ public class SipFactory {
         messageFactory = null;
         headerFactory = null;
         addressFactory = null;
-        sipStackByName = new Hashtable();
+        sipStackByName = new Hashtable<String,SipStack>();
         pathName = "gov.nist";
     }
 
@@ -275,7 +275,7 @@ public class SipFactory {
             throw new NullPointerException();
         }
         try {
-            Class peerObjectClass = Class.forName(getPathName() + "."
+            Class<?> peerObjectClass = Class.forName(getPathName() + "."
                     + objectClassName);
 
             // Creates a new instance of the class represented by this Class
@@ -299,10 +299,10 @@ public class SipFactory {
             throws PeerUnavailableException {
         try {
             // create parameters argument to identify constructor
-            Class[] paramTypes = new Class[1];
+            Class<?>[] paramTypes = new Class[1];
             paramTypes[0] = Class.forName("java.util.Properties");
             // get constructor of SipStack in order to instantiate
-            Constructor sipStackConstructor = Class.forName(
+            Constructor<?> sipStackConstructor = Class.forName(
                     getPathName() + ".javax.sip.SipStackImpl").getConstructor(
                     paramTypes);
             // Wrap properties object in order to pass to constructor of
@@ -330,7 +330,7 @@ public class SipFactory {
      * are not permitted to create an instance of the SipFactory using "new".
      */
     private SipFactory() {
-        this.sipStackByName = new Hashtable();
+        this.sipStackByName = new Hashtable<String,SipStack>();
     }
 
     // default domain to locate Reference Implementation
@@ -339,7 +339,7 @@ public class SipFactory {
     // My sip stack. The implementation will allow only a single
     // sip stack in future versions of this specification.
 
-    private Hashtable sipStackByName;
+    private Hashtable<String,SipStack> sipStackByName;
 
     // intrenal variable to ensure SipFactory only returns a single instance
     // of the other Factories and SipStack
@@ -354,6 +354,6 @@ public class SipFactory {
     // This is for backwards compatibility with
     // version 1.1
 
-    private final LinkedList sipStackList = new LinkedList();
+    private final LinkedList<SipStack> sipStackList = new LinkedList<SipStack>();
 
 }

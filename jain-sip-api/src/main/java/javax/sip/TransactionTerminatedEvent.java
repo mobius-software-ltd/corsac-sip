@@ -40,6 +40,10 @@ import java.util.EventObject;
 public class TransactionTerminatedEvent extends EventObject {
     
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/**
      * Constructs a TransactionTerminatedEvent to indicate a server retransmission 
      * or transaction timeout.
      *

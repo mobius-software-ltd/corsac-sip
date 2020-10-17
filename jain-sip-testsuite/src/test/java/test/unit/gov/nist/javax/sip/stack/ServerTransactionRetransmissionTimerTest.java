@@ -48,18 +48,24 @@ import javax.sip.message.Response;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 
 public class ServerTransactionRetransmissionTimerTest extends TestCase {
     public static final boolean callerSendsBye = true;
 
-    private static Logger logger = Logger.getLogger( ServerTransactionRetransmissionTimerTest.class);
+    private static Logger logger = LogManager.getLogger( ServerTransactionRetransmissionTimerTest.class);
     static {
-        if ( ! logger.getAllAppenders().hasMoreElements())
-            logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        }
     }
     class Shootist implements SipListener {
 
@@ -109,10 +115,6 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
             }
 
         }
-
-        private static final String usageString = "java "
-                + "examples.shootist.Shootist \n"
-                + ">>>> is your class path set to the root?";
 
         public void processRequest(RequestEvent requestReceivedEvent) {
             Request request = requestReceivedEvent.getRequest();
@@ -172,7 +174,7 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
         private  String peerHostPort;
 
         public Shootist(Shootme shootme) {
-            PEER_ADDRESS = shootme.myAddress;
+            PEER_ADDRESS = Shootme.myAddress;
             PEER_PORT = shootme.myPort;
             peerHostPort = PEER_ADDRESS + ":" + PEER_PORT;             
         }         
@@ -387,7 +389,7 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 String ipAddress = udpListeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
@@ -708,7 +710,6 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
          */
         public void processBye(RequestEvent requestEvent,
                 ServerTransaction serverTransactionId) {
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             Dialog dialog = requestEvent.getDialog();
             logger.info("shootme: local party = " + dialog.getLocalParty());
@@ -728,7 +729,6 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
 
         public void processCancel(RequestEvent requestEvent,
                 ServerTransaction serverTransactionId) {
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             Request request = requestEvent.getRequest();
             try {
                 logger.info("shootme:  got a cancel.");

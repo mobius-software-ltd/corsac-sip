@@ -5,7 +5,12 @@ import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 import java.util.*;
-import org.apache.log4j.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
 /**
  * This class is a UAC template. Shootist is the guy that shoots and notifier is
@@ -31,7 +36,7 @@ public class Notifier implements SipListener {
 
     protected Dialog dialog;
 
-    private static Logger logger = Logger.getLogger(Notifier.class) ;
+    private static Logger logger = LogManager.getLogger(Notifier.class) ;
 
     protected int notifyCount = 0;
 
@@ -241,7 +246,7 @@ public class Notifier implements SipListener {
 
     public synchronized void processResponse(ResponseEvent responseReceivedEvent) {
         Response response = (Response) responseReceivedEvent.getResponse();
-        Transaction tid = responseReceivedEvent.getClientTransaction();
+        responseReceivedEvent.getClientTransaction();
 
         if ( response.getStatusCode() !=  200 ) {
             this.notifyCount --;
@@ -271,9 +276,10 @@ public class Notifier implements SipListener {
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
 
-        logger.addAppender(new FileAppender
-            ( new SimpleLayout(),"notifieroutputlog_" + port + ".txt" ));
-
+        LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(FileAppender.newBuilder().setName("Notifieroutputlog_" + port).withFileName("notifieroutputlog_" + port + ".txt").build());
+        
         properties.setProperty("javax.sip.STACK_NAME", "notifier" + port );
         // You need 16 for logging traces. 32 for debug + traces.
         // Your code will limp at 32 but it is best for debugging.
@@ -334,7 +340,9 @@ public class Notifier implements SipListener {
 
     public static void main(String args[]) throws Exception {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 5070;
-        logger.addAppender(new ConsoleAppender(new SimpleLayout()));
+        LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         initFactories( port );
         Notifier notifier = new Notifier( port );
         notifier.createProvider( );

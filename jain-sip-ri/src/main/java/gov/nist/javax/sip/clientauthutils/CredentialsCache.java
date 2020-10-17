@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.header.AuthorizationHeader;
@@ -41,7 +40,7 @@ class CredentialsCache {
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return null;
         }         
 
@@ -71,8 +70,7 @@ class CredentialsCache {
             AuthorizationHeader authorization, int cacheTime) {
         String user = authorization.getUsername();
         if ( callId == null) throw new NullPointerException("Call ID is null!");
-        if ( authorization == null) throw new NullPointerException("Null authorization domain");
-
+        
         List<AuthorizationHeader> authHeaders = authorizationHeaders.get(callId);
         if (authHeaders == null) {
             authHeaders = new LinkedList<AuthorizationHeader>();

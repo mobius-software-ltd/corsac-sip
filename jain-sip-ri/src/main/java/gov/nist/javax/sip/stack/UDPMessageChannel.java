@@ -158,7 +158,7 @@ public class UDPMessageChannel extends MessageChannel implements
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return null;
         }         
 
@@ -262,7 +262,7 @@ public class UDPMessageChannel extends MessageChannel implements
                 sipStack);
 
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            this.logger.logDebug(
+            logger.logDebug(
                     "Creating message channel " + targetAddr.getHostAddress()
                             + "/" + port);
         }
@@ -357,7 +357,7 @@ public class UDPMessageChannel extends MessageChannel implements
 
         // Do debug logging.
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            this.logger.logDebug(
+            logger.logDebug(
                     "UDPMessageChannel: processIncomingDataPacket : peerAddress = "
                             + peerAddress.getHostAddress() + "/"
                             + packet.getPort() + " Length = " + packetLength);
@@ -394,7 +394,7 @@ public class UDPMessageChannel extends MessageChannel implements
         } catch (ParseException ex) {
             // myParser = null; // let go of the parser reference.
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                this.logger.logDebug(
+                logger.logDebug(
                         "Rejecting message !  " + new String(msgBytes) + " " + ex.getMessage());
             }
 
@@ -414,7 +414,7 @@ public class UDPMessageChannel extends MessageChannel implements
                         this.sendMessage(badReqRes.getBytes(), peerAddress,
                                 packet.getPort(), "UDP", false);
                     } catch (IOException e) {
-                        this.logger.logException(e);
+                        logger.logException(e);
                     }
                 } else {
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -433,7 +433,7 @@ public class UDPMessageChannel extends MessageChannel implements
 
         if (sipMessage == null) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                this.logger.logDebug(
+                logger.logDebug(
                         "Rejecting message !  + Null message parsed.");
             }
             String key = packet.getAddress().getHostAddress() + ":"
@@ -445,7 +445,7 @@ public class UDPMessageChannel extends MessageChannel implements
                         retval.length, packet.getAddress(), packet.getPort());
                 PingBackTimerTask task = new PingBackTimerTask(packet
                         .getAddress().getHostAddress(), packet.getPort());
-                this.pingBackRecord.put(key, task);
+                UDPMessageChannel.pingBackRecord.put(key, task);
                 this.sipStack.getTimer().schedule(task,
                         sipStack.getMinKeepAliveInterval() * 1000);
                 ((UDPMessageProcessor) this.messageProcessor).sock
@@ -462,9 +462,9 @@ public class UDPMessageChannel extends MessageChannel implements
                 || sipMessage.getCSeq() == null || topMostVia == null) {
             String badmsg = new String(msgBytes);
             if (logger.isLoggingEnabled()) {
-                this.logger
+                logger
                         .logError("bad message " + badmsg);
-                this.logger.logError(
+                logger.logError(
                         ">>> Dropped Bad Msg " + "From = "
                                 + sipMessage.getFrom() + "To = "
                                 + sipMessage.getTo() + "CallId = "
@@ -579,7 +579,7 @@ public class UDPMessageChannel extends MessageChannel implements
                 return;
             }
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                this.logger.logDebug(
+                logger.logDebug(
                         "About to process " + sipRequest.getFirstLine() + "/"
                                 + sipServerRequest);
             try {
@@ -593,7 +593,7 @@ public class UDPMessageChannel extends MessageChannel implements
                 }
             }
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                this.logger.logDebug(
+                logger.logDebug(
                         "Done processing " + sipRequest.getFirstLine() + "/"
                                 + sipServerRequest);
 
@@ -645,7 +645,7 @@ public class UDPMessageChannel extends MessageChannel implements
                 // Normal processing of message.
             } else {
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    this.logger.logDebug(
+                    logger.logDebug(
                             "null sipServerResponse as could not acquire semaphore or the valve dropped the message.");
                 }
             }
@@ -678,7 +678,7 @@ public class UDPMessageChannel extends MessageChannel implements
      *             If we choose to reject the header or message.
      */
     public void handleException(ParseException ex, SIPMessage sipMessage,
-            Class hdrClass, String header, String message)
+            Class<?> hdrClass, String header, String message)
             throws ParseException {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Parsing Issue " + ex.getMessage());
@@ -718,10 +718,10 @@ public class UDPMessageChannel extends MessageChannel implements
                 /*
                  * We dont want to log empty trace messages.
                  */
-                this.logger.logStackTrace(
+                logger.logStackTrace(
                         StackLogger.TRACE_INFO);
             } else {
-                this.logger.logStackTrace(
+                logger.logStackTrace(
                         StackLogger.TRACE_INFO);
             }
         }
@@ -760,7 +760,7 @@ public class UDPMessageChannel extends MessageChannel implements
                                 }
                             }
                             
-                            public Object getThreadHash() {
+                            public String getThreadHash() {
                                 return sipMessage.getCallId().getCallId();
                             }
                         };
@@ -820,22 +820,22 @@ public class UDPMessageChannel extends MessageChannel implements
         // Via is not included in the request so silently drop the reply.
         if (logger.isLoggingEnabled(LogLevels.TRACE_INFO)
                 && this.sipStack.isLogStackTraceOnMessageSend()) {
-            this.logger
+            logger
                     .logStackTrace(StackLogger.TRACE_INFO);
         }
         if (peerPort == -1) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                this.logger.logDebug(
+                logger.logDebug(
                         getClass().getName() + ":sendMessage: Dropping reply!");
             }
             throw new IOException("Receiver port not set ");
         } else {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                this.logger.logDebug(
+                logger.logDebug(
                         "sendMessage " + peerAddress.getHostAddress() + "/"
                                 + peerPort + "\n" + "messageSize =  "
                                 + msg.length + " message = " + new String(msg));
-                this.logger
+                logger
                         .logDebug("*******************\n");
             }
 
@@ -892,13 +892,13 @@ public class UDPMessageChannel extends MessageChannel implements
         // Via is not included in the request so silently drop the reply.
         if (peerPort == -1) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                this.logger.logDebug(
+                logger.logDebug(
                         getClass().getName() + ":sendMessage: Dropping reply!");
             }
             throw new IOException("Receiver port not set ");
         } else {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                this.logger.logDebug(
+                logger.logDebug(
                         ":sendMessage " + peerAddress.getHostAddress() + "/"
                                 + peerPort + "\n" + " messageSize = "
                                 + msg.length);
@@ -918,7 +918,7 @@ public class UDPMessageChannel extends MessageChannel implements
                     sock = sipStack.getNetworkLayer().createDatagramSocket();
                 }
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    this.logger.logDebug(
+                    logger.logDebug(
                             "sendMessage " + peerAddress.getHostAddress() + "/"
                                     + peerPort + "\n" + new String(msg));
                 }

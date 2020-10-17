@@ -22,9 +22,6 @@
  */
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.stack.IOHandler;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -60,13 +57,17 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 
-import test.tck.msgflow.callflows.AssertUntil;
+import gov.nist.javax.sip.stack.IOHandler;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.ScenarioHarness;
-import test.tck.msgflow.callflows.TestAssertion;
 
 /**
  * Non regression test for http://code.google.com/p/mobicents/issues/detail?id=3188
@@ -82,13 +83,14 @@ public class ReconnectTCPTest extends ScenarioHarness implements SipListener {
 
     private Shootme shootme;
 
-    private static Logger logger = Logger.getLogger("test.tck");
+    private static Logger logger = LogManager.getLogger("test.tck");
     
-    private static final int TIMEOUT = 4000;
-
     static {
-        if (!logger.isAttached(console))
-            logger.addAppender(console);
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        }
     }
 
      class Shootme  implements SipListener {
@@ -107,8 +109,6 @@ public class ReconnectTCPTest extends ScenarioHarness implements SipListener {
 
             private Dialog dialog;
 
-            private ServerTransaction reSendSt = null;
-            private Response reSendResponse = null;
             private boolean ackReceived = false;
 
             public Shootme(ProtocolObjects protocolObjects) {
@@ -169,7 +169,6 @@ public class ReconnectTCPTest extends ScenarioHarness implements SipListener {
 					try {
 						Constructor<IOHandler> ioHandlerCtr = IOHandler.class.getDeclaredConstructor(SIPTransactionStack.class);
 						ioHandlerCtr.setAccessible(true);
-						Class[] ctrArgs = new Class[] {SIPTransactionStack.class};
 						Object[] ctrValues = new Object[] {Shootme.this.protocolObjects.sipStack};
 						IOHandler ioHandler = (IOHandler) ioHandlerCtr.newInstance(ctrValues);
 						
@@ -216,8 +215,6 @@ public class ReconnectTCPTest extends ScenarioHarness implements SipListener {
 	                    // Application is supposed to set.
 	                    response.addHeader(contactHeader);
 	                    st.sendResponse(response);
-	                    reSendSt = st;
-	                    reSendResponse = response;
 	                    logger.info("TxState after sendResponse = " + st.getState());
 	                    Shootme.this.inviteTid = st;
 	                } catch (Exception ex) {
@@ -329,13 +326,9 @@ public class ReconnectTCPTest extends ScenarioHarness implements SipListener {
 
         private SipProvider provider;
 
-        private int reInviteCount;
-
         private ContactHeader contactHeader;
 
         private ListeningPoint listeningPoint;
-
-        private int counter;
 
         private  String PEER_ADDRESS = Shootme.myAddress;
 
@@ -415,8 +408,7 @@ public class ReconnectTCPTest extends ScenarioHarness implements SipListener {
 				logger.info("Dialog State is "
 						+ responseReceivedEvent.getDialog().getState());
 			}
-            SipProvider provider = (SipProvider) responseReceivedEvent.getSource();
-
+           
             try {
                 if (response.getStatusCode() == Response.OK
                         && ((CSeqHeader) response.getHeader(CSeqHeader.NAME))
@@ -500,7 +492,7 @@ public class ReconnectTCPTest extends ScenarioHarness implements SipListener {
 
                 // Create ViaHeaders
 
-                ArrayList viaHeaders = new ArrayList();
+                ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
                 int port = provider.getListeningPoint(protocolObjects.transport)
                         .getPort();
 

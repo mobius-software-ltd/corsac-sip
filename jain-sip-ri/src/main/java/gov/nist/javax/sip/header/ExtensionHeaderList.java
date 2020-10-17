@@ -30,9 +30,6 @@ package gov.nist.javax.sip.header;
 
 import java.util.ListIterator;
 
-import javax.sip.header.ExtensionHeader;
-import javax.sip.header.Header;
-
 /**
  * A generic extension header list.
  * @version 1.2 $Revision: 1.9 $ $Date: 2010-05-06 14:07:49 $

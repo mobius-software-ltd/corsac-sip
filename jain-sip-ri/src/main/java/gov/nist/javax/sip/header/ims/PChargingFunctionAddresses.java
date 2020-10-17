@@ -30,17 +30,14 @@
 
 package gov.nist.javax.sip.header.ims;
 
-import gov.nist.core.NameValue;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
 import javax.sip.header.ExtensionHeader;
 
-import gov.nist.javax.sip.header.ims.PChargingFunctionAddressesHeader;
-import gov.nist.javax.sip.header.ims.ParameterNamesIms;
+import gov.nist.core.NameValue;
 
 
 /**
@@ -71,11 +68,12 @@ import gov.nist.javax.sip.header.ims.ParameterNamesIms;
 public class PChargingFunctionAddresses
     extends gov.nist.javax.sip.header.ParametersHeader
     implements PChargingFunctionAddressesHeader, SIPHeaderNamesIms , ExtensionHeader{
+   /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-
-    // TODO: serialVersionUID
-
-    /**
+	/**
      * Defaul Constructor
      */
     public PChargingFunctionAddresses() {
@@ -161,10 +159,10 @@ public class PChargingFunctionAddresses
      *
      * @return ListIterator that constains all CCF addresses of this header
      */
-    public ListIterator getChargingCollectionFunctionAddresses() {
+    public ListIterator<NameValue> getChargingCollectionFunctionAddresses() {
 
-        Iterator li = this.parameters.iterator();
-        LinkedList ccfLIST = new LinkedList();
+        Iterator<NameValue> li = this.parameters.iterator();
+        LinkedList<NameValue> ccfLIST = new LinkedList<NameValue>();
         NameValue nv;
         while (li.hasNext()) {
             nv = (NameValue) li.next();
@@ -248,10 +246,9 @@ public class PChargingFunctionAddresses
 
     	LinkedList<NameValue> listw = new LinkedList<NameValue>();
    
-        Iterator li = this.parameters.iterator();
+        Iterator<NameValue> li = this.parameters.iterator();
         ListIterator<NameValue> ecfLIST = listw.listIterator();
         NameValue nv;
-        boolean removed = false;
         while (li.hasNext()) {
             nv = (NameValue) li.next();
             if (nv.getName().equalsIgnoreCase(ParameterNamesIms.ECF)) {
@@ -277,7 +274,7 @@ public class PChargingFunctionAddresses
      * @return true if parameter was removed, and false if not
      */
     public boolean delete(String value, String name) {
-        Iterator li = this.parameters.iterator();
+        Iterator<NameValue> li = this.parameters.iterator();
         NameValue nv;
         boolean removed = false;
         while (li.hasNext()) {

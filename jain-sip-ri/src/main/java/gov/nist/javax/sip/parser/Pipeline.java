@@ -44,7 +44,7 @@ import java.util.NoSuchElementException;
  */
 
 public class Pipeline extends InputStream {
-    private LinkedList buffList;
+    private LinkedList<Buffer> buffList;
 
     private Buffer currentBuffer;
 
@@ -69,7 +69,7 @@ public class Pipeline extends InputStream {
         }
         
         @Override
-        public Object getThreadHash() {
+        public String getThreadHash() {
             return null;
         }         
 
@@ -135,7 +135,7 @@ public class Pipeline extends InputStream {
         // this is recorded here to implement a timeout.
         this.timer = timer;
         this.pipe = pipe;
-        buffList = new LinkedList();
+        buffList = new LinkedList<Buffer>();
         this.readTimeout = readTimeout;
     }
 

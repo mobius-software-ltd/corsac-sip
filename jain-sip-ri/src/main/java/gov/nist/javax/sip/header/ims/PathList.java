@@ -36,7 +36,13 @@ import gov.nist.javax.sip.header.SIPHeaderList;
 
 public class PathList extends SIPHeaderList<Path> {
 
-    /** Default constructor
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	/** Default constructor
      */
     public PathList() {
         super(Path.class, PathHeader.NAME);

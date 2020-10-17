@@ -127,7 +127,7 @@ public interface Router {
      * Hop for this request.
      *
      */
-    public ListIterator getNextHops(Request request);
+    public ListIterator<?> getNextHops(Request request);
 
     /**
      * Gets the next Hop from this Router for the specified request, this

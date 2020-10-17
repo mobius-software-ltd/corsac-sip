@@ -38,12 +38,12 @@ import java.lang.reflect.*;
 *
 */
 public class ParserFactory {
-    private static Hashtable parserTable;
-    private static Class[] constructorArgs;
+    private static Hashtable<String,Class<?>> parserTable;
+    private static Class<?>[] constructorArgs;
     private static final String packageName =
         PackageNames.SDP_PACKAGE + ".parser";
 
-    private static Class getParser(String parserClass) {
+    private static Class<?> getParser(String parserClass) {
         try {
             return Class.forName(packageName + "." + parserClass);
         } catch (ClassNotFoundException ex) {
@@ -57,7 +57,7 @@ public class ParserFactory {
     static {
         constructorArgs = new Class[1];
         constructorArgs[0] = String.class;
-        parserTable = new Hashtable();
+        parserTable = new Hashtable<String,Class<?>>();
         parserTable.put("a", getParser("AttributeFieldParser"));
         parserTable.put("b", getParser("BandwidthFieldParser"));
         parserTable.put("c", getParser("ConnectionFieldParser"));
@@ -79,12 +79,12 @@ public class ParserFactory {
         String fieldName = Lexer.getFieldName(field);
         if (fieldName == null)
             return null;
-        Class parserClass = (Class) parserTable.get(fieldName.toLowerCase());
+        Class<?> parserClass = parserTable.get(fieldName.toLowerCase());
 
         if (parserClass != null) {
             try {
 
-                Constructor cons = parserClass.getConstructor(constructorArgs);
+                Constructor<?> cons = parserClass.getConstructor(constructorArgs);
                 Object[] args = new Object[1];
                 args[0] = field;
                 SDPParser retval = (SDPParser) cons.newInstance(args);
