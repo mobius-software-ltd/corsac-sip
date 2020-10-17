@@ -70,6 +70,7 @@ public class NonBlockingTest extends ScenarioHarness {
     private static final String TEST_PROTOCOL = "tcp";
     
     private static final int NUM_THREADS = 30;
+    private static final int NUM_THREADS_RE = 10;
     
     private static final int THREAD_ASSERT_TIME = 6000;    
     
@@ -128,13 +129,13 @@ public class NonBlockingTest extends ScenarioHarness {
 
     public void testConnReestablished() throws Exception {
         final Client client = new Client();
-        ExecutorService pool = Executors.newFixedThreadPool(NUM_THREADS);
+        ExecutorService pool = Executors.newFixedThreadPool(NUM_THREADS_RE);
         testResources.add(new PoolCloser(pool));     
         Set<Closeable> servers = new HashSet<Closeable>();
         final int serverPort = NetworkPortAssigner.retrieveNextPort();
     	Server server = new Server(serverPort);
     	servers.add(server);        
-        for (int i = 0; i < NUM_THREADS; i++) {
+        for (int i = 0; i < NUM_THREADS_RE; i++) {
 
             pool.submit(new Runnable() {
                 public void run() {
@@ -147,8 +148,9 @@ public class NonBlockingTest extends ScenarioHarness {
             });
         }
         pool.awaitTermination(THREAD_ASSERT_TIME, TimeUnit.MILLISECONDS);        
+        Thread.sleep(THREAD_ASSERT_TIME);        
         //*2 counting for ACK
-        Assert.assertEquals(NUM_THREADS * 2, server.requestCounter.get());
+        Assert.assertEquals(NUM_THREADS_RE * 2, server.requestCounter.get());
         for (Closeable rAux : servers) {
             try {
                 rAux.close();
@@ -163,7 +165,7 @@ public class NonBlockingTest extends ScenarioHarness {
         CommonLogger.getLogger(NonBlockingTest.class).logInfo("server restarted");
     	server = new Server(serverPort);
     	testResources.add(server);          
-        for (int i = 0; i < NUM_THREADS; i++) {
+        for (int i = 0; i < NUM_THREADS_RE; i++) {
       	
             pool.submit(new Runnable() {
                 public void run() {
@@ -176,7 +178,7 @@ public class NonBlockingTest extends ScenarioHarness {
             });
         }
         Thread.sleep(THREAD_ASSERT_TIME);
-        Assert.assertEquals(NUM_THREADS, client.responses.size()); 
+        Assert.assertEquals(NUM_THREADS_RE, client.responses.size()); 
         client.close();
     }    
 
@@ -372,11 +374,11 @@ public class NonBlockingTest extends ScenarioHarness {
         }
 
         public void processRequest(RequestEvent arg0) {
-            requestCounter.incrementAndGet();
+        	requestCounter.incrementAndGet();
         }
 
         public void processResponse(ResponseEvent arg0) {
-            responses.add(arg0);
+        	responses.add(arg0);
         }
 
         public void processTimeout(TimeoutEvent arg0) {
