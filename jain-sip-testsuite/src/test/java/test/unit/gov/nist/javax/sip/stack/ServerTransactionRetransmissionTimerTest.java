@@ -712,14 +712,18 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
                 ServerTransaction serverTransactionId) {
             Request request = requestEvent.getRequest();
             Dialog dialog = requestEvent.getDialog();
-            logger.info("shootme: local party = " + dialog.getLocalParty());
+            
+            if(dialog!=null)
+            	logger.info("shootme: local party = " + dialog.getLocalParty());
+            
             try {
                 logger.info("shootme:  got a bye sending OK.");
                 Response response = messageFactory.createResponse(200, request);
                 serverTransactionId.sendResponse(response);
-                logger.info("shootme: Dialog State is "
-                        + serverTransactionId.getDialog().getState());
-
+                
+                if(serverTransactionId.getDialog()!=null) {
+                	logger.info("shootme: Dialog State is " + serverTransactionId.getDialog().getState());
+                }                
             } catch (Exception ex) {
                 logger.error("UNexpected exception",ex);
                 fail("UNexpected exception");

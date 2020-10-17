@@ -514,32 +514,35 @@ public class DeadSocketTlsTest extends TestCase {
 		public void enforceTlsPolicy(ClientTransactionExt transaction) throws SecurityException {
 			System.out.println("enforceTlsPolicy");
 			this.enforceTlsPolicyCalled = true;
-			List<String> certIdentities;
-			try {
-				certIdentities = transaction.extractCertIdentities();
-			} catch (SSLPeerUnverifiedException e) {
-				throw new SecurityException(e);
-			}
-			if (certIdentities.isEmpty()) {
-				System.out.println("Could not find any identities in the TLS certificate");
-			}
-			else {
-				System.out.println("found identities: " + certIdentities);
-			}
-
-			// the destination IP address should match one of the certIdentities
 			boolean foundPeerIdentity = false;
-			String expectedIpAddress = ((SipURI)transaction.getRequest().getRequestURI()).getHost();
-			for (String identity : certIdentities) {
-				// identities must be resolved to dotted quads before comparing: this is faked here
-				String peerIpAddress = "10.10.10.0";
-				if (identity.equals("localhost")) {
-					peerIpAddress = "127.0.0.1";
+			if(transaction!=null) {
+				List<String> certIdentities;
+				try {
+					certIdentities = transaction.extractCertIdentities();
+				} catch (SSLPeerUnverifiedException e) {
+					throw new SecurityException(e);
 				}
-				if (expectedIpAddress.equals(peerIpAddress)) {
-					foundPeerIdentity = true;
+				if (certIdentities.isEmpty()) {
+					System.out.println("Could not find any identities in the TLS certificate");
+				}
+				else {
+					System.out.println("found identities: " + certIdentities);
+				}
+	
+				// the destination IP address should match one of the certIdentities
+				String expectedIpAddress = ((SipURI)transaction.getRequest().getRequestURI()).getHost();
+				for (String identity : certIdentities) {
+					// identities must be resolved to dotted quads before comparing: this is faked here
+					String peerIpAddress = "10.10.10.0";
+					if (identity.equals("localhost")) {
+						peerIpAddress = "127.0.0.1";
+					}
+					if (expectedIpAddress.equals(peerIpAddress)) {
+						foundPeerIdentity = true;
+					}
 				}
 			}
+			
 			if (!foundPeerIdentity) {
 				throw new SecurityException("Certificate identity does not match requested domain");
 			}
