@@ -146,8 +146,7 @@ public class NonBlockingTest extends ScenarioHarness {
                 }
             });
         }
-        pool.awaitTermination(THREAD_ASSERT_TIME, TimeUnit.MILLISECONDS);
-        Thread.sleep(THREAD_ASSERT_TIME);        
+        pool.awaitTermination(THREAD_ASSERT_TIME, TimeUnit.MILLISECONDS);        
         //*2 counting for ACK
         Assert.assertEquals(NUM_THREADS * 2, server.requestCounter.get());
         for (Closeable rAux : servers) {
