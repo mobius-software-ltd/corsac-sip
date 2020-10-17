@@ -718,8 +718,10 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
             
             try {
                 logger.info("shootme:  got a bye sending OK.");
-                Response response = messageFactory.createResponse(200, request);
-                serverTransactionId.sendResponse(response);
+                if(serverTransactionId!=null) {
+                	Response response = messageFactory.createResponse(200, request);
+                	serverTransactionId.sendResponse(response);
+                }
                 
                 if(serverTransactionId.getDialog()!=null) {
                 	logger.info("shootme: Dialog State is " + serverTransactionId.getDialog().getState());
