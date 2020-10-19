@@ -579,7 +579,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     }
 
                 } else {
-                    if (!dialog.handleAck(transaction)) {
+                	if (!dialog.handleAck(transaction)) {
                         if (!dialog.isSequenceNumberValidation()) {
                             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                                 logger.logDebug(

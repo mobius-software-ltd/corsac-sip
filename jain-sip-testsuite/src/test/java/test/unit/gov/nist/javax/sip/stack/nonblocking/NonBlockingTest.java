@@ -4,11 +4,11 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -70,7 +70,6 @@ public class NonBlockingTest extends ScenarioHarness {
     private static final String TEST_PROTOCOL = "tcp";
     
     private static final int NUM_THREADS = 30;
-    private static final int NUM_THREADS_RE = 10;
     
     private static final int THREAD_ASSERT_TIME = 6000;    
     
@@ -123,19 +122,19 @@ public class NonBlockingTest extends ScenarioHarness {
         pool.awaitTermination(THREAD_ASSERT_TIME, TimeUnit.MILLISECONDS);
         Thread.sleep(THREAD_ASSERT_TIME);
         Assert.assertTrue(!client.responses.isEmpty());
-        Assert.assertEquals(503, client.responses.get(0).getResponse().getStatusCode());
+        Assert.assertEquals(503, client.responses.poll().getResponse().getStatusCode());
         client.close();
     }
 
     public void testConnReestablished() throws Exception {
         final Client client = new Client();
-        ExecutorService pool = Executors.newFixedThreadPool(NUM_THREADS_RE);
+        ExecutorService pool = Executors.newFixedThreadPool(NUM_THREADS);
         testResources.add(new PoolCloser(pool));     
         Set<Closeable> servers = new HashSet<Closeable>();
         final int serverPort = NetworkPortAssigner.retrieveNextPort();
     	Server server = new Server(serverPort);
     	servers.add(server);        
-        for (int i = 0; i < NUM_THREADS_RE; i++) {
+        for (int i = 0; i < NUM_THREADS; i++) {
 
             pool.submit(new Runnable() {
                 public void run() {
@@ -146,11 +145,13 @@ public class NonBlockingTest extends ScenarioHarness {
                     }
                 }
             });
+            
+            Thread.sleep(100);            
         }
         pool.awaitTermination(THREAD_ASSERT_TIME, TimeUnit.MILLISECONDS);        
         Thread.sleep(THREAD_ASSERT_TIME);        
         //*2 counting for ACK
-        Assert.assertEquals(NUM_THREADS_RE * 2, server.requestCounter.get());
+        Assert.assertEquals(NUM_THREADS * 2, server.requestCounter.get());
         for (Closeable rAux : servers) {
             try {
                 rAux.close();
@@ -165,7 +166,7 @@ public class NonBlockingTest extends ScenarioHarness {
         CommonLogger.getLogger(NonBlockingTest.class).logInfo("server restarted");
     	server = new Server(serverPort);
     	testResources.add(server);          
-        for (int i = 0; i < NUM_THREADS_RE; i++) {
+        for (int i = 0; i < NUM_THREADS; i++) {
       	
             pool.submit(new Runnable() {
                 public void run() {
@@ -178,7 +179,7 @@ public class NonBlockingTest extends ScenarioHarness {
             });
         }
         Thread.sleep(THREAD_ASSERT_TIME);
-        Assert.assertEquals(NUM_THREADS_RE, client.responses.size()); 
+        Assert.assertEquals(NUM_THREADS, client.responses.size()); 
         client.close();
     }    
 
@@ -241,7 +242,7 @@ public class NonBlockingTest extends ScenarioHarness {
 		            Address address = addressFactory.createAddress("Shootme <sip:127.0.0.1:" + port + ">");
 		            ContactHeader contactHeader = headerFactory.createContactHeader(address);
 		            Response res = messageFactory.createResponse(200, req);
-		            res.addHeader(contactHeader);
+		            res.addHeader(contactHeader);		            
 		            st.sendResponse(res);
             	}
 			} catch (Exception e) {
@@ -352,7 +353,7 @@ public class NonBlockingTest extends ScenarioHarness {
         AtomicInteger diagTerminatedCounter = new AtomicInteger(0);
         AtomicInteger IOExceptionCounter = new AtomicInteger(0);
         AtomicInteger requestCounter = new AtomicInteger(0);
-        List<ResponseEvent> responses = Collections.synchronizedList(new ArrayList<ResponseEvent>());
+        ConcurrentLinkedQueue<ResponseEvent> responses = new ConcurrentLinkedQueue<ResponseEvent>(new ArrayList<ResponseEvent>());
         AtomicInteger timeoutcounter = new AtomicInteger(0);
         AtomicInteger txTerminatedCounter = new AtomicInteger(0);
 
@@ -361,7 +362,7 @@ public class NonBlockingTest extends ScenarioHarness {
         	diagTerminatedCounter.set(0);
         	IOExceptionCounter.set(0);
         	requestCounter.set(0);
-        	responses = Collections.synchronizedList(new ArrayList<ResponseEvent>());
+        	responses = new ConcurrentLinkedQueue<ResponseEvent>(new ArrayList<ResponseEvent>());
         	timeoutcounter.set(0);
         	txTerminatedCounter.set(0);
         }
@@ -378,7 +379,7 @@ public class NonBlockingTest extends ScenarioHarness {
         }
 
         public void processResponse(ResponseEvent arg0) {
-        	responses.add(arg0);
+        	responses.offer(arg0);
         }
 
         public void processTimeout(TimeoutEvent arg0) {
