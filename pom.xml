@@ -10,7 +10,7 @@
 	
     <groupId>javax.sip</groupId>
     <artifactId>jain-sip</artifactId>
-    <version>8.0.0-SNAPSHOT</version>
+    <version>8.0.0-2-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -294,6 +294,7 @@
         <connection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</connection>
         <developerConnection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</developerConnection>
         <url>https://bitbucket.org/telestax/telscale-jsip</url>
-    </scm>
+      <tag>HEAD</tag>
+  </scm>
 
 </project>
