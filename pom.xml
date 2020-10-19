@@ -213,16 +213,10 @@
 
     <distributionManagement>
         <repository>
-            <id>cxs-prod-releases</id>
-            <name>cxs-prod-releases</name>
-            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/product-releases/</url>
-            
-        </repository>
-        <snapshotRepository>
-            <id>cxs-prod-snapshots</id>
-            <name>Restcomm Snapshots Repository</name>
-            <url>http://cxsnexus.restcomm.com/nexus/content/repositories/product-snapshots/</url>
-        </snapshotRepository>
+	      <id>mobius-telestax-private-releases-repository</id>
+	      <name>Mobius Releases Repository For Telestax</name>
+          <url>http://nexus.mobius-software.com:8081/repository/telestax-local</url>
+	    </repository>
     </distributionManagement>  
 
     <build>	
