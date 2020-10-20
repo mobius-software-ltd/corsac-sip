@@ -58,9 +58,6 @@ import javax.sip.address.Router;
 import javax.sip.header.HeaderFactory;
 import javax.sip.message.Request;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.Appender;
-
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.ServerLogger;
@@ -1900,37 +1897,6 @@ public class SipStackImpl extends SIPTransactionStack implements
 	 */
 	public LogRecordFactory getLogRecordFactory() {
 		return super.logRecordFactory;
-	}
-
-	/**
-	 * Set the log appender ( this is useful if you want to specify a particular
-	 * log format or log to something other than a file for example). This method
-	 * is will be removed May 11, 2010 or shortly there after.
-	 *
-	 * @param Appender
-	 *            - the log4j appender to add.
-	 * @deprecated TODO: remove this method May 11, 2010.
-	 */
-	@Deprecated
-	public void addLogAppender(Appender appender) {
-		if (logger instanceof gov.nist.core.LogWriter) {
-			((gov.nist.core.LogWriter) logger).addAppender(appender);
-		}
-	}
-
-	/**
-	 * Get the log4j logger ( for log stream integration ).
-	 * This method will be removed May 11, 2010 or shortly there after.
-	 *
-	 * @return  the log4j logger.
-	 * @deprecated TODO: This method will be removed May 11, 2010.
-	 */
-	@Deprecated
-	public Logger getLogger() {
-		if (logger instanceof gov.nist.core.LogWriter) {
-			return ((gov.nist.core.LogWriter) logger).getLogger();
-		}
-		return null;
 	}
 
 	public EventScanner getEventScanner() {

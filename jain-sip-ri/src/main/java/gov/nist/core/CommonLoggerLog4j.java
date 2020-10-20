@@ -32,11 +32,7 @@ import java.io.StringWriter;
 import java.util.Properties;
 
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configuration;
 
 /**
  * A wrapper around log4j that is used for logging debug and errors. You can
@@ -96,20 +92,6 @@ public class CommonLoggerLog4j implements StackLogger {
      */
     public Logger getLogger() {
         return logger;
-    }
-
-
-    /**
-     * This method allows you to add an external appender.
-     * This is useful for the case when you want to log to
-     * a different log stream than a file.
-     *
-     * @param appender
-     */
-    public void addAppender(Appender appender) {
-    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
-        Configuration configuration = logContext.getConfiguration();
-        configuration.addAppender(appender);
     }
 
     /**

@@ -33,7 +33,6 @@ import java.util.Properties;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.config.Configuration;
@@ -133,21 +132,6 @@ public class LogWriter implements StackLogger {
      */
     public Logger getLogger() {
         return logger;
-    }
-
-
-    /**
-     * This method allows you to add an external appender.
-     * This is useful for the case when you want to log to
-     * a different log stream than a file.
-     *
-     * @param appender
-     */
-    public void addAppender(Appender appender) {
-    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
-        Configuration configuration = logContext.getConfiguration();
-        configuration.addAppender(appender);
-
     }
 
     /**
@@ -352,45 +336,51 @@ public class LogWriter implements StackLogger {
 
                     this.setTraceLevel(ll);
                     this.needsLogging = true;
-                    LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
-                    Configuration configuration = logContext.getConfiguration();
-                    LoggerConfig config=configuration.getLoggerConfig(logger.getName());
-                    if(config!=null) {
-                    	if (traceLevel == TRACE_DEBUG) {
-                    		config.setLevel(Level.DEBUG);
-                        } else if (traceLevel == TRACE_INFO) {
-                        	config.setLevel(Level.INFO);
-                        } else if (traceLevel == TRACE_ERROR) {
-                        	config.setLevel(Level.ERROR);
-                        } 
-                    }                    
-
                     if (traceLevel == TRACE_NONE) {
-                    	config.setLevel(Level.OFF);
                         this.needsLogging = false;
                     }
-                    /*
-                     * If user specifies a logging file as part of the startup
-                     * properties then we try to create the appender.
-                     */
-                    if (this.needsLogging && this.logFileName != null) {
-
-                        boolean overwrite = Boolean.valueOf(
-                                configurationProperties.getProperty(
-                                "gov.nist.javax.sip.DEBUG_LOG_OVERWRITE"));
-
-                        FileAppender fa = FileAppender.newBuilder().setName(this.logFileName).withFileName(this.logFileName).withAppend(!overwrite).build();
-                        if(fa==null) {
-                        	File logfile = new File(this.logFileName);
-                            logfile.getParentFile().mkdirs();
-                            logfile.delete();
-                            fa = FileAppender.newBuilder().setName(this.logFileName).withFileName(this.logFileName).build();                            
-                        }
-                                                
-                        if (fa != null)                        	
-                        	configuration.addAppender(fa);
+                    
+                    org.apache.logging.log4j.spi.LoggerContext spiContext=LogManager.getContext(false);
+                    if(spiContext instanceof LoggerContext) {
+	                    Configuration configuration = ((LoggerContext)spiContext).getConfiguration();
+	                    LoggerConfig config=configuration.getLoggerConfig(logger.getName());
+	                    if(config!=null) {
+	                    	if (traceLevel == TRACE_DEBUG) {
+	                    		config.setLevel(Level.DEBUG);
+	                        } else if (traceLevel == TRACE_INFO) {
+	                        	config.setLevel(Level.INFO);
+	                        } else if (traceLevel == TRACE_ERROR) {
+	                        	config.setLevel(Level.ERROR);
+	                        } 
+	                    }                    
+	
+	                    if (traceLevel == TRACE_NONE) {
+	                    	config.setLevel(Level.OFF);
+	                        this.needsLogging = false;
+	                    }
+	                    /*
+	                     * If user specifies a logging file as part of the startup
+	                     * properties then we try to create the appender.
+	                     */
+	                    if (this.needsLogging && this.logFileName != null) {
+	
+	                        boolean overwrite = Boolean.valueOf(
+	                                configurationProperties.getProperty(
+	                                "gov.nist.javax.sip.DEBUG_LOG_OVERWRITE"));
+	
+	                        FileAppender fa = FileAppender.newBuilder().setName(this.logFileName).withFileName(this.logFileName).withAppend(!overwrite).build();
+	                        if(fa==null) {
+	                        	File logfile = new File(this.logFileName);
+	                            logfile.getParentFile().mkdirs();
+	                            logfile.delete();
+	                            fa = FileAppender.newBuilder().setName(this.logFileName).withFileName(this.logFileName).build();                            
+	                        }
+	                                                
+	                        if (fa != null)                        	
+	                        	configuration.addAppender(fa);
+	                    }
                     }
-
+                    
                 } catch (NumberFormatException ex) {
                     ex.printStackTrace();
                     System.err.println("LogWriter: Bad integer " + logLevel);
