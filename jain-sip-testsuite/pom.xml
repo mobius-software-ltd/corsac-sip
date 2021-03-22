@@ -3,11 +3,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>javax.sip</groupId>
-        <version>8.0.0-4-SNAPSHOT</version>
-        <artifactId>jain-sip</artifactId>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+	    <groupId>javax.sip</groupId>
+	    <version>8.0.0-4-SNAPSHOT</version>
+	    <artifactId>jain-sip</artifactId>
+	  </parent>
 
     <artifactId>jain-sip-testsuite</artifactId>
     <packaging>jar</packaging>
