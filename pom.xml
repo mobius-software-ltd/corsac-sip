@@ -10,7 +10,7 @@
 	
     <groupId>javax.sip</groupId>
     <artifactId>jain-sip</artifactId>
-    <version>8.0.0-4-SNAPSHOT</version>
+    <version>8.0.0-5-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
