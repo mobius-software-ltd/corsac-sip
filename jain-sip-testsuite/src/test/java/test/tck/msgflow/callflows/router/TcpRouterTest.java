@@ -20,7 +20,7 @@
 package test.tck.msgflow.callflows.router;
 
 
-public class TcpRouterTest extends UdpRouterTest {
+public class TcpRouterTest extends AbstractRouterTestCase {
     boolean myFlag;
 
     public void setUp() throws Exception {
@@ -28,5 +28,14 @@ public class TcpRouterTest extends UdpRouterTest {
         myFlag = !super.testedImplFlag;
         super.transport = "tcp";
         super.setUp();
+    }
+    
+    public void init() throws Exception {
+    	super.setUp();
+    }
+
+    public void testTelUriInvite() {
+        this.shootist.sendInvite();
+
     }
 }

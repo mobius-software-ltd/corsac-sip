@@ -1,7 +1,5 @@
 package test.tck.msgflow.callflows;
 
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
@@ -17,6 +15,9 @@ import javax.sip.message.MessageFactory;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 /**
  * @author M. Ranganathan
@@ -88,7 +89,7 @@ public class ProtocolObjects {
         // Set to 0 in your production code for max speed.
         // You need 16 for logging traces. 32 for debug + traces.
         // Your code will limp at 32 but it is best for debugging.
-        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", new Integer(
+        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", Integer.valueOf(
                 logLevel).toString());
 
         try {
@@ -164,7 +165,7 @@ public class ProtocolObjects {
         // Set to 0 in your production code for max speed.
         // You need 16 for logging traces. 32 for debug + traces.
         // Your code will limp at 32 but it is best for debugging.
-        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", new Integer(
+        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", Integer.valueOf(
                 logLevel).toString());
 
         try {
@@ -208,16 +209,26 @@ public class ProtocolObjects {
         for (Iterator<SipProvider> it = hashSet.iterator(); it.hasNext();) {
             SipProvider sipProvider = it.next();
 
+            Boolean succesfull=false;
             for (int j = 0; j < 5; j++) {
                 try {
-                    sipStack.deleteSipProvider(sipProvider);
+                	sipStack.deleteSipProvider(sipProvider);
+                	succesfull=true;
+                	break;
                 } catch (ObjectInUseException ex) {
                     try {
                         Thread.sleep(1000);
                     } catch (Exception e) {
                     }
-
                 }
+            }
+            
+            if(!succesfull) {
+            	try {
+            		((SipProviderImpl)sipProvider).removeListeningPoints();
+            	}
+            	catch(Exception ex) {
+            	}
             }
         }
 

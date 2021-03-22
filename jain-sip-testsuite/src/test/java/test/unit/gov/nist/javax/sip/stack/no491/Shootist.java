@@ -299,7 +299,7 @@ public class Shootist implements SipListener {
             Address fromNameAddress = protocolObjects.addressFactory.createAddress(fromAddress);
             fromNameAddress.setDisplayName(fromDisplayName);
             FromHeader fromHeader = protocolObjects.headerFactory.createFromHeader(
-                    fromNameAddress, new Integer((int) (Math.random() * Integer.MAX_VALUE))
+                    fromNameAddress, Integer.valueOf((int) (Math.random() * Integer.MAX_VALUE))
                             .toString());
 
             // create To Header

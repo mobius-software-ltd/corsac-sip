@@ -164,7 +164,7 @@ public class Shootme   implements SipListener {
             ContactHeader contactHeader = protocolObjects.headerFactory.createContactHeader(address);
             response.addHeader(contactHeader);
             ToHeader toHeader = (ToHeader) ringingResponse.getHeader(ToHeader.NAME);
-            String toTag = actAsNonRFC3261UAS ? null : new Integer((int) (Math.random() * 10000)).toString();
+            String toTag = actAsNonRFC3261UAS ? null : Integer.valueOf((int) (Math.random() * 10000)).toString();
             if (!actAsNonRFC3261UAS) toHeader.setTag(toTag); // Application is supposed to set.
             ringingResponse.addHeader(contactHeader);
             st.sendResponse(ringingResponse);

@@ -108,6 +108,7 @@ public class CancelEventTest extends ScenarioHarness {
             SipFactory sipFactory = null;
 
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             // If you want to try TCP transport change the following to
@@ -128,7 +129,7 @@ public class CancelEventTest extends ScenarioHarness {
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL",
-                    new Integer(logLevel).toString());
+                    Integer.valueOf(logLevel).toString());
 
             if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
                 logger.info("\nNIO Enabled\n");
@@ -160,7 +161,7 @@ public class CancelEventTest extends ScenarioHarness {
         }
 
         public void destroy() {
-            sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
         public void start() throws Exception {
@@ -445,6 +446,7 @@ public class CancelEventTest extends ScenarioHarness {
             String stackname = "shootme";
 
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             // If you want to try TCP transport change the following to
@@ -464,7 +466,7 @@ public class CancelEventTest extends ScenarioHarness {
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL",
-                    new Integer(logLevel).toString());
+                    Integer.valueOf(logLevel).toString());
 
             if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
                 logger.info("\nNIO Enabled\n");
@@ -496,7 +498,7 @@ public class CancelEventTest extends ScenarioHarness {
         }
 
         public void destroy() {
-            sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
         public void start() throws Exception {

@@ -211,7 +211,7 @@ public class Forker implements SipListener {
     private void doFork(Request orig, ServerTransaction st, int port)
             throws Exception {
         ViaHeader myVia = headerFactory.createViaHeader("127.0.0.1",
-                sipProvider.getListeningPoint("udp").getPort(), "udp", null);
+                sipProvider.getListeningPoint(transport).getPort(), transport, null);
         Request forked = (Request) orig.clone();
         forked.addHeader(myVia);
 
@@ -254,7 +254,7 @@ public class Forker implements SipListener {
         //
         ViaHeader top = (ViaHeader) orig.getHeader(ViaHeader.NAME);
         ViaHeader myVia = headerFactory.createViaHeader("127.0.0.1", port,
-                "udp", top.getBranch());
+        		transport, top.getBranch());
         orig.addFirst(myVia);
 
         if (nonRFC3261Proxy) {

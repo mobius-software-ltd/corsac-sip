@@ -427,7 +427,7 @@ public class SdpFactory extends Object {
         // Bug fix contributed by Paloma Ortega.
         Vector<String> payload = new Vector<String>();
         for (int i = 0; i < staticRtpAvpTypes.length; i++)
-            payload.add(new Integer(staticRtpAvpTypes[i]).toString());
+            payload.add(Integer.valueOf(staticRtpAvpTypes[i]).toString());
         mediaImpl.setMediaFormats(payload);
         return mediaDescriptionImpl;
     }
@@ -698,7 +698,7 @@ public class SdpFactory extends Object {
         try {
 
             Hashtable<Date,Integer> map = new Hashtable<Date,Integer>();
-            map.put(d, new Integer(offset));
+            map.put(d, Integer.valueOf(offset));
             timeZoneAdjustmentImpl.setZoneAdjustments(map);
         } catch (SdpException s) {
             s.printStackTrace();

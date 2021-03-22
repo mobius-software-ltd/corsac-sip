@@ -186,7 +186,7 @@ public class Shootme   implements SipListener {
             ToHeader toHeader = (ToHeader) ringingResponse.getHeader(ToHeader.NAME);
             String toTag;
             if ( ((ToHeader) ringingResponse.getHeader(ToHeader.NAME)).getTag() == null ) {
-                toTag =  new Integer(new Random().nextInt()).toString();
+                toTag =  Integer.valueOf(new Random().nextInt()).toString();
                 toHeader.setTag(toTag);
             } else {
                 toTag = ((ToHeader) ringingResponse.getHeader(ToHeader.NAME)).getTag();

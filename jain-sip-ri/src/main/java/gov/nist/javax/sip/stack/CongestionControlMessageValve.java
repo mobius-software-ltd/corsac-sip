@@ -116,9 +116,9 @@ public class CongestionControlMessageValve implements SIPMessageValve{
 		sipStack = (SipStackImpl) stack;
 		logger.logInfo("Initializing congestion control valve");
 		String serverTransactionsString = sipStack.getConfigurationProperties().getProperty("gov.nist.javax.sip.MAX_SERVER_TRANSACTIONS", "10000");
-		serverTransactionTableHighwaterMark = new Integer(serverTransactionsString);
+		serverTransactionTableHighwaterMark = Integer.valueOf(serverTransactionsString);
 		String dropResponseStatusString = sipStack.getConfigurationProperties().getProperty("DROP_RESPONSE_STATUS", "503");
-		dropResponseStatus = new Integer(dropResponseStatusString);
+		dropResponseStatus = Integer.valueOf(dropResponseStatusString);
 	}
 
 }

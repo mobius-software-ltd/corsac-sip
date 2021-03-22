@@ -108,14 +108,11 @@ public abstract class AbstractForkedInviteTestCase extends ScenarioHarness imple
             super.tearDown();
             Thread.sleep(2000);
             this.providerTable.clear();
-
             super.logTestCompleted();
+            Thread.sleep(2000);
         } catch (Exception ex) {
             logger.error("unexpected exception", ex);
             fail("unexpected exception ");
         }
     }
-
-
-
 }

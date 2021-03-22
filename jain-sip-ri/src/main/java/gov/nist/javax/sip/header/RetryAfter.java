@@ -56,7 +56,7 @@ public class RetryAfter extends ParametersHeader implements RetryAfterHeader {
 
     /** duration field
      */
-    protected Integer retryAfter = new Integer(0);
+    protected Integer retryAfter = 0;
 
     /** comment field
      */

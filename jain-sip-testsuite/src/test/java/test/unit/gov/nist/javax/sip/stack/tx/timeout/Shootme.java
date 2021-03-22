@@ -73,7 +73,7 @@ public class Shootme implements SipListenerExt {
         public void run() {
             Request request = requestEvent.getRequest();
             try {
-            	String toTag = new Integer((int) (Math.random() * 100000)).toString()+"_ResponseCode_"+responseCodeToINFO;
+            	String toTag = Integer.valueOf((int) (Math.random() * 100000)).toString()+"_ResponseCode_"+responseCodeToINFO;
                 // System.out.prntln("shootme: got an Invite sending OK");
             	int statusCode = 180;            	
                 Response response = messageFactory.createResponse(statusCode, request);

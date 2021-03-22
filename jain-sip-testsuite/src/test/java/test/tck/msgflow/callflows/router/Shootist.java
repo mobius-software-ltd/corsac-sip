@@ -118,7 +118,7 @@ public class Shootist implements SipListener {
     }
 
     public SipProvider createProvider() throws Exception {
-        ListeningPoint lp = sipStack.createListeningPoint("127.0.0.1",
+    	ListeningPoint lp = sipStack.createListeningPoint("127.0.0.1",
                 myPort, transport);
 
         sipProvider = sipStack.createSipProvider(lp);

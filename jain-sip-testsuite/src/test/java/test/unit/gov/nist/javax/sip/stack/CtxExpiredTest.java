@@ -144,7 +144,7 @@ public class CtxExpiredTest extends TestCase {
                         .createAddress(fromAddress);
                 fromNameAddress.setDisplayName(fromDisplayName);
                 FromHeader fromHeader = headerFactory.createFromHeader(
-                        fromNameAddress, new Integer(
+                        fromNameAddress, Integer.valueOf(
                                 (int) (Math.random() * Integer.MAX_VALUE))
                                 .toString());
 
@@ -394,6 +394,7 @@ public class CtxExpiredTest extends TestCase {
         SipFactory sipFactory = null;
 
         sipFactory = SipFactory.getInstance();
+        sipFactory.resetFactory();
         sipFactory.setPathName("gov.nist");
         Properties properties;
 

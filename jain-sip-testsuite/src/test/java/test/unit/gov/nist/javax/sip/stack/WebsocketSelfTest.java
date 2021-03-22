@@ -252,14 +252,15 @@ public class WebsocketSelfTest extends TestCase {
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
-            properties.setProperty("javax.sip.STACK_NAME", "server");
+            properties.setProperty("javax.sip.STACK_NAME", "websocket-server");
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "LOG4J");
            
             properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING", "false");
             properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
-            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
             
             try {
                 sipStack = sipFactory.createSipStack(properties);
@@ -315,7 +316,7 @@ public class WebsocketSelfTest extends TestCase {
         }
 
         public void terminate() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
     }
@@ -393,10 +394,11 @@ public class WebsocketSelfTest extends TestCase {
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
 
-            properties.setProperty("javax.sip.STACK_NAME", "browserphone");
+            properties.setProperty("javax.sip.STACK_NAME", "websocket-browserphone");
 
             // Drop the client connection after we are done with the transaction.
             properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS",
@@ -542,7 +544,7 @@ public class WebsocketSelfTest extends TestCase {
         }
         
         public void terminate() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
     }
 

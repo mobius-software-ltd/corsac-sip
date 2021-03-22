@@ -87,7 +87,7 @@ public class Proxy implements SipListener {
         RecordRouteHeader recordRoute = headerFactory.createRecordRouteHeader(address);
         newRequest.addHeader(recordRoute);
         ct1.setApplicationData(st);
-        this.clientTxTable.put(new Integer(targetPort), ct1);
+        this.clientTxTable.put(Integer.valueOf(targetPort), ct1);
         ct1.sendRequest();
     }
 

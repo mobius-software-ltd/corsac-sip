@@ -118,6 +118,7 @@ public class NIOIdleTimeoutWithSeparateAffinityTimerTest  extends ScenarioHarnes
                 defaultProperties.setProperty("gov.nist.javax.sip.TIMER_CLASS_NAME", SeparateAffinitityExecutorSipTimer.class.getName());
                 defaultProperties.setProperty("gov.nist.javax.sip.SEPARATE_AFFINITITY_EXECUTOR_SIP_TIMER_THREADS", "4");
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();
@@ -135,7 +136,7 @@ public class NIOIdleTimeoutWithSeparateAffinityTimerTest  extends ScenarioHarnes
         }
 
         public void stop() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
         public void processRequest(RequestEvent requestEvent) {
@@ -168,6 +169,7 @@ public class NIOIdleTimeoutWithSeparateAffinityTimerTest  extends ScenarioHarnes
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1");
 
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();

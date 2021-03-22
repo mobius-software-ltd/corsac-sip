@@ -75,13 +75,13 @@ public abstract class AbstractPrackTestCase extends ScenarioHarness implements
             super.tearDown();
             Thread.sleep(1000);
             this.providerTable.clear();
-
             logTestCompleted();
         } catch (Exception ex) {
             logger.error("unexpected exception", ex);
             fail("unexpected exception ");
         }
         super.tearDown();
+        Thread.sleep(1000);        
     }
 
 

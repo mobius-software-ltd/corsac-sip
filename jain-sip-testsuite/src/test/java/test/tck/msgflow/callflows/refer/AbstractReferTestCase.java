@@ -79,9 +79,6 @@ public abstract class AbstractReferTestCase extends ScenarioHarness implements
             fail("unexpected exception ");
         }
         super.tearDown();
+        Thread.sleep(1000);
     }
-
-
-
-
 }

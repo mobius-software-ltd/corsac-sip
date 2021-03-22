@@ -70,7 +70,7 @@ public class Shootme implements SipListener {
                 st.sendResponse(response); // send 180(RING)
                 response = messageFactory.createResponse(200, request);
                 toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
-                String toTag = new Integer( (int) (Math.random() * 1000) ).toString();
+                String toTag = Integer.valueOf( (int) (Math.random() * 1000) ).toString();
                 toHeader.setTag(toTag); // Application is supposed to set.
                 response.addHeader(contactHeader);
 

@@ -371,6 +371,7 @@ public class Subscriber implements SipListener {
         transport = "udp";
 
         SipFactory sipFactory = SipFactory.getInstance();
+        sipFactory.resetFactory();
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
 

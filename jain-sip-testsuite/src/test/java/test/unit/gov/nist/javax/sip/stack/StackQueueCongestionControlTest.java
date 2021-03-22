@@ -279,6 +279,7 @@ public class StackQueueCongestionControlTest extends TestCase {
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             properties.setProperty("javax.sip.STACK_NAME", "shootme");
@@ -355,7 +356,7 @@ public class StackQueueCongestionControlTest extends TestCase {
         }
 
         public void terminate() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
             this.sipStack = null;
         }
 
@@ -469,6 +470,7 @@ public class StackQueueCongestionControlTest extends TestCase {
             this.sleep = sleep;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             // If you want to try TCP transport change the following to
@@ -684,7 +686,7 @@ public class StackQueueCongestionControlTest extends TestCase {
         }
         public void terminate() {
         	sipProvider = null;
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
             this.sipStack = null;
         }
     }

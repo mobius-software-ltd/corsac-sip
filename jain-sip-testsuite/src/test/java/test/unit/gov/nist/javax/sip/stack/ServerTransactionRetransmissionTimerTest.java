@@ -301,6 +301,7 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             // If you want to try TCP transport change the following to
@@ -522,7 +523,7 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
                     }
                 }
             }
-            sipStack.stop();
+            Utils.stopSipStack(this.sipStack);
         }
     }
 
@@ -771,6 +772,7 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             properties.setProperty("javax.sip.STACK_NAME", name);
@@ -839,7 +841,7 @@ public class ServerTransactionRetransmissionTimerTest extends TestCase {
                     }
                 }
             }
-            this.sipStack.stop();
+            Utils.stopSipStack(this.sipStack);
         }
 
         public void processIOException(IOExceptionEvent exceptionEvent) {

@@ -78,6 +78,7 @@ public abstract class AbstractRedirectTestCase extends ScenarioHarness implement
             this.providerTable.clear();
 
             logTestCompleted();
+            Thread.sleep(1000);
         } catch (Exception ex) {
             logger.error("unexpected exception", ex);
             fail("unexpected exception ");

@@ -194,6 +194,7 @@ public class BackToBackUserAgent implements SipListenerExt {
     public BackToBackUserAgent(int port1, int port2) {
         SipFactory sipFactory = null;
         sipFactory = SipFactory.getInstance();
+        sipFactory.resetFactory();
         sipFactory.setPathName("gov.nist");
         this.protocolObjects = new ProtocolObjects("backtobackua","gov.nist","udp",true,true, false);
 

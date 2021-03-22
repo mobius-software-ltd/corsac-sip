@@ -19,13 +19,15 @@
 */
 package test.tck.msgflow.callflows.subsnotify;
 
+import junit.textui.TestRunner;
+
 /**
  * Test case for TCP transport.
  *
  * @author M. Ranganathan
  *
  */
-public class TcpSubsnotifyTest extends UdpSubsnotifyTest {
+public class TcpSubsnotifyTest extends AbstractSubsnotifyTestCase {
     boolean myFlag;
 
     public void setUp() throws Exception {
@@ -33,5 +35,26 @@ public class TcpSubsnotifyTest extends UdpSubsnotifyTest {
         myFlag = !super.testedImplFlag;
         super.transport = "tcp";
         super.setUp();
+    }
+
+
+    /**
+     * tests notifier and subscriber in TI (test impl) provider
+     *
+     */
+    public void testSubsnotify() {
+        this.subscriber.sendSubscribe(forkerPort);
+    }
+    /**
+     * tests provider in TI (test impl) provider. Subscriber and Notifier
+     * are the RI.
+     *
+     */
+    public void testSubsnotify2() {
+        this.subscriber.sendSubscribe(forkerPort);
+    }
+    public static void main(String[] args) {
+        String[] nargs = {UdpSubsnotifyTest.class.getName()};
+        TestRunner.main(nargs);
     }
 }

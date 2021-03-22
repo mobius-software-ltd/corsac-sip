@@ -140,7 +140,7 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
         }
 
         public void stop() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
         public void processRequest(RequestEvent requestEvent) {
@@ -173,6 +173,7 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1.2");
 
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();

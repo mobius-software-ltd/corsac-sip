@@ -103,7 +103,7 @@ public class Shootme extends TestCase implements SipListener {
         try {
             Response response = messageFactory.createResponse(180, request);
             ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
-            String toTag = new Integer((int) (Math.random() * 1000)).toString();
+            String toTag = Integer.valueOf((int) (Math.random() * 1000)).toString();
             toHeader.setTag(toTag); // Application is supposed to set.
             //System.out.println("toTag = " + toTag);
 

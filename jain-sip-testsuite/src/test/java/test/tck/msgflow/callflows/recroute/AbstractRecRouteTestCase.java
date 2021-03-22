@@ -107,6 +107,7 @@ public abstract class AbstractRecRouteTestCase extends ScenarioHarness implement
             this.providerTable.clear();
 
             super.logTestCompleted();
+            Thread.sleep(2000);
         } catch (Exception ex) {
             logger.error("unexpected exception", ex);
             fail("unexpected exception ");

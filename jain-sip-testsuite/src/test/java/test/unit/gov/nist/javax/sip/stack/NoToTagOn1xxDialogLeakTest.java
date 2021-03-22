@@ -293,6 +293,7 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             properties.setProperty("javax.sip.STACK_NAME", "shootme");
@@ -564,6 +565,7 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             // If you want to try TCP transport change the following to
@@ -775,7 +777,7 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
             throw new IllegalStateException("Cant remove the listening points or sip providers", e);
         }
 
-        sipStack.stop();
+        Utils.stopSipStack(sipStack);
         sipStack = null;
     }
 

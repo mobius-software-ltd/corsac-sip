@@ -245,6 +245,7 @@ public class Notifier implements SipListener {
     private static void initFactories ( int port ) throws Exception {
 
         SipFactory sipFactory = SipFactory.getInstance();
+        sipFactory.resetFactory();
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
 

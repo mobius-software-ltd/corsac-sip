@@ -94,6 +94,7 @@ public class NIOParsingTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE", "64");
                 defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();
@@ -108,7 +109,7 @@ public class NIOParsingTest extends ScenarioHarness {
         }
 
         public void stop() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
         public void processRequest(RequestEvent requestEvent) {
@@ -141,6 +142,7 @@ public class NIOParsingTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1");
                 
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();

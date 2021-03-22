@@ -178,7 +178,7 @@ public class ReInviteBusyTest extends TestCase {
             // Set to 0 in your production code for max speed.
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
-            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", new Integer(
+            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", Integer.valueOf(
                     logLevel).toString());
             if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             	logger.info("\nNIO Enabled\n");
@@ -238,7 +238,7 @@ public class ReInviteBusyTest extends TestCase {
                 }
             }
 
-            sipStack.stop();
+            Utils.stopSipStack(this.sipStack);
         }
 
         public void start() throws Exception {
@@ -302,12 +302,11 @@ public class ReInviteBusyTest extends TestCase {
                /* int ackCount = ((ApplicationData) dialog.getApplicationData()).ackCount;*/
 
                 dialog = inviteTid.getDialog();
-                Thread.sleep(1000);
+                Thread.sleep(2000);
                 logger.info("shootme is sending RE INVITE now");
                 System.out.println("Got an ACK " );
                 this.reInviteCount++;
                 this.sendReInvite(sipProvider);
-
             } catch (Exception ex) {
                 String s = "Unexpected error";
                 logger.error(s, ex);
@@ -493,6 +492,7 @@ public class ReInviteBusyTest extends TestCase {
                 
                 @Override
                 public boolean assertCondition() {
+                	logger.info("REINVITE COUNT:" + reInviteCount + ",TO TAG:" + isToTagInTryingReInvitePresent);
                     return reInviteCount >=2 && isToTagInTryingReInvitePresent;
                 }
             };
@@ -627,7 +627,6 @@ public class ReInviteBusyTest extends TestCase {
             } catch (Exception ex) {
                 logger.error("unexpected exception", ex);
                 ReInviteBusyTest.fail("unexpected exception");
-
             }
         }
 
@@ -733,7 +732,7 @@ public class ReInviteBusyTest extends TestCase {
                         .createAddress(fromAddress);
                 fromNameAddress.setDisplayName(fromDisplayName);
                 FromHeader fromHeader = protocolObjects.headerFactory.createFromHeader(
-                        fromNameAddress, new Integer((int) (Math.random() * Integer.MAX_VALUE))
+                        fromNameAddress, Integer.valueOf((int) (Math.random() * Integer.MAX_VALUE))
                                 .toString());
 
                 // create To Header
@@ -941,7 +940,7 @@ public class ReInviteBusyTest extends TestCase {
                     AssertUntil.assertUntil(shootist.getAssertion(), TIMEOUT));
             assertTrue(
                     "should see a re-INVITE"
-                    + "and To tag in trying for re-INVITE shoulnd't be null",
+                    + " and To tag in trying for re-INVITE shoulnd't be null",
                     AssertUntil.assertUntil(shootme.getAssertion(), TIMEOUT));
             shootmeProtocolObjs.destroy();
             shootistProtocolObjs.destroy();

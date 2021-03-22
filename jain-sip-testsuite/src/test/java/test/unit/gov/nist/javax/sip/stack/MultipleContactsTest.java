@@ -112,6 +112,7 @@ public class MultipleContactsTest extends ScenarioHarness {
                 	defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 }
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();
@@ -126,7 +127,7 @@ public class MultipleContactsTest extends ScenarioHarness {
         }
 
         public void stop() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
         public void processRequest(RequestEvent requestEvent) {
@@ -158,6 +159,7 @@ public class MultipleContactsTest extends ScenarioHarness {
                 	defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 }
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();

@@ -25,7 +25,11 @@ public class UdpRouterTest extends AbstractRouterTestCase {
     public void setUp() throws Exception {
         testedImplFlag = false;
         super.transport = "udp";
-        super.setUp();
+        init();
+    }
+    
+    public void init() throws Exception {
+    	super.setUp();
     }
 
     public void testTelUriInvite() {

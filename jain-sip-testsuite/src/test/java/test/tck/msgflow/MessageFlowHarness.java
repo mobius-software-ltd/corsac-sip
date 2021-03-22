@@ -138,7 +138,7 @@ public class MessageFlowHarness extends TestHarness {
     protected void addStatus(HeaderFactory headerFactory, Request request) {
         try {
             Header extension = headerFactory.createHeader(EXTENSION_HDR,
-                    new Integer(counter++).toString());
+                    Integer.valueOf(counter++).toString());
             request.addHeader(extension);
         } catch (ParseException ex) {
             // do nothing

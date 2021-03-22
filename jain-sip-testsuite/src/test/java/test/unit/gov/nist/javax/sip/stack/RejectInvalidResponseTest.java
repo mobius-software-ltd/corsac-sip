@@ -159,6 +159,7 @@ public class RejectInvalidResponseTest extends TestCase {
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             properties.setProperty("javax.sip.STACK_NAME", "shootme");
@@ -233,7 +234,7 @@ public class RejectInvalidResponseTest extends TestCase {
         }
 
         public void terminate() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
     }
@@ -293,6 +294,7 @@ public class RejectInvalidResponseTest extends TestCase {
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             // If you want to try TCP transport change the following to
@@ -483,7 +485,7 @@ public class RejectInvalidResponseTest extends TestCase {
 
         }
         public void terminate() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
     }
 

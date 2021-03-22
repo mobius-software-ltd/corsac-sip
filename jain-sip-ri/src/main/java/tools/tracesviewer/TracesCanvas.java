@@ -266,14 +266,14 @@ public class TracesCanvas
                 if (actors.get(from) == null) {
                     actors.put(
                         from,
-                        new Integer(
+                        Integer.valueOf(
                             sizeActors * HORIZONTAL_GAP + FIRST_ACTOR_GAP));
                 }
                 sizeActors = actors.size();
                 if (actors.get(to) == null) {
                     actors.put(
                         to,
-                        new Integer(
+                        Integer.valueOf(
                             sizeActors * HORIZONTAL_GAP + FIRST_ACTOR_GAP));
                 }
 

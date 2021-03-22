@@ -103,6 +103,7 @@ public class SIPEventInterceptorTest extends TestCase{
 			System.out.println(arg);
 		}
 		
+		System.out.println("Diff:" + Math.abs(tp.getMetricStats(sec).averageTime - stuck));
 		assertTrue(Math.abs(tp.getMetricStats(sec).averageTime - stuck)<10); // wrong avg time
 		//assertEquals(0, tp.getNumberOfThreads()); // Memory leaking
 		System.out.println("Active threads " + tp.getNumberOfThreads());
@@ -293,6 +294,7 @@ public class SIPEventInterceptorTest extends TestCase{
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             properties.setProperty("javax.sip.STACK_NAME", "shootme");
@@ -370,7 +372,7 @@ public class SIPEventInterceptorTest extends TestCase{
         }
 
         public void terminate() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
     }
@@ -454,6 +456,7 @@ public class SIPEventInterceptorTest extends TestCase{
             SipFactory sipFactory = null;
             sipStack = null;
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             Properties properties = new Properties();
             // If you want to try TCP transport change the following to
@@ -651,7 +654,7 @@ public class SIPEventInterceptorTest extends TestCase{
 
         }
         public void terminate() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
     }
 

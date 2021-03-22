@@ -112,6 +112,7 @@ public class Shootist implements SipListener {
     public void init() {
         SipFactory sipFactory = null;
         sipFactory = SipFactory.getInstance();
+        sipFactory.resetFactory();
         sipFactory.setPathName("gov.nist");
         
         String localHost = myAddress;
@@ -266,7 +267,7 @@ public class Shootist implements SipListener {
             int fromTag = 1000 + hashCode();
 
             fromHeader = headerFactory.createFromHeader(fromNameAddress,
-                    new Integer(fromTag).toString());
+                    Integer.valueOf(fromTag).toString());
             String sdpData = "v=0\r\n"
                     + "o=4855 13760799956958020 13760799956958020"
                     + " IN IP4  129.6.55.78\r\n" + "s=mysession session\r\n"

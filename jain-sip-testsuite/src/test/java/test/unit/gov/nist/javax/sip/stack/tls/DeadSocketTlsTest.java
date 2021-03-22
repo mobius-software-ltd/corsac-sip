@@ -272,6 +272,7 @@ public class DeadSocketTlsTest extends TestCase {
 			SipFactory sipFactory = null;
 			sipStack = null;
 			sipFactory = SipFactory.getInstance();
+			sipFactory.resetFactory();
 			sipFactory.setPathName("gov.nist");
 			Properties properties = new Properties();
 			String transport = "tls";
@@ -809,6 +810,7 @@ public class DeadSocketTlsTest extends TestCase {
 			SipFactory sipFactory = null;
 			sipStack = null;
 			sipFactory = SipFactory.getInstance();
+			sipFactory.resetFactory();
 			sipFactory.setPathName("gov.nist");
 			Properties properties = new Properties();
 			properties.setProperty("javax.sip.STACK_NAME", "shootme");

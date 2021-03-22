@@ -184,7 +184,7 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
             // Set to 0 in your production code for max speed.
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
-            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", new Integer(
+            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", Integer.valueOf(
                     logLevel).toString());
             if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             	logger.info("\nNIO Enabled\n");
@@ -244,7 +244,7 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
                 }
             }
 
-            sipStack.stop();
+            Utils.stopSipStack(this.sipStack);
         }
 
         public void start() throws Exception {
@@ -759,7 +759,7 @@ public class ReInviteInfoAckOverlapTest extends TestCase {
                         .createAddress(fromAddress);
                 fromNameAddress.setDisplayName(fromDisplayName);
                 FromHeader fromHeader = protocolObjects.headerFactory.createFromHeader(
-                        fromNameAddress, new Integer((int) (Math.random() * Integer.MAX_VALUE))
+                        fromNameAddress, Integer.valueOf((int) (Math.random() * Integer.MAX_VALUE))
                                 .toString());
 
                 // create To Header

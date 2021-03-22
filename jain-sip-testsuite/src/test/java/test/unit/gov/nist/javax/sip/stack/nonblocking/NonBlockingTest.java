@@ -213,6 +213,7 @@ public class NonBlockingTest extends ScenarioHarness {
                         "false");
                 defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 messageFactory = sipFactory.createMessageFactory();
                 headerFactory = sipFactory.createHeaderFactory();
@@ -284,6 +285,7 @@ public class NonBlockingTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.NIO_BLOCKING_MODE", "NONBLOCKING");
 
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();

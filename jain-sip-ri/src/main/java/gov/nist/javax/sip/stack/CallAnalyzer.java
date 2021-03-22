@@ -72,10 +72,10 @@ public  class CallAnalyzer {
 	}
 	
 	public static class TImeMetricInfo {
-		public Long totalTime = new Long(0);
-		public Long numberOfEvents = new Long(0);
-		public Long averageTime = new Long(1);
-		public Long lastLoggedEventTime = new Long(0);
+		public Long totalTime = 0L;
+		public Long numberOfEvents = 0L;
+		public Long averageTime = 1L;
+		public Long lastLoggedEventTime = 0L;
 		protected TimerTask task;
 		protected MetricAnalysisConfiguration config = new MetricAnalysisConfiguration(5000, 5000, 5000); // default config
 	}

@@ -474,7 +474,7 @@ public class ReconnectTCPTest extends ScenarioHarness implements SipListener {
                         .createAddress(fromAddress);
                 fromNameAddress.setDisplayName(fromDisplayName);
                 FromHeader fromHeader = protocolObjects.headerFactory
-                        .createFromHeader(fromNameAddress, new Integer((int) (Math
+                        .createFromHeader(fromNameAddress, Integer.valueOf((int) (Math
                                 .random() * Integer.MAX_VALUE)).toString());
 
                 // create To Header

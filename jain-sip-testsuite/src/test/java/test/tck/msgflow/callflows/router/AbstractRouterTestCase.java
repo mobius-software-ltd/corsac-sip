@@ -72,7 +72,7 @@ public abstract class AbstractRouterTestCase extends ScenarioHarness implements
             providerTable.put(shootmeProvider, shootme);
             
             logger.info("RouterTest: setup()");
-            ProtocolObjects protocolObjects = new ProtocolObjects("shootist","gov.nist","udp", Shootme.myPort, true,false, false); 
+            ProtocolObjects protocolObjects = new ProtocolObjects("shootist","gov.nist", transport, Shootme.myPort, true,false, false); 
             shootist = new Shootist(protocolObjects);
             SipProvider shootistProvider = shootist.createProvider();
             providerTable.put(shootistProvider, shootist);
@@ -95,8 +95,6 @@ public abstract class AbstractRouterTestCase extends ScenarioHarness implements
             assertTrue(AssertUntil.assertUntil(shootme.getAssertion(), TIMEOUT));
             assertTrue("Router was not consulted", NonSipUriRouter.routerWasConsulted);
             NonSipUriRouter.routerWasConsulted = false;
-            super.tearDown();
-            Thread.sleep(1000);
             this.providerTable.clear();
 
             logTestCompleted();
@@ -105,9 +103,6 @@ public abstract class AbstractRouterTestCase extends ScenarioHarness implements
             fail("unexpected exception ");
         }
         super.tearDown();
+        Thread.sleep(2000);
     }
-
-
-
-
 }

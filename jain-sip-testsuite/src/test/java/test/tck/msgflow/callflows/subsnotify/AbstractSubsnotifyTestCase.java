@@ -126,6 +126,7 @@ public abstract class AbstractSubsnotifyTestCase extends ScenarioHarness impleme
             fail("unexpected exception ");
         }
         super.tearDown();
+        Thread.sleep(2000);        
     }
 
 

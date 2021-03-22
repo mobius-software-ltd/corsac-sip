@@ -84,7 +84,7 @@ public class NoAutoDialogTest extends TestCase {
     }
 
     public String generateFromTag() {
-        return new Integer(Math.abs(new Random().nextInt())).toString();
+        return Integer.valueOf(Math.abs(new Random().nextInt())).toString();
     }
 
     @Override
@@ -162,6 +162,7 @@ public class NoAutoDialogTest extends TestCase {
                 	defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 }
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();
@@ -181,7 +182,7 @@ public class NoAutoDialogTest extends TestCase {
 
 
         public void stop() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
         public void processDialogTerminated(DialogTerminatedEvent dte) {
@@ -286,6 +287,7 @@ public class NoAutoDialogTest extends TestCase {
                 	defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 }
                 this.sipFactory = SipFactory.getInstance();
+                this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
                 this.sipStack = this.sipFactory.createSipStack(defaultProperties);
                 this.sipStack.start();
@@ -325,7 +327,7 @@ public class NoAutoDialogTest extends TestCase {
 
 
         public void stop() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
         public void processDialogTerminated(DialogTerminatedEvent arg0) {

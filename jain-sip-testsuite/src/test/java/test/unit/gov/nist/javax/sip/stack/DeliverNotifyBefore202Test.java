@@ -68,6 +68,7 @@ public class DeliverNotifyBefore202Test extends TestCase {
     static {
         try {
             sipFactory = SipFactory.getInstance();
+            sipFactory.resetFactory();
             sipFactory.setPathName("gov.nist");
             LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
         	Configuration configuration = logContext.getConfiguration();        	
@@ -353,7 +354,7 @@ public class DeliverNotifyBefore202Test extends TestCase {
         }
         
         public void tearDown() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
         public boolean checkNotify() {
@@ -618,7 +619,7 @@ public class DeliverNotifyBefore202Test extends TestCase {
         }
         
         public void tearDown() {
-            this.sipStack.stop();
+        	Utils.stopSipStack(this.sipStack);
         }
 
     }

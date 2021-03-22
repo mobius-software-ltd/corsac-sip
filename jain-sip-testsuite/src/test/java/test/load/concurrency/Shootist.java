@@ -279,7 +279,7 @@ public class Shootist extends TestCase implements SipListener {
             Address fromNameAddress = addressFactory.createAddress(fromAddress);
             fromNameAddress.setDisplayName(fromDisplayName);
 
-            String tag = new Integer((int) (Math.random() * 10000)).toString();
+            String tag = Integer.valueOf((int) (Math.random() * 10000)).toString();
             FromHeader fromHeader = headerFactory.createFromHeader(
                     fromNameAddress, tag);
 

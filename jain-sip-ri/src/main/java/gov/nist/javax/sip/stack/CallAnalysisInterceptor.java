@@ -46,12 +46,13 @@ public class CallAnalysisInterceptor implements SIPEventInterceptor {
 	private static final MetricReference interceptorCheckpoint = new MetricReference("ick");
 	
 	public void afterMessage(Message message) {
-		callAnalyzer.leave(interceptorCheckpoint);
-		
+		if(callAnalyzer!=null)
+			callAnalyzer.leave(interceptorCheckpoint);		
 	}
 
 	public void beforeMessage(Message message) {
-		callAnalyzer.enter(interceptorCheckpoint);
+		if(callAnalyzer!=null)
+			callAnalyzer.enter(interceptorCheckpoint);
 	}
 
 	public void destroy() {

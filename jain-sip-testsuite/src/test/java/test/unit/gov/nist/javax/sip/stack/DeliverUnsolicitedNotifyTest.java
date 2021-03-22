@@ -152,7 +152,7 @@ public class DeliverUnsolicitedNotifyTest extends TestCase implements
                     if (!notifySeen || !notifyResponseSeen) {
                         fail("Did not see expected event");
                     }
-                    sipStack.stop();
+                    Utils.stopSipStack(sipStack);
 
                 }
 
