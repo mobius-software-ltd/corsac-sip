@@ -174,6 +174,30 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+			<id>maven-release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-release-plugin</artifactId>
+						<configuration>
+							<autoVersionSubmodules>true</autoVersionSubmodules>							
+							<arguments>-Dmaven.test.skip</arguments>						
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<source>${compile.source}</source>
+							<target>${compile.source}</target>
+							<debug>${compile.debug}</debug>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>		
+		</profile>
     </profiles>
 
     <!-- repositories -->
