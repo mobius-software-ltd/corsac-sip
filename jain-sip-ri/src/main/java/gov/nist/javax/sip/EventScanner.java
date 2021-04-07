@@ -40,6 +40,8 @@ import gov.nist.javax.sip.stack.SIPTransaction;
 import java.util.EventObject;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sip.DialogState;
@@ -74,7 +76,7 @@ public class EventScanner implements Runnable {
     private BlockingQueue<EventWrapper> pendingEvents;
     
     private AtomicInteger refCount;
-
+    
     private SipStackImpl sipStack;
 
     public void incrementRefcount() {
@@ -114,7 +116,7 @@ public class EventScanner implements Runnable {
 
     public void stop() {
             if (refCount.get() == 0) {
-                isStopped = true;
+            	isStopped = true;
             }
     }
 
@@ -508,8 +510,9 @@ public class EventScanner implements Runnable {
                 // tap-dancing is to avoid deadlocks and also to ensure that
                 // the list is not modified while we are iterating over it.
             	try {
-					eventWrapper = (EventWrapper) pendingEvents.take();
-					deliverEvent(eventWrapper);
+					eventWrapper = (EventWrapper) pendingEvents.poll(1,TimeUnit.SECONDS);
+					if(eventWrapper!=null)
+						deliverEvent(eventWrapper);
             	} catch (InterruptedException ex) {
             		// Let the thread die a normal death
             		if (logger.isLoggingEnabled(LogLevels.TRACE_ERROR))
