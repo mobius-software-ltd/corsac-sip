@@ -25,23 +25,10 @@
  */
 package gov.nist.javax.sip;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.LogLevels;
-import gov.nist.core.LogWriter;
-import gov.nist.core.StackLogger;
-import gov.nist.core.ThreadAuditor;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.SIPClientTransaction;
-import gov.nist.javax.sip.stack.SIPDialog;
-import gov.nist.javax.sip.stack.SIPServerTransaction;
-import gov.nist.javax.sip.stack.SIPTransaction;
-
 import java.util.EventObject;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sip.DialogState;
@@ -55,6 +42,18 @@ import javax.sip.TransactionState;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.LogLevels;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
+import gov.nist.core.ThreadAuditor;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.SIPClientTransaction;
+import gov.nist.javax.sip.stack.SIPDialog;
+import gov.nist.javax.sip.stack.SIPServerTransaction;
+import gov.nist.javax.sip.stack.SIPTransaction;
 
 /* bug fixes SIPQuest communications and Shu-Lin Chen. */
 
@@ -115,7 +114,7 @@ public class EventScanner implements Runnable {
      */
 
     public void stop() {
-            if (refCount.get() == 0) {
+            if (refCount.decrementAndGet() == 0) {
             	isStopped = true;
             }
     }

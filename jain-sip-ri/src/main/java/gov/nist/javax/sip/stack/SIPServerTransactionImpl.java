@@ -393,14 +393,13 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         	super(TransactionTimer.class.getSimpleName());
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("TransactionTimer() : " + getTransactionId());
-            }
-
+            }      
         }
 
         public void runTask() {
             // If the transaction has terminated,
             if (isTerminated()) {
-                // Keep the transaction hanging around in the transaction table
+            	// Keep the transaction hanging around in the transaction table
                 // to catch the incoming ACK -- this is needed for tcp only.
                 // Note that the transaction record is actually removed in
                 // the connection linger timer.
@@ -427,8 +426,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             } else {
                 // Add to the fire list -- needs to be moved
                 // outside the synchronized block to prevent
-                // deadlock.
-                fireTimer();
+                // deadlock.            	
+            	fireTimer();
             }
             if(originalRequest != null) {
                 originalRequest.cleanUp();
@@ -976,14 +975,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 this.setState(TransactionState._TERMINATED);
                 this.collectionTime = 0;
                 throw e;
-
             }
         } finally {
             this.startTransactionTimer();
         }
-
     }
-
 
     private boolean checkStateTimers(int statusCode) {
         // If the TU sends a provisional response while in the
@@ -1297,8 +1293,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      * @see gov.nist.javax.sip.stack.SIPTransaction#fireTimeoutTimer()
      */
     public void fireTimeoutTimer() {
-
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+    	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("SIPServerTransaction.fireTimeoutTimer this = " + this
                     + " current state = " + this.getRealState() + " method = "
                     + this.getMethod());
@@ -1607,7 +1602,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      */
     @Override
     public void setState(int newState) {
-        // Set this timer for connection caching
+    	// Set this timer for connection caching
         // of incoming connections.
         if (newState == TransactionState._TERMINATED && this.isReliable()
                 && (!getSIPStack().cacheServerConnections)) {
@@ -1634,7 +1629,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     SIPStackTimerTask myTimer = new TransactionTimer();
                     // Do not schedule when the stack is not alive.
                     if (sipStack.getTimer() != null && sipStack.getTimer().isStarted() ) {
-                        sipStack.getTimer().scheduleWithFixedDelay(myTimer, baseTimerInterval, baseTimerInterval);
+                    	sipStack.getTimer().scheduleWithFixedDelay(myTimer, baseTimerInterval, baseTimerInterval);
                     }
                     myTimer = null;
                 }
@@ -1767,7 +1762,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         if(!transactionTimerStarted.get()) {
     		// if no transaction timer was started just remove the tx without firing a transaction terminated event
         	testAndSetTransactionTerminatedEvent();
-        	sipStack.removeTransaction(this);
+        	sipStack.removeTransaction(this);        	        	
         }
     }
 

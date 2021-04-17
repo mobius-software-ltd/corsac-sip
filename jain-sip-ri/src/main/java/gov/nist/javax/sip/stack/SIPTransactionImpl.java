@@ -67,6 +67,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -170,7 +171,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     private transient int retransmissionTimerTicksLeft;
 
     // Number of ticks before the transaction times out
-    protected int timeoutTimerTicksLeft;
+    protected AtomicInteger timeoutTimerTicksLeft=new AtomicInteger(-1);
 
     // List of event listeners for this transaction
     private transient Set<SIPTransactionEventListener> eventListeners;
@@ -665,7 +666,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
                     + " tickCount " + tickCount + " currentTickCount = "
                     + timeoutTimerTicksLeft);
 
-        timeoutTimerTicksLeft = tickCount;
+        timeoutTimerTicksLeft.set(tickCount);
     }
 
 
@@ -675,7 +676,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     @Override
     public void disableTimeoutTimer() {
     	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) logger.logDebug("disableTimeoutTimer " + this);
-        timeoutTimerTicksLeft = -1;
+        timeoutTimerTicksLeft.set(-1);
     }
 
 
@@ -685,10 +686,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     @Override
     public void fireTimer() {
         // If the timeout timer is enabled,
-
-        if (timeoutTimerTicksLeft != -1) {
+    	
+        if (timeoutTimerTicksLeft.get() != -1) {
             // Count down the timer, and if it has run out,
-            if (--timeoutTimerTicksLeft == 0) {
+            if (timeoutTimerTicksLeft.decrementAndGet() == 0) {
                 fireTimeoutTimer();
             }
         }
