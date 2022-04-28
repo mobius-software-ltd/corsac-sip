@@ -27,6 +27,8 @@ package gov.nist.javax.sip.header.ims;
 import java.text.ParseException;
 import javax.sip.InvalidArgumentException;
 import javax.sip.header.ExtensionHeader;
+
+import gov.nist.core.NameValue;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.header.AddressParametersHeader;
 
@@ -34,6 +36,7 @@ import gov.nist.javax.sip.header.AddressParametersHeader;
  *
  * @author aayush.bhatnagar
  * Rancore Technologies Pvt Ltd, Mumbai India.
+ * @author yulian.oifa
  *
  * This is the class used for encoding of the P-Served-User header
  *
@@ -67,6 +70,11 @@ public class PServedUser extends AddressParametersHeader implements PServedUserH
     public String getSessionCase() {
 
         return getParameter(ParameterNamesIms.SESSION_CASE);
+    }
+
+    public Boolean getOrigCdiv() {
+
+        return hasParameter(ParameterNamesIms.ORIG_CDIV);
     }
 
     public void setRegistrationState(String registrationState) {
@@ -128,12 +136,23 @@ public class PServedUser extends AddressParametersHeader implements PServedUserH
 
     }
 
+    public void setOrigCdiv(Boolean value) {
+
+        if(value!=null && value)
+        	setParameter(new NameValue(ParameterNamesIms.ORIG_CDIV, null, true));            
+        else
+        	removeParameter(ParameterNamesIms.ORIG_CDIV);        
+    }
+    
     @Override
     protected StringBuilder encodeBody(StringBuilder retval) {
 
 //        StringBuilder retval = new StringBuilder();
 
         retval.append(address.encode());
+
+        if(parameters.containsKey(ParameterNamesIms.ORIG_CDIV))
+            retval.append(SEMICOLON).append(ParameterNamesIms.ORIG_CDIV);
 
         if(parameters.containsKey(ParameterNamesIms.REGISTRATION_STATE))
             retval.append(SEMICOLON).append(ParameterNamesIms.REGISTRATION_STATE).append(EQUALS)

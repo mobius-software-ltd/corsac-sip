@@ -52,6 +52,7 @@ public class PServedUserParserTest extends ParserTestCase{
                                 "P-Served-User: <sip:aayush@rancore.com>;regstate=unreg\n",
                                 "P-Served-User: <sip:aayush@rancore.com>;sescase=term\n",
                                 "P-Served-User: <sip:aayush@rancore.com>\n",
+                                "P-Served-User: <sip:aayush@rancore.com>;orig-cdiv\n",
                                 "P-Served-User: <sip:aayush@rancore.com;transport=UDP>;sescase=term;regstate=unreg\n"};
 
         super.testParser(PServedUserParser.class, p_serv_user);
@@ -67,9 +68,11 @@ public class PServedUserParserTest extends ParserTestCase{
             PServedUserHeader psuh = himpl.createPServedUserHeader(addfact.createAddress(addfact.createSipURI("aayush", "rancore.com")));
             psuh.setSessionCase("orig");
             psuh.setRegistrationState("reg");
+            psuh.setOrigCdiv(true);
             System.out.println("The encoded header is---> "+psuh.toString());
             System.out.println("The sescase is---> "+psuh.getSessionCase());
             System.out.println("The Regs state is--->"+psuh.getRegistrationState());
+            System.out.println("The Orig cdiv is--->"+psuh.getOrigCdiv());
 
         } catch (ParseException e) {
 

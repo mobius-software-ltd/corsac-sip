@@ -32,6 +32,7 @@ import gov.nist.javax.sip.address.ParameterNames;
 
 /**
  * @author ALEXANDRE MIGUEL SILVA SANTOS - Nú 10045401
+ * @author yulian.oifa
  */
 public interface ParameterNamesIms extends ParameterNames {
 
@@ -82,6 +83,9 @@ public interface ParameterNamesIms extends ParameterNames {
     public static final String SESSION_CASE = "sescase";
     public static final String REGISTRATION_STATE = "regstate";
 
+    //added by yulian.oifa(Ref: RFC 8498)
+    public static final String ORIG_CDIV = "orig-cdiv";
+    
     //added by aayush.bhatnagar(Ref: draft-drage-sipping-service-identification-03)
     public static final String SERVICE_ID = "urn:urn-7:";
     public static final String SERVICE_ID_LABEL = "3gpp-service";

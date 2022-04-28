@@ -29,6 +29,7 @@ package gov.nist.javax.sip.header.ims;
  *
  * @author aayush.bhatnagar
  * Rancore Technologies Pvt Ltd, Mumbai India.
+ * @author yulian.oifa
  *
  * The ABNF of the P-Served-User Header is as follows:
  *
@@ -40,10 +41,11 @@ package gov.nist.javax.sip.header.ims;
  * PServedUser-value          = name-addr / addr-spec
  * sessioncase-param          = "sescase" EQUAL "orig" / "term"
  * registration-state-param   = "regstate" EQUAL "unreg" / "reg"
- *
+ * orig-cdiv                  = "orig-cdiv"
+ * 
  * Eg: P-Served-User: <sip:aayush@rancore.com>; sescase=orig; regstate=reg
  *
- *
+ * Added RFC 8498 support
  */
 public interface PServedUserHeader {
 
@@ -57,5 +59,7 @@ public interface PServedUserHeader {
 
     public String getRegistrationState();
 
+    public void setOrigCdiv(Boolean value);
 
+    public Boolean getOrigCdiv();
 }
