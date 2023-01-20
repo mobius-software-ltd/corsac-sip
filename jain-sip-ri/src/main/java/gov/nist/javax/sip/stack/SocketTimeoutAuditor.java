@@ -25,19 +25,25 @@
 */
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.LogWriter;
-import gov.nist.core.StackLogger;
-
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
 
 /**
  * @author jean.deruelle@gmail.com
  * 
  */
 public class SocketTimeoutAuditor extends SIPStackTimerTask {
+	ExecutorService executorService = Executors.newSingleThreadExecutor();
+	
 	private static StackLogger logger = CommonLogger.getLogger(SocketTimeoutAuditor.class);
 	long nioSocketMaxIdleTime;
 	private NIOHandler nioHandler;
@@ -77,11 +83,15 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 								+ socketChannel);
 					}
 					
+					Future<?> future = executorService.submit(new ChannelCloseRunnable(messageChannel));
+
 					try {
-						messageChannel.close();
-					} catch (Exception anything) {
-						logger.logError("Exception in SocketTimeoutAuditor : ", anything);
+					    future.get(5000, TimeUnit.MILLISECONDS);
 					}
+					catch(Exception ex) {
+						logger.logError("Exception in SocketTimeoutAuditor : ", ex);
+					}
+					
 					//removing anyway,otherwise we may get into indefinite loop
 					nioHandler.removeMessageChannel(entry.getKey());
 					entriesIterator = nioHandler.channelMap.entrySet().iterator();
@@ -100,5 +110,22 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 		}
 		endTime = System.currentTimeMillis();
 		logger.logWarning("End SocketTimeoutAuditor time : " + endTime + ". Closed channels number : " + closedCount + ". Duration : " + (endTime - startTime));
+	}
+	
+	private class ChannelCloseRunnable implements Runnable {
+		NioTcpMessageChannel messageChannel;
+		
+		public ChannelCloseRunnable(NioTcpMessageChannel messageChannel) {
+			this.messageChannel = messageChannel;
+		}
+		
+		public void run() {
+			try {
+				messageChannel.close();
+			} catch (Exception anything) {
+				logger.logError("Exception in SocketTimeoutAuditor : ", anything);
+			}
+			
+		}
 	}
 }
