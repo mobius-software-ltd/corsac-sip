@@ -202,8 +202,7 @@
 
     <!-- repositories -->
     <repositories>
-
-        <repository>
+		<repository>
 			<id>mobius-telestax-private-releases-repository</id>
 			<name>Mobius Releases Repository For Telestax</name>
 			<url>http://nexus.mobius-software.com:8081/repository/telestax-local</url>
@@ -215,33 +214,16 @@
 				<enabled>false</enabled>
 				<updatePolicy>never</updatePolicy>
 			</snapshots>                            
-		</repository>	      
-    </repositories>
-    
-    <pluginRepositories>
-        <pluginRepository>
-			<id>mobius-telestax-private-releases-repository</id>
-			<name>Mobius Releases Repository For Telestax</name>
-			<url>http://nexus.mobius-software.com:8081/repository/telestax-local</url>
-			<layout>default</layout>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-			</snapshots>
-		</pluginRepository>
-    </pluginRepositories>       
-
-    <distributionManagement>
-        <repository>
+		</repository>   
+	</repositories>	
+	
+	<distributionManagement>
+	   <repository>
 	      <id>mobius-telestax-private-releases-repository</id>
 	      <name>Mobius Releases Repository For Telestax</name>
           <url>http://nexus.mobius-software.com:8081/repository/telestax-local</url>
-	    </repository>
-    </distributionManagement>  
+	    </repository> 
+	</distributionManagement>  
 
     <build>	
         <plugins>
@@ -315,9 +297,10 @@
     </build>
 
     <scm>
-        <connection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</connection>
-        <developerConnection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</developerConnection>
-        <url>https://bitbucket.org/telestax/telscale-jsip</url>
-      <tag>HEAD</tag>
-  </scm>
+	    <connection>scm:git:ssh://git@git.mobius-software.com:/opt/data/git/jsip.git</connection>
+        <developerConnection>scm:git:ssh://git@git.mobius-software.com:/opt/data/git/jsip.git</developerConnection>
+        <tag>HEAD</tag>
+  	</scm>
+  	
+  	
 </project>
