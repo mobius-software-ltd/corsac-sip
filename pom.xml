@@ -10,7 +10,7 @@
 	
     <groupId>javax.sip</groupId>
     <artifactId>jain-sip</artifactId>
-    <version>8.0.0-12</version>
+    <version>8.0.0-13-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -299,7 +299,7 @@
     <scm>
 	    <connection>scm:git:ssh://git@git.mobius-software.com:/opt/data/git/jsip.git</connection>
         <developerConnection>scm:git:ssh://git@git.mobius-software.com:/opt/data/git/jsip.git</developerConnection>
-        <tag>jain-sip-8.0.0-12</tag>
+        <tag>HEAD</tag>
   	</scm>
   	
   	
