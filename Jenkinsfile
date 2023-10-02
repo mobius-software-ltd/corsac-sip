@@ -48,9 +48,7 @@ def isSnapshot() {
 }
 
 node("slave-xlarge") {
-    properties([[$class: '', tagFile: '', tagProperties: ''], parameters([string(defaultValue: '8.0.0-SNAPSHOT', description: 'Snapshots will skip Tag stage', name: 'MAJOR_VERSION_NUMBER', trim: false),
-        
-    ])]) 
+    parameters([string(defaultValue: '8.0.0-SNAPSHOT', description: 'Snapshots will skip Tag stage', name: 'MAJOR_VERSION_NUMBER', trim: false)])
 
     if (isSnapshot()) {
         echo "SNAPSHOT detected, skip Tag stage"
