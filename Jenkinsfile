@@ -74,7 +74,11 @@ node("slave-xlarge") {
     }   
 
     stage('Versioning') {
-        version()
+        if (!isSnapshot()) {
+            version()
+        } else {
+            echo "SNAPSHOT detected, skip Versioning stage"
+        }
     }
 
     stage ("Build") {
