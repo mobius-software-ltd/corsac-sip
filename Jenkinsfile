@@ -40,7 +40,7 @@ def tag() {
 def version() {
     def newVersion = "${MAJOR_VERSION_NUMBER}"
     if (BRANCH_NAME != "master" && !BRANCH_NAME.startsWith("rel")) {
-        newVersion = "${MAJOR_VERSION_NUMBER}.${CHANGE_ID}"
+        newVersion = "${MAJOR_VERSION_NUMBER}.${BRANCH_NAME}"
     }
     currentBuild.displayName = "#${BUILD_NUMBER}-${newVersion}"
     withMaven(maven: 'maven-3.6.3',traceability: true) {
