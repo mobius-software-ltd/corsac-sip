@@ -60,6 +60,10 @@ node("slave-xlarge") {
         ])
     ])
 
+    if (isSnapshot()) {
+        echo "SNAPSHOT detected, skip Tag stage"
+    }
+
     /**configFileProvider(
         [configFile(fileId: 'c33123c7-0e84-4be5-a719-fc9417c13fa3',  targetLocation: 'settings.xml')]) {
 	    sh 'mkdir -p ~/.m2 && sed -i "s|@LOCAL_REPO_PATH@|$WORKSPACE/M2_REPO|g" $WORKSPACE/settings.xml && cp $WORKSPACE/settings.xml -f ~/.m2/settings.xml'
