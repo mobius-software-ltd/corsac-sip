@@ -80,8 +80,8 @@ node("slave-xlarge") {
             //"JAVA_HOME=${jdktool}"
     ]
 
-    echo "mvnHome: ${mvnHome}"
-    echo "M2_HOME: ${M2_HOME}"
+    //echo "mvnHome: ${mvnHome}"
+    //echo "M2_HOME: ${M2_HOME}"
     //echo "M2_HOME: ${jdktool}"
 
     //withEnv(javaEnv) {
