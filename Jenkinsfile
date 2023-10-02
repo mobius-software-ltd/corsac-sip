@@ -1,5 +1,5 @@
 def runTestsuite(forkCount=1, profile="defaultProfile") {
-     withMaven(traceability: true) {
+     withMaven(maven: 'maven-3.6.3',traceability: true) {
         sh "mvn -B -f jain-sip-testsuite/pom.xml  install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DforkCount=\"$forkCount\" "
      }
 }
@@ -8,7 +8,7 @@ def runTestsuite(forkCount=1, profile="defaultProfile") {
 def build() {
     // Run the maven build with in-module unit testing
     try {
-        withMaven(traceability: true) {
+        withMaven(maven: 'maven-3.6.3',traceability: true) {
             sh "mvn -B -f pom.xml -Dmaven.test.redirectTestOutputToFile=true clean deploy"
         }
     } catch(err) {
@@ -43,7 +43,7 @@ def version() {
         newVersion = "${params.MAJOR_VERSION_NUMBER}-${BRANCH_NAME}"
     }   
     currentBuild.displayName = "#${BUILD_NUMBER}-${newVersion}"
-    withMaven(traceability: true) {
+    withMaven(maven: 'maven-3.6.3',traceability: true) {
         sh "mvn -B versions:set -DnewVersion=${newVersion} versions:commit"
     }
     
