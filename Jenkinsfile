@@ -69,15 +69,19 @@ node("slave-xlarge") {
 
     // Define Java and Maven versions (named according to Jenkins installed tools)
     // Source: https://jenkins.io/blog/2017/02/07/declarative-maven-project/
-    //String jdktool = tool name: 'JenkinsJava8'
-    //def mvnHome = tool name: 'Maven-3.6.3'
+    String jdktool = tool name: 'jdk8'
+    def mvnHome = tool name: 'maven-3.6.3'
 
     // Set JAVA_HOME, and special PATH variables.
-    /**List javaEnv = [
+    List javaEnv = [
             "PATH+MVN=${jdktool}/bin:${mvnHome}/bin",
             "M2_HOME=${mvnHome}",
             "JAVA_HOME=${jdktool}"
-    ]**/
+    ]
+
+    echo "mvnHome: ${mvnHome}"
+    echo "jdktool: ${M2_HOME}"
+    echo "M2_HOME: ${jdktool}"
 
     //withEnv(javaEnv) {
 
