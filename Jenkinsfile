@@ -38,10 +38,10 @@ def tag() {
 }
 
 def version() {
-    def newVersion = "${params.MAJOR_VERSION_NUMBER}"
-    if (BRANCH_NAME != "ts2-c4-mem-issue") {
-        newVersion = "${params.MAJOR_VERSION_NUMBER}-${BRANCH_NAME}"
-    }   
+    def newVersion = "${MAJOR_VERSION_NUMBER}"
+    if (BRANCH_NAME != "master" && !BRANCH_NAME.startsWith("rel")) {
+        newVersion = "${MAJOR_VERSION_NUMBER}.${CHANGE_ID}"
+    }
     currentBuild.displayName = "#${BUILD_NUMBER}-${newVersion}"
     withMaven(maven: 'maven-3.6.3',traceability: true) {
         sh "mvn -B versions:set -DnewVersion=${newVersion} versions:commit"
