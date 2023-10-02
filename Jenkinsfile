@@ -34,9 +34,9 @@ def tag() {
 }
 
 def version() {
-    def newVersion = "${MAJOR_VERSION_NUMBER}"
+    def newVersion = "${params.MAJOR_VERSION_NUMBER}"
     if (BRANCH_NAME != "ts2-c4-mem-issue") {
-        newVersion = "${MAJOR_VERSION_NUMBER}-${BRANCH_NAME}"
+        newVersion = "${params.MAJOR_VERSION_NUMBER}-${BRANCH_NAME}"
     }   
     currentBuild.displayName = "#${BUILD_NUMBER}-${newVersion}"
     sh "mvn -B versions:set -DnewVersion=${newVersion} versions:commit"
@@ -44,7 +44,7 @@ def version() {
 }
 
 def isSnapshot() {
-    return MAJOR_VERSION_NUMBER.contains("SNAPSHOT")
+    return ${params.MAJOR_VERSION_NUMBER}.contains("SNAPSHOT")
 }
 
 node("slave-xlarge") {
