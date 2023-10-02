@@ -90,7 +90,7 @@ node("slave-xlarge") {
         stage('Tag') {
             tag()
         }
-    } else
+    } else {
         echo "SNAPSHOT detected, skipped Tag stage"
     }
 }
