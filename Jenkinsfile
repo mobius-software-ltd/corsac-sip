@@ -27,7 +27,7 @@ def tag() {
     // Save release version
     def pom = readMavenPom file: 'pom.xml'
     releaseVersion = pom.version
-    echo "Set release version to ${releaseVersion}"
+    echo "Tagging: Set release version to ${releaseVersion}"
 
     withCredentials([usernamePassword(credentialsId: 'c2cce724-a831-4ec8-82b1-73d28d1c367a', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
         sh('git fetch https://${GIT_USERNAME}:${GIT_PASSWORD}@bitbucket.org/telestax/telscale-jsip.git')
@@ -60,10 +60,6 @@ node("slave-xlarge") {
         ])
     ])
 
-    if (isSnapshot()) {
-        echo "SNAPSHOT detected, skip Tag stage"
-    }
-
     /**configFileProvider(
         [configFile(fileId: 'c33123c7-0e84-4be5-a719-fc9417c13fa3',  targetLocation: 'settings.xml')]) {
 	    sh 'mkdir -p ~/.m2 && sed -i "s|@LOCAL_REPO_PATH@|$WORKSPACE/M2_REPO|g" $WORKSPACE/settings.xml && cp $WORKSPACE/settings.xml -f ~/.m2/settings.xml'
@@ -94,5 +90,7 @@ node("slave-xlarge") {
         stage('Tag') {
             tag()
         }
+    } else
+        echo "SNAPSHOT detected, skipped Tag stage"
     }
 }
