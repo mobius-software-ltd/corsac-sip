@@ -198,8 +198,8 @@
 					</plugin>
 				</plugins>
 			</build>		
-		</profile>
-    </profiles-->
+		</profile-->
+    </profiles>
 
     <!-- repositories -->
     <repositories>
