@@ -226,7 +226,7 @@
 	    </repository> 
 	</distributionManagement>  
 
-    <build>	
+    <!--build>	
         <plugins>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -295,7 +295,7 @@
                 <artifactId>maven-release-plugin</artifactId>                		  	
             </plugin>
         </plugins>
-    </build>
+    </build-->
 
     <scm>
 	    <connection>scm:git:ssh://git@git.mobius-software.com:/opt/data/git/jsip.git</connection>
