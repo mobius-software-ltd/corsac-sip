@@ -175,7 +175,7 @@
                 </plugins>
             </build>
         </profile-->
-        <profile>
+        <!--profile>
 			<id>maven-release</id>
 			<build>
 				<plugins>
@@ -199,7 +199,7 @@
 				</plugins>
 			</build>		
 		</profile>
-    </profiles>
+    </profiles-->
 
     <!-- repositories -->
     <repositories>
