@@ -47,8 +47,8 @@ def isSnapshot() {
     return MAJOR_VERSION_NUMBER.contains("SNAPSHOT")
 }
 
-node("cxs-testsuite-large_docker") {
-    properties([[$class: 'DatadogJobProperty', tagFile: '', tagProperties: ''], parameters([string(defaultValue: '7.0.0-SNAPSHOT', description: 'Snapshots will skip Tag stage', name: 'MAJOR_VERSION_NUMBER', trim: false),
+node("slave-xlarge") {
+    properties([[$class: '', tagFile: '', tagProperties: ''], parameters([string(defaultValue: '8.0.0-SNAPSHOT', description: 'Snapshots will skip Tag stage', name: 'MAJOR_VERSION_NUMBER', trim: false),
         
     ])]) 
 
@@ -56,10 +56,10 @@ node("cxs-testsuite-large_docker") {
         echo "SNAPSHOT detected, skip Tag stage"
     }
 
-    configFileProvider(
+    /**configFileProvider(
         [configFile(fileId: 'c33123c7-0e84-4be5-a719-fc9417c13fa3',  targetLocation: 'settings.xml')]) {
 	    sh 'mkdir -p ~/.m2 && sed -i "s|@LOCAL_REPO_PATH@|$WORKSPACE/M2_REPO|g" $WORKSPACE/settings.xml && cp $WORKSPACE/settings.xml -f ~/.m2/settings.xml'
-    }
+    }**/
 
     stage ('Checkout') {
         checkout scm
@@ -67,17 +67,17 @@ node("cxs-testsuite-large_docker") {
 
     // Define Java and Maven versions (named according to Jenkins installed tools)
     // Source: https://jenkins.io/blog/2017/02/07/declarative-maven-project/
-    String jdktool = tool name: 'JenkinsJava7'
-    def mvnHome = tool name: 'Maven-3.5.0'
+    //String jdktool = tool name: 'JenkinsJava8'
+    //def mvnHome = tool name: 'Maven-3.6.3'
 
     // Set JAVA_HOME, and special PATH variables.
-    List javaEnv = [
+    /**List javaEnv = [
             "PATH+MVN=${jdktool}/bin:${mvnHome}/bin",
             "M2_HOME=${mvnHome}",
             "JAVA_HOME=${jdktool}"
-    ]
+    ]**/
 
-    withEnv(javaEnv) {
+    //withEnv(javaEnv) {
 
         stage('Versioning') {
             version()
@@ -101,5 +101,5 @@ node("cxs-testsuite-large_docker") {
                 tag()
             }
         }
-    }
+    //}
 }

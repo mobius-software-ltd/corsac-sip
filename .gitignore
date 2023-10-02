@@ -46,3 +46,7 @@ PutObjectStoreDirHere
 # ignore mvn-rpmbuild repo
 /.m2
 /bin/
+# ignore vscode settings
+.vscode/settings.json
+# ignore txt files
+*.txt
