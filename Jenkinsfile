@@ -9,7 +9,7 @@ def build() {
     // Run the maven build with in-module unit testing
     try {
         withMaven(maven: 'maven-3.6.3',traceability: true) {
-            sh "mvn -B -f pom.xml -Dmaven.test.redirectTestOutputToFile=true clean deploy"
+            sh "mvn -B -f pom.xml -Dmaven.test.redirectTestOutputToFile=true clean install -P sctp"
         }
     } catch(err) {
         publishResults()
@@ -71,48 +71,28 @@ node("slave-xlarge") {
 
     stage ('Checkout') {
         checkout scm
+    }   
+
+    stage('Versioning') {
+        version()
     }
 
-    // Define Java and Maven versions (named according to Jenkins installed tools)
-    // Source: https://jenkins.io/blog/2017/02/07/declarative-maven-project/
-    //String jdktool = tool name: 'jdk8'
-    def mvnHome = tool name: 'maven-3.6.3'
+    stage ("Build") {
+        build()
+    }
 
-    // Set JAVA_HOME, and special PATH variables.
-    List javaEnv = [
-            "PATH+MVN=${mvnHome}/bin",
-            //"PATH+MVN=${jdktool}/bin:${mvnHome}/bin",
-            "M2_HOME=${mvnHome}"
-            //"JAVA_HOME=${jdktool}"
-    ]
+    stage("CITestsuiteParallel") {
+            runTestsuite("40" , "parallel-testing")
+    }
 
-    //echo "mvnHome: ${mvnHome}"
-    //echo "M2_HOME: ${M2_HOME}"
-    //echo "M2_HOME: ${jdktool}"
 
-    //withEnv(javaEnv) {
+    stage("PublishResults") {
+        publishResults()
+    }
 
-        stage('Versioning') {
-            version()
+    if ( !isSnapshot()) {
+        stage('Tag') {
+            tag()
         }
-
-        stage ("Build") {
-            build()
-        }
-
-        stage("CITestsuiteParallel") {
-                runTestsuite("40" , "parallel-testing")
-        }
-
-
-        stage("PublishResults") {
-            publishResults()
-        }
-
-        if ( !isSnapshot()) {
-            stage('Tag') {
-                tag()
-            }
-        }
-    //}
+    }
 }
