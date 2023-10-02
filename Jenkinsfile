@@ -44,7 +44,7 @@ def version() {
 }
 
 def isSnapshot() {
-    return ${params.MAJOR_VERSION_NUMBER}.contains("SNAPSHOT")
+    return "${params.MAJOR_VERSION_NUMBER}".contains("SNAPSHOT")
 }
 
 node("slave-xlarge") {
@@ -54,9 +54,9 @@ node("slave-xlarge") {
         ])
     ])
 
-    /**if (isSnapshot()) {
+    if (isSnapshot()) {
         echo "SNAPSHOT detected, skip Tag stage"
-    }*/
+    }
 
     /**configFileProvider(
         [configFile(fileId: 'c33123c7-0e84-4be5-a719-fc9417c13fa3',  targetLocation: 'settings.xml')]) {
@@ -99,9 +99,9 @@ node("slave-xlarge") {
         }
 
         if ( !isSnapshot()) {
-            /**stage('Tag') {
+            stage('Tag') {
                 tag()
-            }*/
+            }
         }
     //}
 }
