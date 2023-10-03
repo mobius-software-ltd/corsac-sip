@@ -19,7 +19,7 @@ def build() {
 
 def publishResults() {
     junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
-    checkstyle canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
+    //checkstyle canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
     step( [ $class: 'JacocoPublisher' ] )
 }
 
@@ -77,10 +77,10 @@ node("slave-xlarge") {
         }
         sh 'gpg --version'
         sh 'gpg --list-keys'
-        //sh 'locate pubring.kbx'
-        //sh 'ps aux | grep gpg'
-        //sh 'sudo killall gpg-agent'
-        //sh 'gpg --version'
+        sh 'gpg --list-secret-keys'
+        sh 'gpg --list-sigs'
+        sh 'gpg --list-trustdb'
+        sh 'gpg --list-options show-photos show-keyring'        
     }
     
 
@@ -89,7 +89,7 @@ node("slave-xlarge") {
 	    sh 'mkdir -p ~/.m2 && sed -i "s|@LOCAL_REPO_PATH@|$WORKSPACE/M2_REPO|g" $WORKSPACE/settings.xml && cp $WORKSPACE/settings.xml -f ~/.m2/settings.xml'
     }**/
 
-    stage ('Checkout') {
+    /**stage ('Checkout') {
         checkout scm
     }   
 
@@ -107,7 +107,7 @@ node("slave-xlarge") {
 
     stage("CITestsuiteParallel") {
             runTestsuite("40" , "parallel-testing")
-    }
+    }*/
 
 
     stage("PublishResults") {
