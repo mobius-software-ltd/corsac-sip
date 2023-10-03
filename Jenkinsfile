@@ -77,7 +77,7 @@ node("slave-xlarge") {
         }
         sh 'gpg --version'
         sh 'ps aux | grep gpg'
-        sh 'killall gpg-agent'
+        sh 'sudo killall gpg-agent'
         sh 'gpg --version'
     }
     
