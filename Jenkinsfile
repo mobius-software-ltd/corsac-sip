@@ -72,6 +72,8 @@ node("slave-xlarge") {
                 returnStdout: true
             ).trim()        
         echo "${newVersion}"
+        echo "Installing SCTP"
+        sh 'sudo apt update & sudo apt install libsctp-dev'
         /**if("${newVersion}".contains("2.2.15")) {
             echo "GPG2 already installed"
         } else {
