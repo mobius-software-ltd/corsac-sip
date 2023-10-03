@@ -77,7 +77,7 @@ node("slave-xlarge") {
         }
         sh 'gpg --version'
         sh 'gpg --list-keys'
-        sh 'locate pubring.kbx'
+        //sh 'locate pubring.kbx'
         //sh 'ps aux | grep gpg'
         //sh 'sudo killall gpg-agent'
         //sh 'gpg --version'
