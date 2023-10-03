@@ -76,7 +76,7 @@ node("slave-xlarge") {
             sh 'curl -OL "https://raw.githubusercontent.com/deruelle/miscellaneous/main/install-gnupg22.sh" && sudo -H bash ./install-gnupg22.sh'            
         }
         sh 'gpg --version'
-        sh 'sudo apt-get install mlocate'            
+        sh 'gpg --list-keys'
         sh 'locate pubring.kbx'
         //sh 'ps aux | grep gpg'
         //sh 'sudo killall gpg-agent'
