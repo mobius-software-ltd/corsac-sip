@@ -64,10 +64,13 @@ node("slave-xlarge") {
         if (isSnapshot()) {
             echo "SNAPSHOT detected, skip Tag stage"
         }
-        def newVersion = 'gpg --version'
+        def newVersion = sh (
+                script: 'gpg --version',
+                returnStdout: true
+            ).trim()
         sh 'gpg --version'
         echo "${newVersion}"
-        if("${newVersion}".contains("2.2")) {
+        if("${newVersion}".contains("2.2.16")) {
             echo "GPG2 already installed"
         } else {
             echo "GPG2 not installed"
