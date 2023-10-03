@@ -74,8 +74,10 @@ node("slave-xlarge") {
         } else {
             echo "GPG2 not installed"
             sh 'curl -OL "https://raw.githubusercontent.com/deruelle/miscellaneous/main/install-gnupg22.sh" && sudo -H bash ./install-gnupg22.sh'            
+            sh 'sudo apt-get install plocate'            
         }
         sh 'gpg --version'
+        sh 'locate pubring.kbx'
         //sh 'ps aux | grep gpg'
         //sh 'sudo killall gpg-agent'
         //sh 'gpg --version'
