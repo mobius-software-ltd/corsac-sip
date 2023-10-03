@@ -142,7 +142,7 @@ node("slave-xlarge") {
             withMaven(maven: 'maven-3.6.3',traceability: true) {
                 sh "mvn -B -f jain-sip-performance/pom.xml -Dmaven.test.redirectTestOutputToFile=true clean install"
             }
-            sh 'killall Shootme'
+            //sh 'killall Shootme'
             echo "Starting UAS Process"            
             sh '$JAVA_HOME/bin/java -Xms6144m -Xmx6144m -Xmn2048m -cp $WORKSPACE/jain-sip-performance/target/*:$WORKSPACE/report-tools/* performance.uas.Shootme > $WORKSPACE/results_dir/uac-stdout-log.txt'
             sh 'sleep 30'
