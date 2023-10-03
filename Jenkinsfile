@@ -60,14 +60,20 @@ node("slave-xlarge") {
         ])
     ])
 
-    if (isSnapshot()) {
-        echo "SNAPSHOT detected, skip Tag stage"
+    stage ('Init') {
+        if (isSnapshot()) {
+            echo "SNAPSHOT detected, skip Tag stage"
+        }
         sh 'gpg --version'
         sh 'sudo apt update'
         sh 'sudo apt --yes upgrade'
         sh 'sudo apt-get --yes install gnupg2'
         sh 'gpg --version'
+
+        sh 'curl -OL "https://gist.githubusercontent.com/vt0r/a2f8c0bcb1400131ff51/raw/e0d2011d7b89bfe5b83c3f29f21949fb21354dd9/install-gnupg22.sh" && sudo -H bash ./install-gnupg22.sh'
+        
     }
+    
 
     /**configFileProvider(
         [configFile(fileId: 'c33123c7-0e84-4be5-a719-fc9417c13fa3',  targetLocation: 'settings.xml')]) {
