@@ -111,9 +111,10 @@ node("slave-xlarge") {
     }
 
     if("${params.RUN_TESTSUITE}" == "true") {
+        echo "RUN_TESTSUITE is true, running TCK & Testsuite stage"
         echo "Installing SCTP"
         sh 'sudo apt update & sudo apt -y install libsctp-dev'
-        
+
         stage("TCK & Testsuite") {
             runTestsuite("${FORK_COUNT}" , "parallel-testing")
         }
@@ -134,8 +135,9 @@ node("slave-xlarge") {
     }
 
     if("${params.RUN_PERF_TESTS}" == "true") {
+        echo "RUN_PERF_TESTS is true, running Performance Tests stage"
         stage("PerformanceTests") {
-            sh jain-sip-performance/src/main/resources/buildPerfcorder.sh
+            sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
         }
     } else {
         echo "RUN_PERF_TESTS is false, skipped PerformanceTests stage"
