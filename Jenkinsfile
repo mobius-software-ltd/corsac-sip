@@ -63,6 +63,8 @@ node("slave-xlarge") {
     if (isSnapshot()) {
         echo "SNAPSHOT detected, skip Tag stage"
         sh 'gpg --version'
+        sh 'sudo apt update'
+        sh 'sudo apt install gpg'
     }
 
     /**configFileProvider(
