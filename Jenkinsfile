@@ -73,9 +73,7 @@ node("slave-xlarge") {
                 script: 'gpg --version',
                 returnStdout: true
             ).trim()        
-        echo "${newVersion}"
-        echo "Installing SCTP"
-        sh 'sudo apt update & sudo apt -y install libsctp-dev'
+        echo "${newVersion}"        
         /**if("${newVersion}".contains("2.2.15")) {
             echo "GPG2 already installed"
         } else {
@@ -113,6 +111,9 @@ node("slave-xlarge") {
     }
 
     if("${params.RUN_TESTSUITE}" == "true") {
+        echo "Installing SCTP"
+        sh 'sudo apt update & sudo apt -y install libsctp-dev'
+        
         stage("TCK & Testsuite") {
             runTestsuite("${FORK_COUNT}" , "parallel-testing")
         }
