@@ -66,6 +66,7 @@ node("slave-xlarge") {
         sh 'sudo apt update'
         sh 'sudo apt --yes upgrade'
         sh 'sudo apt-get --yes install gnupg2'
+        sh 'gpg --version'
     }
 
     /**configFileProvider(
