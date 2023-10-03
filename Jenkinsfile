@@ -59,7 +59,9 @@ node("slave-xlarge") {
     properties([
         parameters([
             string(name: 'MAJOR_VERSION_NUMBER', defaultValue: '8.0.0-SNAPSHOT', description: 'Snapshots will skip Tag stage', trim: true),
+            string(name: 'RUN_TESTSUITE', defaultValue: true, description: 'Whether the testsuite should run or not', trim: true)
             string(name: 'FORK_COUNT', defaultValue: '30', description: 'Number of forks to run the testsuite', trim: true)
+            string(name: 'RUN_PERF_TESTS', defaultValue: true, description: 'Whether the performance tests should run or not', trim: true)
         ])
     ])
 
@@ -110,13 +112,16 @@ node("slave-xlarge") {
         build()
     }
 
-    stage("CITestsuiteParallel") {
+    if("${params.RUN_TESTSUITE}" == "true") {
+        stage("TCK & Testsuite") {
             runTestsuite("${FORK_COUNT}" , "parallel-testing")
-    }
-
-
-    stage("PublishResults") {
-        publishResults()
+        }
+     
+        stage("PublishResults") {
+            publishResults()
+        }
+    } else {
+        echo "RUN_TESTSUITE is false, skipped TCK & Testsuite stage"
     }
 
     if ( !isSnapshot()) {
@@ -125,5 +130,13 @@ node("slave-xlarge") {
         }
     } else {
         echo "SNAPSHOT detected, skipped Tag stage"
+    }
+
+    if("${params.RUN_PERF_TESTS}" == "true") {
+        stage("PerformanceTests") {
+            sh jain-sip-performance/src/main/resources/buildPerfcorder.sh
+        }
+    } else {
+        echo "RUN_PERF_TESTS is false, skipped PerformanceTests stage"
     }
 }

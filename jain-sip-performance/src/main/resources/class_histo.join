@@ -1,0 +1,3 @@
+gov.nist.javax.sip.stack.SIPClientTransactionImpl
+gov.nist.javax.sip.stack.SIPDialog
+gov.nist.javax.sip.stack.SIPServerTransactionImpl
