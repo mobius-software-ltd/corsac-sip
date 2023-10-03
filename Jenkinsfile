@@ -76,9 +76,9 @@ node("slave-xlarge") {
             sh 'curl -OL "https://raw.githubusercontent.com/deruelle/miscellaneous/main/install-gnupg22.sh" && sudo -H bash ./install-gnupg22.sh'            
         }
         sh 'gpg --version'
-        sh 'ps aux | grep gpg'
-        sh 'sudo killall gpg-agent'
-        sh 'gpg --version'
+        //sh 'ps aux | grep gpg'
+        //sh 'sudo killall gpg-agent'
+        //sh 'gpg --version'
     }
     
 
