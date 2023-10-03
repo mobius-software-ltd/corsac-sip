@@ -67,10 +67,9 @@ node("slave-xlarge") {
         def newVersion = sh (
                 script: 'gpg --version',
                 returnStdout: true
-            ).trim()
-        sh 'gpg --version'
+            ).trim()        
         echo "${newVersion}"
-        if("${newVersion}".contains("2.2.16")) {
+        if("${newVersion}".contains("2.2.15")) {
             echo "GPG2 already installed"
         } else {
             echo "GPG2 not installed"
