@@ -139,6 +139,20 @@ node("slave-xlarge") {
         stage("PerformanceTests") {
             sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
             sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
+            withMaven(maven: 'maven-3.6.3',traceability: true) {
+                sh "mvn -B -f jain-sip-performance/pom.xml -Dmaven.test.redirectTestOutputToFile=true clean install"
+            }
+            sh 'killall Shootme'
+            echo "Starting UAS Process"            
+            sh '$JAVA_HOME/bin/java -Xms6144m -Xmx6144m -Xmn2048m -cp $WORKSPACE/jain-sip-performance/target/*:$WORKSPACE/report-tools/* performance.uas.Shootme > $WORKSPACE/results_dir/uac-stdout-log.txt'
+            sh 'sleep 30'
+            sh '$JAVA_HOME/bin/jps'
+            sh 'PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')'
+            sh 'echo "Process PID $PROCESS_PID"'
+
+            sh 'export TERM=vt100'
+            sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v'
+            sh 'killall sipp'
         }
     } else {
         echo "RUN_PERF_TESTS is false, skipped PerformanceTests stage"
