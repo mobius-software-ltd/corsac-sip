@@ -72,7 +72,7 @@ node("slave-xlarge") {
                 returnStdout: true
             ).trim()        
         echo "${newVersion}"
-        if("${newVersion}".contains("2.2.15")) {
+        /**if("${newVersion}".contains("2.2.15")) {
             echo "GPG2 already installed"
         } else {
             echo "GPG2 not installed"
@@ -83,7 +83,7 @@ node("slave-xlarge") {
         sh 'gpg --list-keys'
         sh 'gpg --list-secret-keys'
         sh 'gpg --list-sigs'
-        sh 'gpg --list-trustdb'        
+        sh 'gpg --list-trustdb'*/        
     }
     
 
