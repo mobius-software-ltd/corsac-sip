@@ -64,8 +64,6 @@ node("slave-xlarge") {
         if (isSnapshot()) {
             echo "SNAPSHOT detected, skip Tag stage"
         }
-        sh 'ps aux | grep gpg'
-        sh 'sudo killall gpg-agent'
         def newVersion = sh (
                 script: 'gpg --version',
                 returnStdout: true
