@@ -22,7 +22,7 @@ rm -fr $RESULTS_DIR
 mkdir -p $RESULTS_DIR
 
 ##################################
-echo "Use telestax maven settings"
+# echo "Use telestax maven settings"
 ##################################
 #cp $WORKSPACE/telscale-commons/artifactory/settings.xml -f ~/.m2/settings.xml
 
