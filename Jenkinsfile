@@ -19,7 +19,9 @@ def build() {
 
 def publishResults() {
     junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
-    //checkstyle canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
+    recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
+    recordIssues enabledForFailure: true, tool: checkStyle()
+    recordIssues enabledForFailure: true, tool: spotBugs()    
     step( [ $class: 'JacocoPublisher' ] )
 }
 
@@ -88,7 +90,7 @@ node("slave-xlarge") {
 	    sh 'mkdir -p ~/.m2 && sed -i "s|@LOCAL_REPO_PATH@|$WORKSPACE/M2_REPO|g" $WORKSPACE/settings.xml && cp $WORKSPACE/settings.xml -f ~/.m2/settings.xml'
     }**/
 
-    /**stage ('Checkout') {
+    stage ('Checkout') {
         checkout scm
     }   
 
@@ -106,7 +108,7 @@ node("slave-xlarge") {
 
     stage("CITestsuiteParallel") {
             runTestsuite("40" , "parallel-testing")
-    }*/
+    }
 
 
     stage("PublishResults") {
