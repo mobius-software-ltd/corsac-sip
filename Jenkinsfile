@@ -64,7 +64,7 @@ node("slave-xlarge") {
         echo "SNAPSHOT detected, skip Tag stage"
         sh 'gpg --version'
         sh 'sudo apt update && sudo apt upgrade'
-        sh 'sudo apt -y install gnupg'
+        sh 'sudo apt-get --yes --force-yes install gnupg'
     }
 
     /**configFileProvider(
