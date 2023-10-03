@@ -144,6 +144,7 @@ node("slave-xlarge") {
             }
             //sh 'killall Shootme'
             echo "Starting UAS Process"            
+            sh 'mkdir -p $WORKSPACE/results_dir'
             sh '$JAVA_HOME/bin/java -Xms6144m -Xmx6144m -Xmn2048m -cp $WORKSPACE/jain-sip-performance/target/*:$WORKSPACE/report-tools/* performance.uas.Shootme > $WORKSPACE/results_dir/uac-stdout-log.txt'
             sh 'sleep 30'
             sh '$JAVA_HOME/bin/jps'
