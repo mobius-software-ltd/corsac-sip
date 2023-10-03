@@ -79,8 +79,7 @@ node("slave-xlarge") {
         sh 'gpg --list-keys'
         sh 'gpg --list-secret-keys'
         sh 'gpg --list-sigs'
-        sh 'gpg --list-trustdb'
-        sh 'gpg --list-options show-photos show-keyring'        
+        sh 'gpg --list-trustdb'        
     }
     
 
