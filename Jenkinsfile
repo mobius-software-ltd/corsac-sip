@@ -143,9 +143,8 @@ node("slave-xlarge") {
                 sh "mvn -B -f jain-sip-performance/pom.xml -Dmaven.test.redirectTestOutputToFile=true clean install"
             }
             //sh 'killall Shootme'
-            echo "Starting UAS Process"            
-            sh 'mkdir -p $WORKSPACE/results_dir'
-            sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp $WORKSPACE/jain-sip-performance/target/*:$WORKSPACE/report-tools/* performance.uas.Shootme > $WORKSPACE/results_dir/uac-stdout-log.txt'
+            echo "Starting UAS Process"                        
+            sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp $WORKSPACE/jain-sip-performance/target/*:$WORKSPACE/report-tools/* performance.uas.Shootme > $WORKSPACE/results-dir/uac-stdout-log.txt'
             sh 'sleep 30'
             sh 'jps'
             sh 'PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')'

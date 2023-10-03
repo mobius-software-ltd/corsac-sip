@@ -11,49 +11,6 @@
 
     <artifactId>jain-sip-performance</artifactId>
 	<packaging>jar</packaging>
-	<url>http://code.google.com/p/jain-sip/</url>
-	<build>
-		<sourceDirectory>../../src</sourceDirectory>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-					<includes>
-						<include>performance/**</include>
-					</includes>
-				</configuration>
-                        </plugin>
-		</plugins>
-	</build>
-
-	<profiles>
-		<profile>
-			<id>release</id>
-			<build>
-			    <plugins>
-				<plugin>
-				  <groupId>org.codehaus.mojo</groupId>
-				  <artifactId>buildnumber-maven-plugin</artifactId>
-				  <executions>
-	    			  	<execution>
-				                <phase>validate</phase>
-						<goals>
-						<goal>create</goal>
-						</goals>
-				  	</execution>
-				  </executions>
-				  <configuration>
-				    	<doCheck>false</doCheck>
-				    	<doUpdate>false</doUpdate>
-				  </configuration>
-				</plugin>
-			    </plugins>
-			</build>
-		</profile>
-	</profiles>
 
 	<dependencies>
 		<dependency>
@@ -73,9 +30,5 @@
                 
 	</dependencies>
 
-	<scm>
-		<connection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</connection>
-		<developerConnection>scm:git:git@bitbucket.org:telestax/telscale-jsip.git</developerConnection>
-		<url>https://bitbucket.org/telestax/telscale-jsip</url>
-	</scm>
+	
 </project>
