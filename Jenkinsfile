@@ -64,14 +64,16 @@ node("slave-xlarge") {
         if (isSnapshot()) {
             echo "SNAPSHOT detected, skip Tag stage"
         }
+        def newVersion = sh 'gpg --version'
         sh 'gpg --version'
-        sh 'sudo apt update'
-        sh 'sudo apt --yes upgrade'
-        sh 'sudo apt-get --yes install gnupg2'
-        sh 'gpg --version'
-
-        sh 'curl -OL "https://raw.githubusercontent.com/deruelle/miscellaneous/main/install-gnupg22.sh" && sudo -H bash ./install-gnupg22.sh'
-        sh 'gpg --version'
+        echo "${newVersion}"
+        if("${newVersion}".contains("2.2")) {
+            echo "GPG2 already installed"
+        } else {
+            echo "GPG2 not installed"
+            sh 'curl -OL "https://raw.githubusercontent.com/deruelle/miscellaneous/main/install-gnupg22.sh" && sudo -H bash ./install-gnupg22.sh'
+            sh 'gpg --version'
+        }
     }
     
 
