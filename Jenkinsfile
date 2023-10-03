@@ -138,7 +138,7 @@ node("slave-xlarge") {
         echo "RUN_PERF_TESTS is true, running Performance Tests stage"
         stage("PerformanceTests") {
             sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
-            sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
+            //sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
                 sh "mvn -B -f jain-sip-performance/pom.xml -Dmaven.test.redirectTestOutputToFile=true clean install"
             }
