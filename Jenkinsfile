@@ -62,7 +62,7 @@ node("slave-xlarge") {
 
     if (isSnapshot()) {
         echo "SNAPSHOT detected, skip Tag stage"
-        echo sh 'gpg --version'
+        sh 'gpg --version'
     }
 
     /**configFileProvider(
