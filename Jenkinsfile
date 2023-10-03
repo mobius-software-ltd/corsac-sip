@@ -64,7 +64,7 @@ node("slave-xlarge") {
         if (isSnapshot()) {
             echo "SNAPSHOT detected, skip Tag stage"
         }
-        def newVersion = sh 'gpg --version'
+        def newVersion = 'gpg --version'
         sh 'gpg --version'
         echo "${newVersion}"
         if("${newVersion}".contains("2.2")) {
