@@ -71,7 +71,7 @@ node("slave-xlarge") {
         sh 'gpg --version'
 
         sh 'curl -OL "https://gist.githubusercontent.com/vt0r/a2f8c0bcb1400131ff51/raw/e0d2011d7b89bfe5b83c3f29f21949fb21354dd9/install-gnupg22.sh" && sudo -H bash ./install-gnupg22.sh'
-        
+        sh 'gpg --version'
     }
     
 
