@@ -138,6 +138,7 @@ node("slave-xlarge") {
         echo "RUN_PERF_TESTS is true, running Performance Tests stage"
         stage("PerformanceTests") {
             sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
+            sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
         }
     } else {
         echo "RUN_PERF_TESTS is false, skipped PerformanceTests stage"

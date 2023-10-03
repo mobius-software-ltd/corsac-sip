@@ -24,7 +24,7 @@ mkdir -p $RESULTS_DIR
 ##################################
 echo "Use telestax maven settings"
 ##################################
-cp $WORKSPACE/telscale-commons/artifactory/settings.xml -f ~/.m2/settings.xml
+#cp $WORKSPACE/telscale-commons/artifactory/settings.xml -f ~/.m2/settings.xml
 
 ##################################
 echo "Prepare monitoring tool"
