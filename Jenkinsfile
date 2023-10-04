@@ -177,6 +177,7 @@ node("slave-xlarge") {
             sh 'PROCESS_WAIT=120'
             sh 'ANALYSIS_TRIM_PERCENTAGE=10'
             sh 'SIPP_TRANSPORT_MODE_UAC=t1'
+            sh 'SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml'
             sh 'CALLS=$(( $CALL_RATE * $CALL_LENGTH * $TEST_DURATION ))'
             sh 'WAIT_TIME=$(( $CALLS / $CALL_RATE + $CALL_LENGTH * 2 ))'
             sh 'SIPP_TIMEOUT=$(( $WAIT_TIME + 10 ))'
