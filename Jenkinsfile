@@ -25,7 +25,7 @@ def publishTestsuiteResults() {
     step( [ $class: 'JacocoPublisher' ] )
 }
 
-def publishPerformanceTestResults() {
+def publishPerformanceTestsResults() {
     junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
     /**recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
     recordIssues enabledForFailure: true, tool: checkStyle()
@@ -159,7 +159,7 @@ node("slave-xlarge") {
             sleep(time:5,unit:"SECONDS") 
             sh 'jps'
             sh 'PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')'
-            sh 'echo "Shootme Process PID ${PROCESS_PID}"'
+            echo "Shootme Process PID ${PROCESS_PID}"
 
             sh 'export TERM=vt100'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
@@ -168,7 +168,7 @@ node("slave-xlarge") {
             echo "starting data collection"
             sh 'CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join'
             sh 'COLLECTION_INTERVAL_SECS=15'
-            sh '$WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f ${COLLECTION_INTERVAL_SECS} -j ${CLASS_HISTO_JOIN_PATH} ${PROCESS_PID}'
+            sh '$WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID'
             //sh 'killall sipp || true'
             //publishTestsuiteResults()
         }
