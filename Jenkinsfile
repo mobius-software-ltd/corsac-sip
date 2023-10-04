@@ -193,7 +193,7 @@ node("slave-xlarge") {
                 $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r $CALL_RATE -timeout $SIPP_TIMEOUT -fd 1 -trace_stat -trace_screen -trace_rtt -timeout_error&
                 echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $SIPP_TIMEOUT+seconds -u)"
             '''
-            sleep(time:60,unit:"SECONDS") 
+            sleep(time:90,unit:"SECONDS") 
             echo "TEST ENDED"        
             sh '''
                 killall sipp || true
