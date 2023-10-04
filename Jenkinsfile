@@ -25,6 +25,14 @@ def publishTestsuiteResults() {
     step( [ $class: 'JacocoPublisher' ] )
 }
 
+def publishPerformanceTestResults() {
+    junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
+    /**recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
+    recordIssues enabledForFailure: true, tool: checkStyle()
+    recordIssues enabledForFailure: true, tool: spotBugs()*/    
+    step( [ $class: 'JacocoPublisher' ] )
+}
+
 def tag() {
     // Save release version
     def pom = readMavenPom file: 'pom.xml'
@@ -158,9 +166,14 @@ node("slave-xlarge") {
 
             echo "starting data collection"
             sh 'CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join'
-            sh '$WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID'
+            sh 'COLLECTION_INTERVAL_SECS=15'
+            sh '$WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f ${COLLECTION_INTERVAL_SECS} -j ${CLASS_HISTO_JOIN_PATH} ${PROCESS_PID}'
             //sh 'killall sipp || true'
             //publishTestsuiteResults()
+        }
+
+        stage("Publish Performance Tests Results") {
+            publishPerformanceTestsResults()
         }
     } else {
         echo "RUN_PERF_TESTS is false, skipped PerformanceTests stage"
