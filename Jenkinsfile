@@ -157,44 +157,43 @@ node("slave-xlarge") {
             echo "Starting UAS Process"                        
             sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/mss-sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
             sleep(time:5,unit:"SECONDS") 
-            sh 'jps'
-            env.PROCESS_PID = sh(script:'$(jps | awk \'/Shootme/{print $1}\')', returnStdout: true).trim()
-            //sh 'PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')'
-            echo "Shootme Process PID $PROCESS_PID"
+            sh '''
+                jps
+                PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
+                echo "Shootme Process PID $PROCESS_PID"
 
-            sh 'export TERM=vt100'
-            sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
-            sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true'
+                export TERM=vt100
+                $WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh
+                $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
 
-            echo "starting data collection"
-            env.CLASS_HISTO_JOIN_PATH = '$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join'
-            env.COLLECTION_INTERVAL_SECS = '15'
-            //sh 'CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join'
-            //sh 'COLLECTION_INTERVAL_SECS=15'
-            sh '$WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID'
+                echo "starting data collection"
+                CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
+                COLLECTION_INTERVAL_SECS=15
+                $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
             
-            echo "starting test"
-            sh 'TEST_DURATION=60'
-            sh 'CALL_RATE=100'
-            sh 'CALL_LENGTH=30'
-            sh 'PROCESS_WAIT=120'
-            sh 'ANALYSIS_TRIM_PERCENTAGE=10'
-            sh 'SIPP_TRANSPORT_MODE_UAC=t1'
-            sh 'SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml'
-            sh 'CALLS=$(( $CALL_RATE * $CALL_LENGTH * $TEST_DURATION ))'
-            sh 'WAIT_TIME=$(( $CALLS / $CALL_RATE + $CALL_LENGTH * 2 ))'
-            sh 'SIPP_TIMEOUT=$(( $WAIT_TIME + 10 ))'
-            sh 'CONCURRENT_CALLS=$(($CALL_RATE * $CALL_LENGTH * 2 ))'
-            echo "calls:$CALLS"
-            echo "call rate:$CALL_RATE"
-            echo "call length:$CALL_LENGTH"
-            echo "wait time:$WAIT_TIME"
-            echo "sipp timeout:$SIPP_TIMEOUT"
-            echo "concurrent calls:$CONCURRENT_CALLS"
-            echo "PROCESS_WAIT:$PROCESS_WAIT"
-            sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r $CALL_RATE -timeout $SIPP_TIMEOUT -fd 1 -trace_stat -trace_screen -trace_rtt -timeout_error'
-            echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $SIPP_TIMEOUT seconds -u)"
-            sleep  $SIPP_TIMEOUT
+                echo "starting test"
+                TEST_DURATION=60
+                CALL_RATE=100
+                CALL_LENGTH=30
+                PROCESS_WAIT=120
+                ANALYSIS_TRIM_PERCENTAGE=10
+                SIPP_TRANSPORT_MODE_UAC=t1
+                SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
+                CALLS=$(( $CALL_RATE * $CALL_LENGTH * $TEST_DURATION ))
+                WAIT_TIME=$(( $CALLS / $CALL_RATE + $CALL_LENGTH * 2 ))
+                SIPP_TIMEOUT=$(( $WAIT_TIME + 10 ))
+                CONCURRENT_CALLS=$(($CALL_RATE * $CALL_LENGTH * 2 ))
+                echo "calls:$CALLS"
+                echo "call rate:$CALL_RATE"
+                echo "call length:$CALL_LENGTH"
+                echo "wait time:$WAIT_TIME"
+                echo "sipp timeout:$SIPP_TIMEOUT"
+                echo "concurrent calls:$CONCURRENT_CALLS"
+                echo "PROCESS_WAIT:$PROCESS_WAIT"
+                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r $CALL_RATE -timeout $SIPP_TIMEOUT -fd 1 -trace_stat -trace_screen -trace_rtt -timeout_error
+                echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $SIPP_TIMEOUT seconds -u)"
+            '''
+            sleep(time:60,unit:"SECONDS") 
             echo "TEST ENDED"        
             sh 'killall sipp || true'
         }
