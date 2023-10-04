@@ -195,7 +195,11 @@ node("slave-xlarge") {
             '''
             sleep(time:60,unit:"SECONDS") 
             echo "TEST ENDED"        
-            sh 'killall sipp || true'
+            sh '''
+                killall sipp || true
+                PERFCORDER_SIPP_CSV="$SIPP_CSV"
+                $WORKSPACE/telscale-commons/jenkins-aws/Jenkins-Jobs/utils/stopPerfcorder.sh
+            '''
         }
 
         stage("Publish Performance Tests Results") {
