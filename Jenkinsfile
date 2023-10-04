@@ -151,7 +151,7 @@ node("slave-xlarge") {
             sh 'echo "Shootme Process PID ${PROCESS_PID}"'
 
             sh 'export TERM=vt100'
-            sh 'jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
+            sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v'
 
             
