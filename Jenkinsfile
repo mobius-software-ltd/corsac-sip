@@ -163,7 +163,7 @@ node("slave-xlarge") {
 
             sh 'export TERM=vt100'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
-            sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v'
+            sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true'
 
             echo "starting data collection"
             sh 'CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join'
