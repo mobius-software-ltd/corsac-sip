@@ -10,7 +10,7 @@ if [[ -z $TOOLS_DIR ]]; then
 fi
 
 if [[ -z $GOALS_FILE ]]; then
-  export GOALS_FILE=$WORKSPACE/telscale-commons/jenkins-aws/Jenkins-Jobs/performance/mss-proxy-goals.xsl
+  export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/main/resources/mss-proxy-goals.xsl
 fi
 
 if [[ -z $ANALYSIS_TRIM_PERCENTAGE ]]; then
