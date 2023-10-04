@@ -65,6 +65,7 @@ def isSnapshot() {
 
 node("slave-xlarge") {
     properties([
+        buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr: '10')),
         parameters([
             string(name: 'MAJOR_VERSION_NUMBER', defaultValue: '8.0.0-SNAPSHOT', description: 'Snapshots will skip Tag stage', trim: true),
             string(name: 'RUN_TESTSUITE', defaultValue: "true", description: 'Whether the testsuite should run or not', trim: true),
