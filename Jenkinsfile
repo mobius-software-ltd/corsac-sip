@@ -144,7 +144,7 @@ node("slave-xlarge") {
             }
             //sh 'killall Shootme'
             echo "Starting UAS Process"                        
-            sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp $WORKSPACE/jain-sip-performance/target/classes/*:$WORKSPACE/report-tools/* performance.uas.Shootme > $WORKSPACE/results-dir/uac-stdout-log.txt'
+            sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp $WORKSPACE/jain-sip-performance/target/*-with-dependencies.jar performance.uas.Shootme > $WORKSPACE/results-dir/uac-stdout-log.txt'
             sh 'sleep 30'
             sh 'jps'
             sh 'PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')'

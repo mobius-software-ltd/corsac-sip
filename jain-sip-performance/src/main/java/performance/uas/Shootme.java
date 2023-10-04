@@ -208,7 +208,11 @@ public class Shootme implements SipListener {
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream(new File("mss-sip-stack.properties")));
+            String filePath = System.getProperty("SIP_STACK_PROPERTIES_PATH");
+            if (filePath == null) {
+                throw new RuntimeException("SIP_STACK_PROPERTIES_PATH environment variable not set");
+            }
+            properties.load(new FileInputStream(new File(filePath)));
             // Create SipStack object
             sipStack = sipFactory.createSipStack(properties);
         } catch (Exception e) {
