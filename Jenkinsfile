@@ -158,16 +158,19 @@ node("slave-xlarge") {
             sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/mss-sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
             sleep(time:5,unit:"SECONDS") 
             sh 'jps'
-            sh 'PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')'
-            //echo "Shootme Process PID $PROCESS_PID"
+            env.PROCESS_PID = sh(script:'$(jps | awk \'/Shootme/{print $1}\')', returnStdout: true).trim()
+            //sh 'PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')'
+            echo "Shootme Process PID $PROCESS_PID"
 
             sh 'export TERM=vt100'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true'
 
             echo "starting data collection"
-            sh 'CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join'
-            sh 'COLLECTION_INTERVAL_SECS=15'
+            env.CLASS_HISTO_JOIN_PATH = '$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join'
+            env.COLLECTION_INTERVAL_SECS = '15'
+            //sh 'CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join'
+            //sh 'COLLECTION_INTERVAL_SECS=15'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID'
             
             echo "starting test"
