@@ -67,7 +67,7 @@ node("slave-xlarge") {
 
     stage ('Init') {
         cleanWs()
-        
+
         if (isSnapshot()) {
             echo "SNAPSHOT detected, skip Tag stage"
         }
@@ -156,7 +156,9 @@ node("slave-xlarge") {
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v'
 
-            
+            echo "starting data collection"
+            sh 'CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join'
+            sh '$WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID'
             //sh 'killall sipp || true'
             //publishTestsuiteResults()
         }
