@@ -148,11 +148,11 @@ node("slave-xlarge") {
             sleep(time:5,unit:"SECONDS") 
             sh 'jps'
             sh 'PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')'
-            sh 'echo "Shootme Process PID $PROCESS_PID"'
+            sh 'echo "Shootme Process PID ${PROCESS_PID}"'
 
             sh 'export TERM=vt100'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v'
-            sh 'killall sipp'
+            sh 'killall sipp || true'
             publishTestsuiteResults()
         }
     } else {
