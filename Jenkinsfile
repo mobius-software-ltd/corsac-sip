@@ -159,7 +159,7 @@ node("slave-xlarge") {
             sleep(time:5,unit:"SECONDS") 
             sh '''
                 jps
-                PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
+                PROCESS_PID=$(jps | awk '/Shootme/{print $1}')
                 echo "Shootme Process PID $PROCESS_PID"
 
                 export TERM=vt100
@@ -177,7 +177,7 @@ node("slave-xlarge") {
                 CALL_LENGTH=30
                 PROCESS_WAIT=120
                 ANALYSIS_TRIM_PERCENTAGE=10
-                SIPP_TRANSPORT_MODE_UAC=t1
+                SIPP_TRANSPORT_MODE_UAC=un
                 SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
                 CALLS=$(( $CALL_RATE * $CALL_LENGTH * $TEST_DURATION ))
                 WAIT_TIME=$(( $CALLS / $CALL_RATE + $CALL_LENGTH * 2 ))
