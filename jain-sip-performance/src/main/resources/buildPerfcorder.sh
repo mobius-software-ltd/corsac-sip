@@ -30,9 +30,11 @@ mkdir -p $RESULTS_DIR
 echo "Prepare monitoring tool"
 ##################################
 cd $TOOLS_DIR
+pwd
 rm -rf sipp-report-tool
 git clone -b $PC_BRANCH_NAME https://github.com/RestComm/PerfCorder.git sipp-report-tool
 cd sipp-report-tool
+pwd
 mvn -q clean install
 cp -r target/classes/* $TOOLS_DIR/
 chmod 777 $TOOLS_DIR/*.sh

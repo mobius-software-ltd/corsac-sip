@@ -198,7 +198,7 @@ node("slave-xlarge") {
             sh '''
                 killall sipp || true
                 PERFCORDER_SIPP_CSV="$SIPP_CSV"
-                $WORKSPACE/telscale-commons/jenkins-aws/Jenkins-Jobs/utils/stopPerfcorder.sh
+                $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
             '''
         }
 
