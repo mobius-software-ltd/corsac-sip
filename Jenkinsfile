@@ -124,7 +124,7 @@ node("slave-xlarge") {
     if("${params.RUN_TESTSUITE}" == "true") {
         echo "RUN_TESTSUITE is true, running TCK & Testsuite stage"
         echo "Installing SCTP"
-        sh 'sudo apt update & sudo apt-get -y install libsctp-dev'
+        sh 'sudo apt update & sudo apt-get -y install libsctp1'
 
         stage("TCK & Testsuite") {
             runTestsuite("${FORK_COUNT}" , "parallel-testing")
