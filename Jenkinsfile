@@ -17,7 +17,7 @@ def build() {
     }
 }
 
-def publishResults() {
+def publishTestsuiteResults() {
     junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
     /**recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
     recordIssues enabledForFailure: true, tool: checkStyle()
@@ -113,14 +113,14 @@ node("slave-xlarge") {
     if("${params.RUN_TESTSUITE}" == "true") {
         echo "RUN_TESTSUITE is true, running TCK & Testsuite stage"
         echo "Installing SCTP"
-        sh 'sudo apt update & sudo apt -y install libsctp-dev'
+        sh 'sudo apt update & sudo apt-get -y install libsctp-dev'
 
         stage("TCK & Testsuite") {
             runTestsuite("${FORK_COUNT}" , "parallel-testing")
         }
      
-        stage("PublishResults") {
-            publishResults()
+        stage("Publish TCK & Testsuite Results") {
+            publishTestsuiteResults()
         }
     } else {
         echo "RUN_TESTSUITE is false, skipped TCK & Testsuite stage"
@@ -144,15 +144,16 @@ node("slave-xlarge") {
             }
             //sh 'killall Shootme'
             echo "Starting UAS Process"                        
-            sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/mss-sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uac-stdout-log.txt'
-            sleep(time:30,unit:"SECONDS") 
+            sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/mss-sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uac-stdout-log.txt&'
+            sleep(time:5,unit:"SECONDS") 
             sh 'jps'
             sh 'PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')'
-            sh 'echo "Process PID $PROCESS_PID"'
+            sh 'echo "Shootme Process PID $PROCESS_PID"'
 
             sh 'export TERM=vt100'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v'
             sh 'killall sipp'
+            publishTestsuiteResults()
         }
     } else {
         echo "RUN_PERF_TESTS is false, skipped PerformanceTests stage"
