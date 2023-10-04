@@ -152,8 +152,8 @@ node("slave-xlarge") {
 
             sh 'export TERM=vt100'
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/sipp -v'
-            sh 'killall sipp || true'
-            publishTestsuiteResults()
+            //sh 'killall sipp || true'
+            //publishTestsuiteResults()
         }
     } else {
         echo "RUN_PERF_TESTS is false, skipped PerformanceTests stage"
