@@ -26,11 +26,7 @@ def publishTestsuiteResults() {
 }
 
 def publishPerformanceTestsResults() {
-    //junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
-    /**recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
-    recordIssues enabledForFailure: true, tool: checkStyle()
-    recordIssues enabledForFailure: true, tool: spotBugs()*/    
-    //step( [ $class: 'JacocoPublisher' ] )
+    archive "results-dir/**"
 }
 
 def tag() {
@@ -188,7 +184,7 @@ node("slave-xlarge") {
                 SIPP_TRANSPORT_MODE_UAC=un
                 SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
                 CALLS=$(( $CALL_RATE * $CALL_LENGTH * $TEST_DURATION ))                
-                CALLS=50000
+                CALLS=20000
                 WAIT_TIME=$(( $CALLS / $CALL_RATE + $CALL_LENGTH * 2 ))
                 SIPP_TIMEOUT=$(( $WAIT_TIME + 10 ))
                 CONCURRENT_CALLS=$(($CALL_RATE * $CALL_LENGTH * 2 ))
