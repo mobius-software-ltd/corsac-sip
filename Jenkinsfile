@@ -152,12 +152,7 @@ node("slave-xlarge") {
             sh 'git clone -b master https://github.com/RestComm/PerfCorder.git sipp-report-tool'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
                 sh 'mvn -DskipTests=true -B -f sipp-report-tool/pom.xml clean install'
-            }
-            sh '''
-                cp -r target/classes/* sipp-report-tool/
-                chmod 777 sipp-report-tool/*.sh
-                cp target/sipp-report-*with-dependencies.jar $sipp-report-tool/            
-            '''
+            }            
             echo 'Building Performance Tests'
             //sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
             //sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
