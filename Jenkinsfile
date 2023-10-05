@@ -74,7 +74,8 @@ node("slave-xlarge") {
             string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true),
             string(name: 'TEST_DURATION', defaultValue: "1800", description: 'performance test duration', trim: true),
             string(name: 'CALL_RATE', defaultValue: "500", description: 'calls per second rate', trim: true),
-            string(name: 'CALL_LENGTH', defaultValue: "60", description: 'calls per second rate', trim: true)                            
+            string(name: 'CALL_LENGTH', defaultValue: "60", description: 'calls per second rate', trim: true),
+            string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true)
         ])
     ])
 
@@ -167,8 +168,9 @@ node("slave-xlarge") {
             }
             //sh 'killall Shootme'
             echo "Starting UAS Process"       
-            sh 'mkdir -p $WORKSPACE/results-dir'                 
-            sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
+            sh 'mkdir -p $WORKSPACE/results-dir'  
+            sh 'sysctl -w net.core.rmem_max=26214400'               
+            sh 'java $JAVA_OPTS -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
             sleep(time:5,unit:"SECONDS") 
             sh '''                
                 PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
