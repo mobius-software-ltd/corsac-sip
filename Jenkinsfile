@@ -173,14 +173,14 @@ node("slave-xlarge") {
             
                 echo "starting test"
                 TEST_DURATION=60
-                CALL_RATE=1
+                CALL_RATE=10
                 CALL_LENGTH=30
                 PROCESS_WAIT=120
                 ANALYSIS_TRIM_PERCENTAGE=10
                 SIPP_TRANSPORT_MODE_UAC=un
                 SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
                 CALLS=$(( $CALL_RATE * $CALL_LENGTH * $TEST_DURATION ))
-                CALLS=1
+                CALLS=1000
                 WAIT_TIME=$(( $CALLS / $CALL_RATE + $CALL_LENGTH * 2 ))
                 SIPP_TIMEOUT=$(( $WAIT_TIME + 10 ))
                 CONCURRENT_CALLS=$(($CALL_RATE * $CALL_LENGTH * 2 ))
