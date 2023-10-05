@@ -11,4 +11,5 @@ fi
 ##################################
 echo "start data collection:$@"
 ##################################
+chmod 777 $TOOLS_DIR/src/main/resources/*.sh
 $TOOLS_DIR/src/main/resources/pc_start_collect.sh $PERFCORDER_START_OPTIONS "$@"

@@ -6,7 +6,7 @@ if [[ -z $RESULTS_DIR ]]; then
   export RESULTS_DIR=$WORKSPACE/results-dir
 fi
 if [[ -z $TOOLS_DIR ]]; then
-  export TOOLS_DIR=$WORKSPACE/report-tools
+  export TOOLS_DIR=$WORKSPACE/sipp-report-tool
 fi
 
 if [[ -z $GOALS_FILE ]]; then
