@@ -151,7 +151,7 @@ node("slave-xlarge") {
             echo "Building Perfcorder"
             sh 'git clone -b master https://github.com/RestComm/PerfCorder.git sipp-report-tool'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
-                sh 'mvn -Dmaven.skip.test=true -B -f sipp-report-tool/pom.xml clean install'
+                sh 'mvn -DskipTests=true -B -f sipp-report-tool/pom.xml clean install'
             }
             sh '''
                 cp -r target/classes/* sipp-report-tool/
@@ -162,7 +162,7 @@ node("slave-xlarge") {
             //sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
             //sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
-                sh "mvn -Dmaven.skip.test=true -B -f jain-sip-performance/pom.xml clean install"
+                sh "mvn -DskipTests=true -B -f jain-sip-performance/pom.xml clean install"
             }
             //sh 'killall Shootme'
             echo "Starting UAS Process"                        
