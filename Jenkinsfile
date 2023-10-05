@@ -27,6 +27,7 @@ def publishTestsuiteResults() {
 
 def publishPerformanceTestsResults() {
     archive "results-dir/**"
+    archive "*_screen.log"
 }
 
 def tag() {
@@ -67,6 +68,9 @@ node("slave-xlarge") {
             string(name: 'RUN_TESTSUITE', defaultValue: "true", description: 'Whether the testsuite should run or not', trim: true),
             string(name: 'FORK_COUNT', defaultValue: '30', description: 'Number of forks to run the testsuite', trim: true),
             string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true)
+            string(name: 'TEST_DURATION', defaultValue: "1800", description: 'performance test duration', trim: true)
+            string(name: 'CALL_RATE', defaultValue: "500", description: 'calls per second rate', trim: true)
+            string(name: 'CALL_LENGTH', defaultValue: "60", description: 'calls per second rate', trim: true)                            
         ])
     ])
 
@@ -175,30 +179,23 @@ node("slave-xlarge") {
                 COLLECTION_INTERVAL_SECS=15
                 $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
             
-                echo "starting test"
-                TEST_DURATION=120
-                CALL_RATE=500
-                CALL_LENGTH=60
-                PROCESS_WAIT=120
-                ANALYSIS_TRIM_PERCENTAGE=10
+                echo "starting test"                
                 SIPP_TRANSPORT_MODE_UAC=un
                 SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
-                CALLS=$(( $CALL_RATE * $CALL_LENGTH * $TEST_DURATION ))                
-                CALLS=20000
-                WAIT_TIME=$(( $CALLS / $CALL_RATE + $CALL_LENGTH * 2 ))
+                CALLS=$(( ${params.CALL_RATE} * ${params.CALL_LENGTH} * ${params.TEST_DURATION} ))                                
+                WAIT_TIME=$(( $CALLS / ${params.CALL_RATE} + ${params.CALL_LENGTH} * 2 ))
                 SIPP_TIMEOUT=$(( $WAIT_TIME + 10 ))
-                CONCURRENT_CALLS=$(($CALL_RATE * $CALL_LENGTH * 2 ))
+                CONCURRENT_CALLS=$((${params.CALL_RATE} * ${params.CALL_LENGTH} * 2 ))
                 echo "calls:$CALLS"
-                echo "call rate:$CALL_RATE"
-                echo "call length:$CALL_LENGTH"
+                echo "call rate:${params.CALL_RATE}"
+                echo "call length:${params.CALL_LENGTH}"
                 echo "wait time:$WAIT_TIME"
                 echo "sipp timeout:$SIPP_TIMEOUT"
-                echo "concurrent calls:$CONCURRENT_CALLS"
-                echo "PROCESS_WAIT:$PROCESS_WAIT"
-                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r $CALL_RATE -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                echo "concurrent calls:$CONCURRENT_CALLS"                
+                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${params.CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                 echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $SIPP_TIMEOUT+seconds -u)"
             '''
-            sleep(time:240,unit:"SECONDS") 
+            sleep(time:${params.TEST_DURATION},unit:"SECONDS") 
             echo "TEST ENDED"        
             sh '''
                 killall sipp || true
