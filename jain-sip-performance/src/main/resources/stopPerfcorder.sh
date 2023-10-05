@@ -52,7 +52,7 @@ echo "Collect results"
 
 #remove previous collections, so later we match only one file
 rm -rf $TOOLS_DIR/*.zip
-$TOOLS_DIR/src/main/resources/pc_stop_collect.sh "$@" -f $PERFCORDER_STOP_OPTIONS
+$TOOLS_DIR/src/main/resources/pc_stop_collect.sh "$@" -f -d -o $WORKSPACE/target $PERFCORDER_STOP_OPTIONS
 ###this command is supposed to match just one file
 cp -f $TOOLS_DIR/perf*.zip $RESULTS_DIR/perfTest-$RESULT_SUFFIX.zip
 ### Check for performance regression
