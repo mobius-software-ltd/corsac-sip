@@ -28,6 +28,11 @@ def publishTestsuiteResults() {
 def publishPerformanceTestsResults() {
     archive "results-dir/**"
     archive "*_screen.log"
+    publishHTML (target : [allowMissing: false,        
+        keepAll: true,
+        reportDir: 'results-dir',
+        reportFiles: 'PerfCorderAnalysis.html',
+        reportName: 'PerfCorder Analysis'])
 }
 
 def tag() {
