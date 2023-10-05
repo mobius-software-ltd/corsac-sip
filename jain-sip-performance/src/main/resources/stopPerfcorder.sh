@@ -56,7 +56,7 @@ bash ./pc_stop_collect.sh "$@" -f $PERFCORDER_STOP_OPTIONS
 ###this command is supposed to match just one file
 cp -f $TOOLS_DIR/perf*.zip $RESULTS_DIR/perfTest-$RESULT_SUFFIX.zip
 ### Check for performance regression
-./pc_analyse.sh $RESULTS_DIR/perfTest-$RESULT_SUFFIX.zip $ANALYSIS_TRIM_PERCENTAGE > $RESULTS_DIR/PerfCorderAnalysis$RESULT_SUFFIX.xml 2> $RESULTS_DIR/analysis$RESULT_SUFFIX.log
+$TOOLS_DIR/src/main/resources/pc_analyse.sh $RESULTS_DIR/perfTest-$RESULT_SUFFIX.zip $ANALYSIS_TRIM_PERCENTAGE > $RESULTS_DIR/PerfCorderAnalysis$RESULT_SUFFIX.xml 2> $RESULTS_DIR/analysis$RESULT_SUFFIX.log
 cat $RESULTS_DIR/PerfCorderAnalysis$RESULT_SUFFIX.xml | ./pc_test.sh  $GOALS_FILE > $RESULTS_DIR/TEST-PerfCorderAnalysisTest$RESULT_SUFFIX.xml 2> $RESULTS_DIR/test$RESULT_SUFFIX.log
 cat $RESULTS_DIR/PerfCorderAnalysis$RESULT_SUFFIX.xml | ./pc_html_gen.sh > $RESULTS_DIR/PerfCorderAnalysis$RESULT_SUFFIX.html 2> $RESULTS_DIR/htmlgen$RESULT_SUFFIX.log
 ###copy resulting HTML graphs
