@@ -199,14 +199,14 @@ node("slave-xlarge") {
                 echo "sipp timeout:$SIPP_TIMEOUT"
                 echo "concurrent calls:$CONCURRENT_CALLS"
                 echo "PROCESS_WAIT:$PROCESS_WAIT"
-                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r $CALL_RATE -timeout $SIPP_TIMEOUT -rate_increase 1 -rate_interval 1s -fd 1 -trace_stat -trace_screen -trace_rtt -trace_logs -timeout_error -bg || true
+                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r $CALL_RATE -timeout $SIPP_TIMEOUT -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                 echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $SIPP_TIMEOUT+seconds -u)"
             '''
-            sleep(time:120,unit:"SECONDS") 
+            sleep(time:240,unit:"SECONDS") 
             echo "TEST ENDED"        
             sh '''
                 killall sipp || true
-                PERFCORDER_SIPP_CSV="$SIPP_CSV"
+                PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
                 $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
             '''            
         }
