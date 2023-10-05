@@ -172,8 +172,8 @@ node("slave-xlarge") {
                 $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
             
                 echo "starting test"
-                TEST_DURATION=60
-                CALL_RATE=10
+                TEST_DURATION=120
+                CALL_RATE=50
                 CALL_LENGTH=30
                 PROCESS_WAIT=120
                 ANALYSIS_TRIM_PERCENTAGE=10
@@ -191,10 +191,10 @@ node("slave-xlarge") {
                 echo "sipp timeout:$SIPP_TIMEOUT"
                 echo "concurrent calls:$CONCURRENT_CALLS"
                 echo "PROCESS_WAIT:$PROCESS_WAIT"
-                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r $CALL_RATE -timeout $SIPP_TIMEOUT -fd 1 -trace_stat -trace_screen -trace_rtt -trace_logs -timeout_error
+                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r $CALL_RATE -timeout $SIPP_TIMEOUT -rate_increase 5 -rate_interval 5s -fd 1 -trace_stat -trace_screen -trace_rtt -trace_logs -timeout_error -bg
                 echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $SIPP_TIMEOUT+seconds -u)"
             '''
-            sleep(time:90,unit:"SECONDS") 
+            sleep(time:240,unit:"SECONDS") 
             echo "TEST ENDED"        
             sh '''
                 killall sipp || true
