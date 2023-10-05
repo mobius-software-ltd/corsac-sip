@@ -178,21 +178,22 @@ node("slave-xlarge") {
                 CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
                 COLLECTION_INTERVAL_SECS=15
                 $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
-            
+                echo "call rate:${CALL_RATE}"
+                echo "call length:${CALL_LENGTH}"
                 echo "starting test"                
                 SIPP_TRANSPORT_MODE_UAC=un
                 SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
-                CALLS=$(( ${params.CALL_RATE}.toInteger() * ${params.CALL_LENGTH}.toInteger() * ${params.TEST_DURATION}.toInteger() ))                                
-                WAIT_TIME=$(( $CALLS / ${params.CALL_RATE}.toInteger() + ${params.CALL_LENGTH}.toInteger() * 2 ))
+                CALLS=$(( ${CALL_RATE} * ${CALL_LENGTH} * ${TEST_DURATION} ))                                
+                WAIT_TIME=$(( $CALLS / ${CALL_RATE} + ${CALL_LENGTH} * 2 ))
                 SIPP_TIMEOUT=$(( $WAIT_TIME + 10 ))
-                CONCURRENT_CALLS=$((${params.CALL_RATE}.toInteger() * ${params.CALL_LENGTH}.toInteger() * 2 ))
+                CONCURRENT_CALLS=$((${CALL_RATE} * ${CALL_LENGTH} * 2 ))
                 echo "calls:$CALLS"
-                echo "call rate:${params.CALL_RATE}.toInteger()"
-                echo "call length:${params.CALL_LENGTH}.toInteger()"
+                echo "call rate:${CALL_RATE}"
+                echo "call length:${CALL_LENGTH}"
                 echo "wait time:$WAIT_TIME"
                 echo "sipp timeout:$SIPP_TIMEOUT"
                 echo "concurrent calls:$CONCURRENT_CALLS"                
-                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${params.CALL_RATE}.toInteger() -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t $SIPP_TRANSPORT_MODE_UAC -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                 echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $SIPP_TIMEOUT+seconds -u)"
             '''
             sleep(time:${params.TEST_DURATION},unit:"SECONDS") 
