@@ -43,8 +43,8 @@ if [[ -n $PERFCORDER_MAP_MO_MT_CSV ]]; then
 cp $PERFCORDER_MAP_MO_MT_CSV $TOOLS_DIR/target$RESULT_SUFFIX/data/periodic/map-mo-mt/map-mo-mt.csv
 fi
 
-
-
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export PERFCORDER_HOME=$TOOLS_DIR/src/main/resources/
 
 ##################################
 echo "Collect results"

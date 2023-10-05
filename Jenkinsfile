@@ -206,9 +206,8 @@ node("slave-xlarge") {
             sh '''
                 killall sipp || true
                 PERFCORDER_SIPP_CSV="$SIPP_CSV"
-                
-            '''
-            //$WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
+                $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
+            '''            
         }
 
         stage("Publish Performance Tests Results") {
