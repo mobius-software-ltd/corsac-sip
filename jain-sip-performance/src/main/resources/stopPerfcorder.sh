@@ -62,3 +62,4 @@ cat $RESULTS_DIR/PerfCorderAnalysis$RESULT_SUFFIX.xml | $TOOLS_DIR/src/main/reso
 ###copy resulting HTML graphs
 cp -R ./graphs $RESULTS_DIR/
 cd $WORKSPACE
+rm -f $RESULTS_DIR/perfTest-$RESULT_SUFFIX.zip
