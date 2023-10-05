@@ -13,5 +13,5 @@ echo "start data collection:$@"
 ##################################
 chmod 777 $TOOLS_DIR/src/main/resources/*.sh
 JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
-echo $JAVA_HOME
+echo $JAVA_HOME/lib
 $TOOLS_DIR/src/main/resources/pc_start_collect.sh $PERFCORDER_START_OPTIONS "$@"
