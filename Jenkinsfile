@@ -152,7 +152,8 @@ node("slave-xlarge") {
             sh 'git clone -b master https://github.com/RestComm/PerfCorder.git sipp-report-tool'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
                 sh 'mvn -DskipTests=true -B -f sipp-report-tool/pom.xml clean install'
-            }            
+            }
+            sh ''            
             echo 'Building Performance Tests'
             //sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
             //sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
@@ -160,15 +161,15 @@ node("slave-xlarge") {
                 sh "mvn -DskipTests=true -B -f jain-sip-performance/pom.xml clean install"
             }
             //sh 'killall Shootme'
-            echo "Starting UAS Process"                        
+            echo "Starting UAS Process"       
+            sh 'mkdir -p $WORKSPACE/results-dir'                 
             sh 'java -Xms6144m -Xmx6144m -Xmn2048m -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
             sleep(time:5,unit:"SECONDS") 
-            sh '''
-                jps
-                PROCESS_PID=$(jps | awk '/Shootme/{print $1}')
+            sh '''                
+                PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
                 echo "Shootme Process PID $PROCESS_PID"
 
-                export TERM=vt100
+                #export TERM=vt100
                 $WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh
                 $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
 
