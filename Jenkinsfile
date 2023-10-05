@@ -67,9 +67,9 @@ node("slave-xlarge") {
             string(name: 'MAJOR_VERSION_NUMBER', defaultValue: '8.0.0-SNAPSHOT', description: 'Snapshots will skip Tag stage', trim: true),
             string(name: 'RUN_TESTSUITE', defaultValue: "true", description: 'Whether the testsuite should run or not', trim: true),
             string(name: 'FORK_COUNT', defaultValue: '30', description: 'Number of forks to run the testsuite', trim: true),
-            string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true)
-            string(name: 'TEST_DURATION', defaultValue: "1800", description: 'performance test duration', trim: true)
-            string(name: 'CALL_RATE', defaultValue: "500", description: 'calls per second rate', trim: true)
+            string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true),
+            string(name: 'TEST_DURATION', defaultValue: "1800", description: 'performance test duration', trim: true),
+            string(name: 'CALL_RATE', defaultValue: "500", description: 'calls per second rate', trim: true),
             string(name: 'CALL_LENGTH', defaultValue: "60", description: 'calls per second rate', trim: true)                            
         ])
     ])
