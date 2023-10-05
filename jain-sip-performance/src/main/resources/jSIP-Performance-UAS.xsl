@@ -4,33 +4,33 @@
 	<xsl:include href="junitTestCaseTemplate.xsl"/>
 
 	<xsl:template match="/" priority="9">
-		<testsuite name="org.restcomm.perfcorder.jsip">
+		<testsuite name="org.restcomm.perfcorder.connect">
 			<xsl:for-each select="//key[text()='Cpu']/parent::entry/value/median">
 				<xsl:call-template name="lessThanTemplate">
 					<xsl:with-param name="caseName" select="'CPUMedian'" />
 					<xsl:with-param name="thresholdValue"  select="'67'" />
-					<xsl:with-param name="classname"  select="'org.restcomm.perfcorder.jsip.UAC'" />
+					<xsl:with-param name="classname"  select="'performance.uas.Shootme'" />
 				</xsl:call-template>
 			</xsl:for-each>
 			<xsl:for-each select="//key[text()='Mem']/parent::entry/value/min">
 				<xsl:call-template name="lessThanTemplate">
 					<xsl:with-param name="caseName" select="'MemMin'" />
 					<xsl:with-param name="thresholdValue"  select="'1500'" />
-					<xsl:with-param name="classname"  select="'org.restcomm.perfcorder.jsip.UAC'" />
+					<xsl:with-param name="classname"  select="'performance.uas.Shootme'" />
 				</xsl:call-template>
 			</xsl:for-each>
 			<xsl:for-each select="//key[text()='GcMemAfter']/parent::entry/value/min">
 				<xsl:call-template name="lessThanTemplate">
 					<xsl:with-param name="caseName" select="'GcMemAfterMin'" />
 					<xsl:with-param name="thresholdValue"  select="'1500'" />
-					<xsl:with-param name="classname"  select="'org.restcomm.perfcorder.jsip.UAC'" />
+					<xsl:with-param name="classname"  select="'performance.uas.Shootme'" />
 				</xsl:call-template>
 			</xsl:for-each>
 			<xsl:for-each select="//key[text()='GcPauseDuration']/parent::entry/value/median">
 				<xsl:call-template name="lessThanTemplate">
 					<xsl:with-param name="caseName" select="'GcPauseDurationMedian'" />
 					<xsl:with-param name="thresholdValue"  select="'500'" />
-					<xsl:with-param name="classname"  select="'org.restcomm.perfcorder.jsip.UAC'" />
+					<xsl:with-param name="classname"  select="'performance.uas.Shootme'" />
 				</xsl:call-template>
 			</xsl:for-each>
 
@@ -40,7 +40,7 @@
 					<xsl:with-param name="thresholdValue"  select="'0.1'" />
 					<xsl:with-param name="measA"  select="//key[text()='SIPFailedCalls']/parent::entry/value/sum" />
 					<xsl:with-param name="measB"  select="//key[text()='SIPTotalCallCreated']/parent::entry/value/sum" />
-					<xsl:with-param name="classname"  select="'org.restcomm.perfcorder.jsip.UAC'" />
+					<xsl:with-param name="classname"  select="'performance.uas.Shootme'" />
 				</xsl:call-template>
 			</xsl:for-each>
 
@@ -50,7 +50,7 @@
 					<xsl:with-param name="thresholdValue"  select="'0.1'" />
 					<xsl:with-param name="measA"  select="//key[text()='SIPRetransmissions']/parent::entry/value/sum" />
 					<xsl:with-param name="measB"  select="//key[text()='SIPTotalCallCreated']/parent::entry/value/sum" />
-					<xsl:with-param name="classname"  select="'org.restcomm.perfcorder.jsip.UAC'" />
+					<xsl:with-param name="classname"  select="'performance.uas.Shootme'" />
 				</xsl:call-template>
 			</xsl:for-each>
 
@@ -58,7 +58,7 @@
 				<xsl:call-template name="lessThanTemplate">
 					<xsl:with-param name="caseName" select="'SIPResponseTime1Percentile95'" />
 					<xsl:with-param name="thresholdValue"  select="'500'" />
-					<xsl:with-param name="classname"  select="'org.restcomm.perfcorder.jsip.UAC'" />
+					<xsl:with-param name="classname"  select="'performance.uas.Shootme'" />
 				</xsl:call-template>
 			</xsl:for-each>
 
@@ -66,7 +66,7 @@
 				<xsl:call-template name="lessThanTemplate">
 					<xsl:with-param name="caseName" select="'SIPResponseTime2Percentile95'" />
 					<xsl:with-param name="thresholdValue"  select="'500'" />
-					<xsl:with-param name="classname"  select="'org.restcomm.perfcorder.jsip.UAC'" />					
+					<xsl:with-param name="classname"  select="'performance.uas.Shootme'" />
 				</xsl:call-template>
 			</xsl:for-each>
 
