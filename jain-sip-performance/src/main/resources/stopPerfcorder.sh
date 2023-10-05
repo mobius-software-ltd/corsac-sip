@@ -21,26 +21,26 @@ fi
 echo "copy protocol files if defined"
 ##################################
 if [[ -n $PERFCORDER_SEAGULL_CSV ]]; then
-cp $PERFCORDER_SEAGULL_CSV $TOOLS_DIR/target$RESULT_SUFFIX/data/periodic/diameter/seagull-client-stat.csv
+cp $PERFCORDER_SEAGULL_CSV $WORKSPACE/target$RESULT_SUFFIX/data/periodic/diameter/seagull-client-stat.csv
 fi
 if [[ -n $PERFCORDER_SIPP_CSV ]]; then
-cp $PERFCORDER_SIPP_CSV $TOOLS_DIR/target$RESULT_SUFFIX/data/periodic/sip/sipp.csv
+cp $PERFCORDER_SIPP_CSV $WORKSPACE/target$RESULT_SUFFIX/data/periodic/sip/sipp.csv
 fi
 if [[ -n $PERFCORDER_JMETER_CSV ]]; then
-cp $PERFCORDER_JMETER_CSV $TOOLS_DIR/target$RESULT_SUFFIX/data/periodic/http/jmeter.csv
+cp $PERFCORDER_JMETER_CSV $WORKSPACE/target$RESULT_SUFFIX/data/periodic/http/jmeter.csv
 fi
 if [[ -n $PERFCORDER_MAPP_CSV ]]; then
-cp $PERFCORDER_MAPP_CSV $TOOLS_DIR/target$RESULT_SUFFIX/data/periodic/map/mapp.csv
+cp $PERFCORDER_MAPP_CSV $WORKSPACE/target$RESULT_SUFFIX/data/periodic/map/mapp.csv
 fi
 if [[ -n $PERFCORDER_SMPP_CSV ]]; then
-cp $PERFCORDER_SMPP_CSV $TOOLS_DIR/target$RESULT_SUFFIX/data/periodic/smpp/smppp.csv
+cp $PERFCORDER_SMPP_CSV $WORKSPACE/target$RESULT_SUFFIX/data/periodic/smpp/smppp.csv
 fi
 if [[ -n $PERFCORDER_TCAP_CSV ]]; then
-cp $PERFCORDER_TCAP_CSV $TOOLS_DIR/target$RESULT_SUFFIX/data/periodic/tcap/tcap.csv
+cp $PERFCORDER_TCAP_CSV $WORKSPACE/target$RESULT_SUFFIX/data/periodic/tcap/tcap.csv
 fi
 ##temporary for msquad per test
 if [[ -n $PERFCORDER_MAP_MO_MT_CSV ]]; then
-cp $PERFCORDER_MAP_MO_MT_CSV $TOOLS_DIR/target$RESULT_SUFFIX/data/periodic/map-mo-mt/map-mo-mt.csv
+cp $PERFCORDER_MAP_MO_MT_CSV $WORKSPACE/target$RESULT_SUFFIX/data/periodic/map-mo-mt/map-mo-mt.csv
 fi
 
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
