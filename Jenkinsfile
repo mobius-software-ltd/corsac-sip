@@ -154,7 +154,7 @@ node("slave-xlarge") {
                 sh 'mvn -DskipTests=true -B -f sipp-report-tool/pom.xml clean install'
             }
             sh'sudo add-apt-repository -y universe'
-            sh 'sudo apt update & sudo apt-get -y install dstat'            
+            sh 'sudo apt update & sudo apt-get -y install dstat zip'            
             echo 'Building Performance Tests'
             //sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
             //sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
@@ -188,7 +188,7 @@ node("slave-xlarge") {
                 SIPP_TRANSPORT_MODE_UAC=un
                 SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
                 CALLS=$(( $CALL_RATE * $CALL_LENGTH * $TEST_DURATION ))                
-                CALLS=1000
+                CALLS=5000
                 WAIT_TIME=$(( $CALLS / $CALL_RATE + $CALL_LENGTH * 2 ))
                 SIPP_TIMEOUT=$(( $WAIT_TIME + 10 ))
                 CONCURRENT_CALLS=$(($CALL_RATE * $CALL_LENGTH * 2 ))
