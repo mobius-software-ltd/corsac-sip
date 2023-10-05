@@ -153,7 +153,7 @@ node("slave-xlarge") {
             withMaven(maven: 'maven-3.6.3',traceability: true) {
                 sh 'mvn -DskipTests=true -B -f sipp-report-tool/pom.xml clean install'
             }
-            sh 'sudo apt-get -y install dstat'            
+            sh 'sudo apt update & sudo apt-get -y install dstat'            
             echo 'Building Performance Tests'
             //sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
             //sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
