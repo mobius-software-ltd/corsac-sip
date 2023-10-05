@@ -166,18 +166,19 @@ node("slave-xlarge") {
             withMaven(maven: 'maven-3.6.3',traceability: true) {
                 sh "mvn -DskipTests=true -B -f jain-sip-performance/pom.xml clean install"
             }
+            sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
             //sh 'killall Shootme'
             echo "Starting UAS Process"       
             sh 'mkdir -p $WORKSPACE/results-dir'  
-            sh 'sysctl -w net.core.rmem_max=26214400'               
-            sh 'java $JAVA_OPTS -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
+            sh 'sysctl -w net.core.rmem_max=26214400'  
+            echo '${JAVA_OPTS}'             
+            sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
             sleep(time:5,unit:"SECONDS") 
             sh '''                
                 PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
                 echo "Shootme Process PID $PROCESS_PID"
 
-                #export TERM=vt100
-                $WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh
+                #export TERM=vt100                
                 $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
 
                 echo "starting data collection"
