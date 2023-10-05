@@ -26,8 +26,7 @@ def publishTestsuiteResults() {
 }
 
 def publishPerformanceTestsResults() {
-    archive "results-dir/**"
-    archive "*_screen.log"
+    archiveArtifacts "results-dir/**", "*_screen.log"
     publishHTML (target : [allowMissing: false,        
         keepAll: true,
         reportDir: 'results-dir',
