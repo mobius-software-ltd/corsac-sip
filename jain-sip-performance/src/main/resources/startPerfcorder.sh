@@ -11,6 +11,4 @@ fi
 ##################################
 echo "start data collection:$@"
 ##################################
-cd $TOOLS_DIR
-bash ./pc_start_collect.sh $PERFCORDER_START_OPTIONS "$@"
-cd $WORKSPACE
+$TOOLS_DIR/src/main/resources/pc_start_collect.sh $PERFCORDER_START_OPTIONS "$@"

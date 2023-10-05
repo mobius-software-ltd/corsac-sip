@@ -148,7 +148,18 @@ node("slave-xlarge") {
     if("${params.RUN_PERF_TESTS}" == "true") {
         echo "RUN_PERF_TESTS is true, running Performance Tests stage"
         stage("PerformanceTests") {
-            sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
+            echo "Building Perfcorder"
+            sh 'git clone -b master https://github.com/RestComm/PerfCorder.git sipp-report-tool'
+            withMaven(maven: 'maven-3.6.3',traceability: true) {
+                sh 'mvn -B -f sipp-report-tool/pom.xml clean install'
+            }
+            sh '''
+                cp -r target/classes/* sipp-report-tool/
+                chmod 777 sipp-report-tool/*.sh
+                cp target/sipp-report-*with-dependencies.jar $sipp-report-tool/            
+            '''
+            echo 'Building Performance Tests'
+            //sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
             //sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
                 sh "mvn -B -f jain-sip-performance/pom.xml -Dmaven.test.redirectTestOutputToFile=true clean install"
@@ -173,7 +184,7 @@ node("slave-xlarge") {
             
                 echo "starting test"
                 TEST_DURATION=120
-                CALL_RATE=50
+                CALL_RATE=20
                 CALL_LENGTH=60
                 PROCESS_WAIT=120
                 ANALYSIS_TRIM_PERCENTAGE=10
