@@ -26,11 +26,11 @@ def publishTestsuiteResults() {
 }
 
 def publishPerformanceTestsResults() {
-    junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
+    //junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
     /**recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
     recordIssues enabledForFailure: true, tool: checkStyle()
     recordIssues enabledForFailure: true, tool: spotBugs()*/    
-    step( [ $class: 'JacocoPublisher' ] )
+    //step( [ $class: 'JacocoPublisher' ] )
 }
 
 def tag() {
@@ -151,7 +151,7 @@ node("slave-xlarge") {
             echo "Building Perfcorder"
             sh 'git clone -b master https://github.com/RestComm/PerfCorder.git sipp-report-tool'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
-                sh 'mvn -B -f sipp-report-tool/pom.xml -Dmaven.skip.test=true clean install'
+                sh 'mvn -Dmaven.skip.test=true -B -f sipp-report-tool/pom.xml clean install'
             }
             sh '''
                 cp -r target/classes/* sipp-report-tool/
@@ -162,7 +162,7 @@ node("slave-xlarge") {
             //sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
             //sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
-                sh "mvn -B -f jain-sip-performance/pom.xml -Dmaven.test.redirectTestOutputToFile=true -Dmaven.skip.test=true clean install"
+                sh "mvn -Dmaven.skip.test=true -B -f jain-sip-performance/pom.xml clean install"
             }
             //sh 'killall Shootme'
             echo "Starting UAS Process"                        
