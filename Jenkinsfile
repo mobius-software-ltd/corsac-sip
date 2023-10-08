@@ -171,7 +171,7 @@ node("slave-xlarge") {
             //sh 'killall Shootme'
             echo "Starting UAS Process"       
             sh 'mkdir -p $WORKSPACE/results-dir'  
-            sh 'sysctl -w net.core.rmem_max=26214400'  
+            sh 'sudo sysctl -w net.core.rmem_max=26214400'  
             echo '${JAVA_OPTS}'             
             sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
             sleep(time:5,unit:"SECONDS") 
