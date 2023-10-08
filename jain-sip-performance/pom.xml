@@ -6,7 +6,7 @@
 		<groupId>javax.sip</groupId>
 		<version>8.0.0-12-SNAPSHOT</version>
         <artifactId>jain-sip</artifactId>
-		<relativePath>../pom.xml</relativePath>
+		<!--relativePath>../pom.xml</relativePath-->
 	</parent>
 
     <artifactId>jain-sip-performance</artifactId>
