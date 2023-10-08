@@ -186,8 +186,7 @@ node("slave-xlarge") {
                 CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
                 COLLECTION_INTERVAL_SECS=15
                 $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
-                echo "starting test"                
-                SIPP_TRANSPORT_MODE=un
+                echo "starting test"                                
                 SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
                 CALLS=$(( ${CALL_RATE} * ${TEST_DURATION} ))                                
                 CONCURRENT_CALLS=$((${CALL_RATE} * ${CALL_LENGTH} * 2 ))
