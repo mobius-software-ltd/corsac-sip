@@ -26,10 +26,11 @@ def publishTestsuiteResults() {
 }
 
 def publishPerformanceTestsResults(dir) {
-    archiveArtifacts artifacts:'\$dir/**, *_screen.log'
+    cp "*_screen.log", "${dir}"
+    archiveArtifacts artifacts:'${dir}/**'
     publishHTML (target : [allowMissing: false,        
         keepAll: true,
-        reportDir: '\$dir',
+        reportDir: '${dir}',
         reportFiles: 'PerfCorderAnalysis.html',
         reportName: 'PerfCorder Analysis'])
 }
