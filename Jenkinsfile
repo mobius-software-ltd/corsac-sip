@@ -73,7 +73,7 @@ node("slave-xlarge") {
             string(name: 'RUN_TESTSUITE', defaultValue: "true", description: 'Whether the testsuite should run or not', trim: true),
             string(name: 'FORK_COUNT', defaultValue: '30', description: 'Number of forks to run the testsuite', trim: true),
             string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true),
-            string(name: 'RUN_UAC_PERF_TESTS', defaultValue: "true", description: 'Whether the UAC performance tests should run or not', trim: true),
+            string(name: 'RUN_UAS_PERF_TESTS', defaultValue: "true", description: 'Whether the UAS performance tests should run or not', trim: true),
             string(name: 'RUN_B2BUA_PERF_TESTS', defaultValue: "true", description: 'Whether the B2BUA performance tests should run or not', trim: true),
             string(name: 'SIPP_TRANSPORT_MODE', defaultValue: "u1", description: 'transport used at SIPP for performance tests', trim: true),
             string(name: 'TEST_DURATION', defaultValue: "1800", description: 'performance test duration', trim: true),
@@ -172,9 +172,9 @@ node("slave-xlarge") {
             }
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
         }
-        if("${params.RUN_UAC_PERF_TESTS}" == "true") {
-            echo "RUN_UAC_PERF_TESTS is true, running UAC Performance Tests stage"
-            stage("UAC Performance Tests") {
+        if("${params.RUN_UAS_PERF_TESTS}" == "true") {
+            echo "RUN_UAS_PERF_TESTS is true, running UAS Performance Tests stage"
+            stage("UAS Performance Tests") {
                 
                 //sh 'killall Shootme'
                 echo "Starting UAS Process"       
@@ -214,17 +214,18 @@ node("slave-xlarge") {
                 echo "TEST ENDED"        
                 sh '''
                     killall sipp || true
-                    PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
-                    RESULTS_DIR=$WORKSPACE/uas-perf-results-dir
+                    export PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
+                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/main/resources/jSIP-Performance-UAS.xsl
+                    export RESULTS_DIR=$WORKSPACE/uas-perf-results-dir
                     $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
                 '''            
             }
 
-            stage("Publish UAC Performance Tests Results") {
+            stage("Publish UAS Performance Tests Results") {
                 publishPerformanceTestsResults("$WORKSPACE/uas-perf-results-dir")
             }
         } else {
-            echo "RUN_UAC_PERF_TESTS is false, skipped UAC Performance Tests stage"
+            echo "RUN_UAS_PERF_TESTS is false, skipped UAS Performance Tests stage"
         }
     }
 }
