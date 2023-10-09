@@ -27,7 +27,7 @@ def publishTestsuiteResults() {
 
 def publishPerformanceTestsResults(dir) {
     echo "\"$dir\""
-    sh "cp *_screen.log \"$dir\""
+    sh "mv *_screen.log \"$dir\""
     archiveArtifacts artifacts:"$dir/**"
     publishHTML (target : [allowMissing: false,        
         keepAll: true,
