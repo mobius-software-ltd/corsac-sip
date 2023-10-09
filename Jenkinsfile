@@ -83,6 +83,7 @@ node("slave-xlarge") {
             string(name: 'B2BUA_TEST_DURATION', defaultValue: "1800", description: 'B2BUA performance test duration', trim: true),
             string(name: 'B2BUA_CALL_RATE', defaultValue: "100", description: 'B2BUA calls per second rate', trim: true),
             string(name: 'B2BUA_CALL_LENGTH', defaultValue: "60", description: 'B2BUA call length', trim: true),
+            string(name: 'POST_PERF_ADDITIONAL_SLEEP_TIME', defaultValue: "300", description: 'Additional Sleep time after performance test to ensure proper cleanup', trim: true)
             string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true)
         ])
     ])
@@ -213,7 +214,7 @@ node("slave-xlarge") {
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $UAS_TEST_DURATION+seconds -u)"
                 '''
                 duration="${UAS_TEST_DURATION}" as Integer
-                sleep_time=duration + 300
+                sleep_time=duration + "${POST_PERF_ADDITIONAL_SLEEP_TIME}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
                 echo "TEST ENDED"        
                 sh '''
@@ -270,7 +271,7 @@ node("slave-xlarge") {
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
                 '''
                 duration="${B2BUA_TEST_DURATION}" as Integer
-                sleep_time=duration + 300
+                sleep_time=duration + "${POST_PERF_ADDITIONAL_SLEEP_TIME}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
                 echo "TEST ENDED"        
                 sh '''
