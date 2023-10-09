@@ -25,11 +25,11 @@ def publishTestsuiteResults() {
     step( [ $class: 'JacocoPublisher' ] )
 }
 
-def publishPerformanceTestsResults() {
-    archiveArtifacts artifacts:'results-dir/**, *_screen.log'
+def publishPerformanceTestsResults(dir) {
+    archiveArtifacts artifacts:'\$dir/**, *_screen.log'
     publishHTML (target : [allowMissing: false,        
         keepAll: true,
-        reportDir: 'results-dir',
+        reportDir: '\$dir',
         reportFiles: 'PerfCorderAnalysis.html',
         reportName: 'PerfCorder Analysis'])
 }
@@ -72,6 +72,8 @@ node("slave-xlarge") {
             string(name: 'RUN_TESTSUITE', defaultValue: "true", description: 'Whether the testsuite should run or not', trim: true),
             string(name: 'FORK_COUNT', defaultValue: '30', description: 'Number of forks to run the testsuite', trim: true),
             string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true),
+            string(name: 'RUN_UAC_PERF_TESTS', defaultValue: "true", description: 'Whether the UAC performance tests should run or not', trim: true),
+            string(name: 'RUN_B2BUA_PERF_TESTS', defaultValue: "true", description: 'Whether the B2BUA performance tests should run or not', trim: true),
             string(name: 'SIPP_TRANSPORT_MODE', defaultValue: "u1", description: 'transport used at SIPP for performance tests', trim: true),
             string(name: 'TEST_DURATION', defaultValue: "1800", description: 'performance test duration', trim: true),
             string(name: 'CALL_RATE', defaultValue: "400", description: 'calls per second rate', trim: true),
@@ -153,7 +155,7 @@ node("slave-xlarge") {
 
     if("${params.RUN_PERF_TESTS}" == "true") {
         echo "RUN_PERF_TESTS is true, running Performance Tests stage"
-        stage("PerformanceTests") {
+        stage("Init Performance Tests") {
             echo "Building Perfcorder"
             sh 'git clone -b master https://github.com/RestComm/PerfCorder.git sipp-report-tool'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
@@ -168,52 +170,60 @@ node("slave-xlarge") {
                 sh "mvn -DskipTests=true -B -f jain-sip-performance/pom.xml clean install"
             }
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
-            //sh 'killall Shootme'
-            echo "Starting UAS Process"       
-            sh 'mkdir -p $WORKSPACE/results-dir'  
-            sh 'sudo sysctl -w net.core.rmem_max=26214400'  
-            echo '${JAVA_OPTS}'             
-            sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
-            sleep(time:5,unit:"SECONDS") 
-            sh '''                
-                PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
-                echo "Shootme Process PID $PROCESS_PID"
-
-                #export TERM=vt100                
-                $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
-
-                echo "starting data collection"
-                CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
-                COLLECTION_INTERVAL_SECS=15
-                $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
-                echo "starting test"                                
-                SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
-                CALLS=$(( ${CALL_RATE} * ${TEST_DURATION} ))                                
-                CONCURRENT_CALLS=$((${CALL_RATE} * ${CALL_LENGTH} * 2 ))
-                echo "calls:$CALLS"
-                echo "call rate:${CALL_RATE}"
-                echo "call length:${CALL_LENGTH}"
-                echo "wait time:$WAIT_TIME"
-                echo "test duration:$TEST_DURATION"
-                echo "concurrent calls:$CONCURRENT_CALLS"                
-                $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
-                echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $TEST_DURATION+seconds -u)"
-            '''
-            duration="${TEST_DURATION}" as Integer
-            sleep_time=duration + 300
-            sleep(time:"${sleep_time}",unit:"SECONDS") 
-            echo "TEST ENDED"        
-            sh '''
-                killall sipp || true
-                export PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
-                $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
-            '''            
         }
+        if("${params.RUN_UAC_PERF_TESTS}" == "true") {
+            echo "RUN_UAC_PERF_TESTS is true, running UAC Performance Tests stage"
+            stage("UAC Performance Tests") {
+                
+                //sh 'killall Shootme'
+                echo "Starting UAS Process"       
+                sh 'mkdir -p $WORKSPACE/uac-results-dir'  
+                sh 'sudo sysctl -w net.core.rmem_max=26214400'  
+                echo '${JAVA_OPTS}'             
+                sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
+                sleep(time:5,unit:"SECONDS") 
+                sh '''                
+                    PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
+                    echo "Shootme Process PID $PROCESS_PID"
 
-        stage("Publish Performance Tests Results") {
-            publishPerformanceTestsResults()
+                    #export TERM=vt100                
+                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
+
+                    echo "starting data collection"
+                    RESULTS_DIR=$WORKSPACE/uac-results-dir
+                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
+                    COLLECTION_INTERVAL_SECS=15
+                    $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
+                    echo "starting test"                                
+                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
+                    CALLS=$(( ${CALL_RATE} * ${TEST_DURATION} ))                                
+                    CONCURRENT_CALLS=$((${CALL_RATE} * ${CALL_LENGTH} * 2 ))
+                    echo "calls:$CALLS"
+                    echo "call rate:${CALL_RATE}"
+                    echo "call length:${CALL_LENGTH}"
+                    echo "wait time:$WAIT_TIME"
+                    echo "test duration:$TEST_DURATION"
+                    echo "concurrent calls:$CONCURRENT_CALLS"                
+                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $TEST_DURATION+seconds -u)"
+                '''
+                duration="${TEST_DURATION}" as Integer
+                sleep_time=duration + 300
+                sleep(time:"${sleep_time}",unit:"SECONDS") 
+                echo "TEST ENDED"        
+                sh '''
+                    killall sipp || true
+                    PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
+                    RESULTS_DIR=$WORKSPACE/uac-results-dir
+                    $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
+                '''            
+            }
+
+            stage("Publish UAC Performance Tests Results") {
+                publishPerformanceTestsResults("$WORKSPACE/uac-results-dir")
+            }
+        } else {
+            echo "RUN_UAC_PERF_TESTS is false, skipped UAC Performance Tests stage"
         }
-    } else {
-        echo "RUN_PERF_TESTS is false, skipped PerformanceTests stage"
     }
 }
