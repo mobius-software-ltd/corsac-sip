@@ -178,7 +178,7 @@ node("slave-xlarge") {
                 
                 //sh 'killall Shootme'
                 echo "Starting UAS Process"       
-                sh 'mkdir -p $WORKSPACE/uac-results-dir'  
+                sh 'mkdir -p $WORKSPACE/uac-perf-results-dir'  
                 sh 'sudo sysctl -w net.core.rmem_max=26214400'  
                 echo '${JAVA_OPTS}'             
                 sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/results-dir/uas-stdout-log.txt&'
@@ -191,7 +191,7 @@ node("slave-xlarge") {
                     $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
 
                     echo "starting data collection"
-                    RESULTS_DIR=$WORKSPACE/uac-results-dir
+                    RESULTS_DIR=$WORKSPACE/uac-perf-results-dir
                     CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
                     COLLECTION_INTERVAL_SECS=15
                     $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
@@ -215,13 +215,13 @@ node("slave-xlarge") {
                 sh '''
                     killall sipp || true
                     PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
-                    RESULTS_DIR=$WORKSPACE/uac-results-dir
+                    RESULTS_DIR=$WORKSPACE/uac-perf-results-dir
                     $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
                 '''            
             }
 
             stage("Publish UAC Performance Tests Results") {
-                publishPerformanceTestsResults("$WORKSPACE/uac-results-dir")
+                publishPerformanceTestsResults("$WORKSPACE/uac-perf-results-dir")
             }
         } else {
             echo "RUN_UAC_PERF_TESTS is false, skipped UAC Performance Tests stage"
