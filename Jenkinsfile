@@ -28,10 +28,10 @@ def publishTestsuiteResults() {
 def publishPerformanceTestsResults(dir) {
     echo "\"$dir\""
     sh "cp *_screen.log \"$dir\""
-    archiveArtifacts artifacts:"\"$dir\"**"
+    archiveArtifacts artifacts:'$dir/**'
     publishHTML (target : [allowMissing: false,        
         keepAll: true,
-        reportDir: "\"$dir\"",
+        reportDir: '$dir',
         reportFiles: 'PerfCorderAnalysis.html',
         reportName: 'PerfCorder Analysis'])
 }
