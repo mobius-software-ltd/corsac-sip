@@ -26,11 +26,12 @@ def publishTestsuiteResults() {
 }
 
 def publishPerformanceTestsResults(dir) {
-    sh 'cp *_screen.log ${dir}'
-    archiveArtifacts artifacts:'${dir}/**'
+    echo '$dir'
+    sh 'cp *_screen.log $dir'
+    archiveArtifacts artifacts:'$dir/**'
     publishHTML (target : [allowMissing: false,        
         keepAll: true,
-        reportDir: '${dir}',
+        reportDir: '$dir',
         reportFiles: 'PerfCorderAnalysis.html',
         reportName: 'PerfCorder Analysis'])
 }
@@ -76,9 +77,12 @@ node("slave-xlarge") {
             string(name: 'RUN_UAS_PERF_TESTS', defaultValue: "true", description: 'Whether the UAS performance tests should run or not', trim: true),
             string(name: 'RUN_B2BUA_PERF_TESTS', defaultValue: "true", description: 'Whether the B2BUA performance tests should run or not', trim: true),
             string(name: 'SIPP_TRANSPORT_MODE', defaultValue: "u1", description: 'transport used at SIPP for performance tests', trim: true),
-            string(name: 'TEST_DURATION', defaultValue: "1800", description: 'performance test duration', trim: true),
-            string(name: 'CALL_RATE', defaultValue: "400", description: 'calls per second rate', trim: true),
-            string(name: 'CALL_LENGTH', defaultValue: "60", description: 'calls per second rate', trim: true),
+            string(name: 'UAS_TEST_DURATION', defaultValue: "1800", description: 'UAS performance test duration', trim: true),
+            string(name: 'UAS_CALL_RATE', defaultValue: "400", description: 'UAS calls per second rate', trim: true),
+            string(name: 'UAS_CALL_LENGTH', defaultValue: "60", description: 'UAS call length', trim: true),
+            string(name: 'B2BUA_TEST_DURATION', defaultValue: "1800", description: 'B2BUA performance test duration', trim: true),
+            string(name: 'B2BUA_CALL_RATE', defaultValue: "100", description: 'B2BUA calls per second rate', trim: true),
+            string(name: 'B2BUA_CALL_LENGTH', defaultValue: "60", description: 'B2BUA call length', trim: true),
             string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true)
         ])
     ])
@@ -171,6 +175,7 @@ node("slave-xlarge") {
                 sh "mvn -DskipTests=true -B -f jain-sip-performance/pom.xml clean install"
             }
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
+            sh 'sudo sysctl -w net.core.rmem_max=26214400'  
         }
         if("${params.RUN_UAS_PERF_TESTS}" == "true") {
             echo "RUN_UAS_PERF_TESTS is true, running UAS Performance Tests stage"
@@ -178,8 +183,7 @@ node("slave-xlarge") {
                 
                 //sh 'killall Shootme'
                 echo "Starting UAS Process"       
-                sh 'mkdir -p $WORKSPACE/uas-perf-results-dir'  
-                sh 'sudo sysctl -w net.core.rmem_max=26214400'  
+                sh 'mkdir -p $WORKSPACE/uas-perf-results-dir'                  
                 echo '${JAVA_OPTS}'             
                 sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/uas-perf-results-dir/uas-stdout-log.txt&'
                 sleep(time:5,unit:"SECONDS") 
@@ -196,26 +200,26 @@ node("slave-xlarge") {
                     COLLECTION_INTERVAL_SECS=15
                     $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
                     echo "starting test"                                
-                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance-uac.xml
-                    CALLS=$(( ${CALL_RATE} * ${TEST_DURATION} ))                                
-                    CONCURRENT_CALLS=$((${CALL_RATE} * ${CALL_LENGTH} * 2 ))
+                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/performance-uac.xml
+                    CALLS=$(( ${UAS_CALL_RATE} * ${UAS_TEST_DURATION} ))                                
+                    CONCURRENT_CALLS=$((${UAS_CALL_RATE} * ${UAS_CALL_LENGTH} * 2 ))
                     echo "calls:$CALLS"
-                    echo "call rate:${CALL_RATE}"
-                    echo "call length:${CALL_LENGTH}"
+                    echo "call rate:${UAS_CALL_RATE}"
+                    echo "call length:${UAS_CALL_LENGTH}"
                     echo "wait time:$WAIT_TIME"
-                    echo "test duration:$TEST_DURATION"
+                    echo "test duration:$UAS_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
-                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
-                    echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $TEST_DURATION+seconds -u)"
+                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $UAS_TEST_DURATION+seconds -u)"
                 '''
-                duration="${TEST_DURATION}" as Integer
+                duration="${UAS_TEST_DURATION}" as Integer
                 sleep_time=duration + 300
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
                 echo "TEST ENDED"        
                 sh '''
                     killall sipp || true
                     export PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
-                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/main/resources/jSIP-Performance-UAS.xsl
+                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/jSIP-Performance-UAS.xsl
                     export RESULTS_DIR=$WORKSPACE/uas-perf-results-dir
                     $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
                 '''            
@@ -226,6 +230,63 @@ node("slave-xlarge") {
             }
         } else {
             echo "RUN_UAS_PERF_TESTS is false, skipped UAS Performance Tests stage"
+        }
+
+        if("${params.RUN_B2BUA_PERF_TESTS}" == "true") {
+            echo "RUN_B2BUA_PERF_TESTS is true, running B2BUA Performance Tests stage"
+            stage("B2BUA Performance Tests") {
+                
+                //sh 'killall Shootme'
+                echo "Starting B2BUA Process"       
+                sh 'mkdir -p $WORKSPACE/b2bua-perf-results-dir'                  
+                echo '${JAVA_OPTS}'             
+                sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/b2bua/sip-stack.properties performance.b2bua.Test > $WORKSPACE/b2bua-perf-results-dir/b2bua-stdout-log.txt&'
+                sleep(time:5,unit:"SECONDS") 
+                sh '''                
+                    PROCESS_PID=$(jps | awk \'/Test/{print $1}\')
+                    echo "B2BUA Process PID $PROCESS_PID"
+
+                    #export TERM=vt100                
+                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
+
+                    echo "starting data collection"
+                    RESULTS_DIR=$WORKSPACE/b2bua-perf-results-dir
+                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
+                    COLLECTION_INTERVAL_SECS=15
+                    $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
+                    echo "starting B2BUA test"                                
+                    SIPP_Performance_UAS=$WORKSPACE/jain-sip-performance/src/main/resources/performance/b2bua/uas_DIALOG.xml
+                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance/b2bua/uac_DIALOG.xml
+                    CALLS=$(( ${B2BUA_CALL_RATE} * ${B2BUA_TEST_DURATION} ))                                
+                    CONCURRENT_CALLS=$((${B2BUA_CALL_RATE} * ${B2BUA_CALL_LENGTH} * 2 ))
+                    echo "calls:$CALLS"
+                    echo "call rate:${B2BUA_CALL_RATE}"
+                    echo "call length:${B2BUA_CALL_LENGTH}"
+                    echo "wait time:$WAIT_TIME"
+                    echo "test duration:$B2BUA_TEST_DURATION"
+                    echo "concurrent calls:$CONCURRENT_CALLS"                
+                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAS -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5090 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
+                '''
+                duration="${B2BUA_TEST_DURATION}" as Integer
+                sleep_time=duration + 300
+                sleep(time:"${sleep_time}",unit:"SECONDS") 
+                echo "TEST ENDED"        
+                sh '''
+                    killall sipp || true
+                    export PERFCORDER_SIPP_CSV="$WORKSPACE/performance-b2bua*.csv"
+                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/jSIP-Performance-B2BUA.xsl
+                    export RESULTS_DIR=$WORKSPACE/b2bua-perf-results-dir
+                    $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
+                '''            
+            }
+
+            stage("Publish B2BUA Performance Tests Results") {
+                publishPerformanceTestsResults("$WORKSPACE/b2bua-perf-results-dir")
+            }
+        } else {
+            echo "RUN_B2BUA_PERF_TESTS is false, skipped B2BUA Performance Tests stage"
         }
     }
 }
