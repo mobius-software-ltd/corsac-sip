@@ -177,7 +177,7 @@ node("slave-xlarge") {
             }
             sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
             sh 'sudo sysctl -w net.core.rmem_max=26214400'  
-            sh 'sudo ulimit -n 120000'
+            sh 'ulimit -n 120000'
         }
         if("${params.RUN_UAS_PERF_TESTS}" == "true") {
             echo "RUN_UAS_PERF_TESTS is true, running UAS Performance Tests stage"
