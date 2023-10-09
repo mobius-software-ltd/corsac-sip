@@ -72,6 +72,8 @@
    ]]>
 	</send>
 	
-	<pause milliseconds="30000"/>
+	<pause milliseconds="90000"/>
+  <!-- Keep the call open for a while in case the 200 is lost to be     -->
+  <!-- able to retransmit it if we receive the BYE again.               -->
 	
 </scenario>

@@ -51,9 +51,9 @@
    ]]>
 	</send>
 
-	<pause/>
+	<pause milliseconds="60000"/>
 
-	<send retrans="1000" start_rtd="1">
+	<send retrans="1000">
    <![CDATA[
 
      BYE sip:bob[call_number]@[remote_ip]:5090 SIP/2.0
@@ -69,8 +69,6 @@
    ]]>
 	</send>
  
-	<recv response="200" crlf="true" rtd="2"/>
+	<recv response="200"/>
 	
-	<pause milliseconds="30000"/>
-
 </scenario>

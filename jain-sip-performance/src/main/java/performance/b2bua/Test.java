@@ -30,7 +30,6 @@ public class Test implements SipListener {
 	private static final String SIP_BIND_ADDRESS = "javax.sip.IP_ADDRESS";
 	private static final String SIP_PORT_BIND = "javax.sip.PORT";
 	private static final String TRANSPORTS_BIND = "javax.sip.TRANSPORT";
-	//private static final String STACK_NAME_BIND = "javax.sip.STACK_NAME";
 	
 	private SipFactory sipFactory;
 	private SipStack sipStack;
