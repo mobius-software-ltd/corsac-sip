@@ -215,7 +215,7 @@ node("slave-xlarge") {
                 '''
                 echo "POST_PERF_ADDITIONAL_SLEEP_TIME ${POST_PERF_ADDITIONAL_SLEEP_TIME}"
                 duration="${UAS_TEST_DURATION}" as Integer
-                additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}"
+                additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}" as Integer
                 echo "additional_duration ${additional_duration}"
                 sleep_time=duration + additional_duration
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
@@ -275,7 +275,7 @@ node("slave-xlarge") {
                 '''
                 echo "POST_PERF_ADDITIONAL_SLEEP_TIME ${POST_PERF_ADDITIONAL_SLEEP_TIME}"
                 duration="${B2BUA_TEST_DURATION}" as Integer
-                additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}"
+                additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}" as Integer
                 echo "additional_duration ${additional_duration}"
                 sleep_time=duration + additional_duration
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
