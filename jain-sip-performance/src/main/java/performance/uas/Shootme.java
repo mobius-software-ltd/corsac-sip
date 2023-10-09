@@ -269,7 +269,7 @@ public class Shootme implements SipListener {
 
     public void processDialogTerminated(
             DialogTerminatedEvent dialogTerminatedEvent) {
-    	Dialog dialog = dialogTerminatedEvent.getDialog();
+    	//Dialog dialog = dialogTerminatedEvent.getDialog();
     	//System.out.println(dialog);
     }
 
