@@ -213,6 +213,7 @@ node("slave-xlarge") {
                     $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $UAS_TEST_DURATION+seconds -u)"
                 '''
+                echo 'POST_PERF_ADDITIONAL_SLEEP_TIME ${POST_PERF_ADDITIONAL_SLEEP_TIME}'
                 duration="${UAS_TEST_DURATION}" as Integer
                 sleep_time=duration + "${POST_PERF_ADDITIONAL_SLEEP_TIME}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
@@ -270,6 +271,7 @@ node("slave-xlarge") {
                     $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
                 '''
+                echo 'POST_PERF_ADDITIONAL_SLEEP_TIME ${POST_PERF_ADDITIONAL_SLEEP_TIME}'
                 duration="${B2BUA_TEST_DURATION}" as Integer
                 sleep_time=duration + "${POST_PERF_ADDITIONAL_SLEEP_TIME}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
