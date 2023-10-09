@@ -184,9 +184,9 @@ node("slave-xlarge") {
                 
                 //sh 'killall Shootme'
                 echo "Starting UAS Process"       
-                sh 'mkdir -p $WORKSPACE/uas-perf-results-dir'                  
+                sh 'mkdir -p $WORKSPACE/perf-results-dir-uas'                  
                 echo '${JAVA_OPTS}'             
-                sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/uas-perf-results-dir/uas-stdout-log.txt&'
+                sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&'
                 sleep(time:5,unit:"SECONDS") 
                 sh '''                
                     PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
@@ -196,7 +196,7 @@ node("slave-xlarge") {
                     $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
 
                     echo "starting data collection"
-                    RESULTS_DIR=$WORKSPACE/uas-perf-results-dir
+                    RESULTS_DIR=$WORKSPACE/perf-results-dir-uas
                     CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
                     COLLECTION_INTERVAL_SECS=15
                     $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
@@ -224,13 +224,13 @@ node("slave-xlarge") {
                     killall sipp || true
                     export PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
                     export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/jSIP-Performance-UAS.xsl
-                    export RESULTS_DIR=$WORKSPACE/uas-perf-results-dir
+                    export RESULTS_DIR=$WORKSPACE/perf-results-dir-uas
                     $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
                 '''            
             }
 
             stage("Publish UAS Performance Tests Results") {
-                publishPerformanceTestsResults("uas-perf-results-dir")
+                publishPerformanceTestsResults("perf-results-dir-uas")
             }
         } else {
             echo "RUN_UAS_PERF_TESTS is false, skipped UAS Performance Tests stage"
@@ -242,9 +242,9 @@ node("slave-xlarge") {
                 
                 //sh 'killall Shootme'
                 echo "Starting B2BUA Process"       
-                sh 'mkdir -p $WORKSPACE/b2bua-perf-results-dir'                  
+                sh 'mkdir -p $WORKSPACE/perf-results-dir-b2bua'                  
                 echo '${JAVA_OPTS}'             
-                sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/b2bua/sip-stack.properties performance.b2bua.Test > $WORKSPACE/b2bua-perf-results-dir/b2bua-stdout-log.txt&'
+                sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/b2bua/sip-stack.properties performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&'
                 sleep(time:5,unit:"SECONDS") 
                 sh '''                
                     PROCESS_PID=$(jps | awk \'/Test/{print $1}\')
@@ -254,7 +254,7 @@ node("slave-xlarge") {
                     $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
 
                     echo "starting data collection"
-                    RESULTS_DIR=$WORKSPACE/b2bua-perf-results-dir
+                    RESULTS_DIR=$WORKSPACE/perf-results-dir-b2bua
                     CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
                     COLLECTION_INTERVAL_SECS=15
                     $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
@@ -282,15 +282,15 @@ node("slave-xlarge") {
                 echo "TEST ENDED"        
                 sh '''
                     killall sipp || true
-                    export PERFCORDER_SIPP_CSV="$WORKSPACE/performance-b2bua*.csv"
+                    export PERFCORDER_SIPP_CSV="$WORKSPACE/uas_DIALOG*.csv"
                     export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/jSIP-Performance-B2BUA.xsl
-                    export RESULTS_DIR=$WORKSPACE/b2bua-perf-results-dir
+                    export RESULTS_DIR=$WORKSPACE/perf-results-dir-b2bua
                     $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
                 '''            
             }
 
             stage("Publish B2BUA Performance Tests Results") {
-                publishPerformanceTestsResults("b2bua-perf-results-dir")
+                publishPerformanceTestsResults("perf-results-dir-b2bua")
             }
         } else {
             echo "RUN_B2BUA_PERF_TESTS is false, skipped B2BUA Performance Tests stage"
