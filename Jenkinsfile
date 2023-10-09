@@ -230,7 +230,7 @@ node("slave-xlarge") {
             }
 
             stage("Publish UAS Performance Tests Results") {
-                publishPerformanceTestsResults($WORKSPACE/uas-perf-results-dir)
+                publishPerformanceTestsResults("$WORKSPACE/uas-perf-results-dir")
             }
         } else {
             echo "RUN_UAS_PERF_TESTS is false, skipped UAS Performance Tests stage"
@@ -290,7 +290,7 @@ node("slave-xlarge") {
             }
 
             stage("Publish B2BUA Performance Tests Results") {
-                publishPerformanceTestsResults($WORKSPACE/b2bua-perf-results-dir)
+                publishPerformanceTestsResults("$WORKSPACE/b2bua-perf-results-dir")
             }
         } else {
             echo "RUN_B2BUA_PERF_TESTS is false, skipped B2BUA Performance Tests stage"
