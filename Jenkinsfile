@@ -218,6 +218,7 @@ node("slave-xlarge") {
                 additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}" as Integer
                 echo "additional_duration ${additional_duration}"
                 sleep_time=duration + additional_duration
+                echo "sleep_time ${sleep_time}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
                 echo "TEST ENDED"        
                 sh '''
@@ -278,6 +279,7 @@ node("slave-xlarge") {
                 additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}" as Integer
                 echo "additional_duration ${additional_duration}"
                 sleep_time=duration + additional_duration
+                echo "sleep_time ${sleep_time}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
                 echo "TEST ENDED"        
                 sh '''
