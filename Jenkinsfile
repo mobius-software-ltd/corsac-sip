@@ -197,7 +197,7 @@ node("slave-xlarge") {
                     '''
                 } else {
                     sh '''
-                        export CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-\"${params.PERF_JAIN_SIP_RI_VERSION}\".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
+                        export CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-"+${params.PERF_JAIN_SIP_RI_VERSION}+".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
                         echo "CLASSPATH: " + \"${CLASSPATH}\"
                         java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
                     '''
@@ -269,7 +269,7 @@ node("slave-xlarge") {
                     '''
                 } else {
                     sh '''
-                        CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-\"${params.PERF_JAIN_SIP_RI_VERSION}\".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
+                        CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-"+${params.PERF_JAIN_SIP_RI_VERSION}+".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
                         echo "CLASSPATH: " + \"${CLASSPATH}\"
                         java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/sip-stack.properties performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&
                     '''
