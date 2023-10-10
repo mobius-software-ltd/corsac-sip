@@ -84,7 +84,7 @@ node("slave-xlarge") {
             string(name: 'B2BUA_CALL_RATE', defaultValue: "400", description: 'B2BUA calls per second rate', trim: true),
             string(name: 'B2BUA_CALL_LENGTH', defaultValue: "60", description: 'B2BUA call length', trim: true),
             string(name: 'POST_PERF_ADDITIONAL_SLEEP_TIME', defaultValue: "300", description: 'Additional Sleep time after performance test to ensure proper cleanup', trim: true),
-            string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true)
+            string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true),
             string(name: 'PERF_JAIN-SIP-RI_VERSION', defaultValue: "current", description: 'Version of JAIN SIP RI to use for running perf tests (example: 7.0.5.287)', trim: true)
         ])
     ])
