@@ -85,7 +85,7 @@ node("slave-xlarge") {
             string(name: 'B2BUA_CALL_LENGTH', defaultValue: "60", description: 'B2BUA call length', trim: true),
             string(name: 'POST_PERF_ADDITIONAL_SLEEP_TIME', defaultValue: "300", description: 'Additional Sleep time after performance test to ensure proper cleanup', trim: true),
             string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true),
-            string(name: 'PERF_JAIN-SIP-RI_VERSION', defaultValue: "current", description: 'Version of JAIN SIP RI to use for running perf tests (example: 7.0.5.287)', trim: true)
+            string(name: 'PERF_JAIN_SIP_RI_VERSION', defaultValue: "current", description: 'Version of JAIN SIP RI to use for running perf tests (example: 7.0.5.287)', trim: true)
         ])
     ])
 
@@ -187,8 +187,9 @@ node("slave-xlarge") {
                 //sh 'killall Shootme'
                 echo "Starting UAS Process"       
                 sh 'mkdir -p $WORKSPACE/perf-results-dir-uas'                  
-                echo 'JAVA OPTS' + "${JAVA_OPTS}"   
-                if("${params.PERF_JAIN-SIP-RI_VERSION}" == "current") {                          
+                echo 'JAVA OPTS: ' + "${JAVA_OPTS}"   
+                echo 'PERF_JAIN_SIP_RI_VERSION: ' + "${params.PERF_JAIN_SIP_RI_VERSION}"   
+                if("${params.PERF_JAIN_SIP_RI_VERSION}" == "current") {                          
                     sh '''
                         export CLASSPATH="jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/*"
                         echo "CLASSPATH: " + \"${CLASSPATH}\"
@@ -196,7 +197,7 @@ node("slave-xlarge") {
                     '''
                 } else {
                     sh '''
-                        export CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-\"${params.PERF_JAIN-SIP-RI_VERSION}\".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
+                        export CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-\"${params.PERF_JAIN_SIP_RI_VERSION}\".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
                         echo $CLASSPATH
                         java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
                     '''
