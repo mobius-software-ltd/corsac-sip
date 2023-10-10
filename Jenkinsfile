@@ -190,7 +190,7 @@ node("slave-xlarge") {
                 sh 'mkdir -p $WORKSPACE/perf-results-dir-uas'                  
                 echo 'JAVA OPTS: ' + "${JAVA_OPTS}"   
                 echo 'PERF_JAIN_SIP_RI_VERSION: ' + "${PERF_JAIN_SIP_RI_VERSION}" 
-                echo 'PERF_LOG4J_VERSION: ' + "${PERF_LOG4J_VERSION}"     
+                echo 'PERF_LOG4J_VERSION: ' + "${params.PERF_LOG4J_VERSION}"     
                 if("${params.PERF_JAIN_SIP_RI_VERSION}" == "current") {                          
                     sh '''
                         export CLASSPATH="jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/*"
@@ -263,7 +263,7 @@ node("slave-xlarge") {
                 sh 'mkdir -p $WORKSPACE/perf-results-dir-b2bua'                  
                 echo 'JAVA OPTS: ' + "${JAVA_OPTS}"   
                 echo 'PERF_JAIN_SIP_RI_VERSION: ' + "${PERF_JAIN_SIP_RI_VERSION}"   
-                echo 'PERF_LOG4J_VERSION: ' + "${PERF_LOG4J_VERSION}"   
+                echo 'PERF_LOG4J_VERSION: ' + "${params.PERF_LOG4J_VERSION}"   
                 if("${params.PERF_JAIN_SIP_RI_VERSION}" == "current") {                                          
                     sh '''
                         CLASSPATH="jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/*"
