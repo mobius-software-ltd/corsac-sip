@@ -114,7 +114,7 @@ public class NIOIdleTimeoutWithSeparateAffinityTimerTest  extends ScenarioHarnes
                 defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 defaultProperties.setProperty("gov.nist.javax.sip.NIO_MAX_SOCKET_IDLE_TIME", "" + CLOSE_DELAY / 4);
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE", "DisabledAll");
-                defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1");
+                defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1.2, TLSv1.3");
                 defaultProperties.setProperty("gov.nist.javax.sip.TIMER_CLASS_NAME", SeparateAffinitityExecutorSipTimer.class.getName());
                 defaultProperties.setProperty("gov.nist.javax.sip.SEPARATE_AFFINITITY_EXECUTOR_SIP_TIMER_THREADS", "4");
                 this.sipFactory = SipFactory.getInstance();
@@ -166,7 +166,7 @@ public class NIOIdleTimeoutWithSeparateAffinityTimerTest  extends ScenarioHarnes
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS","false");
                 defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE", "DisabledAll");
-                defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1");
+                defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1.2, TLSv1.3");
 
                 this.sipFactory = SipFactory.getInstance();
                 this.sipFactory.resetFactory();

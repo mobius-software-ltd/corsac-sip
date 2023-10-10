@@ -30,7 +30,6 @@ public class Test implements SipListener {
 	private static final String SIP_BIND_ADDRESS = "javax.sip.IP_ADDRESS";
 	private static final String SIP_PORT_BIND = "javax.sip.PORT";
 	private static final String TRANSPORTS_BIND = "javax.sip.TRANSPORT";
-	//private static final String STACK_NAME_BIND = "javax.sip.STACK_NAME";
 	
 	private SipFactory sipFactory;
 	private SipStack sipStack;
@@ -39,18 +38,6 @@ public class Test implements SipListener {
 	private HeaderFactory headerFactory;
 	private MessageFactory messageFactory;
 		
-	private static Properties properties = loadProperties();
-	private static Properties loadProperties() {
-		Properties props = new Properties();
-		// Load default values
-		try {
-			props.load(new FileInputStream(new File("mss-sip-stack.properties")));
-		} catch (java.io.IOException ex) {
-			ex.printStackTrace();
-		}
-		return props;
-	}
-	
 	public Test() throws NumberFormatException, SipException, TooManyListenersException, InvalidArgumentException, ParseException {
 		initStack();
 	}
@@ -59,7 +46,25 @@ public class Test implements SipListener {
 			NumberFormatException, InvalidArgumentException, ParseException {
 		this.sipFactory = SipFactory.getInstance();
 		this.sipFactory.setPathName("gov.nist");
-		this.sipStack = this.sipFactory.createSipStack(Test.properties);
+		Properties properties = new Properties();
+        try {
+            String filePath = System.getProperty("SIP_STACK_PROPERTIES_PATH");
+            if (filePath == null) {
+                throw new RuntimeException("SIP_STACK_PROPERTIES_PATH environment variable not set");
+            }
+            properties.load(new FileInputStream(new File(filePath)));
+            // Create SipStack object
+            sipStack = sipFactory.createSipStack(properties);
+        } catch (Exception e) {
+            // could not find
+            // gov.nist.jain.protocol.ip.sip.SipStackImpl
+            // in the classpath
+            e.printStackTrace();
+            System.err.println(e.getMessage());
+            if (e.getCause() != null)
+                e.getCause().printStackTrace();
+            System.exit(2);
+        }		
 		this.sipStack.start();
 		this.listeningPoint = this.sipStack.createListeningPoint(properties.getProperty(
 				SIP_BIND_ADDRESS, "127.0.0.1"), Integer.valueOf(properties
