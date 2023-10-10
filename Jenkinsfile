@@ -187,16 +187,16 @@ node("slave-xlarge") {
                 //sh 'killall Shootme'
                 echo "Starting UAS Process"       
                 sh 'mkdir -p $WORKSPACE/perf-results-dir-uas'                  
-                echo '${JAVA_OPTS}'   
+                echo 'JAVA OPTS' + "${JAVA_OPTS}"   
                 if("${params.PERF_JAIN-SIP-RI_VERSION}" == "current") {                          
                     sh '''
-                        CLASSPATH="jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/*"
-                        echo $CLASSPATH
-                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
+                        export CLASSPATH="jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/*"
+                        echo "CLASSPATH: " + \"${CLASSPATH}\"
+                        java ${JAVA_OPTS} -cp ${CLASSPATH} -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
                     '''
                 } else {
                     sh '''
-                        CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-\"${params.PERF_JAIN-SIP-RI_VERSION}\".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
+                        export CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-\"${params.PERF_JAIN-SIP-RI_VERSION}\".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
                         echo $CLASSPATH
                         java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
                     '''
