@@ -11,9 +11,9 @@ fi
 ##################################
 echo "start data collection:$@"
 ##################################
-chmod 777 $TOOLS_DIR/src/test/resources/*.sh
+chmod 777 $TOOLS_DIR/src/main/resources/*.sh
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-cp $TOOLS_DIR/target/sipp-report-*with-dependencies.jar $TOOLS_DIR/src/test/resources/
-export PERFCORDER_HOME=$TOOLS_DIR/src/test/resources/
+cp $TOOLS_DIR/target/sipp-report-*with-dependencies.jar $TOOLS_DIR/src/main/resources/
+export PERFCORDER_HOME=$TOOLS_DIR/src/main/resources/
 #echo "listing JDK Lib directory $(ls $JAVA_HOME/lib)"
-$TOOLS_DIR/src/test/resources/pc_start_collect.sh $PERFCORDER_START_OPTIONS "$@"
+$TOOLS_DIR/src/main/resources/pc_start_collect.sh $PERFCORDER_START_OPTIONS "$@"
