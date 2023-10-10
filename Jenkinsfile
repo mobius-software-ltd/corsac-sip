@@ -170,12 +170,12 @@ node("slave-xlarge") {
             sh'sudo add-apt-repository -y universe'
             sh 'sudo apt update & sudo apt-get -y install dstat zip'            
             echo 'Building Performance Tests'
-            //sh 'jain-sip-performance/src/main/resources/buildPerfcorder.sh'
-            //sh 'jain-sip-performance/src/main/resources/tuneOS.sh'
+            //sh 'jain-sip-performance/src/test/resources/buildPerfcorder.sh'
+            //sh 'jain-sip-performance/src/test/resources/tuneOS.sh'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
                 sh "mvn -DskipTests=true -B -f jain-sip-performance/pom.xml clean install"
             }
-            sh '$WORKSPACE/jain-sip-performance/src/main/resources/download-and-compile-sipp.sh'
+            sh '$WORKSPACE/jain-sip-performance/src/test/resources/download-and-compile-sipp.sh'
             sh 'sudo sysctl -w net.core.rmem_max=26214400'  
             sh 'ulimit -n 120000'
         }
@@ -187,22 +187,22 @@ node("slave-xlarge") {
                 echo "Starting UAS Process"       
                 sh 'mkdir -p $WORKSPACE/perf-results-dir-uas'                  
                 echo '${JAVA_OPTS}'             
-                sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&'
+                sh 'java ${JAVA_OPTS} -cp "jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/*" -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&'
                 sleep(time:5,unit:"SECONDS") 
                 sh '''                
                     PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
                     echo "Shootme Process PID $PROCESS_PID"
 
                     #export TERM=vt100                
-                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
 
                     echo "starting data collection"
                     RESULTS_DIR=$WORKSPACE/perf-results-dir-uas
-                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
+                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/class_histo.join
                     COLLECTION_INTERVAL_SECS=15
-                    $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
+                    $WORKSPACE/jain-sip-performance/src/test/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
                     echo "starting test"                                
-                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/performance-uac.xml
+                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/performance-uac.xml
                     CALLS=$(( ${UAS_CALL_RATE} * ${UAS_TEST_DURATION} ))                                
                     CONCURRENT_CALLS=$((${UAS_CALL_RATE} * ${UAS_CALL_LENGTH} * 2 ))
                     echo "calls:$CALLS"
@@ -211,7 +211,7 @@ node("slave-xlarge") {
                     echo "wait time:$WAIT_TIME"
                     echo "test duration:$UAS_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
-                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $UAS_TEST_DURATION+seconds -u)"
                 '''
                 echo "POST_PERF_ADDITIONAL_SLEEP_TIME ${POST_PERF_ADDITIONAL_SLEEP_TIME}"
@@ -225,9 +225,9 @@ node("slave-xlarge") {
                 sh '''
                     killall sipp || true
                     export PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
-                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/jSIP-Performance-UAS.xsl
+                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/jSIP-Performance-UAS.xsl
                     export RESULTS_DIR=$WORKSPACE/perf-results-dir-uas
-                    $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
+                    $WORKSPACE/jain-sip-performance/src/test/resources/stopPerfcorder.sh
                 '''            
             }
 
@@ -246,23 +246,23 @@ node("slave-xlarge") {
                 echo "Starting B2BUA Process"       
                 sh 'mkdir -p $WORKSPACE/perf-results-dir-b2bua'                  
                 echo '${JAVA_OPTS}'             
-                sh 'java ${JAVA_OPTS} -cp jain-sip-performance/target/*-with-dependencies.jar -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/performance/b2bua/sip-stack.properties performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&'
+                sh 'java ${JAVA_OPTS} -cp "jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/*" -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/sip-stack.properties performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&'
                 sleep(time:5,unit:"SECONDS") 
                 sh '''                
                     PROCESS_PID=$(jps | awk \'/Test/{print $1}\')
                     echo "B2BUA Process PID $PROCESS_PID"
 
                     #export TERM=vt100                
-                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp -v || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
 
                     echo "starting data collection"
                     RESULTS_DIR=$WORKSPACE/perf-results-dir-b2bua
-                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/main/resources/class_histo.join
+                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/class_histo.join
                     COLLECTION_INTERVAL_SECS=15
-                    $WORKSPACE/jain-sip-performance/src/main/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
+                    $WORKSPACE/jain-sip-performance/src/test/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
                     echo "starting B2BUA test"                                
-                    SIPP_Performance_UAS=$WORKSPACE/jain-sip-performance/src/main/resources/performance/b2bua/uas_DIALOG.xml
-                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/main/resources/performance/b2bua/uac_DIALOG.xml
+                    SIPP_Performance_UAS=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/uas_DIALOG.xml
+                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/uac_DIALOG.xml
                     CALLS=$(( ${B2BUA_CALL_RATE} * ${B2BUA_TEST_DURATION} ))                                
                     CONCURRENT_CALLS=$((${B2BUA_CALL_RATE} * ${B2BUA_CALL_LENGTH} * 2 ))
                     echo "calls:$CALLS"
@@ -271,8 +271,8 @@ node("slave-xlarge") {
                     echo "wait time:$WAIT_TIME"
                     echo "test duration:$B2BUA_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
-                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp -sf $SIPP_Performance_UAS -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error -bg || true
-                    $WORKSPACE/jain-sip-performance/src/main/resources/sipp 127.0.0.1:5060 -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -sf $SIPP_Performance_UAS -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:5060 -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
                 '''
                 echo "POST_PERF_ADDITIONAL_SLEEP_TIME ${POST_PERF_ADDITIONAL_SLEEP_TIME}"
@@ -286,9 +286,9 @@ node("slave-xlarge") {
                 sh '''
                     killall sipp || true
                     export PERFCORDER_SIPP_CSV="$WORKSPACE/uas_DIALOG*.csv"
-                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/main/resources/performance/uas/jSIP-Performance-B2BUA.xsl
+                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/jSIP-Performance-B2BUA.xsl
                     export RESULTS_DIR=$WORKSPACE/perf-results-dir-b2bua
-                    $WORKSPACE/jain-sip-performance/src/main/resources/stopPerfcorder.sh
+                    $WORKSPACE/jain-sip-performance/src/test/resources/stopPerfcorder.sh
                 '''            
             }
 

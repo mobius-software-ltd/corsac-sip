@@ -7,7 +7,7 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
         <format>jar</format>
     </formats>
 
-    <includeBaseDirectory>false</includeBaseDirectory>
+    <includeBaseDirectory>false</includeBaseDirectory>    
 
     <dependencySets>
         <dependencySet>
@@ -15,14 +15,21 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
             <outputFileNameMapping></outputFileNameMapping>
             <unpack>true</unpack>
             <scope>runtime</scope>
+            <excludes>                                   
+                <exclude>javax.sip:jain-sip-ri</exclude>                    
+                <exclude>javax.sip:jain-sip-api</exclude>
+            </excludes>
             <unpackOptions>
                 <excludes>
+                    <exclude>**/.settings</exclude>  
+                    <exclude>**/sipp</exclude>  
+                    <exclude>**/*.sh</exclude> 
                     <exclude>/META-INF/**.RSA</exclude>
                     <exclude>/META-INF/**.DSA</exclude>
                     <exclude>/META-INF/**.SF</exclude>
                     <exclude>/META-INF/**.rsa</exclude>
                     <exclude>/META-INF/**.dsa</exclude>
-                    <exclude>/META-INF/**.sf</exclude>
+                    <exclude>/META-INF/**.sf</exclude>                                      
                 </excludes>
             </unpackOptions>
         </dependencySet>
