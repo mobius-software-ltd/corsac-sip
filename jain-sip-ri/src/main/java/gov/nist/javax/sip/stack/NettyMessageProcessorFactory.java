@@ -33,7 +33,7 @@ import javax.sip.ListeningPoint;
 import gov.nist.javax.sip.ListeningPointExt;
 import gov.nist.javax.sip.SipStackImpl;
 
-public class NioMessageProcessorFactory implements MessageProcessorFactory {
+public class NettyMessageProcessorFactory implements MessageProcessorFactory {
 
     @Override  
     public MessageProcessor createMessageProcessor(
@@ -45,10 +45,10 @@ public class NioMessageProcessorFactory implements MessageProcessorFactory {
                 sipStack.udpFlag = true;
                 return udpMessageProcessor;
             } else if (transport.equalsIgnoreCase(ListeningPoint.TCP)) {
-                NioTcpMessageProcessor nioTcpMessageProcessor = new NioTcpMessageProcessor(
+                NettyTCPMessageProcessor nettyTcpMessageProcessor = new NettyTCPMessageProcessor(
                         ipAddress, sipStack, port);         
                 // this.tcpFlag = true;
-                return nioTcpMessageProcessor;
+                return nettyTcpMessageProcessor;
             } else if (transport.equalsIgnoreCase(ListeningPoint.TLS)) {
                 NioTlsMessageProcessor tlsMessageProcessor = new NioTlsMessageProcessor(
                         ipAddress, sipStack, port);         
@@ -105,4 +105,7 @@ public class NioMessageProcessorFactory implements MessageProcessorFactory {
             	throw new IllegalArgumentException("bad transport");
             }
      }
+
+  
+
 }

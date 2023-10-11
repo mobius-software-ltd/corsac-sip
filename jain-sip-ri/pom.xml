@@ -30,7 +30,12 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-		</dependency>       
+		</dependency>   
+        <dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+            <version>${version.netty}</version>
+		</dependency>      
     </dependencies>
 
 </project>

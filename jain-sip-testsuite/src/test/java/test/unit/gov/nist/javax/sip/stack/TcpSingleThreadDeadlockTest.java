@@ -1,8 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.DialogExt;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -39,6 +36,9 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import gov.nist.javax.sip.DialogExt;
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -282,16 +282,16 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
             properties.setProperty("javax.sip.STACK_NAME", "shootme");
             // You need 16 for logging traces. 32 for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
-            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "0");
+            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
             properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
                     "shootmedebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
                     "shootmelog.txt");
             properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING", "false");
             properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
-            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
-            }
+            // if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+            // }
             try {
                 // Create SipStack object
                 sipStack = sipFactory.createSipStack(properties);
@@ -317,7 +317,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
                 Shootme listener = this;
 
                 sipProvider = sipStack.createSipProvider(lp);
-                System.out.println("udp provider " + sipProvider);
+                System.out.println("tcp provider " + sipProvider);
                 sipProvider.addSipListener(listener);
 
             } catch (Exception ex) {
@@ -493,9 +493,9 @@ boolean inUse = false;
             properties.setProperty("gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE", "1");
             properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
             properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING","false");
-            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+            // if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
-            }
+            // }
             try {
                 // Create SipStack object
                 sipStack = sipFactory.createSipStack(properties);
@@ -624,7 +624,7 @@ boolean inUse = false;
                 Header callInfoHeader = headerFactory.createHeader("Call-Info",
                         "<http://www.antd.nist.gov>");
                 request.addHeader(callInfoHeader);
-
+                
                 // Create the client transaction.
                 ClientTransaction inviteTid = sipProvider.getNewClientTransaction(request);
             	try {
@@ -633,7 +633,7 @@ boolean inUse = false;
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-
+                
                 // send the request out.
                 inviteTid.sendRequest();
 
