@@ -2,11 +2,16 @@ package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.ListeningPoint;
 
 import gov.nist.core.CommonLogger;
+import gov.nist.core.Host;
 import gov.nist.core.HostPort;
+import gov.nist.core.LogLevels;
+import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -30,17 +35,20 @@ public class NettyTCPMessageProcessor extends MessageProcessor{
 	
 	private static StackLogger logger = CommonLogger.getLogger(NettyTCPMessageProcessor.class);
 
+    protected final Map<String, NettyTCPMessageChannel> messageChannels;
     /**
      * The Mapped port (in case STUN suport is enabled) 
      */
     private int port;
-
+    
     // multithreaded event loop that handles incoming connection and I/O operations    
     EventLoopGroup bossGroup; 
     // multithreaded event loop that handles I/O operation and handles the traffic 
     // of the accepted connection once the boss accepts the connection
     // and registers the accepted connection to the worker
     EventLoopGroup workerGroup;
+
+    public NettyMessageHandler context;
     /**
      * Constructor.
      *
@@ -49,6 +57,7 @@ public class NettyTCPMessageProcessor extends MessageProcessor{
     protected NettyTCPMessageProcessor(InetAddress ipAddress,
             SIPTransactionStack sipStack, int port) throws IOException {
                 super(ipAddress, port, ListeningPoint.TCP, sipStack);
+                this.messageChannels = new ConcurrentHashMap <String, NettyTCPMessageChannel>();
                 this.port = port;
                 // TODO: Add how many threads can be used
                 this.bossGroup = new NioEventLoopGroup(); 
@@ -56,16 +65,74 @@ public class NettyTCPMessageProcessor extends MessageProcessor{
                 this.workerGroup = new NioEventLoopGroup();
     }
 
+    /**
+     * This private version is thread safe using proper critical session.
+     * 
+     * We don't use putIfAbset from CHM since creating a channel instance itself
+     * is quite heavy. See https://github.com/RestComm/jain-sip/issues/80.
+     * 
+     * Using synchronized at method level, instead of any internal att, 
+     * as we had in non Nio impl. This is better than use sync section with 
+     * non-volatile variable. 
+     * @param key
+     * @param targetHost
+     * @param port
+     * @return
+     * @throws IOException 
+     * @throws InterruptedException
+     */
+    private MessageChannel createMessageChannel(String key, InetAddress targetHost, int port)  throws IOException {
+        NettyTCPMessageChannel retval = messageChannels.get(key);        
+        //once locked, we need to check condition again
+        if( retval == null ) {
+                retval = constructMessageChannel(targetHost,
+                                port);
+                this.messageChannels.put(key, retval);
+                // retval.isCached = true;
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                        logger.logDebug("key " + key);
+                        logger.logDebug("Creating " + retval);
+                }                
+        }  		
+        return retval;      
+    }   
+
     @Override
     public MessageChannel createMessageChannel(HostPort targetHostPort) throws IOException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createMessageChannel'");
+    	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    		logger.logDebug("NioTcpMessageProcessor::createMessageChannel: " + targetHostPort);
+    	}
+        MessageChannel retval = null;
+    	try {
+    		String key = MessageChannel.getKey(targetHostPort, transport);
+		    // retval = messageChannels.get(key);
+                //here we use double-checked locking trying to reduce contention	
+    		if (retval == null) {
+                    retval = createMessageChannel(key, 
+                            targetHostPort.getInetAddress(), targetHostPort.getPort());  			
+		}    		
+    	} finally {
+    		if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    			logger.logDebug("MessageChannel::createMessageChannel - exit " + retval);
+    		}
+    	}
+        return retval;
     }
 
     @Override
     public MessageChannel createMessageChannel(InetAddress targetHost, int port) throws IOException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createMessageChannel'");
+        String key = MessageChannel.getKey(targetHost, port, transport);
+        // MessageChannel retval = messageChannels.get(key);
+        MessageChannel retval = null;
+            //here we use double-checked locking trying to reduce contention	
+        if (retval == null) {
+                retval = createMessageChannel(key, targetHost, port);
+        }
+	return retval;
+    }
+
+    NettyTCPMessageChannel constructMessageChannel (InetAddress targetHost, int port) throws IOException {
+        return new NettyTCPMessageChannel(targetHost, port, sipStack, this);        
     }
 
     @Override
@@ -73,18 +140,18 @@ public class NettyTCPMessageProcessor extends MessageProcessor{
         try {
             // helper class that sets up a server. We can set up the server using a Channel directly. 
             // However, please note that this is a tedious process, we do not need to do that for now.
-            // TODO: May be revisited later for performance/optimizations reasons
-            ServerBootstrap b = new ServerBootstrap(); 
-            b.group(bossGroup, workerGroup)
+            // TODO: May be revisited later for performance/optimizations reasons            
+            ServerBootstrap server = new ServerBootstrap(); ; 
+            server.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class) 
              .handler(new LoggingHandler(LogLevel.INFO))
-             .childHandler(new NettyChannelInitializer(sipStack, this))
+             .childHandler(new NettyChannelInitializer(this))
              // TODO Add Option based on sip stack config
              .option(ChannelOption.SO_BACKLOG, 128) // for the NioServerSocketChannel that accepts incoming connections.
              .childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
             
             // Bind and start to accept incoming connections.
-            Channel channel = b.bind(port).sync().channel();
+            Channel channel = server.bind(port).sync().channel();
             
             // Create a new thread to run the server
             new Thread(() -> {
@@ -138,7 +205,7 @@ public class NettyTCPMessageProcessor extends MessageProcessor{
      */
     public boolean isSecure() {
         return false;
-    }     
+    }    
     
     /**
      * TCP can handle an unlimited number of bytes.
@@ -150,5 +217,108 @@ public class NettyTCPMessageProcessor extends MessageProcessor{
     @Override
     public SIPTransactionStack getSIPStack() {
         return this.sipStack;
+    }
+
+    protected synchronized void remove(NettyTCPMessageChannel messageChannel) {
+
+        String key = messageChannel.getKey();
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug(Thread.currentThread() + " removing " + key + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+        }
+
+        /** May have been removed already */
+        if (messageChannels.get(key) == messageChannel)
+            this.messageChannels.remove(key);
+        
+        // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+        //     logger.logDebug(Thread.currentThread() + " Removing incoming channel " + key + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+        // incomingMessageChannels.remove(key);
+    }
+	
+    protected synchronized void cacheMessageChannel(NettyTCPMessageChannel messageChannel) {
+        String key = messageChannel.getKey();
+        NettyTCPMessageChannel currentChannel = messageChannels.get(key);
+        if (currentChannel != null) {
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
+                logger.logDebug("Closing " + key);
+            currentChannel.close();
+        }
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+            logger.logDebug("Caching " + key);
+        this.messageChannels.put(key, messageChannel);
+    }
+    
+    public boolean closeReliableConnection(String peerAddress, int peerPort) throws IllegalArgumentException {
+
+        validatePortInRange(peerPort);
+
+        HostPort hostPort = new HostPort();
+        hostPort.setHost(new Host(peerAddress));
+        hostPort.setPort(peerPort);
+
+        String messageChannelKey = MessageChannel.getKey(hostPort, "TCP");
+
+        synchronized (this) {
+            NettyTCPMessageChannel foundMessageChannel = messageChannels.get(messageChannelKey);
+
+            if (foundMessageChannel != null) {
+                foundMessageChannel.close();
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                    logger.logDebug(Thread.currentThread() + " Removing channel " + messageChannelKey + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+                // incomingMessageChannels.remove(messageChannelKey);
+                messageChannels.remove(messageChannelKey);
+                return true;
+            }
+            
+            // foundMessageChannel = incomingMessageChannels.get(messageChannelKey);
+
+            // if (foundMessageChannel != null) {
+            //     foundMessageChannel.close();
+            //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+            //         logger.logDebug(Thread.currentThread() + " Removing incoming channel " + messageChannelKey + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+            //     incomingMessageChannels.remove(messageChannelKey);
+            //     messageChannels.remove(messageChannelKey);
+            //     return true;
+            // }
+        }
+        return false;
+    }
+    
+    public boolean setKeepAliveTimeout(String peerAddress, int peerPort, long keepAliveTimeout) {
+
+        validatePortInRange(peerPort);
+
+        HostPort hostPort  = new HostPort();
+        hostPort.setHost(new Host(peerAddress));
+        hostPort.setPort(peerPort);
+
+        String messageChannelKey = MessageChannel.getKey(hostPort, "TCP");
+                
+        NettyTCPMessageChannel foundMessageChannel = messageChannels.get(messageChannelKey);
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+            logger.logDebug(Thread.currentThread() + " checking channel with key " + messageChannelKey + " : " + foundMessageChannel + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+        
+        if (foundMessageChannel != null) {
+            // foundMessageChannel.setKeepAliveTimeout(keepAliveTimeout);
+            return true;
+        }
+        
+        // foundMessageChannel = incomingMessageChannels.get(messageChannelKey);
+        
+        // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+        //     logger.logDebug(Thread.currentThread() + " checking incoming channel with key " + messageChannelKey + " : " + foundMessageChannel + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+        
+        // if (foundMessageChannel != null) {
+        //     foundMessageChannel.setKeepAliveTimeout(keepAliveTimeout);
+        //     return true;
+        // }
+
+        return false;
+    }       
+
+    protected void validatePortInRange(int port) throws IllegalArgumentException {
+        if (port < 1 || port > 65535){
+            throw new IllegalArgumentException("Peer port should be greater than 0 and less 65535, port = " + port);
+        }
     }
 }

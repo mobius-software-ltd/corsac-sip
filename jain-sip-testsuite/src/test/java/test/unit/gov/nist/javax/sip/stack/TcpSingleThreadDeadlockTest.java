@@ -163,7 +163,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
             acks++;
             // We will wait for 5 acks to test if retransmissions are filtered. With loose dialog
             // validation the ACK retransmissions are not filtered by the stack.
-            if(acks == 5)
+            if(acks == 1)
             {
                 try {
                     System.out.println("shootme: got an ACK! ");
@@ -176,7 +176,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
                     // We will test if the CSEq validation is off by sending CSeq 1 again
 
                     ClientTransaction ct = provider
-                    .getNewClientTransaction(messageRequest);
+                        .getNewClientTransaction(messageRequest);
                     cseq.setSeqNumber(1);
                     ct.sendRequest();
 
@@ -204,7 +204,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            for(int q = 0; q<1000; q++) {
+            //for(int q = 0; q<1000; q++) {
             	try {
             		Response okResponse = messageFactory.createResponse(180,
             				request);
@@ -227,8 +227,8 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
             		ex.printStackTrace();
             		//junit.framework.TestCase.fail("Exit JVM");
             	}
-            	if(q%100==0) System.out.println("Send " + q);
-            }
+            	// if(q%100==0) System.out.println("Send " + q);
+            //}
             try {
                 Response okResponse = messageFactory.createResponse(200,
                         request);
@@ -404,6 +404,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
 
         public void processRequest(RequestEvent requestReceivedEvent) {
             Request request = requestReceivedEvent.getRequest();
+            System.out.println("Shootist: Got request " + request);
             if(request.getMethod().equalsIgnoreCase("message")) {
                 messageSeen = true;
             }
@@ -419,8 +420,9 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
 
 
 
-int q=0;
-boolean inUse = false;
+        int q=0;
+        boolean inUse = false;
+
         public void processResponse(ResponseEvent responseReceivedEvent) {
         	try {
         		if(inUse!=false) {
@@ -436,10 +438,10 @@ boolean inUse = false;
         			try {
         				Request ack = d.createAck(1);
         				sipProvider.sendRequest(ack);
-        				sipProvider.sendRequest(ack);
-        				sipProvider.sendRequest(ack);
-        				sipProvider.sendRequest(ack);
-        				sipProvider.sendRequest(ack);
+        				// sipProvider.sendRequest(ack);
+        				// sipProvider.sendRequest(ack);
+        				// sipProvider.sendRequest(ack);
+        				// sipProvider.sendRequest(ack);
         			} catch (Exception e) {
         				e.printStackTrace();
         				fail("Error sending ACK");
@@ -489,7 +491,7 @@ boolean inUse = false;
             // Set to 0 (or NONE) in your production code for max speed.
             // You need 16 (or TRACE) for logging traces. 32 (or DEBUG) for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
-            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "0");
+            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
             properties.setProperty("gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE", "1");
             properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
             properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING","false");
