@@ -59,7 +59,7 @@ import test.tck.msgflow.callflows.TestAssertion;
  *
  */
 public class TcpSingleThreadDeadlockTest extends TestCase {
-    public static final int NUMBER_OF_ACKS=1;
+    public static final int NUMBER_OF_ACKS=5;
 
     public class Shootme implements SipListener {
 
