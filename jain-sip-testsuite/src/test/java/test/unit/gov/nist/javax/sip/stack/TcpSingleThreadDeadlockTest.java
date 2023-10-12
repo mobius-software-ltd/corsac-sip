@@ -59,6 +59,7 @@ import test.tck.msgflow.callflows.TestAssertion;
  *
  */
 public class TcpSingleThreadDeadlockTest extends TestCase {
+    public static final int NUMBER_OF_ACKS=1;
 
     public class Shootme implements SipListener {
 
@@ -76,13 +77,9 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
 
         private final int myPort = NetworkPortAssigner.retrieveNextPort();
 
-
-
         private DialogExt dialog;
 
-        public static final boolean callerSendsBye = true;
-
-
+        public static final boolean callerSendsBye = true;        
 
 
         public void processRequest(RequestEvent requestEvent) {
@@ -106,7 +103,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
 
         public void processResponse(ResponseEvent responseEvent) {
             num++;
-            if(num<5) {
+            if(num<NUMBER_OF_ACKS) {
                 try {
                     System.out.println("shootme: got an OK response! ");
                     System.out.println("Dialog State = " + dialog.getState());
@@ -124,7 +121,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
-            } else if (num == 5){
+            } else if (num == NUMBER_OF_ACKS){
                 try {
                     System.out.println("shootme: got an OK response! ");
                     System.out.println("Dialog State = " + dialog.getState());
@@ -149,7 +146,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
             return new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
-                    return acks == 5;
+                    return acks == NUMBER_OF_ACKS;
                 };
             }; 
         }         
@@ -163,7 +160,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
             acks++;
             // We will wait for 5 acks to test if retransmissions are filtered. With loose dialog
             // validation the ACK retransmissions are not filtered by the stack.
-            if(acks == 1)
+            if(acks == NUMBER_OF_ACKS)
             {
                 try {
                     System.out.println("shootme: got an ACK! ");
@@ -318,6 +315,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
 
                 sipProvider = sipStack.createSipProvider(lp);
                 System.out.println("tcp provider " + sipProvider);
+                System.out.println("shootme address and port: " + lp.getIPAddress() + ":" + lp.getPort());
                 sipProvider.addSipListener(listener);
 
             } catch (Exception ex) {
@@ -372,7 +370,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
 
         private ContactHeader contactHeader;
 
-        private ListeningPoint udpListeningPoint;
+        private ListeningPoint listeningPoint;
 
         boolean messageSeen = false;
         
@@ -437,11 +435,9 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
         			Dialog d = responseReceivedEvent.getDialog();
         			try {
         				Request ack = d.createAck(1);
-        				sipProvider.sendRequest(ack);
-        				// sipProvider.sendRequest(ack);
-        				// sipProvider.sendRequest(ack);
-        				// sipProvider.sendRequest(ack);
-        				// sipProvider.sendRequest(ack);
+                        for(int i=0; i<NUMBER_OF_ACKS; i++) {
+                            sipProvider.sendRequest(ack);
+                        }        				
         			} catch (Exception e) {
         				e.printStackTrace();
         				fail("Error sending ACK");
@@ -515,10 +511,11 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
                 headerFactory = sipFactory.createHeaderFactory();
                 addressFactory = sipFactory.createAddressFactory();
                 messageFactory = sipFactory.createMessageFactory();
-                udpListeningPoint = sipStack.createListeningPoint("127.0.0.1", myPort, "tcp");
-                sipProvider = sipStack.createSipProvider(udpListeningPoint);
+                listeningPoint = sipStack.createListeningPoint("127.0.0.1", myPort, "tcp");
+                sipProvider = sipStack.createSipProvider(listeningPoint);
                 Shootist listener = this;
                 sipProvider.addSipListener(listener);
+                System.out.println("shootist address and port: " + listeningPoint.getIPAddress() + ":" + listeningPoint.getPort());
 
                 String fromName = "BigGuy";
                 String fromSipAddress = "here.com";
@@ -552,7 +549,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
                 // Create ViaHeaders
 
                 ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-                String ipAddress = udpListeningPoint.getIPAddress();
+                String ipAddress = listeningPoint.getIPAddress();
                 ViaHeader viaHeader = headerFactory.createViaHeader(ipAddress,
                         sipProvider.getListeningPoint(transport).getPort(),
                         transport, null);
@@ -583,7 +580,7 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
                 String host = "127.0.0.1";
 
                 SipURI contactUrl = addressFactory.createSipURI(fromName, host);
-                contactUrl.setPort(udpListeningPoint.getPort());
+                contactUrl.setPort(listeningPoint.getPort());
                 contactUrl.setLrParam();
 
                 // Create the contact name address.
@@ -697,10 +694,9 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
         if(!this.shootist.messageSeen) {
             fail("Something went wrong. We expected the MESSAGE requests. Why are they not sent?");
         }
-        if(this.shootme.acks != 5) {
+        if(this.shootme.acks != NUMBER_OF_ACKS) {
             fail("We expect 5 ACKs because retransmissions are not filtered in loose dialog validation.");
         }
     }
-
-
+    
 }

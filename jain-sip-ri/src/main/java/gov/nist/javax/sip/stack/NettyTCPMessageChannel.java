@@ -54,10 +54,15 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.SIPMessageListener;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 public class NettyTCPMessageChannel extends MessageChannel implements
 	SIPMessageListener, RawMessageChannel {
@@ -118,7 +123,8 @@ public class NettyTCPMessageChannel extends MessageChannel implements
 			EventLoopGroup group = new NioEventLoopGroup();
 			bootstrap.group(group)
 					.channel(NioSocketChannel.class)
-					.handler(new NettyMessageHandler(nettyTCPMessageProcessor));
+					.handler(new NettyChannelInitializer(nettyTCPMessageProcessor));
+
 			// Take a cached socket to the destination, if none create a new one and cache
 			// it
 			channel = bootstrap.connect(inetAddress, port).sync().channel();
@@ -263,8 +269,12 @@ public class NettyTCPMessageChannel extends MessageChannel implements
 						+ this + " key " + getKey());
 			}
 		}
-				
-		channel.writeAndFlush(message);
+
+		try {
+			channel.writeAndFlush(message).sync();
+		} catch (InterruptedException e) {
+			new IOException(e);
+		}
 	}
 
 	/**
@@ -333,10 +343,10 @@ public class NettyTCPMessageChannel extends MessageChannel implements
 			return false;
 		else {
 			NettyTCPMessageChannel that = (NettyTCPMessageChannel) other;
-			// if (this.socketChannel != that.socketChannel)
-			// return false;
-			// else
-			return true;
+			if (this.channel != that.channel)
+				return false;
+			else
+				return true;
 		}
 	}
 
