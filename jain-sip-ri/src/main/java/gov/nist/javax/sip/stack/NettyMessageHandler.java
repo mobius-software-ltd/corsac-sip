@@ -12,11 +12,11 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
     private static StackLogger logger = CommonLogger.getLogger(NettyMessageHandler.class);
 
     private SIPTransactionStack sipStack;
-    private NettyTCPMessageProcessor messageProcessor;
+    private NettyStreamMessageProcessor messageProcessor;
 
     // private ByteBuf buf;
     
-    public NettyMessageHandler(NettyTCPMessageProcessor nettyTCPMessageProcessor) {
+    public NettyMessageHandler(NettyStreamMessageProcessor nettyTCPMessageProcessor) {
         this.messageProcessor = nettyTCPMessageProcessor;
         this.sipStack = messageProcessor.sipStack;        
     }
@@ -37,7 +37,7 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         
         SIPMessage sipMessage = (SIPMessage) msg;
 
-        NettyTCPMessageChannel nettyTCPMessageChannel = new NettyTCPMessageChannel(messageProcessor, ctx.channel());
+        NettyStreamMessageChannel nettyTCPMessageChannel = new NettyStreamMessageChannel(messageProcessor, ctx.channel());
         if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
             final String callId = sipMessage.getCallId().getCallId();
             

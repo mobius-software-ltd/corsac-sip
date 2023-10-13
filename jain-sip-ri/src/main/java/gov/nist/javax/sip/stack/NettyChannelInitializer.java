@@ -11,9 +11,9 @@ import io.netty.handler.codec.bytes.ByteArrayEncoder;
  */
 public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    private NettyTCPMessageProcessor nettyTCPMessageProcessor;
+    private NettyStreamMessageProcessor nettyTCPMessageProcessor;
 
-    public NettyChannelInitializer(NettyTCPMessageProcessor nettyTCPMessageProcessor) {
+    public NettyChannelInitializer(NettyStreamMessageProcessor nettyTCPMessageProcessor) {
         this.nettyTCPMessageProcessor = nettyTCPMessageProcessor; 
     }
 

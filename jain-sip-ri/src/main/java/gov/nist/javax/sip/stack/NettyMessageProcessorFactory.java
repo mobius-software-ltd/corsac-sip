@@ -45,13 +45,13 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                 sipStack.udpFlag = true;
                 return udpMessageProcessor;
             } else if (transport.equalsIgnoreCase(ListeningPoint.TCP)) {
-                NettyTCPMessageProcessor nettyTcpMessageProcessor = new NettyTCPMessageProcessor(
-                        ipAddress, sipStack, port);         
+                NettyStreamMessageProcessor nettyTcpMessageProcessor = new NettyStreamMessageProcessor(
+                        ipAddress, sipStack, port, ListeningPoint.TCP);         
                 // this.tcpFlag = true;
                 return nettyTcpMessageProcessor;
             } else if (transport.equalsIgnoreCase(ListeningPoint.TLS)) {
-                NioTlsMessageProcessor tlsMessageProcessor = new NioTlsMessageProcessor(
-                        ipAddress, sipStack, port);         
+                NettyStreamMessageProcessor tlsMessageProcessor = new NettyStreamMessageProcessor(
+                        ipAddress, sipStack, port, ListeningPoint.TLS);         
                 // this.tlsFlag = true;
                 return tlsMessageProcessor;
             } else if (transport.equalsIgnoreCase(ListeningPoint.SCTP)) {

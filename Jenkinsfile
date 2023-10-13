@@ -1,6 +1,6 @@
-def runTestsuite(forkCount=1, profile="defaultProfile") {
+def runTestsuite(enableNetty, forkCount=1, profile="defaultProfile") {
      withMaven(maven: 'maven-3.6.3',traceability: true) {
-        sh "mvn -B -f jain-sip-testsuite/pom.xml  install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DforkCount=\"$forkCount\" "
+        sh "mvn -B -f jain-sip-testsuite/pom.xml  install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" "
      }
 }
 
@@ -72,6 +72,7 @@ node("slave-xlarge") {
         parameters([
             string(name: 'MAJOR_VERSION_NUMBER', defaultValue: '8.0.0-SNAPSHOT', description: 'Snapshots will skip Tag stage', trim: true),
             string(name: 'RUN_TESTSUITE', defaultValue: "true", description: 'Whether the testsuite should run or not', trim: true),
+            string(name: 'ENABLE_NETTY', defaultValue: "true", description: 'Whether the testsuite should run using Netty', trim: true),
             string(name: 'FORK_COUNT', defaultValue: '30', description: 'Number of forks to run the testsuite', trim: true),
             string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true),
             string(name: 'RUN_UAS_PERF_TESTS', defaultValue: "true", description: 'Whether the UAS performance tests should run or not', trim: true),
@@ -143,7 +144,7 @@ node("slave-xlarge") {
         sh 'sudo apt update & sudo apt-get -y install libsctp1'
 
         stage("TCK & Testsuite") {
-            runTestsuite("${FORK_COUNT}" , "parallel-testing")
+            runTestsuite("${ENABLE_NETTY}", "${FORK_COUNT}" , "parallel-testing")
         }
      
         stage("Publish TCK & Testsuite Results") {
