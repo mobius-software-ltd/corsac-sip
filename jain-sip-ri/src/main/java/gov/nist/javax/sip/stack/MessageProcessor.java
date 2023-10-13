@@ -84,7 +84,7 @@ public abstract class MessageProcessor  {
     /**
      * The port where I am listening
      */
-    private int port;
+    protected int port;
 
     /**
      * The transport where I am listening

@@ -119,7 +119,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			EventLoopGroup group = new NioEventLoopGroup();
 			bootstrap.group(group)
 					.channel(NioSocketChannel.class)
-					.handler(new NettyChannelInitializer(nettyTCPMessageProcessor));
+					.handler(new NettyChannelInitializer(nettyTCPMessageProcessor, nettyTCPMessageProcessor.sslClientContext));
 
 			// Take a cached socket to the destination, if none create a new one and cache
 			// it

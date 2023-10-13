@@ -2,9 +2,12 @@ package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.sip.ListeningPoint;
 
 import gov.nist.core.CommonLogger;
@@ -21,6 +24,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
 
 /**
  * Sit in a loop and handle incoming udp datagram messages. For each Datagram
@@ -36,10 +40,6 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
 	private static StackLogger logger = CommonLogger.getLogger(NettyStreamMessageProcessor.class);
 
     protected final Map<String, NettyStreamMessageChannel> messageChannels;
-    /**
-     * The Mapped port (in case STUN suport is enabled) 
-     */
-    private int port;
     
     // multithreaded event loop that handles incoming connection and I/O operations    
     EventLoopGroup bossGroup; 
@@ -48,7 +48,11 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
     // and registers the accepted connection to the worker
     EventLoopGroup workerGroup;
 
-    public NettyMessageHandler context;
+    NettyMessageHandler context;
+
+    SslContext sslServerContext;
+    SslContext sslClientContext;
+
     /**
      * Constructor.
      *
@@ -56,14 +60,29 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
      */
     protected NettyStreamMessageProcessor(InetAddress ipAddress,
             SIPTransactionStack sipStack, int port, String transport) throws IOException {
-                super(ipAddress, port, transport, sipStack);
+                super(ipAddress, port, transport, sipStack);                
                 this.messageChannels = new ConcurrentHashMap <String, NettyStreamMessageChannel>();
-                this.port = port;
-                this.transport  = transport;
                 // TODO: Add how many threads can be used
                 this.bossGroup = new NioEventLoopGroup(); 
                 // TODO: Add how many threads can be used
                 this.workerGroup = new NioEventLoopGroup();
+                if(transport.equals(ListeningPoint.TLS)) {
+                    if(sipStack.getClientAuth() == ClientAuthType.DisabledAll) {
+                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                            logger.logDebug(
+                                    "ClientAuth " + sipStack.getClientAuth()  +  " bypassing all cert validations");
+                        }
+                        // this.sslServerContext = SslContext.newServerContext(sipStack.securityManagerProvider.getKeyManagers(false), trustAllCerts);
+                        // this.sslClientContext = SslContext.newClientContext(sipStack.securityManagerProvider.getKeyManagers(true), trustAllCerts);                        
+                    } else {
+                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                            logger.logDebug(
+                                    "ClientAuth " + sipStack.getClientAuth());
+                        }
+                        // this.sslServerContext = SslContext.newServerContext(sipStack.securityManagerProvider.getKeyManagers(false), sipStack.securityManagerProvider.getTrustManagers(false));
+                        // this.sslClientContext = SslContext.newClientContext(sipStack.securityManagerProvider.getKeyManagers(true), sipStack.securityManagerProvider.getTrustManagers(true));                        
+                    }
+                }
     }
 
     /**
@@ -146,7 +165,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
             server.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class) 
              .handler(new LoggingHandler(LogLevel.INFO))
-             .childHandler(new NettyChannelInitializer(this))
+             .childHandler(new NettyChannelInitializer(this, sslServerContext))
              // TODO Add Option based on sip stack config
              .option(ChannelOption.SO_BACKLOG, 128) // for the NioServerSocketChannel that accepts incoming connections.
              .childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
@@ -191,7 +210,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
      * @return port on which I am listening.
      */
     public int getPort() {
-        return this.port;
+        return port;
     }
 
     /**
@@ -240,6 +259,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
         String key = messageChannel.getKey();
         NettyStreamMessageChannel currentChannel = messageChannels.get(key);
         if (currentChannel != null) {
+            // FIXME: should we close the channel here ? This is making the testsuite fail with Netty
             // if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
             //     logger.logDebug("Closing " + key);
             // currentChannel.close();
@@ -322,4 +342,24 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
             throw new IllegalArgumentException("Peer port should be greater than 0 and less 65535, port = " + port);
         }
     }
+
+    // Create a trust manager that does not validate certificate chains
+    TrustManager[] trustAllCerts = new TrustManager[] { 
+      new X509TrustManager() {
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() { 
+          return new X509Certificate[0]; 
+        }
+        public void checkClientTrusted(X509Certificate[] certs, String authType) {
+        	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                        "checkClientTrusted : Not validating certs " + certs + " authType " + authType);
+            }
+        }
+        public void checkServerTrusted(X509Certificate[] certs, String authType) {
+        	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                        "checkServerTrusted : Not validating certs " + certs + " authType " + authType);
+            }
+        }
+    }};
 }
