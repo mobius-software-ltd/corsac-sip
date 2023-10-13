@@ -1,61 +1,42 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
-import java.text.ParseException;
 
 import gov.nist.core.CommonLogger;
-import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.parser.MessageParser;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
-public class NettyMessageHandler extends SimpleChannelInboundHandler<byte[]> {
+public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
     private static StackLogger logger = CommonLogger.getLogger(NettyMessageHandler.class);
 
     private SIPTransactionStack sipStack;
     private NettyTCPMessageProcessor messageProcessor;
-    private MessageParser smp = null;
 
-    private ByteBuf buf;
+    // private ByteBuf buf;
     
     public NettyMessageHandler(NettyTCPMessageProcessor nettyTCPMessageProcessor) {
         this.messageProcessor = nettyTCPMessageProcessor;
-        this.sipStack = messageProcessor.sipStack;
-        this.smp = sipStack.getMessageParserFactory().createMessageParser(sipStack);
+        this.sipStack = messageProcessor.sipStack;        
     }
 
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) {
-        buf = ctx.alloc().buffer(4); // (1)
-    }
+    // @Override
+    // public void handlerAdded(ChannelHandlerContext ctx) {
+    //     buf = ctx.alloc().buffer(4); // (1)
+    // }
+    
+    // @Override
+    // public void handlerRemoved(ChannelHandlerContext ctx) {
+    //     buf.release(); // (1)
+    //     buf = null;
+    // }
     
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) {
-        buf.release(); // (1)
-        buf = null;
-    }
-    
-    @Override
-    public void channelRead0(ChannelHandlerContext ctx, byte[] msg) {        
-        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("received following message: \n" + new String(msg));
-        }        
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {        
+        
+        SIPMessage sipMessage = (SIPMessage) msg;
 
-        SIPMessage sipMessage = null;
-				
-        try {
-            // byte[] msgBytes = m.getBytes("UTF-8");
-            sipMessage = smp.parseSIPMessage(msg, true, false, null);            
-        } catch (ParseException e) {
-            logger.logDebug(
-                    "Parsing issue !  " + new String(msg.toString()) + " " + e.getMessage());
-        }
-        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-            logger.logDebug(sipMessage.toString());
-        }
         NettyTCPMessageChannel nettyTCPMessageChannel = new NettyTCPMessageChannel(messageProcessor, ctx.channel());
         if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
             final String callId = sipMessage.getCallId().getCallId();

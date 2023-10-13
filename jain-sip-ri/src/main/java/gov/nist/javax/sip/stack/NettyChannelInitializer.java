@@ -22,8 +22,8 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline pipeline = ch.pipeline();
         
         // Decoders
-        pipeline.addLast("bytesDecoder",
-                        new ByteArrayDecoder());
+        pipeline.addLast("NettySIPMessageDecoder",
+                        new NettySIPMessageDecoder(nettyTCPMessageProcessor.sipStack));
 
         // Encoder
         pipeline.addLast("bytesEncoder", new ByteArrayEncoder());

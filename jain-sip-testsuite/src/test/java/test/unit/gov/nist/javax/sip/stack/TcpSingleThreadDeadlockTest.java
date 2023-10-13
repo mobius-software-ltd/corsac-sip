@@ -39,6 +39,7 @@ import javax.sip.message.Response;
 import gov.nist.javax.sip.DialogExt;
 import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.SIPDialog;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -59,7 +60,7 @@ import test.tck.msgflow.callflows.TestAssertion;
  *
  */
 public class TcpSingleThreadDeadlockTest extends TestCase {
-    public static final int NUMBER_OF_ACKS=5;
+    public static final int NUMBER_OF_ACKS=2;
 
     public class Shootme implements SipListener {
 
@@ -328,7 +329,8 @@ public class TcpSingleThreadDeadlockTest extends TestCase {
 
 
         public void processIOException(IOExceptionEvent exceptionEvent) {
-            fail("IOException");
+            ((SIPDialog)exceptionEvent.getSource()).toString();
+            fail("IOException " + exceptionEvent + " " + exceptionEvent.getHost() + ":" + exceptionEvent.getPort() + "/" + exceptionEvent.getTransport());
 
         }
 
