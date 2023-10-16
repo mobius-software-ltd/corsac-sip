@@ -29,7 +29,9 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
         // and accept any invalid certificates in the client side.
         // You will need something more complicated to identify both
         // and server in the real world.
-        pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+        if(sslCtx != null) {
+            pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+        }
 
         // Decoders
         pipeline.addLast("NettySIPMessageDecoder",
