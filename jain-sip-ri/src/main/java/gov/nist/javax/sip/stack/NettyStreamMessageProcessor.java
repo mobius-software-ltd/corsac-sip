@@ -13,7 +13,6 @@ import javax.sip.ListeningPoint;
 import gov.nist.core.CommonLogger;
 import gov.nist.core.Host;
 import gov.nist.core.HostPort;
-import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import io.netty.bootstrap.ServerBootstrap;
@@ -25,6 +24,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 
 /**
  * Sit in a loop and handle incoming udp datagram messages. For each Datagram
@@ -71,16 +71,16 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
                         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                             logger.logDebug(
                                     "ClientAuth " + sipStack.getClientAuth()  +  " bypassing all cert validations");
-                        }
-                        // this.sslServerContext = SslContext.newServerContext(sipStack.securityManagerProvider.getKeyManagers(false), trustAllCerts);
-                        // this.sslClientContext = SslContext.newClientContext(sipStack.securityManagerProvider.getKeyManagers(true), trustAllCerts);                        
+                        }                        
+                        this.sslServerContext = SslContextBuilder.forServer(sipStack.securityManagerProvider.getKeyManagers(false)[0]).trustManager(trustAllCerts[0]).build();
+                        this.sslClientContext = SslContextBuilder.forClient().keyManager(sipStack.securityManagerProvider.getKeyManagers(true)[0]).trustManager(trustAllCerts[0]).build();                        
                     } else {
                         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                             logger.logDebug(
                                     "ClientAuth " + sipStack.getClientAuth());
                         }
-                        // this.sslServerContext = SslContext.newServerContext(sipStack.securityManagerProvider.getKeyManagers(false), sipStack.securityManagerProvider.getTrustManagers(false));
-                        // this.sslClientContext = SslContext.newClientContext(sipStack.securityManagerProvider.getKeyManagers(true), sipStack.securityManagerProvider.getTrustManagers(true));                        
+                        this.sslServerContext = SslContextBuilder.forServer(sipStack.securityManagerProvider.getKeyManagers(false)[0]).trustManager(sipStack.securityManagerProvider.getTrustManagers(false)[0]).build();
+                        this.sslClientContext = SslContextBuilder.forClient().keyManager(sipStack.securityManagerProvider.getKeyManagers(true)[0]).trustManager(sipStack.securityManagerProvider.getTrustManagers(true)[0]).build();                                                
                     }
                 }
     }
