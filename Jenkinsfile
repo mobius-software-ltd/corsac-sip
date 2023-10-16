@@ -22,7 +22,7 @@ def publishTestsuiteResults() {
     /**recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
     recordIssues enabledForFailure: true, tool: checkStyle()
     recordIssues enabledForFailure: true, tool: spotBugs()*/    
-    step( [ $class: 'JacocoPublisher' ] )
+    // step( [ $class: 'JacocoPublisher' ] )
 }
 
 def publishPerformanceTestsResults(dir) {
