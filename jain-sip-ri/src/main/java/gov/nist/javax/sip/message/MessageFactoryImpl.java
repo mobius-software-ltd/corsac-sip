@@ -40,7 +40,6 @@ import javax.sip.header.MaxForwardsHeader;
 import javax.sip.header.ServerHeader;
 import javax.sip.header.ToHeader;
 import javax.sip.header.UserAgentHeader;
-import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -67,7 +66,7 @@ import gov.nist.javax.sip.parser.StringMsgParser;
  *
  */
 
-public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
+public class MessageFactoryImpl implements MessageFactoryExt {
 
     private boolean testing = false;
     
@@ -708,9 +707,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
     public javax.sip.message.Request createRequest(String requestString)
             throws java.text.ParseException {
         if (requestString == null || requestString.equals("")) {
-            SIPRequest retval = new SIPRequest();
-            retval.setNullRequest();
-            return retval;
+            
         }
 
         StringMsgParser smp = new StringMsgParser();

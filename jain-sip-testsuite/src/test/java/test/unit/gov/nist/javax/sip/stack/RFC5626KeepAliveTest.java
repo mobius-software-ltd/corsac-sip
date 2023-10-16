@@ -1,18 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.DialogTimeoutEvent;
-import gov.nist.javax.sip.IOExceptionEventExt;
-import gov.nist.javax.sip.IOExceptionEventExt.Reason;
-import gov.nist.javax.sip.ListeningPointExt;
-import gov.nist.javax.sip.ListeningPointImpl;
-import gov.nist.javax.sip.SipListenerExt;
-import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.stack.ConnectionOrientedMessageChannel;
-import gov.nist.javax.sip.stack.ConnectionOrientedMessageProcessor;
-import gov.nist.javax.sip.stack.MessageProcessor;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
-import gov.nist.javax.sip.stack.TCPMessageChannel;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.EventObject;
@@ -52,9 +39,23 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 
+import gov.nist.javax.sip.DialogTimeoutEvent;
+import gov.nist.javax.sip.IOExceptionEventExt;
+import gov.nist.javax.sip.IOExceptionEventExt.Reason;
+import gov.nist.javax.sip.ListeningPointExt;
+import gov.nist.javax.sip.ListeningPointImpl;
+import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.stack.ConnectionOrientedMessageChannel;
+import gov.nist.javax.sip.stack.ConnectionOrientedMessageProcessor;
+import gov.nist.javax.sip.stack.MessageProcessor;
+import gov.nist.javax.sip.stack.NettyStreamMessageChannel;
+import gov.nist.javax.sip.stack.NettyStreamMessageProcessor;
+import gov.nist.javax.sip.stack.RawMessageChannel;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.TCPMessageChannel;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
-
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.ScenarioHarness;
 import test.tck.msgflow.callflows.TestAssertion;
@@ -106,24 +107,39 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
             ((SIPTransactionStack)protocolObjects.sipStack).setReliableConnectionKeepAliveTimeout(4000);
         }
         
-        public ConnectionOrientedMessageProcessor getTestMessageProcessor() {
-            return (ConnectionOrientedMessageProcessor)((ListeningPointImpl) shootme.listeningPoint).getMessageProcessor();
+        public MessageProcessor getTestMessageProcessor() {
+            return ((ListeningPointImpl) shootme.listeningPoint).getMessageProcessor();
         }
         
-        public ConnectionOrientedMessageChannel getTestChannel() {
+        public RawMessageChannel getTestChannel() {
             try {
                 MessageProcessor processor = ((ListeningPointImpl) shootme.listeningPoint).getMessageProcessor();
-                Field field = ConnectionOrientedMessageProcessor.class.getDeclaredField("messageChannels");
-                field.setAccessible(true);
-
-                @SuppressWarnings("unchecked")
-				Map<String, ConnectionOrientedMessageChannel> tcpMessageChannels = (Map<String, ConnectionOrientedMessageChannel>) field.get(processor);
-                Iterator<ConnectionOrientedMessageChannel> itr = tcpMessageChannels.values().iterator();
-                while (itr.hasNext()) {
-                    ConnectionOrientedMessageChannel tcpMessageChannel = itr.next();
-                    logger.info("tcpMessageChannel port " + tcpMessageChannel.getPort() + " peerPort " + tcpMessageChannel.getPeerPort());                  
-                }
-                return tcpMessageChannels.values().iterator().next();
+                Field field = null;
+                if (processor instanceof ConnectionOrientedMessageProcessor) {
+                    field = ConnectionOrientedMessageProcessor.class.getDeclaredField("messageChannels");    
+                    field.setAccessible(true);
+                    @SuppressWarnings("unchecked")
+                    Map<String, ConnectionOrientedMessageChannel> tcpMessageChannels = (Map<String, ConnectionOrientedMessageChannel>) field.get(processor);
+                    Iterator<ConnectionOrientedMessageChannel> itr = tcpMessageChannels.values().iterator();
+                    while (itr.hasNext()) {
+                        ConnectionOrientedMessageChannel tcpMessageChannel = itr.next();
+                        logger.info("tcpMessageChannel port " + tcpMessageChannel.getPort() + " peerPort " + tcpMessageChannel.getPeerPort());                  
+                        return tcpMessageChannel;
+                    }
+                    return tcpMessageChannels.values().iterator().next();
+                } else {
+                    field = NettyStreamMessageProcessor.class.getDeclaredField("messageChannels");    
+                    field.setAccessible(true);
+                    @SuppressWarnings("unchecked")
+                    Map<String, NettyStreamMessageChannel> tcpMessageChannels = (Map<String, NettyStreamMessageChannel>) field.get(processor);
+                    Iterator<NettyStreamMessageChannel> itr = tcpMessageChannels.values().iterator();
+                    while (itr.hasNext()) {
+                        NettyStreamMessageChannel tcpMessageChannel = itr.next();
+                        logger.info("tcpMessageChannel port " + tcpMessageChannel.getPort() + " peerPort " + tcpMessageChannel.getPeerPort());                  
+                        return tcpMessageChannel;
+                    }
+                    return tcpMessageChannels.values().iterator().next();
+                }                
             } catch (Exception e) {
                 e.printStackTrace();
                 fail(e.getMessage(), e);
@@ -271,7 +287,7 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
             logger.info("Shootme An IO Exception was detected : "
                     + exceptionEvent.getHost());
             keepAliveTimeoutFired |= (exceptionEvent instanceof IOExceptionEventExt && ((IOExceptionEventExt)exceptionEvent).getReason() == Reason.KeepAliveTimeout);
-
+            
             logger.info("Shootme KeepAlive Time out " + keepAliveTimeoutFired);         
         }
 
@@ -573,24 +589,24 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
             }
         }
 
-        TCPMessageChannel getTestChannel() {
-            try {
-                MessageProcessor processor = ((ListeningPointImpl) shootist.listeningPoint).getMessageProcessor();
-                Field field = ConnectionOrientedMessageProcessor.class.getDeclaredField("messageChannels");
-                field.setAccessible(true);
+        // TCPMessageChannel getTestChannel() {
+        //     try {
+        //         MessageProcessor processor = ((ListeningPointImpl) shootist.listeningPoint).getMessageProcessor();
+        //         Field field = ConnectionOrientedMessageProcessor.class.getDeclaredField("messageChannels");
+        //         field.setAccessible(true);
 
-                @SuppressWarnings("unchecked")
-				Map<String, TCPMessageChannel> tcpMessageChannels = (Map<String, TCPMessageChannel>) field.get(processor);
-                return tcpMessageChannels.values().iterator().next();
-            } catch (Exception e) {
-                e.printStackTrace();
-                fail(e.getMessage(), e);
-                return null;
-            }
-        }
+        //         @SuppressWarnings("unchecked")
+		// 		Map<String, TCPMessageChannel> tcpMessageChannels = (Map<String, TCPMessageChannel>) field.get(processor);
+        //         return tcpMessageChannels.values().iterator().next();
+        //     } catch (Exception e) {
+        //         e.printStackTrace();
+        //         fail(e.getMessage(), e);
+        //         return null;
+        //     }
+        // }
 
-        ConnectionOrientedMessageProcessor getTestMessageProcessor() {
-            return (ConnectionOrientedMessageProcessor)((ListeningPointImpl) shootist.listeningPoint).getMessageProcessor();
+        MessageProcessor getTestMessageProcessor() {
+            return ((ListeningPointImpl) shootist.listeningPoint).getMessageProcessor();
         }
 
 
@@ -807,7 +823,11 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
         // cannot be found due to ephemeral port
 //        assertTrue(shootme.getTestMessageProcessor().setKeepAliveTimeout(shootist.myAddress, shootist.myPort, 400));
         
-        shootme.getTestChannel().setKeepAliveTimeout(400);
+        if(shootme.getTestChannel() instanceof ConnectionOrientedMessageChannel) {
+            ((ConnectionOrientedMessageChannel)shootme.getTestChannel()).setKeepAliveTimeout(400);  
+        } else {
+            ((NettyStreamMessageChannel)shootme.getTestChannel()).setKeepAliveTimeout(400);  
+        }
 
         try {
             Thread.sleep(600);

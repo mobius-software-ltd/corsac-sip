@@ -268,6 +268,14 @@ public class ListeningPointImpl implements javax.sip.ListeningPoint, gov.nist.ja
         		connectionOrientedMessageChannel.rescheduleKeepAliveTimeout(keepaliveTimeout);
         	}
         }        
+        if(messageChannel instanceof NettyStreamMessageChannel) {
+        	// RFC 5626 : schedule the keepaive timeout to make sure we receive a pong response and notify the app if not
+        	NettyStreamMessageChannel nettyStreamMessageChannel = (NettyStreamMessageChannel) messageChannel;
+        	long keepaliveTimeout = nettyStreamMessageChannel.getKeepAliveTimeout();
+        	if(keepaliveTimeout > 0) {
+        		nettyStreamMessageChannel.rescheduleKeepAliveTimeout(keepaliveTimeout);
+        	}
+        }        
         messageChannel.sendMessage(siprequest);
 
     }

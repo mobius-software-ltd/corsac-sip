@@ -23,14 +23,18 @@ public class NettySIPMessageDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) { 
+        logger.logError("readable bytes: \n" + in.readableBytes());   
+              
         byte[] msg = new byte[in.readableBytes()];
         in.readBytes(msg);
 
+        String message = new String(msg);
+        logger.logError("received following message: \n" + message);         
+
         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("received following message: \n" + new String(msg));
-        }        
-        logger.logError("received following message: \n" + new String(msg));         
-				
+            logger.logDebug("received following message: \n" + new String(message));
+        }                
+        				
         try {            
             SIPMessage sipMessage = smp.parseSIPMessage(msg, true, false, null);            
             if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   

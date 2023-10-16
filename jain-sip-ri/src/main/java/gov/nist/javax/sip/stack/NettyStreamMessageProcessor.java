@@ -2,6 +2,8 @@ package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -138,6 +140,38 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
     	}
         return retval;
     }
+    
+    public NettyStreamMessageChannel createMessageChannel(Channel channel) {
+        
+        InetSocketAddress socketAddress = ((InetSocketAddress)channel.remoteAddress());
+    	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    		logger.logDebug("NioTcpMessageProcessor::createMessageChannel: " + socketAddress.getAddress().getHostAddress()+":"+socketAddress.getPort());
+    	}
+        NettyStreamMessageChannel retval = null;
+    	try {
+            HostPort targetHostPort  = new HostPort();
+            targetHostPort.setHost(new Host(socketAddress.getAddress().getHostAddress()));  
+            targetHostPort.setPort(socketAddress.getPort());
+    		String key = MessageChannel.getKey(targetHostPort, transport);
+            retval = messageChannels.get(key);        
+            //once locked, we need to check condition again
+            if( retval == null ) {
+                    retval = new NettyStreamMessageChannel(this, channel);        
+                    this.messageChannels.put(key, retval);
+                    // retval.isCached = true;
+                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                            logger.logDebug("key " + key);
+                            logger.logDebug("Creating " + retval);
+                    }                
+            }  						   		
+    	} finally {
+    		if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    			logger.logDebug("MessageChannel::createMessageChannel - exit " + retval);
+    		}
+    	}
+        return retval;
+    }
+
 
     @Override
     public MessageChannel createMessageChannel(InetAddress targetHost, int port) throws IOException {
@@ -178,8 +212,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
                 try {
                     // Wait until the server socket is closed.
                     // In this example, this does not happen, but you can do that to gracefully
-                    // shut down your server.
-                    System.out.println("TCP Server started on port " + port);
+                    // shut down your server.                    
                     channel.closeFuture().sync();
                 } catch (InterruptedException e) {
                     logger.logException(e);

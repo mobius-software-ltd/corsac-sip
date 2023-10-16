@@ -131,9 +131,11 @@ import javax.sip.message.Request;
  *
  *
  */
-public abstract class SIPMessage extends MessageObject implements javax.sip.message.Message,
-        MessageExt {
-	private static final long serialVersionUID = 1L;
+public abstract class SIPMessage extends MessageObject implements MessageExt {
+    private static final long serialVersionUID = 1L;
+
+    public static final String DOUBLE_CRLF = "\r\n\r\n";
+    public static final String SINGLE_CRLF = "\r\n";
 
 	// JvB: use static here?
     private String contentEncodingCharset = MessageFactoryImpl.getDefaultContentEncodingCharset();
@@ -494,7 +496,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     public byte[] encodeAsBytes(String transport) {
         if (this instanceof SIPRequest && ((SIPRequest) this).isNullRequest()) {
-            return "\r\n\r\n".getBytes();
+            return DOUBLE_CRLF.getBytes();
         }
         // JvB: added to fix case where application provides the wrong transport
         // in the topmost Via header

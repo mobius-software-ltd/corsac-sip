@@ -29,7 +29,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.text.ParseException;
+import java.util.Iterator;
+import java.util.concurrent.Semaphore;
 
+import javax.sip.ListeningPoint;
+import javax.sip.SipListener;
 import javax.sip.address.Hop;
 import javax.sip.message.Response;
 
@@ -38,6 +42,11 @@ import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.IOExceptionEventExt;
+import gov.nist.javax.sip.IOExceptionEventExt.Reason;
+import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.ThreadAffinityTask;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
@@ -61,11 +70,14 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class NettyStreamMessageChannel extends MessageChannel implements
-	SIPMessageListener, RawMessageChannel {
+		SIPMessageListener, RawMessageChannel {
 	private static StackLogger logger = CommonLogger
 			.getLogger(NioTcpMessageChannel.class);
 
+	Bootstrap bootstrap = new Bootstrap();
 	protected Channel channel;
+
+	protected SIPTransactionStack sipStack;
 	protected long lastActivityTimeStamp;
 
 	protected String myAddress;
@@ -85,11 +97,17 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 	private boolean isCached;
 
+	private SIPStackTimerTask pingKeepAliveTimeoutTask;
+	private Semaphore keepAliveSemaphore;
+
+	private long keepAliveTimeout;
+
 	protected NettyStreamMessageChannel(NettyStreamMessageProcessor nettyTCPMessageProcessor,
 			Channel channel) {
 		try {
 			this.channel = channel;
 			this.messageProcessor = nettyTCPMessageProcessor;
+			this.sipStack = nettyTCPMessageProcessor.sipStack;
 			this.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
 			this.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();
 			this.peerProtocol = nettyTCPMessageProcessor.transport;
@@ -97,7 +115,10 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 			myAddress = nettyTCPMessageProcessor.getIpAddress().getHostAddress();
 			myPort = nettyTCPMessageProcessor.getPort();
-
+			this.keepAliveTimeout = nettyTCPMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();
+			if (keepAliveTimeout > 0) {
+				keepAliveSemaphore = new Semaphore(1);
+			}
 		} finally {
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 				logger.logDebug("Done creating NioTcpMessageChannel " + this + " socketChannel = " + channel);
@@ -115,11 +136,12 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		}
 		try {
 			messageProcessor = nettyTCPMessageProcessor;
-			Bootstrap bootstrap = new Bootstrap();
+			bootstrap = new Bootstrap();
 			EventLoopGroup group = new NioEventLoopGroup();
 			bootstrap.group(group)
 					.channel(NioSocketChannel.class)
-					.handler(new NettyChannelInitializer(nettyTCPMessageProcessor, nettyTCPMessageProcessor.sslClientContext));
+					.handler(new NettyChannelInitializer(nettyTCPMessageProcessor,
+							nettyTCPMessageProcessor.sslClientContext));
 
 			// Take a cached socket to the destination, if none create a new one and cache
 			// it
@@ -141,41 +163,27 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			}
 		}
 	}
-
-	// @Override
-	// protected void close(boolean removeSocket, boolean stopKeepAliveTask) {
-	// try {
-	// if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-	// logger.logDebug("Closing NioTcpMessageChannel "
-	// + this + " socketChannel = " + socketChannel);
-	// }
-	// NIOHandler nioHandler = ((NioTcpMessageProcessor)
-	// messageProcessor).nioHandler;
-	// nioHandler.removeMessageChannel(socketChannel);
-	// if(socketChannel != null) {
-	// socketChannel.close();
-	// }
-	// if(nioParser != null) {
-	// nioParser.close();
-	// }
-	// this.isRunning = false;
-	// if(removeSocket) {
-	// if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-	// logger.logDebug("Removing NioTcpMessageChannel "
-	// + this + " socketChannel = " + socketChannel);
-	// }
-	// ((NioTcpMessageProcessor)
-	// this.messageProcessor).nioHandler.removeSocket(socketChannel);
-	// ((ConnectionOrientedMessageProcessor) this.messageProcessor).remove(this);
-	// }
-	// if(stopKeepAliveTask) {
-	// cancelPingKeepAliveTimeoutTaskIfStarted();
-	// }
-	// } catch (IOException e) {
-	// logger.logError("Problem occured while closing", e);
-	// }
-
-	// }
+	
+	protected void close(boolean removeSocket, boolean stopKeepAliveTask) {
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+			logger.logDebug("Closing NettyStreamMessageChannel "
+					+ this + " socketChannel = " + channel);
+		}
+		if (channel != null && channel.isActive()) {
+			channel.close();
+		}
+		// this.isRunning = false;
+		if (removeSocket) {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug("Removing NettyStreamMessageChannel "
+						+ this + " socketChannel = " + channel);
+			}
+			((NettyStreamMessageProcessor)messageProcessor).remove(this);
+		}
+		if (stopKeepAliveTask) {
+			cancelPingKeepAliveTimeoutTaskIfStarted();
+		}
+	}
 
 	/**
 	 * get the transport string.
@@ -267,14 +275,18 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		}
 
 		try {
-			if (channel.isActive() == true) {
-				ChannelFuture future = channel.writeAndFlush(message).sync();
-				if (future.isSuccess() == false) {
-					throw new IOException("Failed to send message " + new String(message));
-				}
+			if (channel.isActive() == false) {		
+				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+					logger.logDebug("Channel not active, trying to reconnect "
+							+ this.peerAddress + ":" + this.peerPort  + " for this channel "
+							+ channel + " key " + getKey());
+				}		
+				channel = bootstrap.connect(this.peerAddress, this.peerPort).sync().channel();
+				// throw new IOException("Channel closed to send message " + new String(message));
 			}
-			else {
-				throw new IOException("Channel closed to send message " + new String(message));
+			ChannelFuture future = channel.writeAndFlush(message).sync();
+			if (future.isSuccess() == false) {
+				throw new IOException("Failed to send message " + new String(message));
 			}
 		} catch (InterruptedException e) {
 			new IOException(e);
@@ -366,9 +378,12 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	}
 
 	@Override
+	/**
+	 * Close the message channel.
+	 */
 	public void close() {
-		channel.close();
-	}
+		close(true, true);
+	}	
 
 	@Override
 	public SIPTransactionStack getSIPStack() {
@@ -539,7 +554,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							+ (sipRequest.getContentLength() == null ? 0
 									: sipRequest.getContentLength()
 											.getContentLength()) > getMessageProcessor().sipStack
-							.getMaxMessageSize()) {
+													.getMaxMessageSize()) {
 				SIPResponse sipResponse = sipRequest
 						.createResponse(SIPResponse.MESSAGE_TOO_LARGE);
 				byte[] resp = sipResponse
@@ -565,7 +580,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 			if (!method.equalsIgnoreCase(cseqMethod)) {
 				SIPResponse sipResponse = sipRequest
-				.createResponse(SIPResponse.BAD_REQUEST);
+						.createResponse(SIPResponse.BAD_REQUEST);
 				byte[] resp = sipResponse
 						.encodeAsBytes(this.getTransport());
 				this.sendMessage(resp, false);
@@ -576,7 +591,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			// maybe not enough resources.
 			ServerRequestInterface sipServerRequest = getMessageProcessor().sipStack
 					.newSIPServerRequest(sipRequest, this);
-			
+
 			if (sipServerRequest != null) {
 				try {
 					sipServerRequest.processRequest(sipRequest, this);
@@ -589,7 +604,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					}
 				}
 			} else {
-				if(getMessageProcessor().sipStack.sipMessageValves.size() == 0) { // Allow message valves to nullify messages without error
+				if (getMessageProcessor().sipStack.sipMessageValves.size() == 0) { // Allow message valves to nullify
+																					// messages without error
 					SIPResponse response = sipRequest
 							.createResponse(Response.SERVICE_UNAVAILABLE);
 
@@ -605,8 +621,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					}
 					if (logger.isLoggingEnabled())
 						logger
-						.logWarning(
-								"Dropping message -- could not acquire semaphore");
+								.logWarning(
+										"Dropping message -- could not acquire semaphore");
 				}
 			}
 		} else {
@@ -631,7 +647,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							+ (sipResponse.getContentLength() == null ? 0
 									: sipResponse.getContentLength()
 											.getContentLength()) > getMessageProcessor().sipStack
-							.getMaxMessageSize()) {
+													.getMaxMessageSize()) {
 				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
 					logger.logDebug(
 							"Message size exceeded");
@@ -666,7 +682,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				}
 			} else {
 				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-					NettyStreamMessageChannel.logger.logDebug("null sipServerResponse as could not acquire semaphore or the valve dropped the message.");
+					NettyStreamMessageChannel.logger.logDebug(
+							"null sipServerResponse as could not acquire semaphore or the valve dropped the message.");
 			}
 
 		}
@@ -807,19 +824,182 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		return this.myPort;
 	}
 
-	@Override
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see gov.nist.javax.sip.parser.SIPMessageListener#sendSingleCLRF()
+	 */
 	public void sendSingleCLRF() throws Exception {
-		if(channel != null && channel.isActive()) {
+
+		if (channel != null && channel.isActive()) {
 			sendMessage("\r\n".getBytes("UTF-8"), false);
 		}
 
-        // synchronized (this) {
-        //     if (isRunning) {
-        //     	if(keepAliveTimeout > 0) {
-        //     		rescheduleKeepAliveTimeout(keepAliveTimeout);
-        //     	}             
-        //     }
-        // }
+		synchronized (this) {
+			// if (isRunning) {
+			if (keepAliveTimeout > 0) {
+				rescheduleKeepAliveTimeout(keepAliveTimeout);
+			}
+			// }
+		}
+	}
+
+	public void cancelPingKeepAliveTimeoutTaskIfStarted() {
+		if (pingKeepAliveTimeoutTask != null && pingKeepAliveTimeoutTask.getSipTimerTask() != null) {
+			try {
+				keepAliveSemaphore.acquire();
+			} catch (InterruptedException e) {
+				logger.logError("Couldn't acquire keepAliveSemaphore");
+				return;
+			}
+			try {
+				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+					logger.logDebug("~~~ cancelPingKeepAliveTimeoutTaskIfStarted for MessageChannel(key=" + getKey()
+							+ "), clientAddress=" + peerAddress
+							+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
+				}
+				sipStack.getTimer().cancel(pingKeepAliveTimeoutTask);
+			} finally {
+				keepAliveSemaphore.release();
+			}
+		}
+	}
+
+	public void setKeepAliveTimeout(long keepAliveTimeout) {
+		if (keepAliveTimeout < 0) {
+			cancelPingKeepAliveTimeoutTaskIfStarted();
+		}
+		if (keepAliveTimeout == 0) {
+			keepAliveTimeout = messageProcessor.getSIPStack().getReliableConnectionKeepAliveTimeout();
+		}
+
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+			logger.logDebug(
+					"~~~ setKeepAliveTimeout for MessageChannel(key=" + getKey() + "), clientAddress=" + peerAddress
+							+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
+		}
+
+		this.keepAliveTimeout = keepAliveTimeout;
+		if (keepAliveSemaphore == null) {
+			keepAliveSemaphore = new Semaphore(1);
+		}
+
+		boolean isKeepAliveTimeoutTaskScheduled = pingKeepAliveTimeoutTask != null;
+		if (isKeepAliveTimeoutTaskScheduled && keepAliveTimeout > 0) {
+			rescheduleKeepAliveTimeout(keepAliveTimeout);
+		}
+	}
+
+	public long getKeepAliveTimeout() {
+		return keepAliveTimeout;
+	}
+
+	public void rescheduleKeepAliveTimeout(long newKeepAliveTimeout) {
+		// long now = System.currentTimeMillis();
+		// long lastKeepAliveReceivedTimeOrNow = lastKeepAliveReceivedTime == 0 ? now :
+		// lastKeepAliveReceivedTime;
+		//
+		// long newScheduledTime = lastKeepAliveReceivedTimeOrNow + newKeepAliveTimeout;
+
+		StringBuilder methodLog = new StringBuilder();
+
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+			methodLog.append("~~~ rescheduleKeepAliveTimeout for MessageChannel(key=" + getKey() + "), clientAddress="
+					+ peerAddress
+					+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + "): newKeepAliveTimeout=");
+			if (newKeepAliveTimeout == Long.MAX_VALUE) {
+				methodLog.append("Long.MAX_VALUE");
+			} else {
+				methodLog.append(newKeepAliveTimeout);
+			}
+			// methodLog.append(", lastKeepAliveReceivedTimeOrNow=");
+			// methodLog.append(lastKeepAliveReceivedTimeOrNow);
+			// methodLog.append(", newScheduledTime=");
+			// methodLog.append(newScheduledTime);
+		}
+
+		// long delay = newScheduledTime > now ? newScheduledTime - now : 1;
+		try {
+			keepAliveSemaphore.acquire();
+		} catch (InterruptedException e) {
+			logger.logWarning("Couldn't acquire keepAliveSemaphore");
+			return;
+		}
+		try {
+			if (pingKeepAliveTimeoutTask == null) {
+				pingKeepAliveTimeoutTask = new KeepAliveTimeoutTimerTask();
+				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+					methodLog.append(", scheduling pingKeepAliveTimeoutTask to execute after ");
+					methodLog.append(keepAliveTimeout / 1000);
+					methodLog.append(" seconds");
+					logger.logDebug(methodLog.toString());
+				}
+				sipStack.getTimer().schedule(pingKeepAliveTimeoutTask, keepAliveTimeout);
+			} else {
+				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+					logger.logDebug("~~~ cancelPingKeepAliveTimeout for MessageChannel(key=" + getKey()
+							+ "), clientAddress=" + peerAddress
+							+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
+				}
+				sipStack.getTimer().cancel(pingKeepAliveTimeoutTask);
+				pingKeepAliveTimeoutTask = new KeepAliveTimeoutTimerTask();
+				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+					methodLog.append(", scheduling pingKeepAliveTimeoutTask to execute after ");
+					methodLog.append(keepAliveTimeout / 1000);
+					methodLog.append(" seconds");
+					logger.logDebug(methodLog.toString());
+				}
+				sipStack.getTimer().schedule(pingKeepAliveTimeoutTask, keepAliveTimeout);
+			}
+		} finally {
+			keepAliveSemaphore.release();
+		}
+	}
+
+	class KeepAliveTimeoutTimerTask extends SIPStackTimerTask {
+		KeepAliveTimeoutTimerTask() {
+			super(KeepAliveTimeoutTimerTask.class.getSimpleName());
+		}
+
+		@Override
+		public String getThreadHash() {
+			return null;
+		}
+
+		public void runTask() {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug(
+						"~~~ Starting processing of KeepAliveTimeoutEvent( " + peerAddress.getHostAddress() + ","
+								+ peerPort + ")...");
+			}
+			close(true, true);
+			if (sipStack instanceof SipStackImpl) {
+				for (Iterator<SipProviderImpl> it = ((SipStackImpl) sipStack).getSipProviders(); it.hasNext();) {
+					SipProviderImpl nextProvider = (SipProviderImpl) it.next();
+					SipListener sipListener = nextProvider.getSipListener();
+					ListeningPoint[] listeningPoints = nextProvider.getListeningPoints();
+					for (ListeningPoint listeningPoint : listeningPoints) {
+						if (sipListener != null && sipListener instanceof SipListenerExt
+						// making sure that we don't notify each listening point but only the one on
+						// which the timeout happened
+								&& listeningPoint.getIPAddress().equalsIgnoreCase(myAddress)
+								&& listeningPoint.getPort() == myPort &&
+								listeningPoint.getTransport().equalsIgnoreCase(getTransport())) {
+							((SipListenerExt) sipListener).processIOException(
+									new IOExceptionEventExt(nextProvider, Reason.KeepAliveTimeout, myAddress, myPort,
+											peerAddress.getHostAddress(), peerPort, getTransport()));
+						}
+					}
+				}
+			} else {
+				SipListener sipListener = sipStack.getSipListener();
+				if (sipListener instanceof SipListenerExt) {
+					((SipListenerExt) sipListener).processIOException(
+							new IOExceptionEventExt(this, Reason.KeepAliveTimeout, myAddress, myPort,
+									peerAddress.getHostAddress(), peerPort, getTransport()));
+				}
+			}
+		}
 	}
 
 }

@@ -93,7 +93,7 @@ import javax.sip.message.Request;
  * 
  */
 
-public class SIPRequest extends SIPMessage implements javax.sip.message.Request, RequestExt {
+public class SIPRequest extends SIPMessage implements RequestExt {
 
     private static final long serialVersionUID = 3360720013577322927L;
 

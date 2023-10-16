@@ -53,7 +53,7 @@ import java.util.LinkedList;
  */
 public class SIPResponse
     extends SIPMessage
-    implements javax.sip.message.Response, ResponseExt {
+    implements ResponseExt {
 	private static final long serialVersionUID = 1L;
 	
 	protected StatusLine statusLine;
