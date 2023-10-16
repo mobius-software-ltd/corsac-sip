@@ -707,7 +707,9 @@ public class MessageFactoryImpl implements MessageFactoryExt {
     public javax.sip.message.Request createRequest(String requestString)
             throws java.text.ParseException {
         if (requestString == null || requestString.equals("")) {
-            
+            SIPRequest retval = new SIPRequest();
+            retval.setNullRequest();
+            return retval;
         }
 
         StringMsgParser smp = new StringMsgParser();
