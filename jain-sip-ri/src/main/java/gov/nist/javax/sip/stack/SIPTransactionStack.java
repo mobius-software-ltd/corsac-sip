@@ -2196,6 +2196,10 @@ public abstract class SIPTransactionStack implements
     			NioTcpMessageProcessor niop = (NioTcpMessageProcessor)p;
     			niop.nioHandler.closeAll();
     		}
+            if(p instanceof NettyStreamMessageProcessor) {
+                NettyStreamMessageProcessor nettyStreamMessageProcessor = (NettyStreamMessageProcessor)p;
+                nettyStreamMessageProcessor.close();
+            }    			
     	}
     }
 
@@ -3345,17 +3349,22 @@ public abstract class SIPTransactionStack implements
 
         MessageProcessor processor = findMessageProcessor(myAddress, myPort, transport);
 
-        if (processor == null || !(processor instanceof ConnectionOrientedMessageProcessor)) {
-            return false;
-        }
-
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("~~~ Trying to find MessageChannel and set new KeepAliveTimeout( myAddress=" + myAddress + ", myPort=" + myPort
                     + ", transport=" + transport + ", peerAddress=" + peerAddress + ", peerPort=" + peerPort
                     + ", keepAliveTimeout=" + keepAliveTimeout + "), MessageProcessor=" + processor);
         }
-        return  ((ConnectionOrientedMessageProcessor)processor).setKeepAliveTimeout(peerAddress, peerPort, keepAliveTimeout);
 
+        if (processor == null) {
+            return false;
+        }
+        
+        if(processor instanceof ConnectionOrientedMessageProcessor)
+            return  ((ConnectionOrientedMessageProcessor)processor).setKeepAliveTimeout(peerAddress, peerPort, keepAliveTimeout);
+        if(processor instanceof NettyStreamMessageProcessor)
+            return  ((NettyStreamMessageProcessor)processor).setKeepAliveTimeout(peerAddress, peerPort, keepAliveTimeout);
+        else   
+            return false;
     }
 
     /**

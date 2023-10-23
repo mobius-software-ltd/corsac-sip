@@ -647,8 +647,7 @@ import gov.nist.javax.sip.stack.timers.SipTimer;
  *
  *
  */
-public class SipStackImpl extends SIPTransactionStack implements
-		javax.sip.SipStack, SipStackExt {
+public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	private static StackLogger logger = CommonLogger.getLogger(SipStackImpl.class);
 	private EventScanner eventScanner;
 

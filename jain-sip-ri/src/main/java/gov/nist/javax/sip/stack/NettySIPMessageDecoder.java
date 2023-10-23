@@ -23,14 +23,14 @@ public class NettySIPMessageDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) { 
-        logger.logError("readable bytes: \n" + in.readableBytes());   
+        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("readable bytes: \n" + in.readableBytes());   
+        }
               
         byte[] msg = new byte[in.readableBytes()];
         in.readBytes(msg);
 
-        String message = new String(msg);
-        logger.logError("received following message: \n" + message);         
-
+        String message = new String(msg);        
         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("received following message: \n" + new String(message));
         }                
@@ -43,8 +43,10 @@ public class NettySIPMessageDecoder extends ByteToMessageDecoder {
             out.add(sipMessage);
         } catch (ParseException e) {
             e.printStackTrace();
-            logger.logDebug(
+            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+                logger.logDebug(
                     "Parsing issue !  " + new String(msg.toString()) + " " + e.getMessage());
+            }
         }              
     }
 }

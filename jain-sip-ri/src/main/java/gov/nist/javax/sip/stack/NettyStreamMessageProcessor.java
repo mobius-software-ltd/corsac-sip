@@ -3,7 +3,6 @@ package gov.nist.javax.sip.stack;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,6 +50,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
     EventLoopGroup workerGroup;
 
     NettyMessageHandler context;
+    Channel channel;
 
     SslContext sslServerContext;
     SslContext sslClientContext;
@@ -127,7 +127,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
         MessageChannel retval = null;
     	try {
     		String key = MessageChannel.getKey(targetHostPort, transport);
-		    // retval = messageChannels.get(key);
+		    retval = messageChannels.get(key);
                 //here we use double-checked locking trying to reduce contention	
     		if (retval == null) {
                     retval = createMessageChannel(key, 
@@ -176,8 +176,8 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
     @Override
     public MessageChannel createMessageChannel(InetAddress targetHost, int port) throws IOException {
         String key = MessageChannel.getKey(targetHost, port, transport);
-        // MessageChannel retval = messageChannels.get(key);
-        MessageChannel retval = null;
+        MessageChannel retval = messageChannels.get(key);
+        // MessageChannel retval = null;
             //here we use double-checked locking trying to reduce contention	
         if (retval == null) {
                 retval = createMessageChannel(key, targetHost, port);
@@ -205,7 +205,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
              .childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
             
             // Bind and start to accept incoming connections.
-            Channel channel = server.bind(port).sync().channel();
+            channel = server.bind(port).sync().channel();
             
             // Create a new thread to run the server
             new Thread(() -> {
@@ -270,6 +270,14 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
     @Override
     public SIPTransactionStack getSIPStack() {
         return this.sipStack;
+    }
+
+    public void close() {
+        // closing the channels
+        for (Object messageChannel : messageChannels.values()) {
+			((MessageChannel)messageChannel).close();
+          }
+        channel.close();
     }
 
     protected synchronized void remove(NettyStreamMessageChannel messageChannel) {
@@ -353,7 +361,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
             logger.logDebug(Thread.currentThread() + " checking channel with key " + messageChannelKey + " : " + foundMessageChannel + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
         
         if (foundMessageChannel != null) {
-            // foundMessageChannel.setKeepAliveTimeout(keepAliveTimeout);
+            foundMessageChannel.setKeepAliveTimeout(keepAliveTimeout);
             return true;
         }
         

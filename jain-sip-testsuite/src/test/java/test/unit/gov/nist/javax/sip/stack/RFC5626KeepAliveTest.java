@@ -53,7 +53,6 @@ import gov.nist.javax.sip.stack.NettyStreamMessageChannel;
 import gov.nist.javax.sip.stack.NettyStreamMessageProcessor;
 import gov.nist.javax.sip.stack.RawMessageChannel;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
-import gov.nist.javax.sip.stack.TCPMessageChannel;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
@@ -753,14 +752,8 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
         shootistProvider.addSipListener(this);
         shootmeProvider.addSipListener(this);
                     
-        shootist.keepAliveToSend  = 100;
-        shootist.sendInvite();
-        
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        shootist.keepAliveToSend = 100;
+        shootist.sendInvite();        
         
         assertTrue( 
             AssertUntil.assertUntil(new TestAssertion() {
@@ -770,21 +763,29 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
                             !shootme.keepAliveTimeoutFired;
                 };
             }, TIMEOUT)
-        ); 
-        
-        System.out.println("Destroying Shootme to provoke timeout on Shootist");
+        );         
         
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        getTiProtocolObjects().destroy();
+        logger.info("Destroying Shootme to provoke timeout on Shootist");
+        getTiProtocolObjects().destroy();        
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         assertTrue( 
             AssertUntil.assertUntil(new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
+                    logger.info("shootist keepAliveTimeoutFired ? " + shootist.keepAliveTimeoutFired);
+                    logger.info("shootme keepAliveTimeoutFired ? " + shootme.keepAliveTimeoutFired);
+                    
                     return shootist.keepAliveTimeoutFired &&
                            !shootme.keepAliveTimeoutFired;
                 };

@@ -115,7 +115,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 			myAddress = nettyTCPMessageProcessor.getIpAddress().getHostAddress();
 			myPort = nettyTCPMessageProcessor.getPort();
-			this.keepAliveTimeout = nettyTCPMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();
+			keepAliveTimeout = nettyTCPMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();
 			if (keepAliveTimeout > 0) {
 				keepAliveSemaphore = new Semaphore(1);
 			}
@@ -135,6 +135,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					+ inetAddress.getHostAddress() + ":" + port);
 		}
 		try {
+			this.sipStack = sipStack;
 			messageProcessor = nettyTCPMessageProcessor;
 			bootstrap = new Bootstrap();
 			EventLoopGroup group = new NioEventLoopGroup();
@@ -153,7 +154,11 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 			myAddress = nettyTCPMessageProcessor.getIpAddress().getHostAddress();
 			myPort = nettyTCPMessageProcessor.getPort();
-
+			
+			keepAliveTimeout = nettyTCPMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();
+			if (keepAliveTimeout > 0) {
+				keepAliveSemaphore = new Semaphore(1);
+			}
 		} catch (InterruptedException e) {
 			throw new IOException(e);
 		} finally {
@@ -277,7 +282,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		try {
 			if (channel.isActive() == false) {		
 				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-					logger.logDebug("Channel not active, trying to reconnect "
+					logger.logDebug("Channel not active " + ((InetSocketAddress)channel.remoteAddress()).getAddress().getHostAddress() + ":" + ((InetSocketAddress)channel.remoteAddress()).getPort() + ", trying to reconnect "
 							+ this.peerAddress + ":" + this.peerPort  + " for this channel "
 							+ channel + " key " + getKey());
 				}		
@@ -289,8 +294,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				throw new IOException("Failed to send message " + new String(message));
 			}
 		} catch (InterruptedException e) {
-			new IOException(e);
-		}
+			throw new IOException(e);
+		} 
 	}
 
 	/**
@@ -908,7 +913,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					+ peerAddress
 					+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + "): newKeepAliveTimeout=");
 			if (newKeepAliveTimeout == Long.MAX_VALUE) {
-				methodLog.append("Long.MAX_VALUE");
+				methodLog.append(Long.MAX_VALUE);
 			} else {
 				methodLog.append(newKeepAliveTimeout);
 			}

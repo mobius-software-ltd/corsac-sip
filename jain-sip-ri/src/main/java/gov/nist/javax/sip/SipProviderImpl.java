@@ -95,7 +95,7 @@ import gov.nist.javax.sip.stack.SIPTransactionStack;
  *
  */
 
-public class SipProviderImpl implements javax.sip.SipProvider, gov.nist.javax.sip.SipProviderExt,
+public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         SIPTransactionEventListener, SIPDialogEventListener {
 	private static StackLogger logger = CommonLogger.getLogger(SipProviderImpl.class);
     private SipListener sipListener;
