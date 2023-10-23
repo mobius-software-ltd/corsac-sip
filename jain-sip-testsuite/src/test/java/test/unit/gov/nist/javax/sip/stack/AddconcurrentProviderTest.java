@@ -12,6 +12,7 @@ import javax.sip.ListeningPoint;
 import javax.sip.SipFactory;
 import javax.sip.SipStack;
 
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import junit.framework.Assert;
 import junit.framework.TestCase;
@@ -61,7 +62,9 @@ public class AddconcurrentProviderTest extends TestCase {
         if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
         }
-
+        if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {        	
+        	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+        }
         // Create SipStack object
         sipStack = sipFactory.createSipStack(properties);
         System.out.println("Shootist : createSipStack " + sipStack);

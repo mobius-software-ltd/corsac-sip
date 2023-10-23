@@ -2,6 +2,7 @@ package test.unit.gov.nist.javax.sip.stack.tls;
 import gov.nist.javax.sip.ClientTransactionExt;
 import gov.nist.javax.sip.TlsSecurityPolicy;
 import gov.nist.javax.sip.header.HeaderExt;
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -228,6 +229,9 @@ public class Shootist implements SipListener, TlsSecurityPolicy {
             properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "LOG4J");
             if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            }
+            if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
             }
         } else {
             properties = props;

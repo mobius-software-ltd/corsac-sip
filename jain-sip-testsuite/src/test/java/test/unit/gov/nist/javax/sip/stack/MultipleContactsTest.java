@@ -2,10 +2,6 @@ package test.unit.gov.nist.javax.sip.stack;
 
 
 
-import gov.nist.javax.sip.ListeningPointImpl;
-import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
@@ -36,10 +32,13 @@ import javax.sip.header.ToHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 
-import test.tck.msgflow.callflows.ScenarioHarness;
-
+import gov.nist.javax.sip.ListeningPointImpl;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import junit.framework.Assert;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
+import test.tck.msgflow.callflows.ScenarioHarness;
 
 public class MultipleContactsTest extends ScenarioHarness {
 
@@ -111,6 +110,9 @@ public class MultipleContactsTest extends ScenarioHarness {
                 if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
                 	defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
                 }
+                if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+                }
                 this.sipFactory = SipFactory.getInstance();
                 this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
@@ -157,6 +159,9 @@ public class MultipleContactsTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS","false");
                 if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
                 	defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                }
+                if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
                 }
                 this.sipFactory = SipFactory.getInstance();
                 this.sipFactory.resetFactory();

@@ -6,6 +6,7 @@ import gov.nist.javax.sip.stack.CallAnalyzer;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import gov.nist.javax.sip.stack.CallAnalyzer.MetricAnalysisConfiguration;
 import gov.nist.javax.sip.stack.CallAnalyzer.MetricReference;
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -311,6 +312,9 @@ public class SIPEventInterceptorTest extends TestCase{
             if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
             }
+            if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+            }
             try {
                 // Create SipStack object
                 sipStack = sipFactory.createSipStack(properties);
@@ -488,6 +492,9 @@ public class SIPEventInterceptorTest extends TestCase{
             properties.setProperty("gov.nist.javax.sip.SIP_EVENT_INTERCEPTOR", CallAnalysisInterceptor.class.getName());
             if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            }
+            if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
             }
             try {
                 // Create SipStack object

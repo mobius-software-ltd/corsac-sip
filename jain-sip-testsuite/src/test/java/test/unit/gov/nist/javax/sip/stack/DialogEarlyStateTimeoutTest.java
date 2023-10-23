@@ -7,6 +7,7 @@ import gov.nist.javax.sip.SipProviderExt;
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.header.HeaderFactoryExt;
 import gov.nist.javax.sip.message.MessageFactoryExt;
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 import java.util.ArrayList;
@@ -452,6 +453,10 @@ public class DialogEarlyStateTimeoutTest extends TestCase {
             	logger.info("\nNIO Enabled\n");
             	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
             }
+            if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                logger.info("\nNetty Enabled\n");
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+            }
             this.shootistStack = (SipStackExt) sipFactory
                     .createSipStack(properties);
 
@@ -468,6 +473,10 @@ public class DialogEarlyStateTimeoutTest extends TestCase {
             if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             	logger.info("\nNIO Enabled\n");
             	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            }
+            if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                logger.info("\nNetty Enabled\n");
+                properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
             }
             this.shootmeStack = (SipStackExt) sipFactory
                     .createSipStack(properties);

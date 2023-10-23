@@ -50,6 +50,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 import gov.nist.javax.sip.ClientTransactionExt;
 import gov.nist.javax.sip.TlsSecurityPolicy;
 import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import junit.framework.TestCase;
@@ -314,6 +315,9 @@ public class DeadSocketTlsTest extends TestCase {
 			if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
 	        	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
 	        }
+			if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+				properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+			}
 			try {
 				// Create SipStack object
 				sipStack = sipFactory.createSipStack(properties);
@@ -833,6 +837,9 @@ public class DeadSocketTlsTest extends TestCase {
 			if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
 	        	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
 	        }
+			if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+				properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+			}
 			try {
 				// Create SipStack object
 				sipStack = sipFactory.createSipStack(properties);
