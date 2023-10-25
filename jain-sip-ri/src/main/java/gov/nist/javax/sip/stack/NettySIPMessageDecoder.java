@@ -17,7 +17,9 @@ public class NettySIPMessageDecoder extends ByteToMessageDecoder {
     NettyMessageParser nettyMessageParser = null;
 
     public NettySIPMessageDecoder(SIPTransactionStack sipStack) {    
-        this.nettyMessageParser = new NettyMessageParser(sipStack.getMessageParserFactory().createMessageParser(sipStack));
+        this.nettyMessageParser = new NettyMessageParser(
+            sipStack.getMessageParserFactory().createMessageParser(sipStack), 
+            sipStack.getMaxMessageSize());
     }
 
     @Override
@@ -30,8 +32,7 @@ public class NettySIPMessageDecoder extends ByteToMessageDecoder {
             if (sipMessage != null) {
                 if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
                     logger.logDebug("following message parsed, passing it up the stack and resetting \n" + sipMessage.toString());
-                }                
-                nettyMessageParser.reset();
+                }                                
                 out.add(sipMessage);            
             }
         } catch (Exception e) {

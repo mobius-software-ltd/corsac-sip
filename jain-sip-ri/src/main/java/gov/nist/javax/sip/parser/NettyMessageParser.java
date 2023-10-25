@@ -1,6 +1,7 @@
 
 package gov.nist.javax.sip.parser;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 
@@ -17,6 +18,7 @@ import io.netty.buffer.ByteBuf;
 public class NettyMessageParser {
     private static StackLogger logger = CommonLogger.getLogger(NettyMessageParser.class);
 
+	private static final String ENCODING = "UTF-8";
 	private static final String CALL_ID_COMPACT_NAME = "i";
 	private static final String CONTENT_LENGHT_COMPACT_NAME = "l";
 
@@ -32,13 +34,14 @@ public class NettyMessageParser {
     private int contentLength = 0;
 	private int contentReadSoFar = 0;
     
-    private StringBuilder message = new StringBuilder();
+	private ByteArrayOutputStream messageHeaders = new ByteArrayOutputStream();    
     private SIPMessage sipMessage = null;
 	private byte[] messageBody = null;
 	
 
-    public NettyMessageParser(MessageParser messageParser) {
+    public NettyMessageParser(MessageParser messageParser, int maxMessageSize) {
         this.messageParser = messageParser;        
+		this.maxMessageSize = maxMessageSize;
     }
 
     public SIPMessage addBytes(ByteBuf byteBuf)  throws Exception{
@@ -59,11 +62,11 @@ public class NettyMessageParser {
 			}
 			String currentLine = new String(msgBuffer);
 			if (currentLine.equalsIgnoreCase(SIPMessage.DOUBLE_CRLF) || currentLine.equals(SIPMessage.SINGLE_CRLF)) {
-				SIPMessage message = new SIPRequest();
-				message.setSize(currentLine.length());
-				message.setNullRequest();
+				SIPMessage nullMessage = new SIPRequest();
+				nullMessage.setSize(currentLine.length());
+				nullMessage.setNullRequest();
 				
-				return message;
+				return nullMessage;
 			}
 		}	
 		return readStream(byteBuf);
@@ -104,7 +107,7 @@ public class NettyMessageParser {
 			line = partialLine + line; // If we reach the end of the line in this chunk we concatenate it with the partial line from the previous buffer to have a full line
 			partialLine = ""; // Reset the partial line so next time we will concatenate empty string instead of the obsolete partial line that we just took care of
 			if(!line.equals(SIPMessage.SINGLE_CRLF)) { // CRLF indicates END of message headers by RFC
-				message.append(line); // Collect the line so far in the message buffer (line by line)
+				messageHeaders.write(line.getBytes(ENCODING)); // Collect the line so far in the message buffer (line by line)
                 String lineIgnoreCase = line.toLowerCase();
                 // contribution from Alexander Saveliev compare to lower case as RFC 3261 states (7.3.1 Header Field Format) states that header fields are case-insensitive
 				if(lineIgnoreCase.startsWith(ContentLength.NAME_LOWER)) { // naive Content-Length header parsing to figure out how much bytes of message body must be read after the SIP headers
@@ -135,11 +138,11 @@ public class NettyMessageParser {
                     	logger.logDebug("Received CRLF");
                     }								
             	}
-				if(message.length() > 0) { // if we havent read any headers yet we are between messages and ignore CRLFs
+				if(messageHeaders.size() > 0) { // if we havent read any headers yet we are between messages and ignore CRLFs
 					readingMessageBodyContents = true;
 					readingHeaderLines = false;
 					partialLineRead = false;
-					message.append(SIPMessage.SINGLE_CRLF); // the parser needs CRLF at the end, otherwise fails TODO: Is that a bug?
+					messageHeaders.write(SIPMessage.SINGLE_CRLF.getBytes(ENCODING)); // the parser needs CRLF at the end, otherwise fails TODO: Is that a bug?
 					if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 						logger.logDebug("Content Length parsed is " + contentLength);
 					}
@@ -168,23 +171,25 @@ public class NettyMessageParser {
 			sizeCounter = maxMessageSize;
 			readingHeaderLines = true;
 			readingMessageBodyContents = false;
-            this.contentLength = 0;												
-						
-            final String msgLines = message.toString();
-            message = new StringBuilder();
-            final byte[] msgBodyBytes = messageBody;			            
+            this.contentLength = 0;																		            	            
             
             try {
-                // System.out.println("Parsing SIP Message " + msgLines + "\n" + new String(messageBody));
-                byte[] msgBytes = msgLines.getBytes("UTF-8");
-                sipMessage = messageParser.parseSIPMessage(msgBytes, false, false, null);
-                sipMessage.setMessageContent(msgBodyBytes);
-                
+                // System.out.println("Parsing SIP Message " + msgLines + "\n" + new String(messageBody));                
+                sipMessage = messageParser.parseSIPMessage(messageHeaders.toByteArray(), false, false, null);
+                sipMessage.setMessageContent(messageBody);
+
                 return sipMessage;
             } catch (ParseException e) {
                 NettyMessageParser.logger.logDebug(
-                        "Parsing issue !  " + new String(msgLines.getBytes("UTF-8")) + " " + e.getMessage());
-            }            
+                        "Parsing issue !  " + new String(messageHeaders.toByteArray()) + " " + e.getMessage());
+            } finally {
+				messageHeaders.reset();				
+				messageBody = null;
+				currentStreamEnded = false;
+				partialLineRead = false; // if we didn't receive enough bytes for a full line we expect the line to end in the next batch of bytes
+				sipMessage = null;
+				messageBody = null;
+			}        
 		}
         return null;
 	}
@@ -249,16 +254,16 @@ public class NettyMessageParser {
                 
             }
         }
-        if(counter == 1 && crlfCounter > 0) {
+        if(counter == 1 && crlfCounter > 0) {			
         	return new String(crlfBuffer,0,crlfCounter,"UTF-8");
-        } else {
+        } else {			
         	String lineRead = new String(lineBuffer,0,counter,"UTF-8");
-                //In case \r\n are not in the same chunk, wait for the rest
-                //fixes https://github.com/RestComm/jain-sip/issues/48
-                if (crlfCounter == 1) {
-                    lineRead = lineRead + "\r";
-                }
-                return lineRead;
+			//In case \r\n are not in the same chunk, wait for the rest
+			//fixes https://github.com/RestComm/jain-sip/issues/48
+			if (crlfCounter == 1) {				
+				lineRead = lineRead + "\r";
+			}
+			return lineRead;
         }
         
     }
@@ -267,14 +272,7 @@ public class NettyMessageParser {
         return sipMessage;
     }
 
-	public StringBuilder getMessage() {
-		return message;
-	}
-
-    public void reset() {        
-        currentStreamEnded = false;
-	    partialLineRead = false; // if we didn't receive enough bytes for a full line we expect the line to end in the next batch of bytes
-	    sipMessage = null;
-	    messageBody = null;
-    }    
+	public String getMessage() {
+		return messageHeaders.toString();
+	}   
 }
