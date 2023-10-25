@@ -31,10 +31,10 @@ public class NettyMessageParser {
     private int contentLength = 0;
 	private int contentReadSoFar = 0;
     
-	private ByteArrayOutputStream messageHeaders = new ByteArrayOutputStream();    
-    private SIPMessage sipMessage = null;
+	private ByteArrayOutputStream messageHeaders = new ByteArrayOutputStream();        
 	private byte[] messageBody = null;
 	
+	private SIPMessage sipMessage = null;
 
     public NettyMessageParser(MessageParser messageParser, int maxMessageSize) {
         this.messageParser = messageParser;        
@@ -81,10 +81,7 @@ public class NettyMessageParser {
 			if(currentStreamEnded) break; // The stream ends when we have read all bytes in the chunk NIO passed to us
 			else {
 				if(readingHeaderLines) {// We are in state to read header lines right now
-					isPreviousLineCRLF = readMessageSipHeaderLines(byteBuf, isPreviousLineCRLF);										
-					// if(sipMessage != null) {
-					// 	return sipMessage;
-					// }
+					isPreviousLineCRLF = readMessageSipHeaderLines(byteBuf, isPreviousLineCRLF);															
 				}
 				if(readingMessageBodyContents) { // We've already read the headers an now we are reading the Contents of the SIP message (which doesn't generally have lines)
 					return readMessageBody(byteBuf);
