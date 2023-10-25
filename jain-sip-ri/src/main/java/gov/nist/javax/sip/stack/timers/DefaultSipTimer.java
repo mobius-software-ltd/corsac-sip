@@ -110,7 +110,9 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
 	 */
 	public boolean cancel(SIPStackTimerTask task) {
-		return ((TimerTask)task.getSipTimerTask()).cancel();
+		if(task != null & task.getSipTimerTask() != null)
+			return ((TimerTask)task.getSipTimerTask()).cancel();
+		return false;
 	}
 
 	/*

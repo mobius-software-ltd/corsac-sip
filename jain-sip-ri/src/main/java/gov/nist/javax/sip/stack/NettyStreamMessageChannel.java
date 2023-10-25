@@ -74,7 +74,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	private static StackLogger logger = CommonLogger
 			.getLogger(NioTcpMessageChannel.class);
 
-	Bootstrap bootstrap = new Bootstrap();
+	Bootstrap bootstrap;
 	protected Channel channel;
 
 	protected SIPTransactionStack sipStack;
@@ -107,6 +107,12 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		try {
 			this.channel = channel;
 			this.messageProcessor = nettyTCPMessageProcessor;
+			bootstrap = new Bootstrap();
+			EventLoopGroup group = new NioEventLoopGroup();
+			bootstrap.group(group)
+					.channel(NioSocketChannel.class)
+					.handler(new NettyChannelInitializer(nettyTCPMessageProcessor,
+							nettyTCPMessageProcessor.sslClientContext));
 			this.sipStack = nettyTCPMessageProcessor.sipStack;
 			this.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
 			this.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();
@@ -423,9 +429,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
 		sipMessage.setRemoteAddress(remoteAddress.getAddress());
 		sipMessage.setRemotePort(remoteAddress.getPort());
-		// FIXME: commented but should be fixed
-		// sipMessage.setLocalPort(this.getPort());
-		// sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
+		sipMessage.setLocalPort(this.getPort());
+		sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
 		// Issue 3: https://telestax.atlassian.net/browse/JSIP-3
 		if (logger.isLoggingEnabled(LogWriter.TRACE_INFO)) {
 			logger.logInfo("Setting SIPMessage peerPacketSource to: " + remoteAddress.getAddress().getHostAddress()

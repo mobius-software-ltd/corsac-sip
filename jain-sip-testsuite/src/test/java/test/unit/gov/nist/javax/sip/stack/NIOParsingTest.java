@@ -2,6 +2,7 @@ package test.unit.gov.nist.javax.sip.stack;
 
 
 
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 import java.net.Socket;
@@ -92,7 +93,11 @@ public class NIOParsingTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/server_debug_ViaRPortTest.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "server_log_ViaRPortTest.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE", "64");
-                defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {                    
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+                } else {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                }
                 this.sipFactory = SipFactory.getInstance();
                 this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
@@ -137,7 +142,11 @@ public class NIOParsingTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "client_log.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS","false");
-                defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {                    
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+                } else {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                }                
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE", "DisabledAll");
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1");
                 

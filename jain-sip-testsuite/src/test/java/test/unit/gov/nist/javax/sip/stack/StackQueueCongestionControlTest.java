@@ -337,7 +337,7 @@ public class StackQueueCongestionControlTest extends TestCase {
 
 
         public void processIOException(IOExceptionEvent exceptionEvent) {
-            fail("IOException");
+            fail("IOException " + exceptionEvent.getSource());
 
         }
 
@@ -725,7 +725,7 @@ public class StackQueueCongestionControlTest extends TestCase {
         }
         assertEquals(shootist.receivedResponses, shootme.sentResponses);
         if(this.shootme.acks != 5) {
-            fail("We expect 5 ACKs because retransmissions are not filtered in loose dialog validation.");
+            fail("We expect 5 ACKs because retransmissions are not filtered in loose dialog validation. We got " + this.shootme.acks);
         }
     }
     

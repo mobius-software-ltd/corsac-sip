@@ -64,10 +64,10 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
             SIPTransactionStack sipStack, int port, String transport) throws IOException {
                 super(ipAddress, port, transport, sipStack);                
                 this.messageChannels = new ConcurrentHashMap <String, NettyStreamMessageChannel>();
-                // TODO: Add how many threads can be used
-                this.bossGroup = new NioEventLoopGroup(); 
-                // TODO: Add how many threads can be used
-                this.workerGroup = new NioEventLoopGroup();
+                // FIXME: check if this is correct and how many threads can be used
+                this.bossGroup = new NioEventLoopGroup(sipStack.getTcpPostParsingThreadPoolSize()); 
+                // FIXME: check if this is correct and how many threads can be used
+                this.workerGroup = new NioEventLoopGroup(sipStack.getTcpPostParsingThreadPoolSize());
                 if(transport.equals(ListeningPoint.TLS)) {
                     if(sipStack.getClientAuth() == ClientAuthType.DisabledAll) {
                         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
