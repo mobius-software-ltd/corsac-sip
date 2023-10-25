@@ -9,7 +9,6 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
-import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -18,8 +17,7 @@ import io.netty.buffer.ByteBuf;
 public class NettyMessageParser {
     private static StackLogger logger = CommonLogger.getLogger(NettyMessageParser.class);
 
-	private static final String ENCODING = "UTF-8";
-	private static final String CALL_ID_COMPACT_NAME = "i";
+	private static final String ENCODING = "UTF-8";	
 	private static final String CONTENT_LENGHT_COMPACT_NAME = "l";
 
     private final MessageParser messageParser;            
