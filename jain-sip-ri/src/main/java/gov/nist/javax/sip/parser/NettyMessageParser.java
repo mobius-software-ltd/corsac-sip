@@ -28,7 +28,6 @@ public class NettyMessageParser {
 	private boolean readingHeaderLines = true;
 	private boolean partialLineRead = false; // if we didn't receive enough bytes for a full line we expect the line to end in the next batch of bytes
 	private String partialLine = "";
-	private String callId;
     private int maxMessageSize;
     private int sizeCounter;
     private int contentLength = 0;
@@ -116,13 +115,7 @@ public class NettyMessageParser {
 				} else if(lineIgnoreCase.startsWith(CONTENT_LENGHT_COMPACT_NAME)) { // issue with compact header form
 					contentLength = Integer.parseInt(line.substring(
 							CONTENT_LENGHT_COMPACT_NAME.length()+1).trim());
-				} else if(lineIgnoreCase.startsWith(CallID.NAME_LOWER)) { // naive Content-Length header parsing to figure out how much bytes of message body must be read after the SIP headers
-					callId = line.substring(
-							CallID.NAME_LOWER.length()+1).trim();
-				} else if(lineIgnoreCase.startsWith(CALL_ID_COMPACT_NAME)) { // issue with compact header form
-					callId = line.substring(
-							CALL_ID_COMPACT_NAME.length()+1).trim();
-				}
+				} 
 			} else {				
 				if(isPreviousLineCRLF) {
             		// Handling keepalive ping (double CRLF) as defined per RFC 5626 Section 4.4.1
