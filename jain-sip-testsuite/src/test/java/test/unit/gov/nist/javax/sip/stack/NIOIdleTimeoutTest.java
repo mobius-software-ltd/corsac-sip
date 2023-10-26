@@ -2,9 +2,6 @@ package test.unit.gov.nist.javax.sip.stack;
 
 
 
-import gov.nist.javax.sip.ListeningPointImpl;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
-
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
@@ -39,6 +36,9 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 
+import gov.nist.javax.sip.ListeningPointImpl;
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import junit.framework.Assert;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ScenarioHarness;
@@ -93,6 +93,7 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
 		assertNotNull(serverLastRequestReceived);
 		
 		server.stop();
+        client.stop();
 	}
 
 
@@ -118,7 +119,11 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS",
                         "false");
-                defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+                } else {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                }
                 defaultProperties.setProperty("gov.nist.javax.sip.NIO_MAX_SOCKET_IDLE_TIME", "" + CLOSE_DELAY / 4);
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE", "DisabledAll");
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1.2");
@@ -168,7 +173,11 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "client_log.txt");
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS","false");
-                defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+                } else {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                }
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE", "DisabledAll");
                 defaultProperties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1.2");
 
@@ -209,11 +218,12 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
 				System.out.println("Checking sockets are closed");
 				for (int i = 0; i < TEST_SOCKETS; i++) {
 					try {
+                        System.out.println(test[i]);
 		            	System.out.println(test[i].getInputStream().read());
 		            } catch (SocketTimeoutException e) {
 						throw new Exception("Socket " + test[i] + " wasn't closed by SocketAuditor", e);
 					} catch (Exception e) {
-						System.out.println("TLS Socket closed correctly ");
+						System.out.println("TLS Socket closed correctly " + e.getMessage());
 					}
 				}
 			}
@@ -241,6 +251,10 @@ public class NIOIdleTimeoutTest extends ScenarioHarness {
     		request.addHeader(contactHeader2);
     		ClientTransaction ctx = this.provider.getNewClientTransaction(request);
     		ctx.sendRequest();
+        }
+
+        public void stop() {
+        	Utils.stopSipStack(this.sipStack);
         }
     }
 

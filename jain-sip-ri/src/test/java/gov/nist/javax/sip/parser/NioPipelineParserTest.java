@@ -8,6 +8,7 @@ import javax.sip.SipFactory;
 import javax.sip.SipStack;
 
 import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import junit.framework.Assert;
@@ -31,8 +32,13 @@ public class NioPipelineParserTest extends junit.framework.TestCase {
         defaultProperties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
         defaultProperties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "target/logs/server_debug_ViaRPortTest.txt");
         defaultProperties.setProperty("gov.nist.javax.sip.SERVER_LOG", "target/logs/server_log_ViaRPortTest.txt");
-        //defaultProperties.setProperty("gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE", "64");
-        defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+        //defaultProperties.setProperty("gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE", "64");        
+        if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+        	defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+        } else {
+            defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+        }
+        
         SipFactory sipFactory = SipFactory.getInstance();
         sipFactory.setPathName("gov.nist");
         SipStack sipStack = sipFactory.createSipStack(defaultProperties);

@@ -5,6 +5,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 
 /**
  *  special handler that is purposed to help a user configure a new Channel
@@ -14,7 +16,9 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
     private NettyStreamMessageProcessor nettyStreamMessageProcessor;
     private final SslContext sslCtx;
 
-    public NettyChannelInitializer(NettyStreamMessageProcessor nettyStreamMessageProcessor, SslContext sslCtx) {
+    public NettyChannelInitializer(
+            NettyStreamMessageProcessor nettyStreamMessageProcessor, 
+            SslContext sslCtx) {
         this.nettyStreamMessageProcessor = nettyStreamMessageProcessor; 
         this.sslCtx = sslCtx;
     }
@@ -28,10 +32,18 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
         // and accept any invalid certificates in the client side.
         // You will need something more complicated to identify both
         // and server in the real world.
-        if(sslCtx != null) {
-            pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+        if (sslCtx != null) {
+            SslHandler sslHandler = sslCtx.newHandler(ch.alloc());            
+            if(sslCtx.isClient()) {
+                sslHandler.engine().setUseClientMode(true);
+            }            
+            pipeline.addLast(sslHandler);
+            
         }
-
+        // Add support for socket timeout
+        if (nettyStreamMessageProcessor.sipStack.nioSocketMaxIdleTime > 0) {
+            pipeline.addLast("readTimeoutHandler", new ReadTimeoutHandler((int) nettyStreamMessageProcessor.sipStack.nioSocketMaxIdleTime / 1000));
+        }
         // Decoders
         pipeline.addLast("NettySIPMessageDecoder",
                         new NettySIPMessageDecoder(nettyStreamMessageProcessor.sipStack));
@@ -39,6 +51,6 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
         // Encoder
         pipeline.addLast("bytesEncoder", new ByteArrayEncoder());
 
-        pipeline.addLast(new NettyMessageHandler(nettyStreamMessageProcessor));
+        pipeline.addLast("NettyMessageHandler", new NettyMessageHandler(nettyStreamMessageProcessor));
     }
 }

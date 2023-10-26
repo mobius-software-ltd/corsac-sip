@@ -1,5 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack.tls;
 
+import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
 import java.io.DataInputStream;
@@ -65,7 +66,11 @@ public class TlsTest extends TestCase {
         // You need  16 for logging traces. 32 for debug + traces.
         // Your code will limp at 32 but it is best for debugging.
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
-        properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+        if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+            properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+        } else {
+            properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+        }
         properties.setProperty("gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS", "SSLv2Hello, TLSv1");
         this.shootist.init("localhost", properties);
     }
@@ -123,7 +128,11 @@ public class TlsTest extends TestCase {
         // You need  16 for logging traces. 32 for debug + traces.
         // Your code will limp at 32 but it is best for debugging.
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
-        properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+        if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+            properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
+        } else {
+            properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+        }
         this.shootme.init(properties);
 
         Socket socketClient = null;

@@ -1396,6 +1396,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             if (  ((NioTlsMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener() == null )
                 return null;
             else return ((NioTlsMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener().getCipherSuite();
+        } else if(this.getMessageChannel() instanceof NettyStreamMessageChannel) {
+        	if (  ((NettyStreamMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener() == null )
+                return null;
+            else return ((NettyStreamMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener().getCipherSuite();
         } else throw new UnsupportedOperationException("Not a TLS channel");
 
     }
@@ -1417,6 +1421,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             if (  ((NioTlsMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener() == null )
                 return null;
             else return ((NioTlsMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener().getLocalCertificates();
+        } else if(this.getMessageChannel() instanceof NettyStreamMessageChannel) {
+        	if (  ((NettyStreamMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener() == null )
+                return null;
+            else return ((NettyStreamMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener().getLocalCertificates();
         } else throw new UnsupportedOperationException("Not a TLS channel");
     }
 
@@ -1437,6 +1445,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         	if (  ((NioTlsMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener() == null )
                 return null;
             else return ((NioTlsMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener().getPeerCertificates();
+        } else if(this.getMessageChannel() instanceof NettyStreamMessageChannel) {
+        	if (  ((NettyStreamMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener() == null )
+                return null;
+            else return ((NettyStreamMessageChannel) this.getMessageChannel()).getHandshakeCompletedListener().getPeerCertificates();
         } else throw new UnsupportedOperationException("Not a TLS channel");
 
     }
@@ -1446,7 +1458,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public List<String> extractCertIdentities() throws SSLPeerUnverifiedException {
-        if (this.getMessageChannel() instanceof TLSMessageChannel || this.getMessageChannel() instanceof NioTlsMessageChannel) {
+        if (this.getMessageChannel() instanceof TLSMessageChannel || 
+                this.getMessageChannel() instanceof NioTlsMessageChannel || 
+                this.getMessageChannel() instanceof NettyStreamMessageChannel) {
+            
             List<String> certIdentities = new ArrayList<String>();
             Certificate[] certs = getPeerCertificates();
             if (certs == null) {

@@ -9,6 +9,7 @@ import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.ReadTimeoutException;
 
 public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
     private static StackLogger logger = CommonLogger.getLogger(NettyMessageHandler.class);
@@ -16,32 +17,17 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
     private SIPTransactionStack sipStack;
     private NettyStreamMessageProcessor messageProcessor;
 
-    // private ByteBuf buf;
-
     public NettyMessageHandler(NettyStreamMessageProcessor nettyTCPMessageProcessor) {
         this.messageProcessor = nettyTCPMessageProcessor;
         this.sipStack = messageProcessor.sipStack;
-    }
-
-    // @Override
-    // public void handlerAdded(ChannelHandlerContext ctx) {
-    // buf = ctx.alloc().buffer(4); // (1)
-    // }
-
-    // @Override
-    // public void handlerRemoved(ChannelHandlerContext ctx) {
-    // buf.release(); // (1)
-    // buf = null;
-    // }
+    }   
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
 
         SIPMessage sipMessage = (SIPMessage) msg;
         NettyStreamMessageChannel nettyTCPMessageChannel = messageProcessor.createMessageChannel(ctx.channel());
-        //NettyStreamMessageChannel nettyTCPMessageChannel = new NettyStreamMessageChannel(messageProcessor,
-        //         ctx.channel());
-
+        
         if (sipMessage.isNullRequest()) {
             if (sipMessage.getSize() == 4) {
                     // Handling keepalive ping (double CRLF) as defined per RFC 5626 Section 4.4.1
@@ -118,7 +104,12 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
+        if (cause instanceof ReadTimeoutException) {
+            logger.logError("Read Timeout Received on channel " + ctx.channel() + ", closing channel", (Exception)cause.getCause());
+            ctx.channel().close();            
+         } else {
+            logger.logError("Exception on channel " + ctx.channel() + ", closing channel handle context", (Exception)cause.getCause());
+            ctx.close();
+         }    
     }
 }
