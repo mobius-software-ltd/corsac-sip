@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.stack.NIOMode;
 import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 
@@ -85,6 +86,7 @@ public class ProtocolObjects {
         properties.setProperty("gov.nist.javax.sip.REENTRANT_LISTENER", "" + isReentrant);
         if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
         	logger.info("\nNIO Enabled\n");
+            properties.setProperty("gov.nist.javax.sip.NIO_BLOCKING_MODE", NIOMode.NONBLOCKING.toString());
         	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
         }
         if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
@@ -166,6 +168,7 @@ public class ProtocolObjects {
         if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
             logger.info("\nNIO Enabled\n");
             properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            properties.setProperty("gov.nist.javax.sip.NIO_BLOCKING_MODE", NIOMode.NONBLOCKING.toString());
         }
         if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
         	logger.info("\nNetty Enabled\n");

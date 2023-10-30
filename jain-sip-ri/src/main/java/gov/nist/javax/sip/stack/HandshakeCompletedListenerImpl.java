@@ -61,10 +61,7 @@ public class HandshakeCompletedListenerImpl implements HandshakeCompletedListene
 
     public HandshakeCompletedListenerImpl(NettyStreamMessageChannel tlsMessageChannel) {
         tlsMessageChannel.setHandshakeCompletedListener(this);
-        sipStack = tlsMessageChannel.getSIPStack();
-        // if(sipStack.getSslHandshakeTimeout() > 0) {
-        // 	this.watchdog = new HandshakeWatchdog(socket.socket());        	
-        // }
+        sipStack = tlsMessageChannel.getSIPStack();        
     }
 
     public void handshakeCompleted(HandshakeCompletedEvent handshakeCompletedEvent) {

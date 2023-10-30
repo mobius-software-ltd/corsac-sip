@@ -58,13 +58,13 @@ public class NettyMessageParser {
 				}
 			}
 			String currentLine = new String(msgBuffer);
-			if (currentLine.equalsIgnoreCase(SIPMessage.DOUBLE_CRLF) || currentLine.equals(SIPMessage.SINGLE_CRLF)) {
-				SIPMessage nullMessage = new SIPRequest();
-				nullMessage.setSize(currentLine.length());
-				nullMessage.setNullRequest();
-				
-				return nullMessage;
-			}
+			// if (currentLine.equalsIgnoreCase(SIPMessage.DOUBLE_CRLF) || currentLine.equals(SIPMessage.SINGLE_CRLF)) {
+			SIPMessage nullMessage = new SIPRequest();
+			nullMessage.setSize(currentLine.length());
+			nullMessage.setNullRequest();
+			
+			return nullMessage;
+			// }
 		}	
 		return readStream(byteBuf);
 	}

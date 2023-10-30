@@ -104,6 +104,7 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        // cause.printStackTrace();
         if (cause instanceof ReadTimeoutException) {
             logger.logError("Read Timeout Received on channel " + ctx.channel() + ", closing channel", (Exception)cause.getCause());
             ctx.channel().close();            

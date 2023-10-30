@@ -15,6 +15,7 @@
  */
 package test.unit.gov.nist.javax.sip.stack.tx.timeout;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -264,6 +265,7 @@ public class Shootist implements SipListenerExt {
 
     public void processIOException(IOExceptionEvent exceptionEvent) {
         System.out.println("An IO Exception occured!");
+        new IOException().printStackTrace();;
         TxTimeoutTest.fail("An IO Exception occured!");
 
     }

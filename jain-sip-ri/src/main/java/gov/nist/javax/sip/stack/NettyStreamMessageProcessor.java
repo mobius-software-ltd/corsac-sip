@@ -205,7 +205,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
              .childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
             
             // Bind and start to accept incoming connections.
-            channel = server.bind(port).sync().channel();
+            channel = server.bind(port).await().channel();
             
             // Create a new thread to run the server
             new Thread(() -> {

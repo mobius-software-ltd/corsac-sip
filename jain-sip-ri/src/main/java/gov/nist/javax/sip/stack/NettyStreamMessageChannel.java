@@ -71,13 +71,17 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 public class NettyStreamMessageChannel extends MessageChannel implements
 		SIPMessageListener, RawMessageChannel {
 	private static StackLogger logger = CommonLogger
-			.getLogger(NioTcpMessageChannel.class);
+			.getLogger(NettyStreamMessageChannel.class);
 
 	Bootstrap bootstrap;
+	NettyChannelInitializer nettyChannelInitializer;
+
 	protected Channel channel;
 
 	protected SIPTransactionStack sipStack;
@@ -115,11 +119,13 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			this.channel = channel;
 			this.messageProcessor = nettyTCPMessageProcessor;
 			bootstrap = new Bootstrap();
+			nettyChannelInitializer = new NettyChannelInitializer(nettyTCPMessageProcessor,
+							nettyTCPMessageProcessor.sslClientContext);
 			EventLoopGroup group = new NioEventLoopGroup();
 			bootstrap.group(group)
 					.channel(NioSocketChannel.class)
-					.handler(new NettyChannelInitializer(nettyTCPMessageProcessor,
-							nettyTCPMessageProcessor.sslClientContext))
+					.handler(nettyChannelInitializer)
+					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.messageProcessor.sipStack.connTimeout)
 					.option(ChannelOption.SO_KEEPALIVE, true);
 			
 			this.sipStack = nettyTCPMessageProcessor.sipStack;
@@ -140,7 +146,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			}
 		} finally {
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-				logger.logDebug("Done creating NioTcpMessageChannel " + this + " socketChannel = " + channel);
+				logger.logDebug("Done creating NettyStreamMessageChannel " + this + " socketChannel = " + channel);
 			}
 		}
 
@@ -150,18 +156,20 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			SIPTransactionStack sipStack,
 			NettyStreamMessageProcessor nettyTCPMessageProcessor) throws IOException {
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-			logger.logDebug("NioTcpMessageChannel::NioTcpMessageChannel: "
+			logger.logDebug("NettyStreamMessageChannel: "
 					+ inetAddress.getHostAddress() + ":" + port);
 		}
 		try {
 			this.sipStack = sipStack;
 			messageProcessor = nettyTCPMessageProcessor;
 			bootstrap = new Bootstrap();
+			nettyChannelInitializer = new NettyChannelInitializer(nettyTCPMessageProcessor,
+							nettyTCPMessageProcessor.sslClientContext);
 			EventLoopGroup group = new NioEventLoopGroup();
 			bootstrap.group(group)
 					.channel(NioSocketChannel.class)
-					.handler(new NettyChannelInitializer(nettyTCPMessageProcessor,
-							nettyTCPMessageProcessor.sslClientContext))
+					.handler(nettyChannelInitializer)
+					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.messageProcessor.sipStack.connTimeout)
 					.option(ChannelOption.SO_KEEPALIVE, true);
 							
 			this.peerAddress = inetAddress;
@@ -181,7 +189,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			}	
 		} finally {
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-				logger.logDebug("NettyTCPMessageChannel::NettyTCPMessageChannel: Done creating NettyTCPMessageChannel "
+				logger.logDebug("NettyStreamMessageChannel: Done creating NettyStreamMessageChannel "
 						+ this + " socketChannel = " + channel);
 			}
 		}
@@ -297,70 +305,99 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			}
 		}
 
-		try {
-			if (channel == null || !channel.isActive()) {					
-				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-					logger.logDebug("Channel not active " + this.peerAddress + ":" + this.peerPort + ", trying to reconnect "
-							+ this.peerAddress + ":" + this.peerPort  + " for this channel "
-							+ channel + " key " + getKey());
-				}
-				// Take a cached socket to the destination, if none create a new one and cache
-				// it
-				ChannelFuture channelFuture = bootstrap.connect(this.peerAddress, this.peerPort);			
-				channelFuture = channelFuture.await();
-
-				if (!channelFuture.isSuccess()) {
-					if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
-						sipStack.getSelfRoutingThreadpoolExecutor().execute(
-							new ConnectionFailureThread(MessageChannel.messageTxId.get()) 
-						);
-					} else {
-						triggerConnectFailure(MessageChannel.messageTxId.get());                                           
-					}
-					return;
-				} else {
-					channel = channelFuture.channel();
-					SslHandler sslHandler = channel.pipeline().get(SslHandler.class);
-					System.out.println("SSL Handler " + sslHandler);
-        			if (sslHandler != null) {
-						sslHandler.handshakeFuture().addListener(new io.netty.util.concurrent.GenericFutureListener<io.netty.util.concurrent.Future<io.netty.channel.Channel>>() {
-							@Override
-							public void operationComplete(io.netty.util.concurrent.Future<io.netty.channel.Channel> future) throws Exception {
-								if (future.isSuccess()) {
-									System.out.println("SSL handshake completed successfully");
-									handshakeCompleted = true;
-									handshakeCompletedListener.setPeerCertificates(
-										sslHandler.engine().getSession().getPeerCertificates());
-									handshakeCompletedListener.setLocalCertificates(
-										sslHandler.engine().getSession().getLocalCertificates());
-									handshakeCompletedListener.setCipherSuite(
-										sslHandler.engine().getSession().getCipherSuite());
-								} else {
-									System.out.println("SSL handshake failed " + future.cause());
-									handshakeCompleted = false;
-									handshakeCompletedListener.setPeerCertificates(
-										sslHandler.engine().getSession().getPeerCertificates());
-									handshakeCompletedListener.setLocalCertificates(
-										sslHandler.engine().getSession().getLocalCertificates());
-									handshakeCompletedListener.setCipherSuite(
-										sslHandler.engine().getSession().getCipherSuite());
-									channel.close().await();
-								}
-							}
-						});
-					}
-					this.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
-					this.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();						
-				}
+		
+		if (channel == null || !channel.isActive()) {					
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug("Channel not active " + this.myAddress + ":" + this.myPort + ", trying to reconnect "
+						+ this.peerAddress + ":" + this.peerPort  + " for this channel "
+						+ channel + " key " + getKey());
 			}
+			// Take a cached socket to the destination, if none create a new one and cache
+			// it
+			if(channel!=null)
+				channel.close();			
+			
+			ChannelFuture channelFuture = bootstrap.connect(this.peerAddress, this.peerPort);			
+			final String txId = MessageChannel.messageTxId.get();
+			final NettyStreamMessageChannel current = this;
+			channelFuture.addListener(new GenericFutureListener<Future<? super Void>>() {			
+				public void operationComplete(Future<? super Void> future) throws Exception {
+					try {
+						if (!channelFuture.isSuccess()) {																 
+							if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
+								sipStack.getSelfRoutingThreadpoolExecutor().execute(
+									new ConnectionFailureThread(txId) 
+								);
+							} else {
+								triggerConnectFailure(txId);                                           
+							}
+							return;
+						} else {
+							channel = channelFuture.channel();
+							current.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
+							current.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();						
+							
+							if(getTransport().equalsIgnoreCase(ListeningPoint.TLS)) {
+								SslHandler sslHandler = channel.pipeline().get(SslHandler.class);
+								if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+									logger.logDebug("SSL Handler " + sslHandler);
+								}
+								if (sslHandler != null) {
+									sslHandler.handshakeFuture().addListener(new io.netty.util.concurrent.GenericFutureListener<io.netty.util.concurrent.Future<io.netty.channel.Channel>>() {
+										@Override
+										public void operationComplete(io.netty.util.concurrent.Future<io.netty.channel.Channel> future) throws Exception {
+											handshakeCompletedListener.setPeerCertificates(
+												sslHandler.engine().getSession().getPeerCertificates());
+											handshakeCompletedListener.setLocalCertificates(
+												sslHandler.engine().getSession().getLocalCertificates());
+											handshakeCompletedListener.setCipherSuite(
+												sslHandler.engine().getSession().getCipherSuite());
+											if (future.isSuccess()) {
+												if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+													logger.logDebug("SSL handshake completed successfully");
+												}
+												handshakeCompleted = true;									
+											} else {
+												if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+													logger.logDebug("SSL handshake failed " + future.cause() + ", closing the channel");
+												}
+												handshakeCompleted = false;									
+												channel.close().await();
+											}
+										}
+									});
+								}
+							}									
+						}
 
-			ChannelFuture future = channel.writeAndFlush(message).sync();
-			if (future.isSuccess() == false) {
-				throw new IOException("Failed to send message " + new String(message));
-			}				
-		} catch (InterruptedException e) {
-			throw new IOException(e);
-		} 
+						ChannelFuture future2 = channel.writeAndFlush(message).sync();
+						if (future2.isSuccess() == false) {
+							throw new IOException("Failed to send message " + new String(message));
+						}	
+					} catch (InterruptedException e) {
+						System.out.println("Failed to reconnect ");
+						throw new IOException(e);
+					}	
+				}
+			});
+		
+			// channelFuture.await(this.messageProcessor.sipStack.connTimeout, TimeUnit.MILLISECONDS);
+			
+			// System.out.println("Connection Success " + connSuccess);
+			// if(!connSuccess) {
+			// 	throw new IOException();
+			// }	
+		} else {
+			try {
+				ChannelFuture future = channel.writeAndFlush(message).sync();
+				if (future.isSuccess() == false) {
+					throw new IOException("Failed to send message " + new String(message));
+				}	
+			} catch (InterruptedException e) {
+				System.out.println("Failed to reconnect ");
+				throw new IOException(e);
+			}
+		}					 
 	}
 
 	/**
@@ -1114,33 +1151,38 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	}
 
 	public void triggerConnectFailure(String txId) {
-        //alert of IOException to pending Data TXs
-        // if (message != null && message.length > 0 ) {
-            
-            SIPTransaction transaction = sipStack.findTransaction(txId, false);
-            if (transaction != null) {
-                if (transaction instanceof SIPClientTransaction) {
-                	//8.1.3.1 Transaction Layer Errors
-                    if (transaction.getRequest() != null &&
-                            !transaction.getRequest().getMethod().equalsIgnoreCase("ACK"))
-                    {
-                        SIPRequest req = (SIPRequest) transaction.getRequest();
-                        SIPResponse unavRes = req.createResponse(Response.SERVICE_UNAVAILABLE, "Transport error sending request.");
-                        try {
-                                this.processMessage(unavRes);
-                        } catch (Exception e) {
-                            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                                logger.logDebug("failed to report transport error", e);
-                            }
-                        }
-                    }
-                } else {
-                	//17.2.4 Handling Transport Errors
-                    transaction.raiseIOExceptionEvent();
-                }
-            }
-        // }
-        close();
+        //alert of IOException to pending Data TXs        
+		if(txId != null) {
+			SIPTransaction transaction = sipStack.findTransaction(txId, false);
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug("triggerConnectFailure transaction:" + transaction);    
+			}
+			if (transaction != null) {
+				if (transaction instanceof SIPClientTransaction) {
+					//8.1.3.1 Transaction Layer Errors
+					if (transaction.getRequest() != null &&
+							!transaction.getRequest().getMethod().equalsIgnoreCase("ACK"))
+					{
+						SIPRequest req = (SIPRequest) transaction.getRequest();
+						SIPResponse unavRes = req.createResponse(Response.SERVICE_UNAVAILABLE, "Transport error sending request.");
+						try {
+								this.processMessage(unavRes);
+						} catch (Exception e) {
+							if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+								logger.logDebug("failed to report transport error", e);
+							}
+						}
+					}
+				} else {
+					//17.2.4 Handling Transport Errors
+					transaction.raiseIOExceptionEvent();
+				}
+			}
+		}
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+			logger.logDebug("triggerConnectFailure close");    
+		}
+        close(true, false);
 	}
 
 	class ConnectionFailureThread implements Runnable {

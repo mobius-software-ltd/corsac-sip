@@ -615,7 +615,7 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
          * @see javax.sip.SipListener#processIOException(javax.sip.IOExceptionEvent)
          */
         public void processIOException(IOExceptionEvent exceptionEvent) {
-            logger.info("Shootist IO Exception ! ");
+            logger.info("Shootist IO Exception ! ");            
             keepAliveTimeoutFired |= (exceptionEvent instanceof IOExceptionEventExt && ((IOExceptionEventExt)exceptionEvent).getReason() == Reason.KeepAliveTimeout);
 
             logger.info("Shootist KeepAlive Time out " + keepAliveTimeoutFired);              
@@ -729,6 +729,9 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
             AssertUntil.assertUntil(new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
+                    logger.info("shootist keepAliveTimeoutFired ? " + shootist.keepAliveTimeoutFired);
+                    logger.info("shootme keepAliveTimeoutFired ? " + shootme.keepAliveTimeoutFired);
+
                     return !shootist.keepAliveTimeoutFired &&
                             shootme.keepAliveTimeoutFired;
                 };
@@ -759,6 +762,9 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
             AssertUntil.assertUntil(new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
+                    logger.info("shootist keepAliveTimeoutFired ? " + shootist.keepAliveTimeoutFired);
+                    logger.info("shootme keepAliveTimeoutFired ? " + shootme.keepAliveTimeoutFired);
+
                     return !shootist.keepAliveTimeoutFired &&
                             !shootme.keepAliveTimeoutFired;
                 };
