@@ -934,7 +934,7 @@ public class ReInviteBusyTest extends TestCase {
         }
     }
 
-    public void testSendInvite() {
+    public void testReInviteBusyTestSendInvite() {
         this.shootist.sendInvite();
     }
 
