@@ -65,6 +65,9 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
                 if (sipStack.sipEventInterceptor != null
                         // https://java.net/jira/browse/JSIP-503
                         && sipMessage != null) {
+                    if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+                        logger.logDebug("calling beforeMessage eventinterceptor for message " + sipMessage);
+                    }
                     sipStack.sipEventInterceptor.beforeMessage(sipMessage);
                 }
 
@@ -83,13 +86,13 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
                 logger.logError("Error occured processing message " + msg.toString(), e);
                 // We do not break the TCP connection because other calls use the same socket
                 // here
-            } finally {
-                if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-                    logger.logDebug("releasing semaphore for message " + sipMessage);
-                }
+            } finally {                
                 if (sipStack.sipEventInterceptor != null
                         // https://java.net/jira/browse/JSIP-503
                         && sipMessage != null) {
+                    if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+                        logger.logDebug("calling afterMessage eventinterceptor for message " + sipMessage);
+                    }
                     sipStack.sipEventInterceptor.afterMessage(sipMessage);
                 }
             }

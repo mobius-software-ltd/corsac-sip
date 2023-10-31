@@ -375,18 +375,11 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							throw new IOException("Failed to send message " + new String(message));
 						}	
 					} catch (InterruptedException e) {
-						System.out.println("Failed to reconnect ");
+						logger.logError("Failed to reconnect ", e);					
 						throw new IOException(e);
 					}	
 				}
-			});
-		
-			// channelFuture.await(this.messageProcessor.sipStack.connTimeout, TimeUnit.MILLISECONDS);
-			
-			// System.out.println("Connection Success " + connSuccess);
-			// if(!connSuccess) {
-			// 	throw new IOException();
-			// }	
+			});				
 		} else {
 			try {
 				ChannelFuture future = channel.writeAndFlush(message).sync();
@@ -394,7 +387,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					throw new IOException("Failed to send message " + new String(message));
 				}	
 			} catch (InterruptedException e) {
-				System.out.println("Failed to reconnect ");
+				logger.logError("Failed to reconnect ", e);					
 				throw new IOException(e);
 			}
 		}					 
@@ -547,8 +540,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		}
 		
 		
-		// sipMessage.setLocalPort(this.getPort());
-		// sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
+		sipMessage.setLocalPort(this.getPort());
+		sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
 
 		ViaList viaList = sipMessage.getViaHeaders();
 		// For a request

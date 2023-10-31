@@ -71,6 +71,7 @@ public abstract class AbstractReferTestCase extends ScenarioHarness implements
             Thread.sleep(1000);
             this.providerTable.clear();
 
+            logger.info("referrer notify count=" + referrer.count);
             super.assertTrue(" Should have at least 3 NOTIFY", referrer.count >= 3);  // Should have 3 NOTIFYs
 
             logTestCompleted();
