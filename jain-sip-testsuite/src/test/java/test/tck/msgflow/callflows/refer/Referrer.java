@@ -127,9 +127,10 @@ public class Referrer implements SipListener {
             ServerTransaction serverTransactionId) {
         SipProvider provider = (SipProvider) requestEvent.getSource();
         Request notify = requestEvent.getRequest();
-        if (notify.getMethod().equals("NOTIFY")) {
+        if (notify.getMethod().equalsIgnoreCase(Request.NOTIFY)) {
+            this.count = this.count + 1;  
             try {
-                logger.info("referer:  got a NOTIFY count  " + ++this.count + ":\n" + notify);
+                logger.info("referer:  got a NOTIFY count  " + this.count + ":\n" + notify);
                 if (serverTransactionId == null) {
                     logger.info("referer:  null TID.");
                     serverTransactionId = provider.getNewServerTransaction(notify);

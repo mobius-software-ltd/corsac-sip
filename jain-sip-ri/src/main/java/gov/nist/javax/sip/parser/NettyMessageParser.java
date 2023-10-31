@@ -146,9 +146,9 @@ public class NettyMessageParser {
 	// This method must be called repeatedly until the inputStream returns -1 or some error conditions is triggered
 	private SIPMessage readMessageBody(ByteBuf byteBuf) throws IOException {
 		int bytesRead = 0;
-		if(contentLength>0) {
+		if(contentLength > 0) {
 			bytesRead = readChunk(byteBuf, messageBody, contentReadSoFar, contentLength-contentReadSoFar);
-			if(bytesRead == -1) {
+			if(bytesRead <= -1) {
 				currentStreamEnded = true;
 				bytesRead = 0; // avoid passing by a -1 for a one-off bug when contentReadSoFar gets wrong
 			}
@@ -184,9 +184,11 @@ public class NettyMessageParser {
 
     private int readChunk(ByteBuf byteBuf, byte[] where, int offset, int length) throws IOException {
         int read = byteBuf.readableBytes();
-		byteBuf.readBytes(where, offset, length);
-		sizeCounter -= read;
-		checkLimits();
+		if(read >= 0) {
+			byteBuf.readBytes(where, offset, length);
+			sizeCounter -= read;
+			checkLimits();
+		}
 		return read;
 	}
 	
