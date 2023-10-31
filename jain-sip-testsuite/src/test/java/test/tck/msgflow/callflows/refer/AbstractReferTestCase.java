@@ -77,7 +77,7 @@ public abstract class AbstractReferTestCase extends ScenarioHarness implements
             logTestCompleted();
         } catch (Exception ex) {
             logger.error("unexpected exception", ex);
-            fail("unexpected exception ");
+            fail("unexpected exception ", ex);
         }
         super.tearDown();
         Thread.sleep(1000);

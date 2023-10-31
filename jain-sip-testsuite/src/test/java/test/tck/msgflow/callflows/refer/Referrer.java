@@ -175,8 +175,11 @@ public class Referrer implements SipListener {
             if (st == null) {
                 st = provider.getNewServerTransaction(re.getRequest());
             }
-            Response r = messageFactory.createResponse(100, re.getRequest());
-            st.sendResponse(r);
+            Response r = null;
+            // if(!transport.equalsIgnoreCase(ListeningPoint.TCP)) {
+                r = messageFactory.createResponse(100, re.getRequest());
+                st.sendResponse(r);
+            // }
             r = messageFactory.createResponse(180, re.getRequest());
             r.addHeader((ContactHeader) contactHeader.clone());
             ((ToHeader) r.getHeader("To")).setTag("inv_res");

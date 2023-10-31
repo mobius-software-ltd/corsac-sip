@@ -39,7 +39,7 @@ public class NettySIPMessageDecoder extends ByteToMessageDecoder {
             e.printStackTrace();            
             if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
                 logger.logDebug(
-                    "Parsing issue !  " + new String(nettyMessageParser.getMessage().toString()) + " " + e.getMessage());
+                    "Parsing issue !  " + new String(nettyMessageParser.getMessage().toString()) + " " + e.getMessage(), e);
             }
         }                     
     }
