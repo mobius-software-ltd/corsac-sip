@@ -9,12 +9,12 @@ public class UdpReferTest extends AbstractReferTestCase {
         super.transport = "udp";
         super.setUp();
     }
-    public void testRefer() {
+    public void testUDPRefer() {
         super.transport = "udp";
         this.referrer.sendRefer();
     }
 
-    public void testRefer2() {
+    public void testUDPRefer2() {
         this.referrer.sendRefer();
     }
 }

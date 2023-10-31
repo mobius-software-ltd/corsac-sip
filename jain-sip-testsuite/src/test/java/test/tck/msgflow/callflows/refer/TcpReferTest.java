@@ -16,14 +16,14 @@ public class TcpReferTest extends AbstractReferTestCase {
         super.transport = ListeningPoint.TCP;
         super.setUp();
     }
-    public void testRefer() {
+    public void testTCPRefer() {
         super.transport = ListeningPoint.TCP;
         this.referee.setTransport(ListeningPoint.TCP);
         this.referrer.setTransport(ListeningPoint.TCP);
         this.referrer.sendRefer();
     }
 
-    public void testRefer2() {
+    public void testTCPRefer2() {
         super.transport = ListeningPoint.TCP;
         this.referee.setTransport(ListeningPoint.TCP);
         this.referrer.setTransport(ListeningPoint.TCP);        
