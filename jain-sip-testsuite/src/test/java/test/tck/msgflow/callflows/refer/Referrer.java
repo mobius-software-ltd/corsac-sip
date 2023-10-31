@@ -357,4 +357,12 @@ public class Referrer implements SipListener {
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
         logger.info("Transaction Time out");
     }
+
+    public String getTransport() {
+        return transport;
+    }
+
+    public void setTransport(String transport) {
+        this.transport = transport;
+    }
 }

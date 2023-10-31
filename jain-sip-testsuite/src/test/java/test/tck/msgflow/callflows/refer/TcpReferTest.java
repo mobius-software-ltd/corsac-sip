@@ -1,5 +1,7 @@
 package test.tck.msgflow.callflows.refer;
 
+import javax.sip.ListeningPoint;
+
 public class TcpReferTest extends AbstractReferTestCase {
     boolean myFlag;
 
@@ -10,14 +12,21 @@ public class TcpReferTest extends AbstractReferTestCase {
         // the following setup code flips the roles before each test is run
         testedImplFlag = !myFlag;
         myFlag = !testedImplFlag;
-        super.transport = "tcp";
+        System.out.println("testedImplFlag = " + testedImplFlag);
+        super.transport = ListeningPoint.TCP;
         super.setUp();
     }
     public void testRefer() {
+        super.transport = ListeningPoint.TCP;
+        this.referee.setTransport(ListeningPoint.TCP);
+        this.referrer.setTransport(ListeningPoint.TCP);
         this.referrer.sendRefer();
     }
 
     public void testRefer2() {
+        super.transport = ListeningPoint.TCP;
+        this.referee.setTransport(ListeningPoint.TCP);
+        this.referrer.setTransport(ListeningPoint.TCP);        
         this.referrer.sendRefer();
     }
 }

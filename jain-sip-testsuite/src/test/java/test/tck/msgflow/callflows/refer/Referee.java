@@ -453,4 +453,11 @@ public class Referee implements SipListener {
         logger.info("dialog terminated:" + dialogTerminatedEvent);
     }
 
+     public String getTransport() {
+        return transport;
+    }
+
+    public void setTransport(String transport) {
+        this.transport = transport;
+    }
 }
