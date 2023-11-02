@@ -64,9 +64,11 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.SIPMessageListener;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -308,7 +310,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			}
 		}
 
-		
+		ByteBuf byteBuf = Unpooled.copiedBuffer(message);
 		if (channel == null || !channel.isActive()) {														
 			// Take a cached socket to the destination, 
 			// if none create a new one and cache it
@@ -320,20 +322,44 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				}
 				channel.close();			
 			}
-			nettyConnectionListener.addPendingMessage(Unpooled.copiedBuffer(message));
+			nettyConnectionListener.addPendingMessage(byteBuf);
 			ChannelFuture channelFuture = bootstrap.connect(this.peerAddress, this.peerPort);									
 			channelFuture.addListener(nettyConnectionListener);
 		} else {
+			writeMessage(byteBuf);
+		}					 
+	}
+
+	protected void writeMessage(ByteBuf message) throws IOException {
+		if(sipStack.nioMode.equals(NIOMode.BLOCKING)) {
 			try {
 				ChannelFuture future = channel.writeAndFlush(message).sync();
 				if (future.isSuccess() == false) {
-					throw new IOException("Failed to send message " + new String(message));
+					throw new IOException("Failed to send message " + message.toString());
 				}	
 			} catch (InterruptedException e) {
 				logger.logError("Failed to reconnect ", e);					
 				throw new IOException(e);
 			}
-		}					 
+		} else {			
+			ChannelFuture future = channel.writeAndFlush(message);
+			final NettyStreamMessageChannel current = this;
+			future.addListener(new ChannelFutureListener() {
+				@Override
+				public void operationComplete(ChannelFuture completeFuture) {
+					assert future == completeFuture;
+					if (!future.isSuccess()) {
+						if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
+							sipStack.getSelfRoutingThreadpoolExecutor().execute(
+								new NettyConnectionFailureThread(current) 
+							);
+						} else {
+							current.triggerConnectFailure();                                           
+						}							
+					}							
+				}
+			});				
+		}
 	}
 
 	/**
@@ -1086,10 +1112,10 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		this.handshakeCompleted = handshakeCompleted;
 	}
 
-	public void triggerConnectFailure(String txId) {
+	public void triggerConnectFailure() {
+		SIPTransaction transaction = getEncapsulatedClientTransaction();
         //alert of IOException to pending Data TXs        
-		if(txId != null) {
-			SIPTransaction transaction = sipStack.findTransaction(txId, false);
+		if(transaction != null) {			
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 				logger.logDebug("triggerConnectFailure transaction:" + transaction);    
 			}
@@ -1119,16 +1145,5 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			logger.logDebug("triggerConnectFailure close");    
 		}
         close(true, false);
-	}
-
-	class ConnectionFailureThread implements Runnable {
-		String txId;
-		public ConnectionFailureThread(String txId) {
-			this.txId = txId;
-		}
-
-		public void run() {
-			triggerConnectFailure(txId);
-		}
 	}
 }
