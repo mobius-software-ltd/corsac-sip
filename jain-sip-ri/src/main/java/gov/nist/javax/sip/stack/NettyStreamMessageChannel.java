@@ -64,15 +64,13 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.SIPMessageListener;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.ssl.SslHandler;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 
 public class NettyStreamMessageChannel extends MessageChannel implements
 		SIPMessageListener, RawMessageChannel {
@@ -81,6 +79,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 	Bootstrap bootstrap;
 	NettyChannelInitializer nettyChannelInitializer;
+	NettyConnectionListener nettyConnectionListener;
 
 	protected Channel channel;
 
@@ -110,8 +109,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	private long keepAliveTimeout;
 
 	// Added for https://java.net/jira/browse/JSIP-483
-	private HandshakeCompletedListenerImpl handshakeCompletedListener;
-	private boolean handshakeCompleted = false;
+	protected HandshakeCompletedListenerImpl handshakeCompletedListener;
+	protected boolean handshakeCompleted = false;
 
 	protected NettyStreamMessageChannel(NettyStreamMessageProcessor nettyTCPMessageProcessor,
 			Channel channel) {
@@ -126,8 +125,9 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					.channel(NioSocketChannel.class)
 					.handler(nettyChannelInitializer)
 					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.messageProcessor.sipStack.connTimeout)
-					.option(ChannelOption.SO_KEEPALIVE, true);
-			
+					.option(ChannelOption.SO_KEEPALIVE, true);			
+
+			nettyConnectionListener = new NettyConnectionListener(this);
 			this.sipStack = nettyTCPMessageProcessor.sipStack;
 			this.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
 			this.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();
@@ -171,7 +171,9 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					.handler(nettyChannelInitializer)
 					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.messageProcessor.sipStack.connTimeout)
 					.option(ChannelOption.SO_KEEPALIVE, true);
-							
+					
+			nettyConnectionListener = new NettyConnectionListener(this);
+
 			this.peerAddress = inetAddress;
 			this.peerPort = port;
 			this.peerProtocol = nettyTCPMessageProcessor.transport;			
@@ -262,6 +264,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	 * @throws IOException
 	 *                     If there is a problem connecting or sending.
 	 */
+	@Override
 	public void sendMessage(byte message[], InetAddress receiverAddress,
 			int receiverPort, boolean retry) throws IOException {
 		sendTCPMessage(message, receiverAddress, receiverPort, retry);
@@ -306,80 +309,20 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		}
 
 		
-		if (channel == null || !channel.isActive()) {					
-			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-				logger.logDebug("Channel not active " + this.myAddress + ":" + this.myPort + ", trying to reconnect "
-						+ this.peerAddress + ":" + this.peerPort  + " for this channel "
-						+ channel + " key " + getKey());
-			}
-			// Take a cached socket to the destination, if none create a new one and cache
-			// it
-			if(channel!=null)
-				channel.close();			
-			
-			ChannelFuture channelFuture = bootstrap.connect(this.peerAddress, this.peerPort);			
-			final String txId = MessageChannel.messageTxId.get();
-			final NettyStreamMessageChannel current = this;
-			channelFuture.addListener(new GenericFutureListener<Future<? super Void>>() {			
-				public void operationComplete(Future<? super Void> future) throws Exception {
-					try {
-						if (!channelFuture.isSuccess()) {																 
-							if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
-								sipStack.getSelfRoutingThreadpoolExecutor().execute(
-									new ConnectionFailureThread(txId) 
-								);
-							} else {
-								triggerConnectFailure(txId);                                           
-							}
-							return;
-						} else {
-							channel = channelFuture.channel();
-							current.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
-							current.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();						
-							
-							if(getTransport().equalsIgnoreCase(ListeningPoint.TLS)) {
-								SslHandler sslHandler = channel.pipeline().get(SslHandler.class);
-								if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-									logger.logDebug("SSL Handler " + sslHandler);
-								}
-								if (sslHandler != null) {
-									sslHandler.handshakeFuture().addListener(new io.netty.util.concurrent.GenericFutureListener<io.netty.util.concurrent.Future<io.netty.channel.Channel>>() {
-										@Override
-										public void operationComplete(io.netty.util.concurrent.Future<io.netty.channel.Channel> future) throws Exception {
-											handshakeCompletedListener.setPeerCertificates(
-												sslHandler.engine().getSession().getPeerCertificates());
-											handshakeCompletedListener.setLocalCertificates(
-												sslHandler.engine().getSession().getLocalCertificates());
-											handshakeCompletedListener.setCipherSuite(
-												sslHandler.engine().getSession().getCipherSuite());
-											if (future.isSuccess()) {
-												if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-													logger.logDebug("SSL handshake completed successfully");
-												}
-												handshakeCompleted = true;									
-											} else {
-												if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-													logger.logDebug("SSL handshake failed " + future.cause() + ", closing the channel");
-												}
-												handshakeCompleted = false;									
-												channel.close().await();
-											}
-										}
-									});
-								}
-							}									
-						}
-
-						ChannelFuture future2 = channel.writeAndFlush(message).sync();
-						if (future2.isSuccess() == false) {
-							throw new IOException("Failed to send message " + new String(message));
-						}	
-					} catch (InterruptedException e) {
-						logger.logError("Failed to reconnect ", e);					
-						throw new IOException(e);
-					}	
+		if (channel == null || !channel.isActive()) {														
+			// Take a cached socket to the destination, 
+			// if none create a new one and cache it
+			if(channel!=null) {
+				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+					logger.logDebug("Channel not active " + this.myAddress + ":" + this.myPort + ", trying to reconnect "
+							+ this.peerAddress + ":" + this.peerPort  + " for this channel "
+							+ channel + " key " + getKey());
 				}
-			});				
+				channel.close();			
+			}
+			nettyConnectionListener.addPendingMessage(Unpooled.copiedBuffer(message));
+			ChannelFuture channelFuture = bootstrap.connect(this.peerAddress, this.peerPort);									
+			channelFuture.addListener(nettyConnectionListener);
 		} else {
 			try {
 				ChannelFuture future = channel.writeAndFlush(message).sync();
