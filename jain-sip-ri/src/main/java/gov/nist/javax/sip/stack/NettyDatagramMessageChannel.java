@@ -14,6 +14,7 @@ import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.ThreadAffinityTask;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -57,6 +58,10 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 
         this.myAddress = messageProcessor.getIpAddress().getHostAddress();
         this.myPort = messageProcessor.getPort();
+        if(channel.remoteAddress() != null) {
+            this.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
+            this.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();
+        }
         
         this.channel = channel;        
     }    
@@ -66,13 +71,85 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         this(channel, nettyUDPMessageProcessor);            
         
         this.peerAddress = targetHost;
-        this.peerPort = port;
+        this.peerPort = port;        
     }
 
     @Override
     public void sendMessage(SIPMessage sipMessage) throws IOException {
-        ByteBuf byteBuf = Unpooled.copiedBuffer(sipMessage.encodeAsBytes(this.getTransport()));
-        channel.writeAndFlush(new DatagramPacket(byteBuf, new InetSocketAddress(peerAddress, peerPort)));
+
+        // Test and see where we are going to send the messsage. If the message
+        // is sent back to oursleves, just
+        // shortcircuit processing.
+        long time = System.currentTimeMillis();
+        try {
+            for (MessageProcessor messageProcessor : sipStack
+                    .getMessageProcessors()) {
+                if (messageProcessor.getIpAddress().equals(this.peerAddress)
+                        && messageProcessor.getPort() == this.peerPort
+                        && messageProcessor.getTransport().equalsIgnoreCase(
+                                this.peerProtocol)) {
+                    MessageChannel messageChannel = messageProcessor
+                            .createMessageChannel(this.peerAddress,
+                                    this.peerPort);
+                    if (messageChannel instanceof RawMessageChannel) {
+
+                        final RawMessageChannel channel = (RawMessageChannel) messageChannel;
+                        ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
+                            public void run() {
+                                try {
+                                    ((RawMessageChannel) channel)
+                                            .processMessage((SIPMessage) sipMessage.clone());
+                                } catch (Exception ex) {
+                                    if (logger
+                                            .isLoggingEnabled(
+                                                    ServerLogger.TRACE_ERROR)) {
+                                        logger
+                                                .logError(
+                                                        "Error self routing message cause by: ",
+                                                        ex);
+                                    }
+                                }
+                            }
+                            
+                            public String getThreadHash() {
+                                return sipMessage.getCallId().getCallId();
+                            }
+                        };
+                        getSIPStack().getSelfRoutingThreadpoolExecutor()
+                                .execute(processMessageTask);
+                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                            logger.logDebug(
+                                    "Self routing message");
+                        return;
+                    }
+                }
+            }
+
+            ByteBuf byteBuf = Unpooled.copiedBuffer(sipMessage.encodeAsBytes(this.getTransport()));
+            channel.writeAndFlush(new DatagramPacket(byteBuf, new InetSocketAddress(peerAddress, peerPort)));
+
+            // we didn't run into problems while sending so let's set ports and
+            // addresses before feeding the message to the loggers.
+            sipMessage.setRemoteAddress(peerAddress);
+            sipMessage.setRemotePort(peerPort);
+            sipMessage.setLocalPort(this.getPort());
+            sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
+        } catch (IOException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            logger.logError(
+                    "An exception occured while sending message", ex);
+            throw new IOException("An exception occured while sending message");
+        } finally {
+            if (logger.isLoggingEnabled(
+                    ServerLogger.TRACE_MESSAGES)
+                    && !sipMessage.isNullRequest())
+                logMessage(sipMessage, peerAddress, peerPort, time);
+            else if (logger.isLoggingEnabled(
+                    ServerLogger.TRACE_DEBUG))
+                logger.logDebug("Sent EMPTY Message");
+        }
+        
     }
 
      @Override
@@ -179,11 +256,15 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
                     .getHop());
             this.peerPort = hop.getPort();
             this.peerProtocol = topMostVia.getTransport();
-
-            this.peerPacketSourceAddress = sipMessage.getPeerPacketSourceAddress();
-            this.peerPacketSourcePort = sipMessage.getPeerPacketSourcePort();
-            try {
+            if(this.peerPacketSourceAddress == null || this.peerPacketSourcePort <= 0) {
+                this.peerPacketSourceAddress = sipMessage.getPeerPacketSourceAddress();
+                this.peerPacketSourcePort = sipMessage.getPeerPacketSourcePort();
+            }
+            if(this.peerAddress == null) {
                 this.peerAddress = sipMessage.getRemoteAddress();
+            }
+            try {
+                
                 // Check to see if the received parameter matches
                 // the peer address and tag it appropriately.
                 
@@ -350,7 +431,11 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
     
     @Override
     public void close() {
-        channel.closeFuture().awaitUninterruptibly();
+        // Don't close the channel even if
+        // we don't cache client connections 
+        // as we currently reuse the same underlying
+        // epoll netty channels for all connections
+        // channel.closeFuture().await();
     }
 
     @Override

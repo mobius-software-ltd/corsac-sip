@@ -305,12 +305,12 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
                   "target/logs/"+ this.getClass().getName() +  ".shootmedebug.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
                     "shootmelog.txt");
-            // if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-            // 	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
-            // }
-            // if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            }
+            if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
                 properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
-            // }
+            }
             try {
                 // Create SipStack object
                 sipStack = sipFactory.createSipStack(properties);
@@ -595,13 +595,13 @@ public class NoToTagOn1xxDialogLeakTest extends TestCase {
             // Set to 0 (or NONE) in your production code for max speed.
             // You need 16 (or TRACE) for logging traces. 32 (or DEBUG) for debug + traces.
             // Your code will limp at 32 but it is best for debugging.
-            // properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-            // if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-            // 	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
-            // }
-            // if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
+            if(System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+            	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+            }
+            if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
                 properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
-            // }
+            }
             try {
                 // Create SipStack object
                 sipStack = sipFactory.createSipStack(properties);
