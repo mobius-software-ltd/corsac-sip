@@ -40,6 +40,11 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                 SIPTransactionStack sipStack, InetAddress ipAddress, int port,
                 String transport) throws IOException {
             if (transport.equalsIgnoreCase(ListeningPoint.UDP)) {
+                // For Netty, we don't allow the user to specify an infinite # of threads
+                if(sipStack.threadPoolSize <= 0) {
+                        sipStack.threadPoolSize = 1;
+                }
+
                 NettyDatagramMessageProcessor udpMessageProcessor = new NettyDatagramMessageProcessor(
                         ipAddress, sipStack, port);         
                 sipStack.udpFlag = true;
