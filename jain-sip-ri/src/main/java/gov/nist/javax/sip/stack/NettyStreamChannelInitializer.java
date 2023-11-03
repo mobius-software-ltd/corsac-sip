@@ -11,15 +11,17 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 /**
  *  special handler that is purposed to help a user configure a new Channel
  */
-public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
+public class NettyStreamChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    private NettyStreamMessageProcessor nettyStreamMessageProcessor;
+    private NettyMessageProcessor nettyMessageProcessor;
+    private SIPTransactionStack sipStack;
     private final SslContext sslCtx;
 
-    public NettyChannelInitializer(
-            NettyStreamMessageProcessor nettyStreamMessageProcessor, 
+    public NettyStreamChannelInitializer(
+            NettyMessageProcessor nettyMessageProcessor, 
             SslContext sslCtx) {
-        this.nettyStreamMessageProcessor = nettyStreamMessageProcessor; 
+        this.nettyMessageProcessor = nettyMessageProcessor; 
+        sipStack = nettyMessageProcessor.getSIPStack();
         this.sslCtx = sslCtx;
     }
 
@@ -40,17 +42,18 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
             pipeline.addLast(sslHandler);
             
         }
+        
         // Add support for socket timeout
-        if (nettyStreamMessageProcessor.sipStack.nioSocketMaxIdleTime > 0) {
-            pipeline.addLast("readTimeoutHandler", new ReadTimeoutHandler((int) nettyStreamMessageProcessor.sipStack.nioSocketMaxIdleTime / 1000));
+        if (sipStack.nioSocketMaxIdleTime > 0) {
+            pipeline.addLast("readTimeoutHandler", new ReadTimeoutHandler((int) sipStack.nioSocketMaxIdleTime / 1000));
         }
         // Decoders
         pipeline.addLast("NettySIPMessageDecoder",
-                        new NettySIPMessageDecoder(nettyStreamMessageProcessor.sipStack));
+                        new NettyStreamMessageDecoder(sipStack));
 
         // Encoder
         pipeline.addLast("bytesEncoder", new ByteArrayEncoder());
 
-        pipeline.addLast("NettyMessageHandler", new NettyMessageHandler(nettyStreamMessageProcessor));
+        pipeline.addLast("NettyMessageHandler", new NettyMessageHandler(nettyMessageProcessor));
     }
 }

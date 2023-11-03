@@ -11,12 +11,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
-public class NettySIPMessageDecoder extends ByteToMessageDecoder {
-    private static StackLogger logger = CommonLogger.getLogger(NettySIPMessageDecoder.class);
+public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
+    private static StackLogger logger = CommonLogger.getLogger(NettyStreamMessageDecoder.class);
 
     NettyMessageParser nettyMessageParser = null;
 
-    public NettySIPMessageDecoder(SIPTransactionStack sipStack) {    
+    public NettyStreamMessageDecoder(SIPTransactionStack sipStack) {    
         this.nettyMessageParser = new NettyMessageParser(
             sipStack.getMessageParserFactory().createMessageParser(sipStack), 
             sipStack.getMaxMessageSize());

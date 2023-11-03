@@ -80,7 +80,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			.getLogger(NettyStreamMessageChannel.class);
 
 	Bootstrap bootstrap;
-	NettyChannelInitializer nettyChannelInitializer;
+	NettyStreamChannelInitializer nettyChannelInitializer;
 	NettyConnectionListener nettyConnectionListener;
 
 	protected Channel channel;
@@ -120,7 +120,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			this.channel = channel;
 			this.messageProcessor = nettyTCPMessageProcessor;
 			bootstrap = new Bootstrap();
-			nettyChannelInitializer = new NettyChannelInitializer(nettyTCPMessageProcessor,
+			nettyChannelInitializer = new NettyStreamChannelInitializer(nettyTCPMessageProcessor,
 							nettyTCPMessageProcessor.sslClientContext);
 			EventLoopGroup group = new NioEventLoopGroup();
 			bootstrap.group(group)
@@ -165,7 +165,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			this.sipStack = sipStack;
 			messageProcessor = nettyTCPMessageProcessor;
 			bootstrap = new Bootstrap();
-			nettyChannelInitializer = new NettyChannelInitializer(nettyTCPMessageProcessor,
+			nettyChannelInitializer = new NettyStreamChannelInitializer(nettyTCPMessageProcessor,
 							nettyTCPMessageProcessor.sslClientContext);
 			EventLoopGroup group = new NioEventLoopGroup();
 			bootstrap.group(group)

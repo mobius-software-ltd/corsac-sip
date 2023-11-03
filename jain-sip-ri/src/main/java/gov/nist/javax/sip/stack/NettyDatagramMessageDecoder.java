@@ -1,0 +1,57 @@
+package gov.nist.javax.sip.stack;
+
+import java.net.InetSocketAddress;
+import java.util.List;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.parser.NettyMessageParser;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.DatagramPacket;
+import io.netty.handler.codec.MessageToMessageDecoder;
+
+public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<DatagramPacket> {
+    private static StackLogger logger = CommonLogger.getLogger(NettyDatagramMessageDecoder.class);
+
+    NettyMessageProcessor nettyMessageProcessor;
+    NettyMessageParser nettyMessageParser = null;
+
+    public NettyDatagramMessageDecoder(NettyMessageProcessor nettyMessageProcessor) {    
+        this.nettyMessageProcessor = nettyMessageProcessor;
+        this.nettyMessageParser = new NettyMessageParser(
+            nettyMessageProcessor.getSIPStack().getMessageParserFactory().createMessageParser(nettyMessageProcessor.getSIPStack()), 
+            nettyMessageProcessor.getSIPStack().getMaxMessageSize());
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, DatagramPacket msg, List<Object> out) {            
+        try {
+            SIPMessage sipMessage = nettyMessageParser.getSIPMessage();            
+            ByteBuf content =  msg.content();
+            while (sipMessage == null && content.readableBytes() > 0) {
+                sipMessage = nettyMessageParser.addBytes(content);                    
+            }
+            if (sipMessage != null) {
+                if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+                    logger.logDebug("following message parsed, passing it up the stack and resetting \n" + sipMessage.toString());
+                } 
+                InetSocketAddress remoteAddress = (InetSocketAddress)msg.sender();
+                sipMessage.setRemoteAddress(remoteAddress.getAddress());
+                sipMessage.setRemotePort(remoteAddress.getPort());
+                sipMessage.setPeerPacketSourceAddress(remoteAddress.getAddress());
+                sipMessage.setPeerPacketSourcePort(remoteAddress.getPort());                          
+                
+                out.add(sipMessage);            
+            }
+        } catch (Exception e) {
+            e.printStackTrace();            
+            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+                logger.logDebug(
+                    "Parsing issue !  " + new String(nettyMessageParser.getMessage().toString()) + " " + e.getMessage(), e);
+            }
+        }                     
+    }
+}

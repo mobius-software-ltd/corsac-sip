@@ -338,7 +338,7 @@ public class UDPMessageProcessor extends MessageProcessor implements Runnable {
     }
 
     /**
-     * Create and return new TCPMessageChannel for the given host/port.
+     * Create and return new UDPMessageChannel for the given host/port.
      */
     public MessageChannel createMessageChannel(HostPort targetHostPort)
             throws UnknownHostException {

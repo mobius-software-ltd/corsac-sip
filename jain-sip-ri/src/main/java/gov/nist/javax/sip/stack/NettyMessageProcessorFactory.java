@@ -40,7 +40,7 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                 SIPTransactionStack sipStack, InetAddress ipAddress, int port,
                 String transport) throws IOException {
             if (transport.equalsIgnoreCase(ListeningPoint.UDP)) {
-                UDPMessageProcessor udpMessageProcessor = new UDPMessageProcessor(
+                NettyDatagramMessageProcessor udpMessageProcessor = new NettyDatagramMessageProcessor(
                         ipAddress, sipStack, port);         
                 sipStack.udpFlag = true;
                 return udpMessageProcessor;

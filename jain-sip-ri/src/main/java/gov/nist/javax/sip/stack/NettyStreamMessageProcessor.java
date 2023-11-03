@@ -36,7 +36,7 @@ import io.netty.handler.ssl.SslContextBuilder;
  *
  * @author Jean Deruelle  <br/>
  */
-public class NettyStreamMessageProcessor extends MessageProcessor{
+public class NettyStreamMessageProcessor extends MessageProcessor implements NettyMessageProcessor {
 	
 	private static StackLogger logger = CommonLogger.getLogger(NettyStreamMessageProcessor.class);
 
@@ -122,7 +122,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
     @Override
     public MessageChannel createMessageChannel(HostPort targetHostPort) throws IOException {
     	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-    		logger.logDebug("NioTcpMessageProcessor::createMessageChannel: " + targetHostPort);
+    		logger.logDebug("NettyStreamMessageProcessor::createMessageChannel: " + targetHostPort);
     	}
         MessageChannel retval = null;
     	try {
@@ -135,17 +135,17 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
 		}    		
     	} finally {
     		if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-    			logger.logDebug("MessageChannel::createMessageChannel - exit " + retval);
+    			logger.logDebug("NettyStreamMessageProcessor::createMessageChannel - exit " + retval);
     		}
     	}
         return retval;
     }
     
-    public NettyStreamMessageChannel createMessageChannel(Channel channel) {
+    public MessageChannel createMessageChannel(Channel channel) {
         
         InetSocketAddress socketAddress = ((InetSocketAddress)channel.remoteAddress());
     	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-    		logger.logDebug("NioTcpMessageProcessor::createMessageChannel: " + socketAddress.getAddress().getHostAddress()+":"+socketAddress.getPort());
+    		logger.logDebug("NettyStreamMessageProcessor::createMessageChannel: " + socketAddress.getAddress().getHostAddress()+":"+socketAddress.getPort());
     	}
         NettyStreamMessageChannel retval = null;
     	try {
@@ -199,7 +199,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor{
             server.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class) 
              .handler(new LoggingHandler(LogLevel.INFO))
-             .childHandler(new NettyChannelInitializer(this, sslServerContext))
+             .childHandler(new NettyStreamChannelInitializer(this, sslServerContext))
              // TODO Add Option based on sip stack config
              .option(ChannelOption.SO_BACKLOG, 128) // for the NioServerSocketChannel that accepts incoming connections.
              .childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
