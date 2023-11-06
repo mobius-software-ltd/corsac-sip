@@ -927,7 +927,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 							logger.logError("Error passing message in self routing", e);
 						}
                         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
-                        	logger.logDebug("Self routing message");
+                        	logger.logDebug("Self routing message UDP");
                         return;
                     }
 
@@ -1330,7 +1330,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         try {
 
             this.toListener = false;
-            this.semRelease();
+            if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug(
+                    "releaseSem() released this transaction sem : " + this);
+            this.semRelease();            
 
         } catch (Exception ex) {
             logger.logError("Unexpected exception releasing sem",

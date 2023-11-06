@@ -119,7 +119,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
                                 .execute(processMessageTask);
                         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                             logger.logDebug(
-                                    "Self routing message");
+                                    "Self routing message UDP");
                         return;
                     }
                 }
@@ -155,6 +155,9 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
      @Override
     protected void sendMessage(byte[] message, InetAddress receiverAddress, int receiverPort, boolean reconnectFlag)
             throws IOException {
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("sending new UDP message to: " + receiverAddress + ":" + receiverPort + " msg: " + new String(message));
+        }
         ByteBuf byteBuf = Unpooled.copiedBuffer(message);
         channel.writeAndFlush(new DatagramPacket(byteBuf, new InetSocketAddress(receiverAddress, receiverPort)));
     }

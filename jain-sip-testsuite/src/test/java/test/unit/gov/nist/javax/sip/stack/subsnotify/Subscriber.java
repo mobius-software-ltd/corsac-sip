@@ -179,6 +179,7 @@ public class Subscriber implements SipListener {
             }
             
             if(!state.equalsIgnoreCase(SubscriptionStateHeader.TERMINATED) && isInDialogSubcribe()) {
+                logger.info("Scheduling InDialog Subscribe " + state);
             	new Timer().schedule(new InDialogSubscriber((SipURI)((ContactHeader)notify.getHeader(ContactHeader.NAME)).getAddress().getURI()), 10000);
             }
         } catch (Exception ex) {
@@ -238,7 +239,11 @@ public class Subscriber implements SipListener {
         logger.info("Dialog State is " + tid.getDialog().getState());
         
         NotifyBefore202Test.assertEquals("Dialog should be same as NOTIFY dialog", this.notifyDialog,tid.getDialog());
-        dialogSameAsNotify = true;
+        if (!inDialogSubcribe) {
+            dialogSameAsNotify = true;
+        } else if (tid.getDialog().getState() == DialogState.TERMINATED) {
+        	dialogSameAsNotify = true;
+        }        
     }
     
     private int port;
@@ -419,7 +424,7 @@ public class Subscriber implements SipListener {
 
     public void processTransactionTerminated(
             TransactionTerminatedEvent transactionTerminatedEvent) {
-
+        logger.info("tx terminated event recieved " + transactionTerminatedEvent.getSource());
     }
 
     public void processDialogTerminated(

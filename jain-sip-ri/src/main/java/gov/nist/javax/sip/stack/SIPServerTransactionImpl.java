@@ -1941,9 +1941,15 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
              * with the OK of the subscribe.
              */
             if (! sipStack.isDeliverUnsolicitedNotify()) {
+                if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug(
+                    "releaseSem() released this transaction sem : " + this);
                 pendingSubscribeTransaction.releaseSem();
             }
         } else if (this.inviteTransaction != null && this.getMethod().equals(Request.CANCEL)) {
+            if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug(
+                    "releaseSem() released this transaction sem : " + this);
             /*
              * When a CANCEL is being processed we take a nested lock on the associated INVITE
              * server tx.
@@ -2121,8 +2127,12 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 lastResponse = null;
             }
             pendingReliableResponseAsBytes = null;
-            pendingReliableResponseMethod = null;
-            pendingSubscribeTransaction = null;
+            pendingReliableResponseMethod = null;            
+            if(pendingSubscribeTransaction != null) {
+                // making sure to release the semaphore before we nullify the tx
+                pendingSubscribeTransaction.releaseSem();
+                pendingSubscribeTransaction = null;
+            }
             provisionalResponseSem = null;
             retransmissionAlertTimerTask = null;
             requestOf = null;
