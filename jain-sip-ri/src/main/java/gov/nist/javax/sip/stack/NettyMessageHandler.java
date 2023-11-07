@@ -1,7 +1,6 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 
 import javax.sip.ListeningPoint;
 
@@ -41,9 +40,7 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
             if(!continueProcesing) {
                 return;
             }
-        } else {
-            
-        }
+        } 
 
         RawMessageChannel rawMessageChannel = (RawMessageChannel)nettyMessageChannel;
         if (sipStack.getSelfRoutingThreadpoolExecutor() != null) {
