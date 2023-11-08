@@ -24,10 +24,16 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {            
-        try {
-            SIPMessage sipMessage = nettyMessageParser.getSIPMessage();            
+        SIPMessage sipMessage = null;          
+        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+            logger.logDebug("Decoding message: \n" + in.toString(io.netty.util.CharsetUtil.UTF_8));
+        }
+        try {            
             while (sipMessage == null && in.readableBytes() > 0) {
-                sipMessage = nettyMessageParser.addBytes(in);                    
+                nettyMessageParser.parseBytes(in);   
+                if(nettyMessageParser.isParsingComplete()) {
+                    sipMessage = nettyMessageParser.consumeSIPMessage();
+                }                 
             }
             if (sipMessage != null) {
                 if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
@@ -39,7 +45,7 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
             e.printStackTrace();            
             if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
                 logger.logDebug(
-                    "Parsing issue !  " + new String(nettyMessageParser.getMessage().toString()) + " " + e.getMessage(), e);
+                    "Parsing issue !  " + in.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);
             }
         }                     
     }

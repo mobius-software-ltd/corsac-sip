@@ -36,7 +36,7 @@ public class NettyConnectionListener implements ChannelFutureListener {
     @Override
     public void operationComplete(ChannelFuture channelFuture) throws Exception {
         if (!channelFuture.isSuccess()) {																 
-            if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
+            if(sipStack != null && sipStack.getSelfRoutingThreadpoolExecutor() != null) {
                 sipStack.getSelfRoutingThreadpoolExecutor().execute(
                     new NettyConnectionFailureThread(messageChannel) 
                 );

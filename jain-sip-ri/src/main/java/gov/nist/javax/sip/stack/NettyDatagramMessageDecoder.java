@@ -31,14 +31,17 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
         NettyMessageParser nettyMessageParser = new NettyMessageParser(
                 sipMessageParser, 
                 nettyMessageProcessor.getSIPStack().getMaxMessageSize());
-        try {            
-            SIPMessage sipMessage = null;            
-            ByteBuf content =  msg.content();
-            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                logger.logDebug("Decoding message: \n" + content.toString(io.netty.util.CharsetUtil.UTF_8));
-            }
+        SIPMessage sipMessage = null;  
+        ByteBuf content =  msg.content();
+        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+            logger.logDebug("Decoding message: \n" + content.toString(io.netty.util.CharsetUtil.UTF_8));
+        }
+        try {                                  
             while (sipMessage == null && content.readableBytes() > 0) {
-                sipMessage = nettyMessageParser.addBytes(content);                    
+                nettyMessageParser.parseBytes(content);                    
+                if(nettyMessageParser.isParsingComplete()) {
+                    sipMessage = nettyMessageParser.consumeSIPMessage();
+                }                
             }
             // SIPMessage sipMessage = null;
             // int readableBytes = content.readableBytes();
@@ -70,7 +73,7 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
             e.printStackTrace();            
             if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
                 logger.logDebug(
-                    "Parsing issue !  " + new String(nettyMessageParser.getMessage().toString()) + " " + e.getMessage(), e);
+                    "Parsing issue !  " + content.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);
             }
         }                     
     }

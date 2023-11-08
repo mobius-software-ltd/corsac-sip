@@ -111,12 +111,15 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
             + "Contact: \"Shootme\" <sip:127.0.0.1:5070>\r\n"
             + "Content-Length: 0\r\n";
 
+    
+
     //FIXME: Add test for split message body
 
     public void testIPV6ScopeIdParam() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
         ByteBuf byteBuf = Unpooled.copiedBuffer(IPV6MESSAGE.getBytes());
-        SIPMessage msg = parser.addBytes(byteBuf);        
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();
         RecordRoute routeHdr = (RecordRoute) msg.getHeader("Record-Route");
         SipUri uri = (SipUri) routeHdr.getAddress().getURI();
         Assert.assertEquals("fe80:0:0:0:20c:29ff:fe7d:7f9c%2", uri.getDecodedParam("node_host"));
@@ -125,7 +128,8 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
     public void testTryingResponse() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
         ByteBuf byteBuf = Unpooled.copiedBuffer(TRYING_RESPONSE.getBytes());
-        SIPMessage msg = parser.addBytes(byteBuf);        
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();  
         ContactHeader contact = (ContactHeader) msg.getHeader("Contact");
         SipUri uri = (SipUri) contact.getAddress().getURI();
         Assert.assertEquals("udp", uri.getTransportParam());
@@ -134,7 +138,8 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
     public void testOKResponse() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
         ByteBuf byteBuf = Unpooled.copiedBuffer(OK_RESPONSE.getBytes());
-        SIPMessage msg = parser.addBytes(byteBuf);        
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();       
         ViaHeader via = (ViaHeader) msg.getHeader("Via");        
         Assert.assertEquals("TCP", via.getTransport());
     }
@@ -142,10 +147,12 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
     public void testSplitOKResponse() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
         ByteBuf byteBuf = Unpooled.copiedBuffer(SPLIT_OK_RESPONSE_FIRST_PART.getBytes());
-        SIPMessage msg = parser.addBytes(byteBuf);        
+        Assert.assertFalse(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();       
         assertNull(msg);
         ByteBuf byteBuf2 = Unpooled.copiedBuffer(SPLIT_OK_RESPONSE_SECOND_PART.getBytes());
-        msg = parser.addBytes(byteBuf2);        
+        Assert.assertTrue(parser.parseBytes(byteBuf2).isParsingComplete());        
+        msg = parser.consumeSIPMessage();
         assertNotNull(msg);
         ViaHeader via = (ViaHeader) msg.getHeader("Via");        
         Assert.assertEquals("TCP", via.getTransport());
@@ -155,7 +162,8 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
     public void testEmptyMessageBody() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
         ByteBuf byteBuf = Unpooled.copiedBuffer(EMPTY_MESSAGE_BODY.getBytes());
-        SIPMessage msg = parser.addBytes(byteBuf);        
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();               
         ExpiresHeader expiresHeader = (ExpiresHeader) msg.getHeader("Expires");
         int expires = expiresHeader.getExpires();
         Assert.assertEquals(0, expires);
@@ -168,17 +176,20 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         ByteBuf secondByteBuf = Unpooled.copiedBuffer(EMPTY_MESSAGE_BODY.getBytes());
         ByteBuf thirdBuf = Unpooled.copiedBuffer(IPV6MESSAGE.getBytes());
         ByteBuf messageByteBuf = Unpooled.copiedBuffer(byteBuf, secondByteBuf, thirdBuf);
-        SIPMessage msg = parser.addBytes(messageByteBuf);        
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();               
         RecordRoute routeHdr = (RecordRoute) msg.getHeader("Record-Route");
         SipUri uri = (SipUri) routeHdr.getAddress().getURI();
         Assert.assertEquals("fe80:0:0:0:20c:29ff:fe7d:7f9c%2", uri.getDecodedParam("node_host"));
         assertNotNull(msg.getContent());
-        SIPMessage msg2 = parser.addBytes(messageByteBuf); 
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg2 = parser.consumeSIPMessage();               
         ExpiresHeader expiresHeader = (ExpiresHeader) msg2.getHeader("Expires");
         int expires = expiresHeader.getExpires();
         Assert.assertEquals(0, expires);
         assertNull(msg2.getContent());       
-        SIPMessage msg3 = parser.addBytes(messageByteBuf);        
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg3 = parser.consumeSIPMessage();               
         routeHdr = (RecordRoute) msg3.getHeader("Record-Route");
         uri = (SipUri) routeHdr.getAddress().getURI();
         Assert.assertEquals("fe80:0:0:0:20c:29ff:fe7d:7f9c%2", uri.getDecodedParam("node_host"));
@@ -188,14 +199,16 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
     public void testCRLF() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
         ByteBuf byteBuf = Unpooled.copiedBuffer(CRLF.getBytes());
-        SIPMessage msg = parser.addBytes(byteBuf);                
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();
         Assert.assertTrue(msg.isNullRequest());
     }
 
     public void testDoubleCRLF() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
         ByteBuf byteBuf = Unpooled.copiedBuffer(DOUBLE_CRLF.getBytes());
-        SIPMessage msg = parser.addBytes(byteBuf);        
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();        
         Assert.assertTrue(msg.isNullRequest());
     }
 
@@ -205,7 +218,8 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         ByteBuf emptyLineByteBuf = Unpooled.copiedBuffer(CRLF.getBytes());
         ByteBuf bodyByteBuf = Unpooled.copiedBuffer(BODY_CHUNK.getBytes());
         ByteBuf messageByteBuf = Unpooled.copiedBuffer(headerByteBuf, emptyLineByteBuf, bodyByteBuf);
-        SIPMessage msg = parser.addBytes(messageByteBuf);        
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();        
         Assert.assertNotNull(msg);        
     }
 
@@ -215,7 +229,8 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         ByteBuf emptyLineByteBuf = Unpooled.copiedBuffer(CRLF.getBytes());
         ByteBuf bodyByteBuf = Unpooled.copiedBuffer(BODY_CHUNK.getBytes());
         ByteBuf messageByteBuf = Unpooled.copiedBuffer(headerByteBuf, emptyLineByteBuf, bodyByteBuf);
-        SIPMessage msg = parser.addBytes(messageByteBuf);        
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();        
         Assert.assertNotNull(msg);  
     }
 
@@ -227,7 +242,8 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         ByteBuf emptyLineByteBuf = Unpooled.copiedBuffer(CRLF.getBytes());
         ByteBuf bodyByteBuf = Unpooled.copiedBuffer(BODY_CHUNK.getBytes());
         ByteBuf messageByteBuf = Unpooled.copiedBuffer(headerByteBuf, header1ByteBuf, header2ByteBuf, emptyLineByteBuf, bodyByteBuf);
-        SIPMessage msg = parser.addBytes(messageByteBuf);        
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();        
         Assert.assertNotNull(msg);  
     }
 
@@ -238,8 +254,25 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         ByteBuf lfByteBuf = Unpooled.copiedBuffer("\n".getBytes());
         ByteBuf bodyByteBuf = Unpooled.copiedBuffer(BODY_CHUNK.getBytes());
         ByteBuf messageByteBuf = Unpooled.copiedBuffer(headerByteBuf, crByteBuf, lfByteBuf, bodyByteBuf);
-        SIPMessage msg = parser.addBytes(messageByteBuf);        
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();        
         Assert.assertNotNull(msg);                  
+    }
+
+    public void testSingleCRLFAndMessage() throws Exception {
+        NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);    
+        ByteBuf singleCRLFByteBuf = Unpooled.copiedBuffer(CRLF.getBytes());
+        ByteBuf fullMessageByteBuf = Unpooled.copiedBuffer(IPV6MESSAGE.getBytes());
+        ByteBuf messageByteBuf = Unpooled.copiedBuffer(singleCRLFByteBuf, fullMessageByteBuf);
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();                
+        Assert.assertTrue(msg.isNullRequest());
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();                
+        Assert.assertFalse(msg.isNullRequest());
+        RecordRoute routeHdr = (RecordRoute) msg.getHeader("Record-Route");
+        SipUri uri = (SipUri) routeHdr.getAddress().getURI();
+        Assert.assertEquals("fe80:0:0:0:20c:29ff:fe7d:7f9c%2", uri.getDecodedParam("node_host"));
     }
 
     public void testDoubleCRLFAndMessage() throws Exception {
@@ -247,9 +280,11 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         ByteBuf doubleCRLFByteBuf = Unpooled.copiedBuffer(DOUBLE_CRLF.getBytes());
         ByteBuf fullMessageByteBuf = Unpooled.copiedBuffer(IPV6MESSAGE.getBytes());
         ByteBuf messageByteBuf = Unpooled.copiedBuffer(doubleCRLFByteBuf, fullMessageByteBuf);
-        SIPMessage msg = parser.addBytes(messageByteBuf);        
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();                
         Assert.assertTrue(msg.isNullRequest());
-        msg = parser.addBytes(messageByteBuf);        
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();                
         Assert.assertFalse(msg.isNullRequest());
         RecordRoute routeHdr = (RecordRoute) msg.getHeader("Record-Route");
         SipUri uri = (SipUri) routeHdr.getAddress().getURI();
@@ -259,12 +294,14 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
     public void testNormalBodySeparationButSplit() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);    
         ByteBuf headerByteBuf = Unpooled.copiedBuffer(HEADER_CHUNK.getBytes());
-        SIPMessage msg = parser.addBytes(headerByteBuf);
+        Assert.assertFalse(parser.parseBytes(headerByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();        
         Assert.assertNull(msg);        
         ByteBuf emptyLineByteBuf = Unpooled.copiedBuffer(CRLF.getBytes());
         ByteBuf bodyByteBuf = Unpooled.copiedBuffer(BODY_CHUNK.getBytes());
         ByteBuf messageByteBuf = Unpooled.copiedBuffer(emptyLineByteBuf, bodyByteBuf);
-        msg = parser.addBytes(messageByteBuf);        
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();                        
         Assert.assertNotNull(msg);        
     }
 
