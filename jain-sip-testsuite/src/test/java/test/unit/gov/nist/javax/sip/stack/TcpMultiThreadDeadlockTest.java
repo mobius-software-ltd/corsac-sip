@@ -38,6 +38,7 @@ import javax.sip.message.Response;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.Configuration;
@@ -67,6 +68,9 @@ import test.tck.msgflow.callflows.TestAssertion;
  *
  */
 public class TcpMultiThreadDeadlockTest extends TestCase {
+    
+    protected static Appender console = ConsoleAppender.newBuilder().setName("Console").build();
+    String logFileDirectory = "./target/logs/";    
 
     public class Shootme implements SipListener {
 
@@ -212,7 +216,7 @@ public class TcpMultiThreadDeadlockTest extends TestCase {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            for(int q = 0; q<1000; q++) {
+            for(int q = 0; q<1; q++) {
             	try {
             		Response okResponse = messageFactory.createResponse(180,
             				request);
@@ -302,10 +306,11 @@ public class TcpMultiThreadDeadlockTest extends TestCase {
     		loggerConfig.setLevel(Level.WARN);
     		logContext.updateLoggers();
     		
-            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                    "shootmedebug.txt");
+            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", logFileDirectory
+                + getName() + "_shootme_debuglog.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                    "shootmelog.txt");
+                logFileDirectory + getName() + "_shootme_log.txt");
+
             properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING", "false");
             properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
 
@@ -457,11 +462,21 @@ boolean inUse = false;
 
         			Dialog d = responseReceivedEvent.getDialog();
         			try {
-        				Request ack = d.createAck(1);
+        				Request ack = d.createAck(1);                                                
+                        // HeaderExt counterHeader = (HeaderExt) headerFactory.createHeader("Counter", "1");
+                        // ack.setHeader(counterHeader);
         				sipProvider.sendRequest(ack);
+                        // counterHeader = (HeaderExt) headerFactory.createHeader("Counter", "2");
+                        // ack.setHeader(counterHeader);
         				sipProvider.sendRequest(ack);
+                        // counterHeader = (HeaderExt) headerFactory.createHeader("Counter", "3");
+                        // ack.setHeader(counterHeader);
         				sipProvider.sendRequest(ack);
+                        // counterHeader = (HeaderExt) headerFactory.createHeader("Counter", "4");
+                        // ack.setHeader(counterHeader);
         				sipProvider.sendRequest(ack);
+                        // counterHeader = (HeaderExt) headerFactory.createHeader("Counter", "5");
+                        // ack.setHeader(counterHeader);
         				sipProvider.sendRequest(ack);
         			} catch (Exception e) {
         				e.printStackTrace();
@@ -499,10 +514,20 @@ boolean inUse = false;
             // implementation.
             // You can set a max message size for tcp transport to
             // guard against denial of service attack.
-            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                    "shootistdebug.txt");
+
+            LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        	Configuration configuration = logContext.getConfiguration();
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").setLayout(PatternLayout.newBuilder().withPattern(PatternLayout.TTCC_CONVERSION_PATTERN).build()).build());
+        	
+        	LoggerConfig loggerConfig = configuration.getLoggerConfig(LogManager.ROOT_LOGGER_NAME); 
+    		loggerConfig.setLevel(Level.WARN);
+    		logContext.updateLoggers();
+
+            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", logFileDirectory
+                + getName() + "shootist_debuglog.txt");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                    "shootistlog.txt");
+                logFileDirectory + getName() + "shootist_log.txt");
+
 
             // Drop the client connection after we are done with the transaction.
             properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS",

@@ -8,6 +8,7 @@ import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.message.SIPResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import junit.framework.Assert;
@@ -59,7 +60,8 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
             + "Call-ID: c6a12ddad0ddc1946d9f443c884a7768@127.0.0.1\r\n"
             + "Expires: 0\r\n"
             + "Content-Type: application/sdp;level=1\r\n"
-            + "Content-Length: 0\r\n";
+            + "Content-Length: 0\r\n"
+            + "\r\n";
     private static final String HEADER_CHUNK_COMPACT = "INVITE sip:00001002000022@p25dr;user=TIA-P25-SU SIP/2.0\r\n"
             + "CSeq: 1 INVITE\r\n"
             + "f: <sip:0000100200000c@p25dr;user=TIA-P25-SU>;tag=841\r\n"
@@ -89,7 +91,8 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
             + "To: \"The Little Blister\" <sip:LittleGuy@there.com>\r\n"
             + "Via: SIP/2.0/UDP 127.0.0.1:57939;branch=z9hG4bK-333437-c046d25f4ed4c4228324c5d6d5320781\r\n"
             + "Contact: <sip:127.0.0.1:57937;transport=udp>\r\n"
-            + "Content-Length: 0\r\n";
+            + "Content-Length: 0\r\n"
+            + "\r\n";
     
     private static final String OK_RESPONSE = "SIP/2.0 200 OK\r\n"
             + "CSeq: 1 INVITE\r\n"
@@ -98,7 +101,8 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
             + "To: \"The Little Blister\" <sip:LittleGuy@there.com>;tag=4321\r\n"
             + "Via: SIP/2.0/TCP 127.0.0.1:57196;branch=z9hG4bK-35-013673b6085013b28485731f1cf04b89;rport=59686\r\n"
             + "Contact: \"Shootme\" <sip:127.0.0.1:5070>\r\n"
-            + "Content-Length: 0\r\n";
+            + "Content-Length: 0\r\n"
+            + "\r\n";
 
     private static final String SPLIT_OK_RESPONSE_FIRST_PART = "SIP/2.0 200 OK\r\n"
             + "CSeq: 1 INVITE\r\n"
@@ -109,11 +113,78 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
     private static final String SPLIT_OK_RESPONSE_SECOND_PART = "<sip:LittleGuy@there.com>;tag=4321\r\n"
             + "Via: SIP/2.0/TCP 127.0.0.1:57196;branch=z9hG4bK-35-013673b6085013b28485731f1cf04b89;rport=59686\r\n"
             + "Contact: \"Shootme\" <sip:127.0.0.1:5070>\r\n"
-            + "Content-Length: 0\r\n";
+            + "Content-Length: 0\r\n"
+            + "\r\n";
 
-    
+    private static final String SPLIT_BODY_CHUNK_FIRST_PART = 
+            "v=0\r\n"
+            + "o=- 30576 0 IN IP4 127.0.0.1\r\n"
+            + "s=TIA-P25-SuTo";    
 
-    //FIXME: Add test for split message body
+    private static final String SPLIT_BODY_CHUNK_SECOND_PART = 
+            "SuCall\r\n"
+            + "t=0 0\r\n"
+            + "c=IN IP4 127.0.0.1\r\n"
+            + "m=audio 12412 RTP/AVP 100\r\n"
+            + "a=rtpmap:100 X-TIA-P25-IMBE/8000\r\n";    
+
+    private static final String MULTIPLE_RESPONSES = "SIP/2.0 180 Ringing\r\n"
+            + "CSeq: 1 INVITE\r\n"
+            + "Call-ID: 1294dff2c0a3bc9ac9be8801988193cd@127.0.0.1\r\n"
+            + "From: \"The Master Blaster\" <sip:BigGuy@here.com>;tag=12345\r\n"
+            + "To: \"The Little Blister\" <sip:LittleGuy@there.com>;tag=4321\r\n"
+            + "Via: SIP/2.0/TCP 127.0.0.1:56057;branch=z9hG4bK-3838-f719e29aa8a841ec204a8984f6ab42c8;rport=34784\r\n"
+            + "Contact: \"Shootme\" <sip:127.0.0.1:5070>\r\n"
+            + "Content-Length: 0\r\n"            
+            + "\r\n"
+            + "SIP/2.0 200 OK\r\n"
+            + "CSeq: 1 INVITE\r\n"
+            + "Call-ID: 1294dff2c0a3bc9ac9be8801988193cd@127.0.0.1\r\n"
+            + "From: \"The Master Blaster\" <sip:BigGuy@here.com>;tag=12345\r\n"
+            + "To: \"The Little Blister\" <sip:LittleGuy@there.com>;tag=4321\r\n"
+            + "Via: SIP/2.0/TCP 127.0.0.1:56057;branch=z9hG4bK-3838-f719e29aa8a841ec204a8984f6ab42c8;rport=34784\r\n"
+            + "Contact: \"Shootme\" <sip:127.0.0.1:5070>\r\n"
+            + "Content-Length: 0\r\n"
+            + "\r\n";            
+            
+     private static final String MULTIPLE_ACK_REQUESTS_SPLIT_FIRST_PART = "ACK sip:127.0.0.1:5070 SIP/2.0\r\n"
+            + "Call-ID: dcf2dbba51cbf75e8f2489862cde78a1@127.0.0.1\r\n"
+            + "CSeq: 1 ACK\r\n"
+            + "Via: SIP/2.0/TCP 127.0.0.1:56032;branch=z9hG4bK-3232-1d60ecf75c3a9f105ea186c105e07363\r\n"
+            + "From: \"The Master Blaster\" <sip:BigGuy@here.com>;tag=12345\r\n"
+            + "To: \"The Little Blister\" <sip:LittleGuy@there.com>;tag=4321\r\n"
+            + "Max-Forwards: 70\r\n"
+            + "Content-Length: 0\r\n"
+            + "\r\n"
+            + "ACK sip:127.0.0.1:5070 SIP/2.0\r\n"
+            + "Call-ID: dcf2dbba51cbf75e8f2489862cde78a1@127.0.0.1\r\n"
+            + "CSeq: 1 ACK\r\n"
+            + "Via: SIP/2.0/TCP 127.0.0.1:56032;branch=z9hG4bK-3232-1d60ecf75c3a9f105ea186c105e07363\r\n"
+            + "From: \"The Master Blaster\" <sip:BigGuy@here.com>;tag=12345\r\n"
+            + "To: \"The Little Blister\" <sip:LittleGuy@there.com>;tag=4321\r\n"
+            + "Max-Forwards: 70\r\n"
+            + "Content-Length: 0\r\n"
+            + "\r\n"
+            + "ACK sip:127.0.0.1:5070 SIP/2.0\r\n"
+            + "Call-ID: dcf2dbba51cbf75e8f2489862cde78a1@127.0.0.1\r\n"
+            + "CSeq: 1 ACK\r\n"
+            + "Via: SIP/2.0/TCP 127.0.0.1:56032;branch=z9hG4bK-3232-1d60ecf75c3a9f105ea186c105e07363\r\n"
+            + "From: \"The Master Blaster\" <sip:BigGuy@here.com>;tag=12345\r\n"
+            + "To: \"The Little Blister\" <sip:LittleGuy@there.com>;tag=4321\r\n"
+            + "Max-Forwards: 70\r\n"
+            + "Content-Le"; 
+            
+    private static final String MULTIPLE_ACK_REQUESTS_SPLIT_SECOND_PART = "ngth: 0\r\n"
+            + "\r\n"
+            + "ACK sip:127.0.0.1:5070 SIP/2.0\r\n"
+            + "Call-ID: dcf2dbba51cbf75e8f2489862cde78a1@127.0.0.1\r\n"
+            + "CSeq: 1 ACK\r\n"
+            + "Via: SIP/2.0/TCP 127.0.0.1:56032;branch=z9hG4bK-3232-1d60ecf75c3a9f105ea186c105e07363\r\n"
+            + "From: \"The Master Blaster\" <sip:BigGuy@here.com>;tag=12345\r\n"
+            + "To: \"The Little Blister\" <sip:LittleGuy@there.com>;tag=4321\r\n"
+            + "Max-Forwards: 70\r\n"
+            + "Content-Length: 0\r\n"
+            + "\r\n"; 
 
     public void testIPV6ScopeIdParam() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
@@ -170,7 +241,7 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         assertNull(msg.getContent());
     }
 
-    public void testMultipleMessage() throws Exception {
+    public void testMultipleRequests() throws Exception {
         NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
         ByteBuf byteBuf = Unpooled.copiedBuffer(IPV6MESSAGE.getBytes());
         ByteBuf secondByteBuf = Unpooled.copiedBuffer(EMPTY_MESSAGE_BODY.getBytes());
@@ -194,6 +265,48 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         uri = (SipUri) routeHdr.getAddress().getURI();
         Assert.assertEquals("fe80:0:0:0:20c:29ff:fe7d:7f9c%2", uri.getDecodedParam("node_host"));
         assertNotNull(msg3.getContent());        
+    }
+
+    public void testMultipleACKRequestsSplit() throws Exception {
+        NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
+        ByteBuf byteBuf = Unpooled.copiedBuffer(MULTIPLE_ACK_REQUESTS_SPLIT_FIRST_PART.getBytes());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();               
+        assertNotNull(msg);
+        assertNull(msg.getContent());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();               
+        assertNotNull(msg);
+        assertNull(msg.getContent());
+        Assert.assertFalse(parser.parseBytes(byteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();               
+        assertNull(msg);    
+        byteBuf = Unpooled.copiedBuffer(MULTIPLE_ACK_REQUESTS_SPLIT_SECOND_PART.getBytes());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();               
+        assertNotNull(msg);
+        assertNull(msg.getContent());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();               
+        assertNotNull(msg);
+        assertNull(msg.getContent());         
+    }
+
+    public void testMultipleResponses() throws Exception {
+        NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);
+        ByteBuf byteBuf = Unpooled.copiedBuffer(MULTIPLE_RESPONSES.getBytes());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();               
+        Assert.assertEquals(180, ((SIPResponse)msg).getStatusCode());
+        ViaHeader via = (ViaHeader) msg.getHeader("Via");        
+        Assert.assertEquals("TCP", via.getTransport());
+        assertNull(msg.getContent());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg3 = parser.consumeSIPMessage();               
+        Assert.assertEquals(200, ((SIPResponse)msg3).getStatusCode());
+        via = (ViaHeader) msg3.getHeader("Via");        
+        Assert.assertEquals("TCP", via.getTransport());
+        assertNull(msg3.getContent());
     }
 
     public void testCRLF() throws Exception {
@@ -221,6 +334,48 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
         SIPMessage msg = parser.consumeSIPMessage();        
         Assert.assertNotNull(msg);        
+    }
+
+    public void testSplitBody() throws Exception {
+        NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);    
+        ByteBuf headerByteBuf = Unpooled.copiedBuffer(HEADER_CHUNK.getBytes());
+        ByteBuf emptyLineByteBuf = Unpooled.copiedBuffer(CRLF.getBytes());
+        ByteBuf bodyByteBuf = Unpooled.copiedBuffer(SPLIT_BODY_CHUNK_FIRST_PART.getBytes());
+        ByteBuf messageByteBuf = Unpooled.copiedBuffer(headerByteBuf, emptyLineByteBuf, bodyByteBuf);
+        Assert.assertFalse(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();        
+        Assert.assertNull(msg);        
+        ByteBuf secondBodyPartByteBuf = Unpooled.copiedBuffer(SPLIT_BODY_CHUNK_SECOND_PART.getBytes());
+        Assert.assertTrue(parser.parseBytes(secondBodyPartByteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();        
+        Assert.assertNotNull(msg);        
+    }
+
+    public void testSplitBodyAndMultipleRequests() throws Exception {
+        NettyMessageParser parser = new NettyMessageParser(new StringMsgParser(), SipStackImpl.MAX_DATAGRAM_SIZE);    
+        ByteBuf headerByteBuf = Unpooled.copiedBuffer(HEADER_CHUNK.getBytes());
+        ByteBuf emptyLineByteBuf = Unpooled.copiedBuffer(CRLF.getBytes());
+        ByteBuf bodyByteBuf = Unpooled.copiedBuffer(SPLIT_BODY_CHUNK_FIRST_PART.getBytes());
+        ByteBuf messageByteBuf = Unpooled.copiedBuffer(headerByteBuf, emptyLineByteBuf, bodyByteBuf);
+        Assert.assertFalse(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();        
+        Assert.assertNull(msg);        
+        ByteBuf secondBodyPartByteBuf = Unpooled.copiedBuffer(SPLIT_BODY_CHUNK_SECOND_PART.getBytes());
+        Assert.assertTrue(parser.parseBytes(secondBodyPartByteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();        
+        Assert.assertNotNull(msg);
+        ByteBuf doubleCRLFByteBuf = Unpooled.copiedBuffer(DOUBLE_CRLF.getBytes());
+        ByteBuf fullMessageByteBuf = Unpooled.copiedBuffer(IPV6MESSAGE.getBytes());
+        messageByteBuf = Unpooled.copiedBuffer(doubleCRLFByteBuf, fullMessageByteBuf);
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();                
+        Assert.assertTrue(msg.isNullRequest());
+        Assert.assertTrue(parser.parseBytes(messageByteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();                
+        Assert.assertFalse(msg.isNullRequest());
+        RecordRoute routeHdr = (RecordRoute) msg.getHeader("Record-Route");
+        SipUri uri = (SipUri) routeHdr.getAddress().getURI();
+        Assert.assertEquals("fe80:0:0:0:20c:29ff:fe7d:7f9c%2", uri.getDecodedParam("node_host"));        
     }
 
     public void testCompactBodySeparation() throws Exception {

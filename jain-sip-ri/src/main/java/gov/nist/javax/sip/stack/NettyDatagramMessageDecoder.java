@@ -38,8 +38,7 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
         }
         try {                                  
             while (sipMessage == null && content.readableBytes() > 0) {
-                nettyMessageParser.parseBytes(content);                    
-                if(nettyMessageParser.isParsingComplete()) {
+                if(nettyMessageParser.parseBytes(content).isParsingComplete()) {
                     sipMessage = nettyMessageParser.consumeSIPMessage();
                 }                
             }
@@ -71,8 +70,8 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
             }
         } catch (Exception e) {
             e.printStackTrace();            
-            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                logger.logDebug(
+            if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
+                logger.logError(
                     "Parsing issue !  " + content.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);
             }
         }                     

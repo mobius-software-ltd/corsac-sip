@@ -29,22 +29,21 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
             logger.logDebug("Decoding message: \n" + in.toString(io.netty.util.CharsetUtil.UTF_8));
         }
         try {            
-            while (sipMessage == null && in.readableBytes() > 0) {
-                nettyMessageParser.parseBytes(in);   
-                if(nettyMessageParser.isParsingComplete()) {
+            while (sipMessage == null && in.readableBytes() > 0) {                   
+                if(nettyMessageParser.parseBytes(in).isParsingComplete()) {
                     sipMessage = nettyMessageParser.consumeSIPMessage();
                 }                 
             }
             if (sipMessage != null) {
                 if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
                     logger.logDebug("following message parsed, passing it up the stack and resetting \n" + sipMessage.toString());
-                }                                
+                }         
                 out.add(sipMessage);            
             }
         } catch (Exception e) {
             e.printStackTrace();            
-            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                logger.logDebug(
+            if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
+                logger.logError(
                     "Parsing issue !  " + in.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);
             }
         }                     
