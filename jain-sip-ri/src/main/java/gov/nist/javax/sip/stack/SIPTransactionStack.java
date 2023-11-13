@@ -432,6 +432,8 @@ public abstract class SIPTransactionStack implements
     
     private boolean sslRenegotiationEnabled = false;
 
+    protected boolean computeContentLengthFromMessage = false;
+
     
     public ScheduledExecutorService getSelfRoutingThreadpoolExecutor() {
         if(selfRoutingThreadpoolExecutor == null) {

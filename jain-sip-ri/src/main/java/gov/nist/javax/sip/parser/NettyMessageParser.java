@@ -19,17 +19,19 @@
  */
 package gov.nist.javax.sip.parser;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 
 import gov.nist.core.CommonLogger;
-import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.header.ContentLength;
+import gov.nist.javax.sip.header.RequestLine;
+import gov.nist.javax.sip.header.SIPHeader;
+import gov.nist.javax.sip.header.StatusLine;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -52,23 +54,25 @@ public class NettyMessageParser {
 		READING_EMPTY_LINE,
 		READING_MESSAGE_BODY_CONTENTS,
 		READING_PARTIAL_MESSAGE_BODY_CONTENTS,
-		PARSING_COMPLETE
+		PARSING_COMPLETE		
 	}
 
-	private	ParsingState parsingState;
-    private final MessageParser messageParser;	
+	private	ParsingState parsingState;    
+	private ParseException parseException;
+
 	private int contentLength = -1;	
-	private int maxMessageSize = -1;            		
+	private int maxMessageSize = -1;        
+	private boolean computeContentLengthFromMessage = false;   		
 	private SIPMessage sipMessage = null;	
 
-    public NettyMessageParser(MessageParser messageParser, int maxMessageSize) {
-        this.messageParser = messageParser;        
+    public NettyMessageParser(int maxMessageSize, boolean computeContentLengthFromMessage) {
 		this.maxMessageSize = maxMessageSize;
+		this.computeContentLengthFromMessage = computeContentLengthFromMessage;
 		sipMessage = null;
 		parsingState = ParsingState.INIT;
     }
 
-	public NettyMessageParser parseBytes(ByteBuf byteBuf) throws Exception {			
+	public NettyMessageParser parseBytes(ByteBuf byteBuf) {			
 		int readableBytes = byteBuf.readableBytes();		
 
 		// if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
@@ -114,21 +118,21 @@ public class NettyMessageParser {
 			parsingState = ParsingState.DOUBLE_CRLF;
 			sipMessage = createNullRequest(byteBuf.slice(0, byteBuf.readerIndex()).capacity());				
 		} else if(parsingState == ParsingState.PARSING_COMPLETE) {
-			ByteBuf bufSlice = byteBuf.slice(0, byteBuf.readerIndex());
-			byte[] msg = new byte[bufSlice.capacity()];
-			bufSlice.getBytes(0, msg);
+			// ByteBuf bufSlice = byteBuf.slice(0, byteBuf.readerIndex());
+			// byte[] msg = new byte[bufSlice.capacity()];
+			// bufSlice.getBytes(0, msg);
 			// if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
 			// 	String messageString = new String(msg, Charset.forName(ENCODING));
 			// 	logger.logDebug("Msg to be parsed:" + messageString);
 			// }
-			sipMessage = messageParser.parseSIPMessage(msg, true, false, null);				
+			// sipMessage = messageParser.parseSIPMessage(msg, true, false, null);				
 			byteBuf.discardReadBytes();
 		}		
 		
 		return this;		
 	}
 
-	public void readSIPMessageHeader(ByteBuf byteBuf, int readableBytes) throws UnsupportedEncodingException, IOException, ParseException {		
+	public void readSIPMessageHeader(ByteBuf byteBuf, int readableBytes) {		
 		// Read Message Headers
 		int readerIndex = byteBuf.readerIndex();
 		int crIndex = byteBuf.indexOf(readerIndex, readerIndex + readableBytes, (byte)'\r');
@@ -178,8 +182,12 @@ public class NettyMessageParser {
 				}
 			}
 			if(parsingState == ParsingState.INIT) {
+				processFirstLine(byteBuf, line);
 				parsingState = ParsingState.READING_HEADER_LINES;
+			} else if(parsingState == ParsingState.READING_HEADER_LINES) {
+				processHeader(byteBuf, line);
 			}
+			
 			checkContentLength();
 		} else {
 			if(readableBytes > 0 && parsingState == ParsingState.READING_HEADER_LINES) {
@@ -194,7 +202,7 @@ public class NettyMessageParser {
 		}	
 		//checking for max message size
 		if(maxMessageSize > 0 && byteBuf.readerIndex() > maxMessageSize) {
-			throw new ParseException("Max size exceeded!", byteBuf.readerIndex());
+			parseException = new ParseException("Max size exceeded!", byteBuf.readerIndex());
 		}	
 		return;	
 	}
@@ -215,17 +223,27 @@ public class NettyMessageParser {
 				// if we saw a Content-Length header we can stop processing headers
 				parsingState = ParsingState.READING_MESSAGE_BODY_CONTENTS;			
 			}	
-			if(parsingState == ParsingState.READING_HEADER_LINES) {
-				// if we saw a Content-Length header we can stop processing headers
-				parsingState = ParsingState.READING_EMPTY_LINE;			
-			}
+			// if(parsingState == ParsingState.READING_HEADER_LINES) {
+			// 	// if we saw a Content-Length header we can stop processing headers
+			// 	parsingState = ParsingState.READING_EMPTY_LINE;			
+			// }
 																								
 		}
 	}
 
-	public void readMessageBody(ByteBuf byteBuf, int readableBytes, SIPMessage message) throws ParseException, IOException {				
+	public void readMessageBody(ByteBuf byteBuf, int readableBytes, SIPMessage message) {				
 		if(readableBytes >= contentLength) {	
-			byteBuf.skipBytes(contentLength);												
+			int readerIndex = byteBuf.readerIndex();
+			ByteBuf bodySlice = byteBuf.slice(readerIndex, contentLength);	
+			byte[] body = new byte[contentLength];
+			bodySlice.getBytes(0, body);
+			try {
+				message.setMessageContent(body, false, computeContentLengthFromMessage,
+                        contentLength);									
+			} catch (ParseException e) {
+				parseException = e;
+			}
+			byteBuf.skipBytes(contentLength);						
 			parsingState = ParsingState.PARSING_COMPLETE;
 		} else {
 			parsingState = ParsingState.READING_PARTIAL_MESSAGE_BODY_CONTENTS;
@@ -242,29 +260,102 @@ public class NettyMessageParser {
 
 	private void reset() {	
 		parsingState = ParsingState.INIT;
-		contentLength = -1;					
+		contentLength = -1;	
+		parseException = null;
+		this.sipMessage = null;		
 	}	
 
-    public SIPMessage consumeSIPMessage() {
-		if(sipMessage == null) {
-			if(parsingState == ParsingState.READING_PARTIAL_HEADER_LINE) {
-				parsingState = ParsingState.READING_HEADER_LINES;
-			}
-			if(parsingState == ParsingState.READING_PARTIAL_MESSAGE_BODY_CONTENTS) {
-				parsingState = ParsingState.READING_MESSAGE_BODY_CONTENTS;
-			}
+    public SIPMessage consumeSIPMessage() throws ParseException {
+		
+		if(parsingState == ParsingState.READING_PARTIAL_HEADER_LINE) {
+			parsingState = ParsingState.READING_HEADER_LINES;
+		}
+		if(parsingState == ParsingState.READING_PARTIAL_MESSAGE_BODY_CONTENTS) {
+			parsingState = ParsingState.READING_MESSAGE_BODY_CONTENTS;
+		}
+			
+		if((parsingState != ParsingState.PARSING_COMPLETE && parsingState != ParsingState.DOUBLE_CRLF)) {
 			return null;
 		}
-		SIPMessage retVal = this.sipMessage;
-		this.sipMessage = null;
-		reset();
-        return retVal;
+				
+		if(parseException == null) {
+			SIPMessage retVal = this.sipMessage;			
+			reset();	
+        	return retVal;
+		} else {
+			// if there was a problem parsing the message, 
+			// we don't return a SIP Message and throw an exception
+			ParseException retVal = this.parseException;			
+			reset();			
+			throw retVal;
+		}
     }	
+
+	public boolean isMessageComplete() {
+		return parsingState == ParsingState.PARSING_COMPLETE 
+				|| parsingState == ParsingState.DOUBLE_CRLF;
+	}
 
 	public boolean isParsingComplete() {
 		return parsingState == ParsingState.PARSING_COMPLETE 
 				|| parsingState == ParsingState.DOUBLE_CRLF
 				|| parsingState == ParsingState.READING_PARTIAL_HEADER_LINE
 				|| parsingState == ParsingState.READING_PARTIAL_MESSAGE_BODY_CONTENTS;
+	}
+
+	// SIP Message Parsing methods
+	/**
+	 * Processes the first line of a SIP message.
+	 * @param byteBuf Netty ByteBuf
+	 * @param firstLine the first line of the SIP message.
+	 * @throws ParseException
+	 */
+	protected void processFirstLine(ByteBuf byteBuf, String firstLine) {        
+		firstLine = StringMsgParser.trimEndOfLine(firstLine);
+        if (!firstLine.startsWith(SIPConstants.SIP_VERSION_STRING)) {
+            sipMessage = new SIPRequest();
+            try {
+                RequestLine requestLine = new RequestLineParser(firstLine + "\n")
+                        .parse();
+                ((SIPRequest) sipMessage).setRequestLine(requestLine);
+            } catch (ParseException ex) {
+				parseException = ex;
+            }
+        } else {
+            sipMessage = new SIPResponse();
+            try {
+                StatusLine sl = new StatusLineParser(firstLine + "\n").parse();
+                ((SIPResponse) sipMessage).setStatusLine(sl);
+            } catch (ParseException ex) {
+				parseException = ex;
+            }
+        }        
+    }
+
+	/**
+	 * Processes a SIP header.
+	 * @param byteBuf Netty ByteBuf
+	 * @param header the SIP header.
+	 * @throws ParseException
+	 */
+	protected void processHeader(ByteBuf byteBuf, String header) {
+		header = StringMsgParser.trimEndOfLine(header);
+        HeaderParser headerParser = null;
+        try {
+            headerParser = ParserFactory.createParser(header + "\n");
+        } catch (ParseException ex) {
+			parseException = ex;
+        }
+
+        try {
+            SIPHeader sipHeader = headerParser.parse();
+            sipMessage.attachHeader(sipHeader, false);
+        } catch (ParseException ex) {
+			parseException = ex;
+        }
+    }
+
+	public ParseException getParseException() {
+		return parseException;
 	}
 }

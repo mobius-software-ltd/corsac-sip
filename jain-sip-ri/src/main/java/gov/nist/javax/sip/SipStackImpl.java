@@ -1351,11 +1351,11 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 			this.logRecordFactory = new DefaultMessageLogFactory();
 		}
 
-		boolean computeContentLength = configurationProperties.getProperty(
+		computeContentLengthFromMessage = Boolean.valueOf(configurationProperties.getProperty(
 				"gov.nist.javax.sip.COMPUTE_CONTENT_LENGTH_FROM_MESSAGE_BODY",
-				"false").equalsIgnoreCase("true");
+				"false").equalsIgnoreCase("true"));
 		StringMsgParser
-				.setComputeContentLengthFromMessage(computeContentLength);
+				.setComputeContentLengthFromMessage(computeContentLengthFromMessage);
 
 		String tlsClientProtocols = configurationProperties.getProperty(
 				"gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS");

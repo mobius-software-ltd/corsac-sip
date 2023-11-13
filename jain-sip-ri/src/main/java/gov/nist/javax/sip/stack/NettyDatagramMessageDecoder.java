@@ -40,28 +40,26 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<DatagramPacket> {
     private static StackLogger logger = CommonLogger.getLogger(NettyDatagramMessageDecoder.class);
 
-    private NettyMessageProcessor nettyMessageProcessor;
-    private MessageParser sipMessageParser = null;
-
+    private NettyMessageProcessor nettyMessageProcessor;    
 
     public NettyDatagramMessageDecoder(NettyMessageProcessor nettyMessageProcessor) {            
-        this.nettyMessageProcessor = nettyMessageProcessor;
-        sipMessageParser = nettyMessageProcessor.getSIPStack().getMessageParserFactory().createMessageParser(nettyMessageProcessor.getSIPStack());
+        this.nettyMessageProcessor = nettyMessageProcessor;        
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, DatagramPacket msg, List<Object> out) {            
-        NettyMessageParser nettyMessageParser = new NettyMessageParser(
-                sipMessageParser, 
-                nettyMessageProcessor.getSIPStack().getMaxMessageSize());
+        NettyMessageParser nettyMessageParser = new NettyMessageParser(                
+                nettyMessageProcessor.getSIPStack().getMaxMessageSize(),
+                nettyMessageProcessor.getSIPStack().computeContentLengthFromMessage);
         SIPMessage sipMessage = null;  
         ByteBuf content =  msg.content();
         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
             logger.logDebug("Decoding message: \n" + content.toString(io.netty.util.CharsetUtil.UTF_8));
         }
-        try {                                  
-            do {
-                if(nettyMessageParser.parseBytes(content).isParsingComplete()) {
+                                    
+        do {
+            if(nettyMessageParser.parseBytes(content).isParsingComplete()) {
+                try {      
                     sipMessage = nettyMessageParser.consumeSIPMessage();
                     if (sipMessage != null) {
                         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
@@ -75,19 +73,20 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
                         
                         out.add(sipMessage);                                 
                     }
-                }                 
-            } while (sipMessage != null && content.readableBytes() > 0);
-            if(sipMessage == null) {
-                if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                    logger.logDebug("No SIPMessage decoded ! ");
-                }
-            }                    
-        } catch (Exception e) {
-            e.printStackTrace();            
-            if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
-                logger.logError(
-                    "Parsing issue !  " + content.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);
+                } catch (Exception e) {
+                    e.printStackTrace();            
+                    if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
+                        logger.logError(
+                            "Parsing issue !  " + content.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);
+                    }
+                }  
+            }                 
+        } while (sipMessage != null && content.readableBytes() > 0);
+        if(sipMessage == null) {
+            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+                logger.logDebug("No SIPMessage decoded ! ");
             }
-        }                     
+        }                    
+                           
     }
 }

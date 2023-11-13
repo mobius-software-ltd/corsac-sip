@@ -247,7 +247,7 @@ public class StringMsgParser implements MessageParser {
         return line.substring(0, i + 1);
     }
 
-    protected SIPMessage processFirstLine(String firstLine, ParseExceptionListener parseExceptionListener,
+    protected static SIPMessage processFirstLine(String firstLine, ParseExceptionListener parseExceptionListener,
             byte[] msgBuffer) throws ParseException {
         SIPMessage message;
         if (!firstLine.startsWith(SIPConstants.SIP_VERSION_STRING)) {
@@ -289,7 +289,7 @@ public class StringMsgParser implements MessageParser {
         return message;
     }
 
-    protected void processHeader(String header, SIPMessage message, ParseExceptionListener parseExceptionListener,
+    protected static void processHeader(String header, SIPMessage message, ParseExceptionListener parseExceptionListener,
             byte[] rawMessage) throws ParseException {
         if (header == null || header.length() == 0)
             return;
@@ -341,7 +341,7 @@ public class StringMsgParser implements MessageParser {
      * @exception ParseException
      *                           when the address is badly formatted.
      */
-    public AddressImpl parseAddress(String address) throws ParseException {
+    public static AddressImpl parseAddress(String address) throws ParseException {
         AddressParser addressParser = new AddressParser(address);
         return addressParser.address(true);
     }
@@ -375,7 +375,7 @@ public class StringMsgParser implements MessageParser {
      *                           a ParseException when the hostname is badly
      *                           formatted.
      */
-    public Host parseHost(String host) throws ParseException {
+    public static Host parseHost(String host) throws ParseException {
         Lexer lexer = new Lexer("charLexer", host);
         return new HostNameParser(lexer).host();
 
@@ -392,7 +392,7 @@ public class StringMsgParser implements MessageParser {
      *                           a ParseException when the address is badly
      *                           formatted.
      */
-    public TelephoneNumber parseTelephoneNumber(String telephone_number)
+    public static TelephoneNumber parseTelephoneNumber(String telephone_number)
             throws ParseException {
         // Bug fix contributed by Will Scullin
         return new URLParser(telephone_number).parseTelephoneNumber(true);
@@ -409,7 +409,7 @@ public class StringMsgParser implements MessageParser {
      *                           if there was an error parsing the message.
      */
 
-    public SipUri parseSIPUrl(String url) throws ParseException {
+    public static SipUri parseSIPUrl(String url) throws ParseException {
         try {
             return new URLParser(url).sipURL(true);
         } catch (ClassCastException ex) {
@@ -427,7 +427,7 @@ public class StringMsgParser implements MessageParser {
      *                           if there was an error parsing the message.
      */
 
-    public GenericURI parseUrl(String url) throws ParseException {
+    public static GenericURI parseUrl(String url) throws ParseException {
         return new URLParser(url).parse();
     }
 
@@ -500,7 +500,7 @@ public class StringMsgParser implements MessageParser {
      *                           if there was an error parsing the requestLine.
      */
 
-    public RequestLine parseSIPRequestLine(String requestLine)
+    public static RequestLine parseSIPRequestLine(String requestLine)
             throws ParseException {
         requestLine += "\n";
         return new RequestLineParser(requestLine).parse();
@@ -517,7 +517,7 @@ public class StringMsgParser implements MessageParser {
      * @see StatusLine
      */
 
-    public StatusLine parseSIPStatusLine(String statusLine)
+    public static StatusLine parseSIPStatusLine(String statusLine)
             throws ParseException {
         statusLine += "\n";
         return new StatusLineParser(statusLine).parse();
