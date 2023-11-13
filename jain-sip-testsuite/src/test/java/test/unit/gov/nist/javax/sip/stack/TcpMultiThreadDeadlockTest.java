@@ -85,6 +85,7 @@ public class TcpMultiThreadDeadlockTest extends TestCase {
         private SipProvider sipProvider;
 
         private static final String myAddress = "127.0.0.1";
+        private static final int NUMBER_OF_RINGING = 1000;
 
         private final int myPort = 5070;
 
@@ -216,7 +217,7 @@ public class TcpMultiThreadDeadlockTest extends TestCase {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            for(int q = 0; q<1000; q++) {
+            for(int q = 0; q < NUMBER_OF_RINGING; q++) {
             	try {
             		Response okResponse = messageFactory.createResponse(180,
             				request);

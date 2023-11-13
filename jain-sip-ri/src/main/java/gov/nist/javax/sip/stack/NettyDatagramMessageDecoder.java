@@ -37,37 +37,28 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
             logger.logDebug("Decoding message: \n" + content.toString(io.netty.util.CharsetUtil.UTF_8));
         }
         try {                                  
-            while (sipMessage == null && content.readableBytes() > 0) {
+            do {
                 if(nettyMessageParser.parseBytes(content).isParsingComplete()) {
                     sipMessage = nettyMessageParser.consumeSIPMessage();
-                }                
-            }
-            // SIPMessage sipMessage = null;
-            // int readableBytes = content.readableBytes();
-            // // Dealing with CRLF sent by some SIP Clients
-            // if(readableBytes == 2 || readableBytes == 4) {
-            //     sipMessage = new SIPRequest();
-			// 	sipMessage.setSize(readableBytes);
-			// 	sipMessage.setNullRequest();
-            // } else {
-            //     sipMessage = sipMessageParser.parseSIPMessage(
-            //         content.readBytes(content.readableBytes()).array(), 
-            //         false, 
-            //         false, 
-            //         null);
-            // }
-            if (sipMessage != null) {
+                    if (sipMessage != null) {
+                        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+                            logger.logDebug("following message parsed, passing it up the stack \n" + sipMessage.toString());
+                        }         
+                        InetSocketAddress remoteAddress = (InetSocketAddress)msg.sender();
+                        sipMessage.setRemoteAddress(remoteAddress.getAddress());
+                        sipMessage.setRemotePort(remoteAddress.getPort());
+                        sipMessage.setPeerPacketSourceAddress(remoteAddress.getAddress());
+                        sipMessage.setPeerPacketSourcePort(remoteAddress.getPort());                          
+                        
+                        out.add(sipMessage);                                 
+                    }
+                }                 
+            } while (sipMessage != null && content.readableBytes() > 0);
+            if(sipMessage == null) {
                 if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                    logger.logDebug("following message parsed, passing it up the stack and resetting \n" + sipMessage.toString());
-                } 
-                InetSocketAddress remoteAddress = (InetSocketAddress)msg.sender();
-                sipMessage.setRemoteAddress(remoteAddress.getAddress());
-                sipMessage.setRemotePort(remoteAddress.getPort());
-                sipMessage.setPeerPacketSourceAddress(remoteAddress.getAddress());
-                sipMessage.setPeerPacketSourcePort(remoteAddress.getPort());                          
-                
-                out.add(sipMessage);            
-            }
+                    logger.logDebug("No SIPMessage decoded ! ");
+                }
+            }                    
         } catch (Exception e) {
             e.printStackTrace();            
             if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   

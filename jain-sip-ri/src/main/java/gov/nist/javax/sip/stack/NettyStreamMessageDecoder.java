@@ -29,17 +29,22 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
             logger.logDebug("Decoding message: \n" + in.toString(io.netty.util.CharsetUtil.UTF_8));
         }
         try {            
-            while (sipMessage == null && in.readableBytes() > 0) {                   
+            do {
                 if(nettyMessageParser.parseBytes(in).isParsingComplete()) {
                     sipMessage = nettyMessageParser.consumeSIPMessage();
-                }                 
-            }
-            if (sipMessage != null) {
+                    if (sipMessage != null) {
+                        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+                            logger.logDebug("following message parsed, passing it up the stack \n" + sipMessage.toString());
+                        }         
+                        out.add(sipMessage);            
+                    }
+                } 
+            } while (sipMessage != null && in.readableBytes() > 0);                    
+            if(sipMessage == null) {
                 if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                    logger.logDebug("following message parsed, passing it up the stack and resetting \n" + sipMessage.toString());
-                }         
-                out.add(sipMessage);            
-            }
+                    logger.logDebug("No SIPMessage decoded ! ");
+                }
+            }        
         } catch (Exception e) {
             e.printStackTrace();            
             if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
