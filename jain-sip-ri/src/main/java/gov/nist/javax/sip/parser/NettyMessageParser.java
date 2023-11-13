@@ -135,8 +135,13 @@ public class NettyMessageParser {
 	public void readSIPMessageHeader(ByteBuf byteBuf, int readableBytes) {		
 		// Read Message Headers
 		int readerIndex = byteBuf.readerIndex();
-		int crIndex = byteBuf.indexOf(readerIndex, readerIndex + readableBytes, (byte)'\r');
 		int lfIndex = byteBuf.indexOf(readerIndex, readerIndex + readableBytes, (byte)'\n');		
+		
+		int crIndex = -1;
+		if(byteBuf.getByte(lfIndex-1)==(byte)'\r')
+			crIndex = lfIndex-1;
+		
+		//byteBuf.indexOf(readerIndex, readerIndex + readableBytes, (byte)'\r');
 		// check if we have a full header line with \r\n at the end
 		if(crIndex != -1 && lfIndex != -1 && lfIndex - crIndex == 1) { 			
 			int length = lfIndex - readerIndex +1;
@@ -182,10 +187,10 @@ public class NettyMessageParser {
 				}
 			}
 			if(parsingState == ParsingState.INIT) {
-				processFirstLine(byteBuf, line);
+				processFirstLine(line);
 				parsingState = ParsingState.READING_HEADER_LINES;
 			} else if(parsingState == ParsingState.READING_HEADER_LINES) {
-				processHeader(byteBuf, line);
+				processHeader(line);
 			}
 			
 			checkContentLength();
@@ -306,11 +311,10 @@ public class NettyMessageParser {
 	// SIP Message Parsing methods
 	/**
 	 * Processes the first line of a SIP message.
-	 * @param byteBuf Netty ByteBuf
 	 * @param firstLine the first line of the SIP message.
 	 * @throws ParseException
 	 */
-	protected void processFirstLine(ByteBuf byteBuf, String firstLine) {        
+	protected void processFirstLine(String firstLine) {        
 		firstLine = StringMsgParser.trimEndOfLine(firstLine);
         if (!firstLine.startsWith(SIPConstants.SIP_VERSION_STRING)) {
             sipMessage = new SIPRequest();
@@ -334,11 +338,10 @@ public class NettyMessageParser {
 
 	/**
 	 * Processes a SIP header.
-	 * @param byteBuf Netty ByteBuf
 	 * @param header the SIP header.
 	 * @throws ParseException
 	 */
-	protected void processHeader(ByteBuf byteBuf, String header) {
+	protected void processHeader(String header) {
 		header = StringMsgParser.trimEndOfLine(header);
         HeaderParser headerParser = null;
         try {
