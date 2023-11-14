@@ -3,11 +3,17 @@
 
 autonumber
 
+Application -> SIPFactory : createSipStack
+SIPFactory -> SIPStackImpl : new
+SIPStackImpl -> EventScanner : new
+EventScanner -> Thread : new
+EventScanner -> Thread : start
+EventScanner -> EventScanner: poll for new messages \n in case of non reentrant listener
 Application -> SIPStackImpl : createListeningPoint
 SIPStackImpl -> NettyMessageProcessorFactory : createMessageProcessor
 NettyMessageProcessorFactory -> NettyDatagramMessageProcessor : new
 NettyDatagramMessageProcessor -> ePollEventGroup : new (sipStack.threadPoolSize) \n used for incoming messages
-NettyDatagramMessageProcessor -> serverChannels : new ConcurrentHashMap(sipStack.threadPoolSize) \n used for outgoing messages
+NettyDatagramMessageProcessor -> serverChannels : new ConcurrentHashMap(\nsipStack.threadPoolSize) \n used for outgoing messages
 SIPStackImpl -> NettyDatagramMessageProcessor : start
 NettyDatagramMessageProcessor -> Bootstrap : new with EpollDatagramChannel
 NettyDatagramMessageProcessor -> NettyDatagramChannelInitializer : new

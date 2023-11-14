@@ -3,6 +3,12 @@
 
 autonumber
 
+Application -> SIPFactory : createSipStack
+SIPFactory -> SIPStackImpl : new
+SIPStackImpl -> EventScanner : new
+EventScanner -> Thread : new
+EventScanner -> Thread : start
+EventScanner -> EventScanner: poll for new messages \n in case of non reentrant listener
 Application -> SIPStackImpl : createListeningPoint
 SIPStackImpl -> NettyMessageProcessorFactory : createMessageProcessor
 NettyMessageProcessorFactory -> NettyStreamMessageProcessor : new
