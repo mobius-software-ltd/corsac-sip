@@ -261,8 +261,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
                     .getMethod();
 
             if (!method.equalsIgnoreCase(cseqMethod)) {
-                SIPResponse sipResponse = ((SIPRequest) sipMessage)
-                .createResponse(SIPResponse.BAD_REQUEST);
+                SIPResponse sipResponse = ((SIPRequest) sipMessage).createResponse(SIPResponse.BAD_REQUEST);
                 byte[] resp = sipResponse
                         .encodeAsBytes(this.getTransport());
                 this.sendMessage(resp,sipMessage.getPeerPacketSourceAddress(),sipMessage.getPeerPacketSourcePort(),false);
@@ -270,10 +269,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 
             }
         }
-
-        if(sipStack.sipEventInterceptor != null) {
-            sipStack.sipEventInterceptor.beforeMessage(sipMessage);
-        }
+        
         // For a request first via header tells where the message
         // is coming from.
         // For response, just get the port from the packet.
@@ -330,10 +326,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
             this.peerProtocol = topMostVia.getTransport();
         }
 
-        this.processSIPMessage(sipMessage);
-        if(sipStack.sipEventInterceptor != null) {
-            sipStack.sipEventInterceptor.afterMessage(sipMessage);
-        }        
+        this.processSIPMessage(sipMessage);        
     }
 
     private void processSIPMessage(SIPMessage sipMessage) {

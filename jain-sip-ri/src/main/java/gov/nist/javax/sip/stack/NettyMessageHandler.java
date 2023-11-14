@@ -66,54 +66,41 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         } 
 
         RawMessageChannel rawMessageChannel = (RawMessageChannel)nettyMessageChannel;
-        if (sipStack.getSelfRoutingThreadpoolExecutor() != null) {
-            final String callId = sipMessage.getCallId().getCallId();
+        final String callId = sipMessage.getCallId().getCallId();
 
-            try {
-                if (callId == null || callId.trim().length() < 1) {
-                    // http://code.google.com/p/jain-sip/issues/detail?id=18
-                    // NIO Message with no Call-ID throws NPE
-                    throw new IOException("received message with no Call-ID");
+        try {
+            if (callId == null || callId.trim().length() < 1) {
+                // http://code.google.com/p/jain-sip/issues/detail?id=18
+                // NIO Message with no Call-ID throws NPE
+                throw new IOException("received message with no Call-ID");
+            }
+            if (sipStack.sipEventInterceptor != null) {
+                if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+                    logger.logDebug("calling beforeMessage eventinterceptor for message " + sipMessage);
                 }
-                if (sipStack.sipEventInterceptor != null
-                        // https://java.net/jira/browse/JSIP-503
-                        && sipMessage != null) {
-                    if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-                        logger.logDebug("calling beforeMessage eventinterceptor for message " + sipMessage);
-                    }
-                    sipStack.sipEventInterceptor.beforeMessage(sipMessage);
-                }
+                sipStack.sipEventInterceptor.beforeMessage(sipMessage);
+            }
 
-                if (sipMessage != null) { // https://java.net/jira/browse/JSIP-503
-                    rawMessageChannel.processMessage(sipMessage);
+            rawMessageChannel.processMessage(sipMessage);
+            
+            // } catch (ParseException e) {
+            // // https://java.net/jira/browse/JSIP-499 move the ParseException here so the
+            // finally block
+            // // is called, the semaphore released and map cleaned up if need be
+            // if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+            // logger.logDebug("Problem parsing message " + msg.toString() + " " +
+            // e.getMessage());
+            // }
+        } catch (Exception e) {
+            logger.logError("Error occured processing message " + msg.toString(), e);                
+        } finally {                
+            if (sipStack.sipEventInterceptor != null) {
+                if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+                    logger.logDebug("calling afterMessage eventinterceptor for message " + sipMessage);
                 }
-                // } catch (ParseException e) {
-                // // https://java.net/jira/browse/JSIP-499 move the ParseException here so the
-                // finally block
-                // // is called, the semaphore released and map cleaned up if need be
-                // if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-                // logger.logDebug("Problem parsing message " + msg.toString() + " " +
-                // e.getMessage());
-                // }
-            } catch (Exception e) {
-                logger.logError("Error occured processing message " + msg.toString(), e);                
-            } finally {                
-                if (sipStack.sipEventInterceptor != null
-                        // https://java.net/jira/browse/JSIP-503
-                        && sipMessage != null) {
-                    if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-                        logger.logDebug("calling afterMessage eventinterceptor for message " + sipMessage);
-                    }
-                    sipStack.sipEventInterceptor.afterMessage(sipMessage);
-                }
+                sipStack.sipEventInterceptor.afterMessage(sipMessage);
             }
-        } else {
-            try {
-                rawMessageChannel.processMessage(sipMessage);
-            } catch (Exception e) {
-                logger.logError("Can't process message " + msg.toString(), e);
-            }
-        }
+        }       
     }
 
     private boolean processReliableMessage(ChannelHandlerContext ctx, SIPMessage sipMessage,

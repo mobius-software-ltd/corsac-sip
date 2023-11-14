@@ -25,7 +25,6 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.parser.MessageParser;
 import gov.nist.javax.sip.parser.NettyMessageParser;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

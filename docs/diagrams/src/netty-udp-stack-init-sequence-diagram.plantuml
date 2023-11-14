@@ -1,0 +1,17 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RestComm/design/master/telestax-style.plantuml!0
+
+autonumber
+
+Application -> SIPStackImpl : createListeningPoint
+SIPStackImpl -> NettyMessageProcessorFactory : createMessageProcessor
+NettyMessageProcessorFactory -> NettyDatagramMessageProcessor : new
+NettyDatagramMessageProcessor -> ePollEventGroup : new (sipStack.threadPoolSize) \n used for incoming messages
+NettyDatagramMessageProcessor -> serverChannels : new ConcurrentHashMap(sipStack.threadPoolSize) \n used for outgoing messages
+SIPStackImpl -> NettyDatagramMessageProcessor : start
+NettyDatagramMessageProcessor -> Bootstrap : new with EpollDatagramChannel
+NettyDatagramMessageProcessor -> NettyDatagramChannelInitializer : new
+NettyDatagramChannelInitializer -> NettyDatagramMessageDecoder : new
+NettyDatagramChannelInitializer -> NettyMessageHandler : new
+NettyDatagramMessageProcessor -> serverChannels : loop through serverChannels \n and bind to socketAddress
+@enduml
