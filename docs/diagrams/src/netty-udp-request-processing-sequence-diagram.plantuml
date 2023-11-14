@@ -12,6 +12,8 @@ group Netty EventLoop Thread
     NettyDatagramMessageDecoder -> NettyMessageParser : parseBytes(ByteBuf) \n all SIP Messages \n from the ByteBuf
     NettyDatagramMessageDecoder -> ChannelInboundHandler : consume all SIP Messages \n decoded by the Parser \n and pass them upstream
     ChannelInboundHandler -> NettyMessageHandler : channelRead(SIPMessage)
+    NettyMessageHandler -> NettyDatagramMessageProcessor : createMessageChannel
+    NettyDatagramMessageProcessor -> NettyDatagramMessageChannel : new Datagram Channel
     NettyMessageHandler -> SIPEventInterceptor : beforeMessage(SIPMessage)
     NettyMessageHandler -> NettyDatagramMessageChannel : processMessage(SIPMessage)
     NettyDatagramMessageChannel -> NettyDatagramMessageChannel : check message validity and RPort
