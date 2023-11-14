@@ -45,6 +45,9 @@ public class NettyMessageParser {
 	private static final String ENCODING = "UTF-8";	
 	private static final String CONTENT_LENGTH_COMPACT_NAME = "l";
 
+	private static final byte CR = (byte)'\r';	
+	private static final byte LF = (byte)'\n';	
+
 	private enum ParsingState {	
 		INIT,
 		CRLF,
@@ -135,11 +138,10 @@ public class NettyMessageParser {
 	public void readSIPMessageHeader(ByteBuf byteBuf, int readableBytes) {		
 		// Read Message Headers
 		int readerIndex = byteBuf.readerIndex();
-		int lfIndex = byteBuf.indexOf(readerIndex, readerIndex + readableBytes, (byte)'\n');		
-		
+		int lfIndex = byteBuf.indexOf(readerIndex, readerIndex + readableBytes, LF);				
 		int crIndex = -1;
-		if(byteBuf.getByte(lfIndex-1)==(byte)'\r')
-			crIndex = lfIndex-1;
+		if(lfIndex >= 0 && byteBuf.getByte(lfIndex-1) == CR)
+			crIndex = lfIndex - 1;
 		
 		//byteBuf.indexOf(readerIndex, readerIndex + readableBytes, (byte)'\r');
 		// check if we have a full header line with \r\n at the end
