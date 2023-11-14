@@ -140,7 +140,7 @@ public class NettyMessageParser {
 		int readerIndex = byteBuf.readerIndex();
 		int lfIndex = byteBuf.indexOf(readerIndex, readerIndex + readableBytes, LF);				
 		int crIndex = -1;
-		if(lfIndex >= 0 && byteBuf.getByte(lfIndex-1) == CR)
+		if(lfIndex >= 1 && byteBuf.getByte(lfIndex-1) == CR)
 			crIndex = lfIndex - 1;
 		
 		//byteBuf.indexOf(readerIndex, readerIndex + readableBytes, (byte)'\r');
