@@ -1,0 +1,56 @@
+@startuml Netty Datagram Oriented Transport Protocol Response Processing
+!includeurl https://raw.githubusercontent.com/RestComm/design/master/telestax-style.plantuml!0
+
+autonumber
+actor UAC
+
+UAC -> Socket : INVITE
+group Netty EventLoop Thread
+    Socket -> Channel : DatagramPacket
+    Channel -> NettyDatagramMessageDecoder : decode(DatagramPacket)
+    NettyDatagramMessageDecoder -> NettyMessageParser : new
+    NettyDatagramMessageDecoder -> NettyMessageParser : parseBytes(ByteBuf) \n all SIP Messages \n from the ByteBuf
+    NettyDatagramMessageDecoder -> ChannelInboundHandler : consume all SIP Messages \n decoded by the Parser \n and pass them upstream
+    ChannelInboundHandler -> NettyMessageHandler : channelRead(SIPMessage)
+    NettyMessageHandler -> NettyDatagramMessageProcessor : createMessageChannel
+    NettyDatagramMessageProcessor -> NettyDatagramMessageChannel : new Datagram Channel
+    NettyMessageHandler -> SIPEventInterceptor : beforeMessage(SIPMessage)
+    NettyMessageHandler -> NettyDatagramMessageChannel : processMessage(SIPMessage)
+    NettyDatagramMessageChannel -> NettyDatagramMessageChannel : check message validity and RPort
+    NettyDatagramMessageChannel -> NettyDatagramMessageChannel : processSIPMessage(SIPMessage)
+    NettyDatagramMessageChannel -> SIPTransactionStack : newSIPServerResponse
+    SIPTransactionStack -> SIPMessageValve : loop through valves and \n call processResponse on them
+    SIPTransactionStack -> SIPTransactionStack : findTransaction
+    SIPTransactionStack -> SIPClientTransaction : acquireSem()
+    SIPClientTransaction -> TransactionSemaphore : acquire()
+    TransactionSemaphore -> ReentrantLock : lock() or tryLock(MILLIS) \n depending on the listener timeout
+    SIPTransactionStack -> NISTSIPMessageFactoryImpl : newSIPServerResponse 
+    NISTSIPMessageFactoryImpl -> DialogFilter : new
+    SIPTransactionStack -> SIPClientTransaction : setResponseInterface(DialogFilter)         
+    NettyDatagramMessageChannel -> SIPClientTransaction : processResponse(SIPResponse, this)
+    SIPClientTransaction -> SIPClientTransaction : check if retransmisision    
+    alt Dialog Reuse
+        SIPClientTransaction -> SIPClientTransaction : find Dialog
+    else Dialog Creation
+        SIPClientTransaction -> SIPClientTransaction : synchronized(this)\nDialog Creation
+    end 
+    SIPClientTransaction -> SIPClientTransaction : setDialog
+    alt Invite Client Transaction
+        SIPClientTransaction -> SIPClientTransaction : deal with ACK retrnsmission
+        SIPClientTransaction -> SIPClientTransaction : update FSM state        
+    else Non Invite Client Transaction
+        SIPClientTransaction -> SIPClientTransaction : update FSM state\nand timers        
+    end     
+    SIPClientTransaction -> DialogFilter : processResponse
+    DialogFilter -> DialogFilter : check forked Response
+    DialogFilter -> ResponseEventExt : new
+    DialogFilter -> SipProviderImpl : handleEvent
+    SipProviderImpl -> EventWrapper : new
+    SipProviderImpl -> EventScanner : deliverEvent(EventWrapper) \n if reentrant listener
+    EventScanner -> SIPListener : processResponse    
+    NettyDatagramMessageChannel -> SIPClientTransaction : releaseSem()
+    SIPClientTransaction -> TransactionSemaphore : release()
+    TransactionSemaphore -> ReentrantLock : unlock()   
+    NettyMessageHandler -> SIPEventInterceptor : afterMessage(SIPMessage) 
+end
+@enduml

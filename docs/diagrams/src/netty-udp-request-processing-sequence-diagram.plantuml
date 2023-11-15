@@ -1,4 +1,4 @@
-@startuml
+@startuml Netty Datagram Oriented Transport Protocol Request Processing
 !includeurl https://raw.githubusercontent.com/RestComm/design/master/telestax-style.plantuml!0
 
 autonumber
@@ -43,5 +43,6 @@ group Netty EventLoop Thread
     NettyDatagramMessageChannel -> SIPServerTransaction : releaseSem()
     SIPServerTransaction -> TransactionSemaphore : release()
     TransactionSemaphore -> ReentrantLock : unlock()    
+    NettyMessageHandler -> SIPEventInterceptor : afterMessage(SIPMessage)
 end
 @enduml
