@@ -308,7 +308,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			}
 		}
 
-		ByteBuf byteBuf = Unpooled.copiedBuffer(message);
+		ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
 		if (channel == null || !channel.isActive()) {														
 			// Take a cached socket to the destination, 
 			// if none create a new one and cache it

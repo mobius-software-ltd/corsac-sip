@@ -148,7 +148,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
                 }
             }
 
-            ByteBuf byteBuf = Unpooled.copiedBuffer(sipMessage.encodeAsBytes(this.getTransport()));
+            ByteBuf byteBuf = Unpooled.wrappedBuffer(sipMessage.encodeAsBytes(this.getTransport()));
             channel.writeAndFlush(new DatagramPacket(byteBuf, new InetSocketAddress(peerAddress, peerPort)));
 
             // we didn't run into problems while sending so let's set ports and
@@ -181,7 +181,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("sending new UDP message to: " + receiverAddress + ":" + receiverPort + " msg: " + new String(message));
         }
-        ByteBuf byteBuf = Unpooled.copiedBuffer(message);
+        ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
         channel.writeAndFlush(new DatagramPacket(byteBuf, new InetSocketAddress(receiverAddress, receiverPort)));
     }
 

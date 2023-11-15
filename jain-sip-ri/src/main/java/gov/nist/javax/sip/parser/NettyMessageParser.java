@@ -318,24 +318,21 @@ public class NettyMessageParser {
 	 */
 	protected void processFirstLine(String firstLine) {        
 		firstLine = StringMsgParser.trimEndOfLine(firstLine);
-        if (!firstLine.startsWith(SIPConstants.SIP_VERSION_STRING)) {
-            sipMessage = new SIPRequest();
-            try {
-                RequestLine requestLine = new RequestLineParser(firstLine + "\n")
-                        .parse();
-                ((SIPRequest) sipMessage).setRequestLine(requestLine);
-            } catch (ParseException ex) {
-				parseException = ex;
-            }
-        } else {
-            sipMessage = new SIPResponse();
-            try {
-                StatusLine sl = new StatusLineParser(firstLine + "\n").parse();
-                ((SIPResponse) sipMessage).setStatusLine(sl);
-            } catch (ParseException ex) {
-				parseException = ex;
-            }
-        }        
+		try {
+			if (!firstLine.startsWith(SIPConstants.SIP_VERSION_STRING)) {
+				sipMessage = new SIPRequest();
+				
+				RequestLine requestLine = new RequestLineParser(firstLine + "\n")
+						.parse();
+				((SIPRequest) sipMessage).setRequestLine(requestLine);
+			} else {
+				sipMessage = new SIPResponse();
+				StatusLine sl = new StatusLineParser(firstLine + "\n").parse();
+				((SIPResponse) sipMessage).setStatusLine(sl);
+			}   
+		} catch (ParseException ex) {
+			parseException = ex;
+		}
     }
 
 	/**
@@ -348,12 +345,7 @@ public class NettyMessageParser {
         HeaderParser headerParser = null;
         try {
             headerParser = ParserFactory.createParser(header + "\n");
-        } catch (ParseException ex) {
-			parseException = ex;
-        }
-
-        try {
-            SIPHeader sipHeader = headerParser.parse();
+			SIPHeader sipHeader = headerParser.parse();
             sipMessage.attachHeader(sipHeader, false);
         } catch (ParseException ex) {
 			parseException = ex;
