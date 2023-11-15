@@ -146,7 +146,7 @@ import gov.nist.javax.sip.parser.RecordRouteParser;
  * 
  */
 
-public class SIPDialog implements javax.sip.Dialog, DialogExt {
+public class SIPDialog implements DialogExt {
 	private static StackLogger logger = CommonLogger.getLogger(SIPDialog.class);
 
     private static final long serialVersionUID = -1429794423085204069L;

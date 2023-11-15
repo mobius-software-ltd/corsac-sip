@@ -916,12 +916,12 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			sendMessage("\r\n".getBytes("UTF-8"), false);
 		}
 
-		synchronized (this) {
-			// if (isRunning) {
-			if (keepAliveTimeout > 0) {
+		if (keepAliveTimeout > 0) {
+			synchronized (this) {
+				// if (isRunning) {
 				rescheduleKeepAliveTimeout(keepAliveTimeout);
-			}
-			// }
+				// }
+			}			
 		}
 	}
 

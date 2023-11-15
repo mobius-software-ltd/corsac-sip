@@ -40,7 +40,7 @@ import io.netty.buffer.ByteBuf;
  * @author Jean Deruelle
  */
 public class NettyMessageParser {
-    private static StackLogger logger = CommonLogger.getLogger(NettyMessageParser.class);
+    // private static StackLogger logger = CommonLogger.getLogger(NettyMessageParser.class);
 
 	private static final String ENCODING = "UTF-8";	
 	private static final String CONTENT_LENGTH_COMPACT_NAME = "l";

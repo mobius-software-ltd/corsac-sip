@@ -247,7 +247,7 @@ public final class PipelinedMsgParser implements Runnable {
         
     }
     
-    public class Dispatch implements Runnable, QueuedMessageDispatchBase{
+    public class Dispatch implements QueuedMessageDispatchBase {
     	CallIDOrderingStructure callIDOrderingStructure;
     	String callId;
     	long time;
