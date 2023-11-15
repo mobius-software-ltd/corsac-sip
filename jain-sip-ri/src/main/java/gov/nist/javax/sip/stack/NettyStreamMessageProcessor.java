@@ -78,11 +78,9 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
     protected NettyStreamMessageProcessor(InetAddress ipAddress,
             SIPTransactionStack sipStack, int port, String transport) throws IOException {
                 super(ipAddress, port, transport, sipStack);                
-                this.messageChannels = new ConcurrentHashMap <String, NettyStreamMessageChannel>();
-                // FIXME: check if this is correct and how many threads can be used
-                this.bossGroup = new NioEventLoopGroup(sipStack.getTcpPostParsingThreadPoolSize()); 
-                // FIXME: check if this is correct and how many threads can be used
-                this.workerGroup = new NioEventLoopGroup(sipStack.getTcpPostParsingThreadPoolSize());
+                this.messageChannels = new ConcurrentHashMap <String, NettyStreamMessageChannel>();                
+                this.bossGroup = new NioEventLoopGroup(1); 
+                this.workerGroup = new NioEventLoopGroup(sipStack.threadPoolSize);
                 if(transport.equals(ListeningPoint.TLS)) {
                     if(sipStack.getClientAuth() == ClientAuthType.DisabledAll) {
                         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
