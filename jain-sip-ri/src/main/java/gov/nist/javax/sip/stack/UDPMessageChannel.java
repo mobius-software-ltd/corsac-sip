@@ -730,50 +730,16 @@ public class UDPMessageChannel extends MessageChannel implements
         // is sent back to oursleves, just
         // shortcircuit processing.
         long time = System.currentTimeMillis();
-        try {
-            for (MessageProcessor messageProcessor : sipStack
-                    .getMessageProcessors()) {
-                if (messageProcessor.getIpAddress().equals(this.peerAddress)
-                        && messageProcessor.getPort() == this.peerPort
-                        && messageProcessor.getTransport().equalsIgnoreCase(
-                                this.peerProtocol)) {
-                    MessageChannel messageChannel = messageProcessor
+        //check for self routing
+		MessageProcessor messageProcessor = getSIPStack().findMessageProcessor(getPeerAddress(), getPeerPort(), getPeerProtocol());
+		if(messageProcessor != null) {
+            RawMessageChannel messageChannel = (RawMessageChannel) messageProcessor
                             .createMessageChannel(this.peerAddress,
                                     this.peerPort);
-                    if (messageChannel instanceof RawMessageChannel) {
-
-                        final RawMessageChannel channel = (RawMessageChannel) messageChannel;
-                        ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
-                            public void run() {
-                                try {
-                                    ((RawMessageChannel) channel)
-                                            .processMessage((SIPMessage) sipMessage.clone());
-                                } catch (Exception ex) {
-                                    if (logger
-                                            .isLoggingEnabled(
-                                                    ServerLogger.TRACE_ERROR)) {
-                                        logger
-                                                .logError(
-                                                        "Error self routing message cause by: ",
-                                                        ex);
-                                    }
-                                }
-                            }
-                            
-                            public String getThreadHash() {
-                                return sipMessage.getCallId().getCallId();
-                            }
-                        };
-                        getSIPStack().getSelfRoutingThreadpoolExecutor()
-                                .execute(processMessageTask);
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                            logger.logDebug(
-                                    "Self routing message");
-                        return;
-                    }
-                }
-            }
-
+			getSIPStack().selfRouteMessage(messageChannel, sipMessage);
+			return;            
+		}	
+        try {
             byte[] msg = sipMessage.encodeAsBytes(this.getTransport());
 
             sendMessage(msg, peerAddress, peerPort, peerProtocol,

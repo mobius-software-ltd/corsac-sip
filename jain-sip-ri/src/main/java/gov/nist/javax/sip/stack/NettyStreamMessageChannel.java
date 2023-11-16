@@ -776,45 +776,12 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					+ sipMessage.getCSeq().getMethod());
 		}
 
-		for (MessageProcessor messageProcessor : getSIPStack()
-				.getMessageProcessors()) {
-			if (messageProcessor.getIpAddress().getHostAddress().equals(
-					this.getPeerAddress())
-					&& messageProcessor.getPort() == this.getPeerPort()
-					&& messageProcessor.getTransport().equalsIgnoreCase(
-							this.getPeerProtocol())) {
-				ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
-
-					public void run() {
-						try {
-							processMessage((SIPMessage) sipMessage.clone());
-						} catch (Exception ex) {
-							if (logger
-									.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
-								logger
-										.logError(
-												"Error self routing message cause by: ",
-												ex);
-							}
-						}
-					}
-
-					@Override
-					public String getThreadHash() {
-						return sipMessage.getCallId().getCallId();
-					}
-				};
-				getSIPStack().getSelfRoutingThreadpoolExecutor().execute(
-						processMessageTask);
-
-				if (logger.isLoggingEnabled(
-						LogWriter.TRACE_DEBUG))
-					logger.logDebug(
-							"Self routing message");
-				return;
-			}
-
-		}
+		//check for self routing
+		MessageProcessor messageProcessor = getSIPStack().findMessageProcessor(getPeerAddress(), getPeerPort(), getPeerProtocol());
+		if(messageProcessor != null) {
+			getSIPStack().selfRouteMessage(this, sipMessage);
+			return;            
+		}		
 
 		byte[] msg = sipMessage.encodeAsBytes(this.getTransport());
 

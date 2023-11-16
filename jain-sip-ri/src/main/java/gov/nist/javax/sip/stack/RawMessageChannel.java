@@ -30,5 +30,6 @@ import gov.nist.javax.sip.message.SIPMessage;
 public interface RawMessageChannel {
 
     public abstract void processMessage(SIPMessage sipMessage) throws Exception ;
+    public String getTransport();
 
 }

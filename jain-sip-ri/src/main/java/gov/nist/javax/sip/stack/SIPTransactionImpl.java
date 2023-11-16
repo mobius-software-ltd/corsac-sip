@@ -834,111 +834,18 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         // soleo communications.
         try {
         	final RawMessageChannel channel = (RawMessageChannel) encapsulatedChannel;
-            for (MessageProcessor messageProcessor : sipStack
-                    .getMessageProcessors()) {
-            	boolean addrmatch = messageProcessor.getIpAddress().getHostAddress().toString().equals(this.getPeerAddress());
-            	if (addrmatch
-            			&& messageProcessor.getPort() == this.getPeerPort()
-            			&& messageProcessor.getTransport().equalsIgnoreCase(
-            					this.getPeerProtocol())) {
-            		if (channel instanceof TCPMessageChannel) {
-            			try {
-
-            				ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
-
-            					public void run() {
-            						try {
-            							((TCPMessageChannel) channel)
-            							.processMessage((SIPMessage) messageToSend.clone(), getPeerInetAddress());
-            						} catch (Exception ex) {
-
-            							if (logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
-            								logger.logError("Error self routing TCP message cause by: ", ex);
-            							}
-            						}
-            					}
-
-                                                public String getThreadHash() {
-                                                    return messageToSend.getCallId().getCallId();
-                                                }
-            				};
-            				getSIPStack().getSelfRoutingThreadpoolExecutor().execute(processMessageTask);
-
-            			} catch (Exception e) {
-
-            				logger.logError("Error passing message in self routing TCP", e);
-
-            			}
-            			if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
-                        	logger.logDebug("Self routing message TCP");
-
-                        return;
-                    }
-            		if (channel instanceof TLSMessageChannel) {
-            			try {
-
-            				ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
-
-            					public void run() {
-            						try {
-            							((TLSMessageChannel) channel)
-            							.processMessage((SIPMessage) messageToSend.clone(), getPeerInetAddress());
-            						} catch (Exception ex) {
-            							if (logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
-            								logger.logError("Error self routing TLS message cause by: ", ex);
-            							}
-            						}
-            					}
-
-                                                public String getThreadHash() {
-                                                    return messageToSend.getCallId().getCallId();
-                                                }
-            				};
-            				getSIPStack().getSelfRoutingThreadpoolExecutor().execute(processMessageTask);
-
-            			} catch (Exception e) {
-            				logger.logError("Error passing message in TLS self routing", e);
-            			}
-            			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        	logger.logDebug("Self routing message TLS");
-                        return;
-                    }
-                    if (channel instanceof RawMessageChannel) {
-                        try {
-
-                        	ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
-
-    							public void run() {
-    								try {
-    									((RawMessageChannel) channel).processMessage((SIPMessage) messageToSend.clone());
-    								} catch (Exception ex) {
-    									if (logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
-    						        		logger.logError("Error self routing message cause by: ", ex);
-    						        	}
-    								}
-    							}
-
-                                                        public String getThreadHash() {
-                                                            return messageToSend.getCallId().getCallId();
-                                                        }
-    						};
-    						getSIPStack().getSelfRoutingThreadpoolExecutor().execute(processMessageTask);
-						} catch (Exception e) {
-							logger.logError("Error passing message in self routing", e);
-						}
-                        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
-                        	logger.logDebug("Self routing message UDP");
-                        return;
-                    }
-
-                }
-            }
-            encapsulatedChannel.sendMessage(messageToSend,
+            //check for self routing
+            MessageProcessor messageProcessor = sipStack.findMessageProcessor(this.getPeerAddress(), this.getPeerPort(), this.getPeerProtocol());
+            if(messageProcessor != null) {
+                sipStack.selfRouteMessage(channel, messageToSend);                
+            } else {
+                encapsulatedChannel.sendMessage(messageToSend,
                     this.getPeerInetAddress(), this.getPeerPort());
+            }        
         } finally {
             this.startTransactionTimer();
         }
-    }
+    }    
 
     /**
      * Parse the byte array as a message, process it through the transaction,

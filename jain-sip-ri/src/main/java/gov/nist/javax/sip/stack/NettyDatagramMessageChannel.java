@@ -104,50 +104,15 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         // is sent back to oursleves, just
         // shortcircuit processing.
         long time = System.currentTimeMillis();
+        //check for self routing
+        MessageProcessor messageProcessor = getSIPStack().findMessageProcessor(peerAddress.getHostAddress(), peerPort, peerProtocol);
+        if(messageProcessor != null) {
+            RawMessageChannel messageChannel = (RawMessageChannel) messageProcessor.createMessageChannel(
+                    this.peerAddress, this.peerPort);
+            getSIPStack().selfRouteMessage(messageChannel, sipMessage);
+            return;            
+        }
         try {
-            for (MessageProcessor messageProcessor : sipStack
-                    .getMessageProcessors()) {
-                if (messageProcessor.getIpAddress().equals(this.peerAddress)
-                        && messageProcessor.getPort() == this.peerPort
-                        && messageProcessor.getTransport().equalsIgnoreCase(
-                                this.peerProtocol)) {
-                    MessageChannel messageChannel = messageProcessor
-                            .createMessageChannel(this.peerAddress,
-                                    this.peerPort);
-                    if (messageChannel instanceof RawMessageChannel) {
-
-                        final RawMessageChannel channel = (RawMessageChannel) messageChannel;
-                        ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
-                            public void run() {
-                                try {
-                                    ((RawMessageChannel) channel)
-                                            .processMessage((SIPMessage) sipMessage.clone());
-                                } catch (Exception ex) {
-                                    if (logger
-                                            .isLoggingEnabled(
-                                                    ServerLogger.TRACE_ERROR)) {
-                                        logger
-                                                .logError(
-                                                        "Error self routing message cause by: ",
-                                                        ex);
-                                    }
-                                }
-                            }
-                            
-                            public String getThreadHash() {
-                                return sipMessage.getCallId().getCallId();
-                            }
-                        };
-                        getSIPStack().getSelfRoutingThreadpoolExecutor()
-                                .execute(processMessageTask);
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                            logger.logDebug(
-                                    "Self routing message UDP");
-                        return;
-                    }
-                }
-            }
-
             ByteBuf byteBuf = Unpooled.wrappedBuffer(sipMessage.encodeAsBytes(this.getTransport()));
             channel.writeAndFlush(new DatagramPacket(byteBuf, new InetSocketAddress(peerAddress, peerPort)));
 
@@ -157,8 +122,6 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
             sipMessage.setRemotePort(peerPort);
             sipMessage.setLocalPort(this.getPort());
             sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
-        } catch (IOException ex) {
-            throw ex;
         } catch (Exception ex) {
             logger.logError(
                     "An exception occured while sending message", ex);

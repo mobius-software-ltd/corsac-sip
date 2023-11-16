@@ -219,40 +219,15 @@ public abstract class MessageChannel {
         InetAddress hopAddr = InetAddress.getByName(hop.getHost());
 
         try {
-
-            for (MessageProcessor messageProcessor : getSIPStack().getMessageProcessors()) {
-                if (messageProcessor.getIpAddress().equals(hopAddr)
-                        && messageProcessor.getPort() == hop.getPort()
-                        && messageProcessor.getTransport().equalsIgnoreCase(hop.getTransport())) {
-                    MessageChannel messageChannel = messageProcessor.createMessageChannel(
+            //check for self routing
+            MessageProcessor messageProcessor = getSIPStack().findMessageProcessor(hopAddr.getHostAddress(), hop.getPort(), hop.getTransport());
+            if(messageProcessor != null) {
+                RawMessageChannel messageChannel = (RawMessageChannel) messageProcessor.createMessageChannel(
                             hopAddr, hop.getPort());
-                    if (messageChannel instanceof RawMessageChannel) {
-                        final RawMessageChannel channel = (RawMessageChannel) messageChannel;
-                        ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
-
-                            public void run() {
-                                try {
-                                    ((RawMessageChannel) channel).processMessage((SIPMessage) sipMessage.clone());
-                                } catch (Exception ex) {
-                                    if (logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
-                                        logger.logError("Error self routing message cause by: ", ex);
-                                    }
-                                }
-                            }
-                            
-                            public String getThreadHash() {
-                                return sipMessage.getCallId().getCallId();
-                            }
-                        };
-                        getSIPStack().getSelfRoutingThreadpoolExecutor().execute(processMessageTask);
-
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                            logger.logDebug("Self routing message");
-                        return;
-                    }
-
-                }
+                getSIPStack().selfRouteMessage(messageChannel, sipMessage);
+                return;            
             }
+            
             messageTxId.set(sipMessage.getTransactionId());
             byte[] msg = sipMessage.encodeAsBytes(this.getTransport());
 
@@ -269,9 +244,8 @@ public abstract class MessageChannel {
         } catch (Exception ex) {
             if (MessageChannel.logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
                 MessageChannel.logger.logError("Error self routing message cause by: ", ex);
-            }
-            // TODO: When moving to Java 6, use the IOExcpetion(message, exception) constructor
-            throw new IOException("Error self routing message");
+            }            
+            throw new IOException("Error self routing message", ex);
         } finally {
         	messageTxId.remove();
             if (MessageChannel.logger.isLoggingEnabled(ServerLogger.TRACE_MESSAGES))

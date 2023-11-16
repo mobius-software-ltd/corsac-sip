@@ -33,28 +33,23 @@ SipTransactionImpl -> SipTransactionImpl : loop through MessageProcessors\n and 
 alt external procesing case
     SipTransactionImpl -> NettyStreamMessageChannel : processMessage done in a\nThread through a ThreadPoolExecutor 
 else internal processing case
-    SipTransactionImpl -> NettyStreamMessageChannel : sendMessage 
-    NettyStreamMessageChannel -> NettyStreamMessageChannel : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
-    alt external procesing case
-        NettyStreamMessageChannel -> NettyStreamMessageChannel : processMessage done in a\nThread through a ThreadPoolExecutor 
-    else internal processing case
-        NettyStreamMessageChannel -> SIPMessage: encodeAsBytes
-        NettyStreamMessageChannel -> NettyStreamMessageChannel: sendTCPMessage
-        alt channel null or not active
-            NettyStreamMessageChannel -> nettyConnectionListener: addPendingMessage(byteBuf)
-            NettyStreamMessageChannel -> Boostrap: connect asynchronously
-            NettyConnectionListener -> NettyConnectionListener: operationComplete
-            NettyConnectionListener -> NettyStreamMessageChannel: writeMessage
-        else channel active
-            NettyStreamMessageChannel -> NettyStreamMessageChannel : writeMessage(msg ByteBuf)        
-        end    
-        alt BlockingMode
-            NettyStreamMessageChannel -> Channel : write(msg ByteBuf) sync
-        else NonBlockingMode
-            NettyStreamMessageChannel -> Channel : write(msg ByteBuf) async
-            Channel -> ChannelFutureListener : operationComplete
-            ChannelFutureListener -> ChannelFutureListener : if not successful trigger IOException async
-        end
-    end
+    SipTransactionImpl -> NettyStreamMessageChannel : sendMessage     
+    NettyStreamMessageChannel -> SIPMessage: encodeAsBytes
+    NettyStreamMessageChannel -> NettyStreamMessageChannel: sendTCPMessage
+    alt channel null or not active
+        NettyStreamMessageChannel -> nettyConnectionListener: addPendingMessage(byteBuf)
+        NettyStreamMessageChannel -> Boostrap: connect asynchronously
+        NettyConnectionListener -> NettyConnectionListener: operationComplete
+        NettyConnectionListener -> NettyStreamMessageChannel: writeMessage
+    else channel active
+        NettyStreamMessageChannel -> NettyStreamMessageChannel : writeMessage(msg ByteBuf)        
+    end    
+    alt BlockingMode
+        NettyStreamMessageChannel -> Channel : write(msg ByteBuf) sync
+    else NonBlockingMode
+        NettyStreamMessageChannel -> Channel : write(msg ByteBuf) async
+        Channel -> ChannelFutureListener : operationComplete
+        ChannelFutureListener -> ChannelFutureListener : if not successful trigger IOException async
+    end    
 end
 @enduml

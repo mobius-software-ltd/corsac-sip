@@ -3324,7 +3324,7 @@ public abstract class SIPTransactionStack implements
         this.reliableConnectionKeepAliveTimeout = reliableConnectionKeepAliveTimeout;
     }
 
-    private MessageProcessor findMessageProcessor(String myAddress, int myPort, String transport) {
+    protected MessageProcessor findMessageProcessor(String myAddress, int myPort, String transport) {
         for (MessageProcessor processor : getMessageProcessors()) {
             if (processor.getTransport().equalsIgnoreCase(transport)
                     && processor.getSavedIpAddress().equals(myAddress)
@@ -3333,6 +3333,38 @@ public abstract class SIPTransactionStack implements
             }
         }
         return null;
+    }
+
+    /**
+     * Route the messageToSend internally without going through the network using an executor 
+     * @param channel channel to use to route the message internally
+     * @param messageToSend message to send
+     */
+    protected void selfRouteMessage(RawMessageChannel channel, SIPMessage messageToSend) {
+        try {
+            ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
+
+                public void run() {
+                    try {
+                        channel.processMessage((SIPMessage) messageToSend.clone());
+                    } catch (Exception ex) {
+                        if (logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
+                            logger.logError("Error self routing message cause by: ", ex);
+                        }
+                    }
+                }
+
+                public String getThreadHash() {
+                    return messageToSend.getCallId().getCallId();
+                }
+            };
+            getSelfRoutingThreadpoolExecutor().execute(processMessageTask);
+        } catch (Exception e) {
+            logger.logError("Error passing message in self routing", e);
+        }
+        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+            logger.logDebug("Self routing message " + channel.getTransport());
+        }
     }
 
     /**
