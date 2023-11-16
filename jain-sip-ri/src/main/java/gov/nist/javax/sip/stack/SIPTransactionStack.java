@@ -263,7 +263,7 @@ public abstract class SIPTransactionStack implements
     /*
      * A collection of message processors.
      */
-    private Collection<MessageProcessor> messageProcessors;
+    private ConcurrentHashMap<String, MessageProcessor> messageProcessors;
 
     /*
      * Read timeout on TCP incoming sockets -- defines the time between reads
@@ -551,7 +551,7 @@ public abstract class SIPTransactionStack implements
         this.maxConnections = -1;
         // Array of message processors.
         // jeand : using concurrent data structure to avoid excessive blocking
-        messageProcessors = new CopyOnWriteArrayList<MessageProcessor>();
+        messageProcessors = new ConcurrentHashMap<String, MessageProcessor>();
         // Handle IO for this process.
         this.ioHandler = new IOHandler(this);
 
@@ -599,7 +599,7 @@ public abstract class SIPTransactionStack implements
             logger.logDebug("Re-initializing !");
 
         // Array of message processors.
-        messageProcessors = new CopyOnWriteArrayList<MessageProcessor>();
+        messageProcessors = new ConcurrentHashMap<String, MessageProcessor>();
         // Handle IO for this process.
         this.ioHandler = new IOHandler(this);
         pendingTransactions = new ConcurrentHashMap<String, SIPServerTransaction>();
@@ -2193,7 +2193,7 @@ public abstract class SIPTransactionStack implements
     
     public void closeAllSockets() {
     	this.ioHandler.closeAll();
-    	for(MessageProcessor p : messageProcessors) {
+    	for(MessageProcessor p : messageProcessors.values()) {
     		if(p instanceof NioTcpMessageProcessor) {
     			NioTcpMessageProcessor niop = (NioTcpMessageProcessor)p;
     			niop.nioHandler.closeAll();
@@ -2476,7 +2476,7 @@ public abstract class SIPTransactionStack implements
             // local list of processors unless the start()
             // call is successful.
             // newMessageProcessor.start();
-            messageProcessors.add(newMessageProcessor);
+            messageProcessors.putIfAbsent(newMessageProcessor.getKey(), newMessageProcessor);
 
 
     }
@@ -2487,10 +2487,9 @@ public abstract class SIPTransactionStack implements
      * @param oldMessageProcessor
      */
     protected void removeMessageProcessor(MessageProcessor oldMessageProcessor) {
-            if (messageProcessors.remove(oldMessageProcessor)) {
-                oldMessageProcessor.stop();
-            }
-
+        if (messageProcessors.remove(oldMessageProcessor.getKey()) != null) {
+            oldMessageProcessor.stop();
+        }
     }
 
     /**
@@ -2501,7 +2500,7 @@ public abstract class SIPTransactionStack implements
      * @return an array of running message processors.
      */
     protected MessageProcessor[] getMessageProcessors() {
-            return (MessageProcessor[]) messageProcessors
+            return (MessageProcessor[]) messageProcessors.values()
                     .toArray(new MessageProcessor[0]);
 
     }
@@ -2569,7 +2568,7 @@ public abstract class SIPTransactionStack implements
 
         // Search each processor for the correct transport
         newChannel = null;
-        processorIterator = messageProcessors.iterator();
+        processorIterator = messageProcessors.values().iterator();
         while (processorIterator.hasNext() && newChannel == null) {
             nextProcessor = (MessageProcessor) processorIterator.next();
             // If a processor that supports the correct
@@ -2600,7 +2599,7 @@ public abstract class SIPTransactionStack implements
         if(newChannel == null) {
             if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("newChanne is null, messageProcessors.size = " + messageProcessors.size());
-                processorIterator = messageProcessors.iterator();
+                processorIterator = messageProcessors.values().iterator();
                 while (processorIterator.hasNext() && newChannel == null) {
                     nextProcessor = (MessageProcessor) processorIterator.next();
                     logger.logDebug("nextProcessor:" + nextProcessor + "| transport = " +
@@ -3324,15 +3323,9 @@ public abstract class SIPTransactionStack implements
         this.reliableConnectionKeepAliveTimeout = reliableConnectionKeepAliveTimeout;
     }
 
-    protected MessageProcessor findMessageProcessor(String myAddress, int myPort, String transport) {
-        for (MessageProcessor processor : getMessageProcessors()) {
-            if (processor.getTransport().equalsIgnoreCase(transport)
-                    && processor.getSavedIpAddress().equals(myAddress)
-                    && processor.getPort() == myPort) {
-                return processor;
-            }
-        }
-        return null;
+    protected MessageProcessor findMessageProcessor(String address, int port, String transport) {    
+        String key = address.concat(":").concat("" + port).concat("/").concat(transport).toLowerCase();
+        return messageProcessors.get(key);        
     }
 
     /**

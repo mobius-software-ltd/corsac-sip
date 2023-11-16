@@ -83,6 +83,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         if(channel.remoteAddress() != null) {
             this.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
             this.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();
+            this.peerProtocol = nettyUDPMessageProcessor.getTransport();
         }
         
         this.channel = channel;        
@@ -94,6 +95,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         
         this.peerAddress = targetHost;
         this.peerPort = port;        
+        this.peerProtocol = nettyUDPMessageProcessor.getTransport();
     }
 
     @Override
@@ -103,6 +105,9 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         // is sent back to oursleves, just
         // shortcircuit processing.
         long time = System.currentTimeMillis();
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("sending new UDP message to: " + peerAddress.getHostAddress() + ":" + peerPort + "/" + peerProtocol);
+        }
         //check for self routing
         MessageProcessor messageProcessor = getSIPStack().findMessageProcessor(peerAddress.getHostAddress(), peerPort, peerProtocol);
         if(messageProcessor != null) {
@@ -280,12 +285,21 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
             }
 
         } else {
-
-            this.peerPacketSourceAddress = sipMessage.getPeerPacketSourceAddress();
-            this.peerPacketSourcePort = sipMessage.getPeerPacketSourcePort();
-            this.peerAddress = sipMessage.getRemoteAddress();
-            this.peerPort = sipMessage.getRemotePort();
-            this.peerProtocol = topMostVia.getTransport();
+            if(sipMessage.getPeerPacketSourceAddress() != null) {
+                this.peerPacketSourceAddress = sipMessage.getPeerPacketSourceAddress();
+            }
+            if(sipMessage.getPeerPacketSourceAddress() != null) {
+                this.peerPacketSourcePort = sipMessage.getPeerPacketSourcePort();
+            }
+            if(sipMessage.getRemoteAddress() != null) {
+                this.peerAddress = sipMessage.getRemoteAddress();
+            }
+            if(sipMessage.getRemotePort() > 0) {
+                this.peerPort = sipMessage.getRemotePort();
+            }
+            if(topMostVia.getTransport() != null) {
+                this.peerProtocol = topMostVia.getTransport();
+            }            
         }
 
         this.processSIPMessage(sipMessage);        

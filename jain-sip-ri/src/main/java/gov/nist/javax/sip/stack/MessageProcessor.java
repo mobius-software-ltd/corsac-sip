@@ -70,6 +70,8 @@ public abstract class MessageProcessor  {
 
     private HostPort sentByHostPort;
 
+    private String key;
+
     /*
      * The IP Address that was originally assigned ( Can be ANY )
      */
@@ -138,8 +140,13 @@ public abstract class MessageProcessor  {
         this.sentByHostPort = new HostPort();
         this.sentByHostPort.setHost(new Host(ipAddress.getHostAddress()));
         this.sentByHostPort.setPort(port);		
+        key = savedIpAddress.concat(":").concat("" + port).concat("/").concat(transport).toLowerCase();
 	}
     
+    public String getKey() {
+        return key;
+    }
+
     /**
      * Get the transport string.
      *
