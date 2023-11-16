@@ -866,7 +866,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 }
             } else {
                 // This seems like a common bug so I am allowing it through!
-                if (SIPTransactionStack.isDialogCreated(getMethod())
+                if (SIPTransactionStack.isDialogCreatingMethod(getMethod())
                         && getRealState() == TransactionState._TERMINATED
                         && transactionRequest.getMethod().equals(Request.ACK)
                         && requestOf != null) {
@@ -1307,7 +1307,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         SIPDialog dialog = (SIPDialog) getDialog();
 
 
-        if (SIPTransactionStack.isDialogCreated(getMethod())
+        if (SIPTransactionStack.isDialogCreatingMethod(getMethod())
                 && (TransactionState._CALLING == this.getRealState() || TransactionState._TRYING == this
                         .getRealState())) {
             dialog.setState(SIPDialog.TERMINATED_STATE);
@@ -1479,7 +1479,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // being sent makes sense.
             if (dialog != null) {
                 if (statusCode / 100 == 2
-                        && SIPTransactionStack.isDialogCreated(responseMethod)) {
+                        && SIPTransactionStack.isDialogCreatingMethod(responseMethod)) {
                     if (dialog.getLocalTag() == null && sipResponse.getToTag() == null) {
                         // Trying to send final response and user forgot to set
                         // to

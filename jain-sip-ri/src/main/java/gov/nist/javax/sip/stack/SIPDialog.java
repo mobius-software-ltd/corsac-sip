@@ -3435,7 +3435,7 @@ public class SIPDialog implements DialogExt {
             // note that the transaction can be null for forked
             // responses.
             if (transaction == null || transaction instanceof ClientTransaction) {
-                if (SIPTransactionStack.isDialogCreated(cseqMethod)) {
+                if (SIPTransactionStack.isDialogCreatingMethod(cseqMethod)) {
                     // Make a final tag assignment.
                     if (getState() == null && is100ClassResponse) {
                         /*
@@ -3613,7 +3613,7 @@ public class SIPDialog implements DialogExt {
 
                     if (getLocalTag() == null
                             && sipResponse.getTo().getTag() != null
-                            && SIPTransactionStack.isDialogCreated(cseqMethod)
+                            && SIPTransactionStack.isDialogCreatingMethod(cseqMethod)
                             && cseqMethod.equals(getMethod())) {
                         setLocalTag(sipResponse.getTo().getTag());
                         doPutDialog = true;

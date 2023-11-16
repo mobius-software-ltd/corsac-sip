@@ -176,7 +176,7 @@ public class SIPRequest extends SIPMessage implements RequestExt {
      * @return true iff the method is a dialog creating method
      */
     public static boolean isDialogCreating(String ucaseMethod) {
-        return SIPTransactionStack.isDialogCreated(ucaseMethod);
+        return SIPTransactionStack.isDialogCreatingMethod(ucaseMethod);
     }
     
     /**
@@ -309,7 +309,7 @@ public class SIPRequest extends SIPMessage implements RequestExt {
          * header field MUST contain a SIPS URI as well.
          */
         final String method = requestLine.getMethod();
-        if (SIPTransactionStack.isDialogCreated(method)) {
+        if (SIPTransactionStack.isDialogCreatingMethod(method)) {
             if (this.getContactHeader() == null) {
                 // Make sure this is not a target refresh. If this is a target
                 // refresh its ok not to have a contact header. Otherwise

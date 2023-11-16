@@ -1191,7 +1191,7 @@ private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.
       // Timeout occured. If this is asociated with a transaction
       // creation then kill the dialog.
       if (dialog != null && (dialog.getState() == null || dialog.getState() == DialogState.EARLY)) {
-        if (SIPTransactionStack.isDialogCreated(this.getMethod())) {
+        if (SIPTransactionStack.isDialogCreatingMethod(this.getMethod())) {
           // If this is a re-invite we do not delete the dialog even
           // if the
           // reinvite times out. Else
@@ -1582,7 +1582,7 @@ private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.
       if ((code > 100 && code < 300)
       /* skip 100 (may have a to tag */
       && (sipResponse.getToTag() != null || sipStack.isRfc2543Supported())
-          && SIPTransactionStack.isDialogCreated(method))
+          && SIPTransactionStack.isDialogCreatingMethod(method))
       {
 
         /*

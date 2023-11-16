@@ -1448,7 +1448,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     transaction, dialog, (Response) response);
                 
             if (sipStack.getMaxForkTime() != 0
-                    && SIPTransactionStack.isDialogCreated(response.getCSeqHeader().getMethod())) {
+                    && SIPTransactionStack.isDialogCreatingMethod(response.getCSeqHeader().getMethod())) {
             	if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                     logger.logDebug("Trying to find forked Transaction for forked id " + response.getForkId());
                 }
@@ -1488,7 +1488,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         ResponseEventExt responseEvent = new ResponseEventExt(sipProvider,
                 (ClientTransactionExt) transaction, dialog, (Response) response);
         if (sipStack.getMaxForkTime() != 0
-                && SIPTransactionStack.isDialogCreated(response.getCSeqHeader().getMethod())) {
+                && SIPTransactionStack.isDialogCreatingMethod(response.getCSeqHeader().getMethod())) {
             SIPClientTransaction forked = this.sipStack
                     .getForkedTransaction(response.getForkId());            
             if(dialog != null && forked != null) {
@@ -1620,7 +1620,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
 
         }
         boolean createDialog = false;
-        if (SIPTransactionStack.isDialogCreated(method)
+        if (SIPTransactionStack.isDialogCreatingMethod(method)
                 && sipResponse.getStatusCode() != 100
                 && sipResponse.getFrom().getTag() != null
                 && sipResponse.getTo().getTag() != null && sipDialog == null) {
@@ -1744,7 +1744,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         responseEvent.setRemotePort(sipResponse.getRemotePort());
 
         if (sipStack.getMaxForkTime() != 0
-        		&& SIPTransactionStack.isDialogCreated(sipResponse.getCSeqHeader().getMethod())) {
+        		&& SIPTransactionStack.isDialogCreatingMethod(sipResponse.getCSeqHeader().getMethod())) {
             ClientTransactionExt originalTx = this.sipStack
                     .getForkedTransaction(sipResponse.getForkId());
             if(sipDialog != null && originalTx != null) {

@@ -666,10 +666,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 
 	SipListener sipListener;
 	TlsSecurityPolicy tlsSecurityPolicy;
-
-	// Stack semaphore (global lock).
-	private Semaphore stackSemaphore = new Semaphore(1);
-
+	
 	// RFC3261: TLS_RSA_WITH_AES_128_CBC_SHA MUST be supported
 	// RFC3261: TLS_RSA_WITH_3DES_EDE_CBC_SHA SHOULD be supported for backwards
 	// compat
@@ -2024,19 +2021,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	public void setTlsSecurityPolicy(TlsSecurityPolicy tlsSecurityPolicy) {
 		this.tlsSecurityPolicy = tlsSecurityPolicy;
 	}
-
-    public boolean acquireSem() {
-        try {
-            return this.stackSemaphore.tryAcquire(10, TimeUnit.SECONDS);
-        } catch ( InterruptedException ex) {
-            return false;
-        }
-    }
-
-    public void releaseSem() {
-        this.stackSemaphore.release();
-    }
-
+    
 	/**
 	 * @return the configurationProperties
 	 */

@@ -413,7 +413,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         ct.setOriginalRequest(sipRequest);
         ct.setBranch(branchId);
         // if the stack supports dialogs then
-        if (SIPTransactionStack.isDialogCreated(sipRequest.getMethod())) {
+        if (SIPTransactionStack.isDialogCreatingMethod(sipRequest.getMethod())) {
           // create a new dialog to contain this transaction
           // provided this is necessary.
           // This could be a re-invite
@@ -513,25 +513,28 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                         "Cannot find matching Subscription (and gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY not set)");
             }
         }
-        if ( !sipStack.acquireSem()) {
-            throw new TransactionUnavailableException(
-            "Transaction not available -- could not acquire stack lock");
-        }
+        // if ( !sipStack.acquireSem()) {
+        //     throw new TransactionUnavailableException(
+        //     "Transaction not available -- could not acquire stack lock");
+        // }
         try {
-            if (SIPTransactionStack.isDialogCreated(sipRequest.getMethod())) {
+            if (SIPTransactionStack.isDialogCreatingMethod(sipRequest.getMethod())) {
                 if (sipStack.findTransaction((SIPRequest) request, true) != null)
                     throw new TransactionAlreadyExistsException(
                     "server transaction already exists!");
 
                 transaction = (SIPServerTransaction) ((SIPRequest) request)
-                .getTransaction();
+                    .getTransaction();
                 if (transaction == null)
                     throw new TransactionUnavailableException(
                     "Transaction not available");
                 if (transaction.getOriginalRequest() == null)
                     transaction.setOriginalRequest(sipRequest);
                 try {
-                    sipStack.addTransaction(transaction);
+                    if(sipStack.addTransaction(transaction) != null) {
+                        throw new TransactionAlreadyExistsException(
+                            "server transaction already exists!");
+                    }
                 } catch (IOException ex) {
                     throw new TransactionUnavailableException(
                     "Error sending provisional response");
@@ -571,7 +574,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                         throw new TransactionAlreadyExistsException(
                         "Transaction exists! ");
                     transaction = (SIPServerTransaction) ((SIPRequest) request)
-                    .getTransaction();
+                        .getTransaction();
                     if (transaction == null)
                         throw new TransactionUnavailableException(
                         "Transaction not available!");
@@ -579,7 +582,10 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                         transaction.setOriginalRequest(sipRequest);
                     // Map the transaction.
                     try {
-                        sipStack.addTransaction(transaction);
+                        if(sipStack.addTransaction(transaction) != null) {
+                            throw new TransactionAlreadyExistsException(
+                                "server transaction already exists!");
+                        }
                     } catch (IOException ex) {
                         throw new TransactionUnavailableException(
                         "Could not send back provisional response!");
@@ -602,7 +608,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                         throw new TransactionAlreadyExistsException(
                         "Transaction exists! ");
                     transaction = (SIPServerTransaction) ((SIPRequest) request)
-                    .getTransaction();
+                        .getTransaction();
                     if (transaction != null) {
                         if (transaction.getOriginalRequest() == null)
                             transaction.setOriginalRequest(sipRequest);
@@ -652,7 +658,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
             }
             return transaction;
         } finally {
-            sipStack.releaseSem();
+            // sipStack.releaseSem();
         }
 
     }
@@ -880,7 +886,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         if (isAutomaticDialogSupportEnabled())
             throw new SipException(" Error - AUTOMATIC_DIALOG_SUPPORT is on");
 
-        if (!SIPTransactionStack.isDialogCreated(transaction.getRequest().getMethod()))
+        if (!SIPTransactionStack.isDialogCreatingMethod(transaction.getRequest().getMethod()))
             throw new SipException("Dialog cannot be created for this method "
                     + transaction.getRequest().getMethod());
 

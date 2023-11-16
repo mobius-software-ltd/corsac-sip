@@ -746,7 +746,7 @@ public abstract class SIPTransactionStack implements
      *
      * @return true if extension is supported and false otherwise.
      */
-    public static boolean isDialogCreated(String method) {
+    public static boolean isDialogCreatingMethod(String method) {
         return dialogCreatingMethods.contains(method);
     }
 
@@ -1506,9 +1506,11 @@ public abstract class SIPTransactionStack implements
     public void mapTransaction(SIPServerTransaction transaction) {
         if (transaction.isTransactionMapped())
             return;
-        addTransactionHash(transaction);
-        // transaction.startTransactionTimer();
-        transaction.setTransactionMapped(true);
+        Transaction oldTx = addTransactionHash(transaction);
+        if(oldTx == null) {
+            // transaction.startTransactionTimer();
+            transaction.setTransactionMapped(true);
+        }
     }
 
     /**
@@ -1877,10 +1879,13 @@ public abstract class SIPTransactionStack implements
      * @param clientTransaction
      *            -- client transaction to add to the set.
      */
-    public void addTransaction(SIPClientTransaction clientTransaction) {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug("added transaction " + clientTransaction);
-        addTransactionHash(clientTransaction);
+    public SIPTransaction addTransaction(SIPClientTransaction clientTransaction) {
+        SIPTransaction oldTx = addTransactionHash(clientTransaction);
+        if(oldTx == null) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug("added transaction " + clientTransaction);
+        }
+        return oldTx;
 
     }
 
@@ -1991,13 +1996,15 @@ public abstract class SIPTransactionStack implements
      * @param serverTransaction
      *            -- server transaction to add to the set.
      */
-    public void addTransaction(SIPServerTransaction serverTransaction)
+    public SIPTransaction addTransaction(SIPServerTransaction serverTransaction)
             throws IOException {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug("added transaction " + serverTransaction);
-        serverTransaction.map();
-
-        addTransactionHash(serverTransaction);
+        SIPTransaction oldTx = addTransactionHash(serverTransaction);
+        if(oldTx == null) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug("added transaction " + serverTransaction);
+            serverTransaction.map();
+        }
+        return oldTx;
 
     }
 
@@ -2005,7 +2012,7 @@ public abstract class SIPTransactionStack implements
      * Hash table for quick lookup of transactions. Here we wait for room if
      * needed.
      */
-    private void addTransactionHash(SIPTransaction sipTransaction) {
+    private SIPTransaction addTransactionHash(SIPTransaction sipTransaction) {
         SIPRequest sipRequest = sipTransaction.getOriginalRequest();
         SIPTransaction existingTx = null;
         if (sipTransaction instanceof SIPClientTransaction) {
@@ -2052,7 +2059,7 @@ public abstract class SIPTransactionStack implements
         if(existingTx == null) {
         	sipTransaction.scheduleMaxTxLifeTimeTimer();
         }
-
+        return existingTx;
     }
 
     /**
