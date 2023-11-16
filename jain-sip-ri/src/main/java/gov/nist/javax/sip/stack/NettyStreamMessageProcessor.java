@@ -105,10 +105,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
      * 
      * We don't use putIfAbset from CHM since creating a channel instance itself
      * is quite heavy. See https://github.com/RestComm/jain-sip/issues/80.
-     * 
-     * Using synchronized at method level, instead of any internal att, 
-     * as we had in non Nio impl. This is better than use sync section with 
-     * non-volatile variable. 
+     *      
      * @param key
      * @param targetHost
      * @param port
@@ -293,7 +290,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
         channel.close();
     }
 
-    protected synchronized void remove(NettyStreamMessageChannel messageChannel) {
+    protected void remove(NettyStreamMessageChannel messageChannel) {
 
         String key = messageChannel.getKey();
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -309,18 +306,17 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
         // incomingMessageChannels.remove(key);
     }
 	
-    protected synchronized void cacheMessageChannel(NettyStreamMessageChannel messageChannel) {
+    protected void cacheMessageChannel(NettyStreamMessageChannel messageChannel) {
         String key = messageChannel.getKey();
-        NettyStreamMessageChannel currentChannel = messageChannels.get(key);
-        if (currentChannel != null) {
-            // FIXME: should we close the channel here ? This is making the testsuite fail with Netty
-            // if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
-            //     logger.logDebug("Closing " + key);
-            // currentChannel.close();
-        }
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug("Caching " + key);
-        this.messageChannels.put(key, messageChannel);
+            logger.logDebug("Caching " + key + " value " + messageChannel);
+        NettyStreamMessageChannel previousChannel = messageChannels.putIfAbsent(key, messageChannel);
+        // FIXME: should we close the channel here ? This is making the testsuite fail with Netty
+        // if (previousChannel != null) {
+            // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+            //     logger.logDebug("Closing " + key);
+            // previousChannel.close();
+        // }                
     }
     
     public boolean closeReliableConnection(String peerAddress, int peerPort) throws IllegalArgumentException {
@@ -333,29 +329,27 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
 
         String messageChannelKey = MessageChannel.getKey(hostPort, "TCP");
 
-        synchronized (this) {
-            NettyStreamMessageChannel foundMessageChannel = messageChannels.get(messageChannelKey);
+        NettyStreamMessageChannel foundMessageChannel = messageChannels.remove(messageChannelKey);
 
-            if (foundMessageChannel != null) {
-                foundMessageChannel.close();
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                    logger.logDebug(Thread.currentThread() + " Removing channel " + messageChannelKey + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
-                // incomingMessageChannels.remove(messageChannelKey);
-                messageChannels.remove(messageChannelKey);
-                return true;
-            }
-            
-            // foundMessageChannel = incomingMessageChannels.get(messageChannelKey);
-
-            // if (foundMessageChannel != null) {
-            //     foundMessageChannel.close();
-            //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            //         logger.logDebug(Thread.currentThread() + " Removing incoming channel " + messageChannelKey + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
-            //     incomingMessageChannels.remove(messageChannelKey);
-            //     messageChannels.remove(messageChannelKey);
-            //     return true;
-            // }
+        if (foundMessageChannel != null) {
+            foundMessageChannel.close();
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug(Thread.currentThread() + " Removing channel " + messageChannelKey + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+            // incomingMessageChannels.remove(messageChannelKey);
+            return true;
         }
+        
+        // foundMessageChannel = incomingMessageChannels.get(messageChannelKey);
+
+        // if (foundMessageChannel != null) {
+        //     foundMessageChannel.close();
+        //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+        //         logger.logDebug(Thread.currentThread() + " Removing incoming channel " + messageChannelKey + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+        //     incomingMessageChannels.remove(messageChannelKey);
+        //     messageChannels.remove(messageChannelKey);
+        //     return true;
+        // }
+        
         return false;
     }
     
