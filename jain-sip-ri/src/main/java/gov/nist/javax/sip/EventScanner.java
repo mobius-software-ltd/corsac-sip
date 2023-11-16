@@ -83,19 +83,9 @@ public class EventScanner implements Runnable {
     }
 
     public EventScanner(SipStackImpl sipStackImpl) {
-    	refCount = new AtomicInteger(0);
-        this.pendingEvents = new LinkedBlockingQueue<EventWrapper>();
-        Thread myThread = new Thread(this);
-        // This needs to be set to false else the
-        // main thread mysteriously exits.
-        myThread.setDaemon(false);
-
         this.sipStack = sipStackImpl;
-
-        myThread.setName("EventScannerThread");
-
-        myThread.start();
-
+    	refCount = new AtomicInteger(0);
+        this.pendingEvents = new LinkedBlockingQueue<EventWrapper>();        
     }
 
     public void addEvent(EventWrapper eventWrapper) {
@@ -106,6 +96,17 @@ public class EventScanner implements Runnable {
 
             if (!added)
         		logger.logWarning("reached queue capacity limit couldn't addEvent " + eventWrapper);
+    }
+
+    public void start() {
+        if(!sipStack.isReEntrantListener()) {
+            Thread myThread = new Thread(this);
+            // This needs to be set to false else the
+            // main thread mysteriously exits.
+            myThread.setDaemon(false);        
+            myThread.setName("EventScannerThread");
+            myThread.start();
+        }
     }
 
     /**
