@@ -154,19 +154,18 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 	public NettyStreamMessageChannel(InetAddress inetAddress, int port,
 			SIPTransactionStack sipStack,
-			NettyStreamMessageProcessor nettyTCPMessageProcessor) throws IOException {
+			NettyStreamMessageProcessor nettyStreamMessageProcessor) throws IOException {
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 			logger.logDebug("NettyStreamMessageChannel: "
 					+ inetAddress.getHostAddress() + ":" + port);
 		}
 		try {
 			this.sipStack = sipStack;
-			messageProcessor = nettyTCPMessageProcessor;
+			messageProcessor = nettyStreamMessageProcessor;
 			bootstrap = new Bootstrap();
-			nettyChannelInitializer = new NettyStreamChannelInitializer(nettyTCPMessageProcessor,
-							nettyTCPMessageProcessor.sslClientContext);
-			EventLoopGroup group = new NioEventLoopGroup();
-			bootstrap.group(group)
+			nettyChannelInitializer = new NettyStreamChannelInitializer(nettyStreamMessageProcessor,
+							nettyStreamMessageProcessor.sslClientContext);
+			bootstrap.group(nettyStreamMessageProcessor.workerGroup)
 					.channel(NioSocketChannel.class)
 					.handler(nettyChannelInitializer)
 					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.messageProcessor.sipStack.connTimeout)
@@ -176,16 +175,16 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 			this.peerAddress = inetAddress;
 			this.peerPort = port;
-			this.peerProtocol = nettyTCPMessageProcessor.transport;			
+			this.peerProtocol = nettyStreamMessageProcessor.transport;			
 
-			myAddress = nettyTCPMessageProcessor.getIpAddress().getHostAddress();
-			myPort = nettyTCPMessageProcessor.getPort();
+			myAddress = nettyStreamMessageProcessor.getIpAddress().getHostAddress();
+			myPort = nettyStreamMessageProcessor.getPort();
 			
-			keepAliveTimeout = nettyTCPMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();
+			keepAliveTimeout = nettyStreamMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();
 			if (keepAliveTimeout > 0) {
 				keepAliveSemaphore = new Semaphore(1);
 			}	
-			if(nettyTCPMessageProcessor.sslClientContext != null && getHandshakeCompletedListener() == null) {
+			if(nettyStreamMessageProcessor.sslClientContext != null && getHandshakeCompletedListener() == null) {
 				HandshakeCompletedListenerImpl listner = new HandshakeCompletedListenerImpl(this);
 				setHandshakeCompletedListener(listner);
 			}	
