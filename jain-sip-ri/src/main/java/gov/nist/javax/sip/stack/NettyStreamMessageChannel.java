@@ -41,7 +41,6 @@ import gov.nist.javax.sip.IOExceptionEventExt.Reason;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.ThreadAffinityTask;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;

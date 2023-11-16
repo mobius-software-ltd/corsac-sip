@@ -29,29 +29,6 @@
 
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.InternalErrorHandler;
-import gov.nist.core.LogLevels;
-import gov.nist.core.LogWriter;
-import gov.nist.core.ServerLogger;
-import gov.nist.core.StackLogger;
-import gov.nist.core.ThreadAuditor;
-import gov.nist.javax.sip.SIPConstants;
-import gov.nist.javax.sip.ThreadAffinityTask;
-import gov.nist.javax.sip.header.CSeq;
-import gov.nist.javax.sip.header.CallID;
-import gov.nist.javax.sip.header.ContentLength;
-import gov.nist.javax.sip.header.From;
-import gov.nist.javax.sip.header.RequestLine;
-import gov.nist.javax.sip.header.StatusLine;
-import gov.nist.javax.sip.header.To;
-import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.parser.MessageParser;
-import gov.nist.javax.sip.parser.ParseExceptionListener;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
@@ -65,6 +42,28 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sip.address.Hop;
 import javax.sip.message.Response;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.LogLevels;
+import gov.nist.core.LogWriter;
+import gov.nist.core.ServerLogger;
+import gov.nist.core.StackLogger;
+import gov.nist.core.ThreadAuditor;
+import gov.nist.javax.sip.SIPConstants;
+import gov.nist.javax.sip.header.CSeq;
+import gov.nist.javax.sip.header.CallID;
+import gov.nist.javax.sip.header.ContentLength;
+import gov.nist.javax.sip.header.From;
+import gov.nist.javax.sip.header.RequestLine;
+import gov.nist.javax.sip.header.StatusLine;
+import gov.nist.javax.sip.header.To;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.parser.MessageParser;
+import gov.nist.javax.sip.parser.ParseExceptionListener;
 
 /*
  * Kim Kirby (Keyvoice) suggested that duplicate checking should be added to the

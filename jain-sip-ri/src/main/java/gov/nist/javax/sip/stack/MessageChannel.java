@@ -29,23 +29,6 @@
 
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.Host;
-import gov.nist.core.HostPort;
-import gov.nist.core.InternalErrorHandler;
-import gov.nist.core.LogWriter;
-import gov.nist.core.ServerLogger;
-import gov.nist.core.StackLogger;
-import gov.nist.javax.sip.ThreadAffinityTask;
-import gov.nist.javax.sip.address.AddressImpl;
-import gov.nist.javax.sip.header.ContentLength;
-import gov.nist.javax.sip.header.ContentType;
-import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.message.MessageFactoryImpl;
-import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPResponse;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.text.ParseException;
@@ -60,6 +43,21 @@ import javax.sip.header.FromHeader;
 import javax.sip.header.ServerHeader;
 import javax.sip.header.ToHeader;
 import javax.sip.header.ViaHeader;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.Host;
+import gov.nist.core.HostPort;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.ServerLogger;
+import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.address.AddressImpl;
+import gov.nist.javax.sip.header.ContentLength;
+import gov.nist.javax.sip.header.ContentType;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.message.MessageFactoryImpl;
+import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
 
 /**
  * Message channel abstraction for the SIP stack.

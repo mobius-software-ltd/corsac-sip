@@ -25,31 +25,6 @@
  */
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.InternalErrorHandler;
-import gov.nist.core.LogLevels;
-import gov.nist.core.LogWriter;
-import gov.nist.core.ServerLogger;
-import gov.nist.core.StackLogger;
-import gov.nist.javax.sip.ReleaseReferencesStrategy;
-import gov.nist.javax.sip.SIPConstants;
-import gov.nist.javax.sip.SipProviderImpl;
-import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.ThreadAffinityTask;
-import gov.nist.javax.sip.address.AddressFactoryImpl;
-import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.SIPClientTransactionImpl.ExpiresTimerTask;
-
-import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.sip.Dialog;
-import javax.sip.IOExceptionEvent;
-import javax.sip.TransactionState;
-import javax.sip.address.SipURI;
-import javax.sip.message.Request;
-import javax.sip.message.Response;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.security.cert.Certificate;
@@ -71,6 +46,29 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.sip.Dialog;
+import javax.sip.IOExceptionEvent;
+import javax.sip.TransactionState;
+import javax.sip.address.SipURI;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.ReleaseReferencesStrategy;
+import gov.nist.javax.sip.SIPConstants;
+import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.address.AddressFactoryImpl;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.SIPClientTransactionImpl.ExpiresTimerTask;
 
 /*
  * Modifications for TLS Support added by Daniel J. Martinez Manzano
