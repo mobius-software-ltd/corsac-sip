@@ -25,13 +25,12 @@
 */
 package gov.nist.javax.sip.stack.timers;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
-
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Dummy Impl for testing purposes. Do not use this in production!!
@@ -80,9 +79,9 @@ public class DummySipTimer implements SipTimer {
 
 	/*
 	 * (non-Javadoc)
-	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl, java.util.Properties)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl)
 	 */
-	public void start(SipStackImpl sipStack, Properties configurationProperties) {
+	public void start(SipStackImpl sipStack) {
 		sipStackImpl= sipStack;
 		// don't need the properties so nothing to see here
 		started.set(true);

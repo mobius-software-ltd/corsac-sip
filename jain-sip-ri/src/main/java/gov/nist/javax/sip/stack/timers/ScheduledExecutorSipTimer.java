@@ -25,16 +25,15 @@
 */
 package gov.nist.javax.sip.stack.timers;
 
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.NamingThreadFactory;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
-
-import java.util.Properties;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of the SIP Timer based on java.util.concurrent.ScheduledThreadPoolExecutor
@@ -114,9 +113,9 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 
 	/*
 	 * (non-Javadoc)
-	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl, java.util.Properties)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl)
 	 */
-	public void start(SipStackImpl sipStack, Properties configurationProperties) {
+	public void start(SipStackImpl sipStack) {
 		sipStackImpl= sipStack;
 		// TODO have a param in the stack properties to set the number of thread for the timer executor
 		threadPoolExecutor.prestartAllCoreThreads();

@@ -56,9 +56,9 @@ public class Utils implements UtilsExt {
 
     // private static java.util.Random rand;
 
-    private static long counter = 0;
+    // private static long counter = 0;
 
-    private static int callIDCounter;
+    // private static int callIDCounter;
 
     private static String signature;
 

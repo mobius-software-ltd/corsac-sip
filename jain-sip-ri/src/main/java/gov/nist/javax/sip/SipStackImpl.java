@@ -730,7 +730,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 			String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",DefaultSipTimer.class.getName());
 			try {
 				setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
-				getTimer().start(this, configurationProperties);
+				getTimer().start(this);
 				if (getThreadAuditor() != null && getThreadAuditor().isEnabled()) {
 		            // Start monitoring the timer thread
 		            getTimer().schedule(new PingTimer(null), 0);
@@ -1528,7 +1528,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",DefaultSipTimer.class.getName());
 		try {
 			setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
-			getTimer().start(this, configurationProperties);
+			getTimer().start(this);
 			if (getThreadAuditor() != null && getThreadAuditor().isEnabled()) {
 	            // Start monitoring the timer thread
 	            getTimer().schedule(new PingTimer(null), 0);

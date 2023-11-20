@@ -856,7 +856,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
      *
      * @see javax.sip.SipProvider#setListeningPoint(javax.sip.ListeningPoint)
      */
-    public synchronized void setListeningPoint(ListeningPoint listeningPoint) {
+    public void setListeningPoint(ListeningPoint listeningPoint) {
         if (listeningPoint == null)
             throw new NullPointerException("Null listening point");
         ListeningPointImpl lp = (ListeningPointImpl) listeningPoint;
@@ -866,7 +866,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         // this.port = listeningPoint.getPort();
         // This is the first listening point.
         this.listeningPoints.clear();
-        this.listeningPoints.put(transport, listeningPoint);
+        this.listeningPoints.putIfAbsent(transport, listeningPoint);
 
     }
 
@@ -1060,7 +1060,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
      *
      * @see javax.sip.SipProvider#getListeningPoints()
      */
-    public synchronized ListeningPoint[] getListeningPoints() {
+    public ListeningPoint[] getListeningPoints() {
 
         ListeningPoint[] retval = new ListeningPointImpl[this.listeningPoints
                 .size()];
@@ -1073,7 +1073,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
      *
      * @see javax.sip.SipProvider#addListeningPoint(javax.sip.ListeningPoint)
      */
-    public synchronized void addListeningPoint(ListeningPoint listeningPoint)
+    public void addListeningPoint(ListeningPoint listeningPoint)
             throws ObjectInUseException {
         ListeningPointImpl lp = (ListeningPointImpl) listeningPoint;
         if (lp.sipProvider != null && lp.sipProvider != this)
@@ -1090,7 +1090,10 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         // This is for backwards compatibility.
         lp.sipProvider = this;
 
-        this.listeningPoints.put(transport, lp);
+        ListeningPoint oldListeningPoint = this.listeningPoints.putIfAbsent(transport, lp);
+        if (oldListeningPoint != listeningPoint)
+            throw new ObjectInUseException(
+                    "Listening point already assigned for transport!");
 
     }
 
@@ -1099,7 +1102,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
      *
      * @see javax.sip.SipProvider#removeListeningPoint(javax.sip.ListeningPoint)
      */
-    public synchronized void removeListeningPoint(ListeningPoint listeningPoint)
+    public void removeListeningPoint(ListeningPoint listeningPoint)
             throws ObjectInUseException {
         ListeningPointImpl lp = (ListeningPointImpl) listeningPoint;
         if (lp.messageProcessor.inUse())
@@ -1112,7 +1115,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
      * Remove all the listening points for this sip provider. This is called
      * when the stack removes the Provider
      */
-    public synchronized void removeListeningPoints() {
+    public void removeListeningPoints() {
         for (Iterator<ListeningPoint> it = this.listeningPoints.values().iterator(); it
                 .hasNext();) {
             ListeningPointImpl lp = (ListeningPointImpl) it.next();

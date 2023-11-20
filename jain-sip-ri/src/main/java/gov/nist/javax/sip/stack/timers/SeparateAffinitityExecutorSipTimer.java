@@ -5,14 +5,12 @@ import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.ThreadAffinityExecutor;
 
-import java.util.Properties;
-
 public class SeparateAffinitityExecutorSipTimer extends AffinitityExecutorSipTimer {
 	
 	private static StackLogger logger = CommonLogger.getLogger(SeparateAffinitityExecutorSipTimer.class);
 
 	@Override
-	public void start(SipStackImpl sipStack, Properties configurationProperties) {
+	public void start(SipStackImpl sipStack) {
 		sipStackImpl = sipStack;
         threadPoolExecutor = new ThreadAffinityExecutor(sipStackImpl.getSeparateAffinitityExecutorSipTimerThreadPool());
 

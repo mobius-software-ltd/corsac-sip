@@ -1,8 +1,8 @@
 /**
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Unpublished - rights reserved under the Copyright Laws of the United States.
- * Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
- * Copyright © 2005 BEA Systems, Inc. All rights reserved.
+ * Copyright ï¿½ 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright ï¿½ 2005 BEA Systems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -108,7 +108,7 @@ public class SipFactory {
      *
      * @return the single instance of this singleton SipFactory
      */
-    public synchronized static SipFactory getInstance() {
+    public static SipFactory getInstance() {
         if (myFactory == null) {
             myFactory = new SipFactory();
         }
@@ -136,7 +136,7 @@ public class SipFactory {
        * @throws PeerUnavailableException
        *             if the peer class could not be found
        */
-    public synchronized SipStack createSipStack(Properties properties)
+    public SipStack createSipStack(Properties properties)
             throws PeerUnavailableException {
 
         String ipAddress = properties.getProperty("javax.sip.IP_ADDRESS");

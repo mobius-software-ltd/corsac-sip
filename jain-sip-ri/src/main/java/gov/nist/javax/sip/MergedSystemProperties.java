@@ -30,19 +30,19 @@ public class MergedSystemProperties extends Properties {
     }
 
 
-    public synchronized void load(InputStream inStream) throws IOException {
+    public void load(InputStream inStream) throws IOException {
 
         parent.load(inStream);
     }
 
 
-    public synchronized void load(Reader reader) throws IOException {
+    public void load(Reader reader) throws IOException {
 
-        throw new RuntimeException("Not implemented for Java 5 compatibility");
+        parent.load(reader);
     }
 
 
-    public synchronized void loadFromXML(InputStream in) throws IOException,
+    public void loadFromXML(InputStream in) throws IOException,
             InvalidPropertiesFormatException {
 
         parent.loadFromXML(in);
@@ -55,7 +55,7 @@ public class MergedSystemProperties extends Properties {
     }
 
 
-    public synchronized void save(OutputStream out, String comments) {
+    public void save(OutputStream out, String comments) {
         try {
 			parent.store(out, comments);
 		} catch (IOException e) {
@@ -64,7 +64,7 @@ public class MergedSystemProperties extends Properties {
     }
 
 
-    public synchronized Object setProperty(String key, String value) {
+    public Object setProperty(String key, String value) {
 
         return parent.setProperty(key, value);
     }
@@ -82,14 +82,14 @@ public class MergedSystemProperties extends Properties {
     }
 
 
-    public synchronized void storeToXML(OutputStream os, String comment,
+    public void storeToXML(OutputStream os, String comment,
             String encoding) throws IOException {
 
         parent.storeToXML(os, comment, encoding);
     }
 
 
-    public synchronized void storeToXML(OutputStream os, String comment)
+    public void storeToXML(OutputStream os, String comment)
             throws IOException {
 
         parent.storeToXML(os, comment);
@@ -97,8 +97,7 @@ public class MergedSystemProperties extends Properties {
 
 
     public Set<String> stringPropertyNames() {
-
-        throw new RuntimeException("Not implemented for Java 5 compatibility");
+        return parent.stringPropertyNames();        
     }
 
     public String getProperty(String key, String defaultValue) {
