@@ -2019,11 +2019,18 @@ public abstract class SIPTransactionStack implements
             if (!this.unlimitedClientTransactionTableSize) {
                 if (this.activeClientTransactionCount.get() > clientTransactionTableHiwaterMark) {
                     try {
-                        synchronized (this.clientTransactionTable) {
-                            this.clientTransactionTable.wait();
-                            this.activeClientTransactionCount.incrementAndGet();
-                        }
+                        // Doesn't make sense to wait in real time systems
+                        // We are returning the tx if it already exists                        
 
+                        // synchronized (this.clientTransactionTable) {
+                        //     this.clientTransactionTable.wait();
+                        //     this.activeClientTransactionCount.incrementAndGet();
+                        // }
+                        
+                        String key = sipRequest.getTransactionId();
+                        existingTx = clientTransactionTable.get(key);
+                
+                        return existingTx;
                     } catch (Exception ex) {
                         if (logger.isLoggingEnabled()) {
                             logger.logError(
@@ -2068,15 +2075,16 @@ public abstract class SIPTransactionStack implements
      *
      */
     protected void decrementActiveClientTransactionCount() {
+        this.activeClientTransactionCount.decrementAndGet();
 
-        if (this.activeClientTransactionCount.decrementAndGet() <= this.clientTransactionTableLowaterMark
-                && !this.unlimitedClientTransactionTableSize) {
-            synchronized (this.clientTransactionTable) {
+        // if (this.activeClientTransactionCount.decrementAndGet() <= this.clientTransactionTableLowaterMark
+        //         && !this.unlimitedClientTransactionTableSize) {
+        //     synchronized (this.clientTransactionTable) {
 
-                clientTransactionTable.notify();
+        //         clientTransactionTable.notify();
 
-            }
-        }
+        //     }
+        // }
     }
 
     /**
@@ -2114,7 +2122,7 @@ public abstract class SIPTransactionStack implements
      * @param transactionErrorEvent
      *            Error event.
      */
-    public synchronized void transactionErrorEvent(
+    public void transactionErrorEvent(
             SIPTransactionErrorEvent transactionErrorEvent) {
         SIPTransaction transaction = (SIPTransaction) transactionErrorEvent
                 .getSource();
@@ -2139,7 +2147,7 @@ public abstract class SIPTransactionStack implements
      * gov.nist.javax.sip.stack.SIPDialogEventListener#dialogErrorEvent(gov.
      * nist.javax.sip.stack.SIPDialogErrorEvent)
      */
-    public synchronized void dialogErrorEvent(
+    public void dialogErrorEvent(
             SIPDialogErrorEvent dialogErrorEvent) {
         SIPDialog sipDialog = (SIPDialog) dialogErrorEvent.getSource();
         SipListener sipListener = ((SipStackImpl)this).getSipListener();
@@ -2163,12 +2171,12 @@ public abstract class SIPTransactionStack implements
 
         // JvB: set it to null, SIPDialog tries to schedule things after stop
         this.pendingTransactions.clear();
-        synchronized (this) {
-            this.notifyAll();
-        }
-        synchronized (this.clientTransactionTable) {
-            clientTransactionTable.notifyAll();
-        }
+        // synchronized (this) {
+        // this.notifyAll();
+        // }
+        // synchronized (this.clientTransactionTable) {
+        //     clientTransactionTable.notifyAll();
+        // }
         
         if(selfRoutingThreadpoolExecutor != null && selfRoutingThreadpoolExecutor instanceof ExecutorService) {
         	((ExecutorService)selfRoutingThreadpoolExecutor).shutdown();
@@ -2723,17 +2731,17 @@ public abstract class SIPTransactionStack implements
         // Make a shallow copy of the dialog list.
         // This copy will remain intact as leaked dialogs are removed by the
         // stack.
-        LinkedList<SIPDialog> dialogs;
-        synchronized (dialogTable) {
-            dialogs = new LinkedList<SIPDialog>(dialogTable.values());
-        }
+        ConcurrentHashMap<String, SIPDialog> dialogs = new ConcurrentHashMap<String, SIPDialog>(dialogTable);;
+        // synchronized (dialogTable) {
+        //      dialogs = new ConcurrentHashMap<String, SIPDialog>(dialogTable);
+        // }
 
         // Iterate through the dialogDialog, get the callID of each dialog and
         // check if it's in the
         // list of active calls passed by the application. If it isn't, start
         // the timer on it.
         // If the timer has expired, kill the dialog.
-        Iterator<SIPDialog> it = dialogs.iterator();
+        Iterator<SIPDialog> it = dialogs.values().iterator();
         while (it.hasNext()) {
             // Get the next dialog
             SIPDialog itDialog = it.next();

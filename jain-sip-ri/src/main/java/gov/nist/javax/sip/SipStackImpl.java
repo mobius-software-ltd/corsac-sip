@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -651,7 +652,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	private static StackLogger logger = CommonLogger.getLogger(SipStackImpl.class);
 	private EventScanner eventScanner;
 
-	protected Hashtable<String, ListeningPointImpl> listeningPoints;
+	protected ConcurrentHashMap<String, ListeningPointImpl> listeningPoints;
 
 	protected List<SipProviderImpl> sipProviders;
 
@@ -702,7 +703,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		super.setMessageFactory(msgFactory);
 		this.eventScanner = new EventScanner(this);
 		eventScanner.start();
-		this.listeningPoints = new Hashtable<String, ListeningPointImpl>();
+		this.listeningPoints = new ConcurrentHashMap<String, ListeningPointImpl>();
 		this.sipProviders = new CopyOnWriteArrayList<SipProviderImpl>();
 		try {
 			Charset charset = Charset.forName("UTF-8");
@@ -722,7 +723,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		super.reInit();
 		this.eventScanner = new EventScanner(this);
 		eventScanner.start();
-		this.listeningPoints = new Hashtable<String, ListeningPointImpl>();
+		this.listeningPoints = new ConcurrentHashMap<String, ListeningPointImpl>();
 		this.sipProviders = new CopyOnWriteArrayList<SipProviderImpl>();
 		this.sipListener = null;
 		if(!getTimer().isStarted()) {
@@ -1614,7 +1615,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	 * @see javax.sip.SipStack#createListeningPoint(java.lang.String, int,
 	 * java.lang.String)
 	 */
-	public synchronized ListeningPoint createListeningPoint(String address,
+	public ListeningPoint createListeningPoint(String address,
 			int port, String transport) throws TransportNotSupportedException,
 			InvalidArgumentException {
 		if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
@@ -1664,7 +1665,10 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 				lip = new ListeningPointImpl(this, port, transport);
 				lip.messageProcessor = messageProcessor;
 				messageProcessor.setListeningPoint(lip);
-				this.listeningPoints.put(key, lip);
+				ListeningPointImpl previous = this.listeningPoints.putIfAbsent(key, lip);
+				if (previous != null) {
+					lip = previous;
+				}
 				// start processing messages.
 				messageProcessor.start();
 				return (ListeningPoint) lip;
@@ -1841,7 +1845,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		if(super.sipEventInterceptor != null)
 			super.sipEventInterceptor.destroy();
 		this.sipProviders = new CopyOnWriteArrayList<SipProviderImpl>();
-		this.listeningPoints = new Hashtable<String, ListeningPointImpl>();
+		this.listeningPoints = new ConcurrentHashMap<String, ListeningPointImpl>();
 		/*
 		 * Check for presence of an event scanner ( may happen if stack is
 		 * stopped before listener is attached ).
