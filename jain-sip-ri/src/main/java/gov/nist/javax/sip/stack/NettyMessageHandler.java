@@ -58,11 +58,10 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         Channel channel = ctx.channel();
         MessageChannel nettyMessageChannel = messageProcessor.createMessageChannel(channel);                 
         
-        if (reliableTransport) {
-            boolean continueProcesing = processReliableMessage(ctx, sipMessage, nettyMessageChannel);
-            if(!continueProcesing) {
-                return;
-            }
+        // RFC5626 CRLF Keep Alive Support
+        if (reliableTransport && sipMessage.isNullRequest()) {
+            processCRLFs(ctx, sipMessage, nettyMessageChannel);
+            return;
         } 
 
         RawMessageChannel rawMessageChannel = (RawMessageChannel)nettyMessageChannel;
@@ -103,34 +102,30 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         }       
     }
 
-    private boolean processReliableMessage(ChannelHandlerContext ctx, SIPMessage sipMessage,
+    private void processCRLFs(ChannelHandlerContext ctx, SIPMessage sipMessage,
             MessageChannel nettyMessageChannel) {
-        if(sipMessage.isNullRequest()) {
-            NettyStreamMessageChannel nettyStreamMessageChannel = ((NettyStreamMessageChannel)nettyMessageChannel);
-            if (sipMessage.getSize() == 4) {
-                    // Handling keepalive ping (double CRLF) as defined per RFC 5626 Section 4.4.1
-                    // sending pong (single CRLF)
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                        logger.logDebug(
-                                "KeepAlive Double CRLF received, sending single CRLF as defined per RFC 5626 Section 4.4.1");
-                        logger.logDebug("~~~ setting isPreviousLineCRLF=false");
-                    }
-
-                try {
-                    nettyStreamMessageChannel.sendSingleCLRF();
-                } catch (Exception e) {
-                    logger.logError("A problem occured while trying to send a single CLRF in response to a double CLRF", e);
-                }
-            } else {
-                if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
-                    logger.logDebug("Received CRLF, canceling ping keep alive timeout task if started");
+        NettyStreamMessageChannel nettyStreamMessageChannel = ((NettyStreamMessageChannel)nettyMessageChannel);
+        if (sipMessage.getSize() == 4) {
+                // Handling keepalive ping (double CRLF) as defined per RFC 5626 Section 4.4.1
+                // sending pong (single CRLF)
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug(
+                            "KeepAlive Double CRLF received, sending single CRLF as defined per RFC 5626 Section 4.4.1");
+                    logger.logDebug("~~~ setting isPreviousLineCRLF=false");
                 }
 
-                nettyStreamMessageChannel.cancelPingKeepAliveTimeoutTaskIfStarted();
+            try {
+                nettyStreamMessageChannel.sendSingleCLRF();
+            } catch (Exception e) {
+                logger.logError("A problem occured while trying to send a single CLRF in response to a double CLRF", e);
             }
-            return false;
+        } else {
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("Received CRLF, canceling ping keep alive timeout task if started");
+            }
+
+            nettyStreamMessageChannel.cancelPingKeepAliveTimeoutTaskIfStarted();
         }
-        return true;
     }
 
     @Override
