@@ -102,9 +102,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 	private boolean isCached;
 
-	private SIPStackTimerTask pingKeepAliveTimeoutTask;
-	private Semaphore keepAliveSemaphore;
-
+	private SIPStackTimerTask pingKeepAliveTimeoutTask;	
 	private long keepAliveTimeout;
 
 	// Added for https://java.net/jira/browse/JSIP-483
@@ -135,10 +133,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 			myAddress = nettyTCPMessageProcessor.getIpAddress().getHostAddress();
 			myPort = nettyTCPMessageProcessor.getPort();
-			keepAliveTimeout = nettyTCPMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();
-			if (keepAliveTimeout > 0) {
-				keepAliveSemaphore = new Semaphore(1);
-			}
+			keepAliveTimeout = nettyTCPMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();			
 			if(nettyTCPMessageProcessor.sslClientContext != null && getHandshakeCompletedListener() == null) {
 				HandshakeCompletedListenerImpl listner = new HandshakeCompletedListenerImpl(this);
 				setHandshakeCompletedListener(listner);
@@ -179,10 +174,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			myAddress = nettyStreamMessageProcessor.getIpAddress().getHostAddress();
 			myPort = nettyStreamMessageProcessor.getPort();
 			
-			keepAliveTimeout = nettyStreamMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();
-			if (keepAliveTimeout > 0) {
-				keepAliveSemaphore = new Semaphore(1);
-			}	
+			keepAliveTimeout = nettyStreamMessageProcessor.sipStack.getReliableConnectionKeepAliveTimeout();				
 			if(nettyStreamMessageProcessor.sslClientContext != null && getHandshakeCompletedListener() == null) {
 				HandshakeCompletedListenerImpl listner = new HandshakeCompletedListenerImpl(this);
 				setHandshakeCompletedListener(listner);
@@ -891,23 +883,15 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	}
 
 	public void cancelPingKeepAliveTimeoutTaskIfStarted() {
-		if (pingKeepAliveTimeoutTask != null && pingKeepAliveTimeoutTask.getSipTimerTask() != null) {
-			try {
-				keepAliveSemaphore.acquire();
-			} catch (InterruptedException e) {
-				logger.logError("Couldn't acquire keepAliveSemaphore");
-				return;
+		if (pingKeepAliveTimeoutTask != null && pingKeepAliveTimeoutTask.getSipTimerTask() != null) {			
+			
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug("~~~ cancelPingKeepAliveTimeoutTaskIfStarted for MessageChannel(key=" + getKey()
+						+ "), clientAddress=" + peerAddress
+						+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
 			}
-			try {
-				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-					logger.logDebug("~~~ cancelPingKeepAliveTimeoutTaskIfStarted for MessageChannel(key=" + getKey()
-							+ "), clientAddress=" + peerAddress
-							+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
-				}
-				sipStack.getTimer().cancel(pingKeepAliveTimeoutTask);
-			} finally {
-				keepAliveSemaphore.release();
-			}
+			sipStack.getTimer().cancel(pingKeepAliveTimeoutTask);
+			
 		}
 	}
 
@@ -925,11 +909,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
 		}
 
-		this.keepAliveTimeout = keepAliveTimeout;
-		if (keepAliveSemaphore == null) {
-			keepAliveSemaphore = new Semaphore(1);
-		}
-
+		this.keepAliveTimeout = keepAliveTimeout;		
 		boolean isKeepAliveTimeoutTaskScheduled = pingKeepAliveTimeoutTask != null;
 		if (isKeepAliveTimeoutTaskScheduled && keepAliveTimeout > 0) {
 			rescheduleKeepAliveTimeout(keepAliveTimeout);
@@ -965,41 +945,31 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		}
 
 		// long delay = newScheduledTime > now ? newScheduledTime - now : 1;
-		try {
-			keepAliveSemaphore.acquire();
-		} catch (InterruptedException e) {
-			logger.logWarning("Couldn't acquire keepAliveSemaphore");
-			return;
-		}
-		try {
-			if (pingKeepAliveTimeoutTask == null) {
-				pingKeepAliveTimeoutTask = new KeepAliveTimeoutTimerTask();
-				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-					methodLog.append(", scheduling pingKeepAliveTimeoutTask to execute after ");
-					methodLog.append(keepAliveTimeout / 1000);
-					methodLog.append(" seconds");
-					logger.logDebug(methodLog.toString());
-				}
-				sipStack.getTimer().schedule(pingKeepAliveTimeoutTask, keepAliveTimeout);
-			} else {
-				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-					logger.logDebug("~~~ cancelPingKeepAliveTimeout for MessageChannel(key=" + getKey()
-							+ "), clientAddress=" + peerAddress
-							+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
-				}
-				sipStack.getTimer().cancel(pingKeepAliveTimeoutTask);
-				pingKeepAliveTimeoutTask = new KeepAliveTimeoutTimerTask();
-				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-					methodLog.append(", scheduling pingKeepAliveTimeoutTask to execute after ");
-					methodLog.append(keepAliveTimeout / 1000);
-					methodLog.append(" seconds");
-					logger.logDebug(methodLog.toString());
-				}
-				sipStack.getTimer().schedule(pingKeepAliveTimeoutTask, keepAliveTimeout);
+		if (pingKeepAliveTimeoutTask == null) {
+			pingKeepAliveTimeoutTask = new KeepAliveTimeoutTimerTask();
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				methodLog.append(", scheduling pingKeepAliveTimeoutTask to execute after ");
+				methodLog.append(keepAliveTimeout / 1000);
+				methodLog.append(" seconds");
+				logger.logDebug(methodLog.toString());
 			}
-		} finally {
-			keepAliveSemaphore.release();
-		}
+			sipStack.getTimer().schedule(pingKeepAliveTimeoutTask, keepAliveTimeout);
+		} else {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug("~~~ cancelPingKeepAliveTimeout for MessageChannel(key=" + getKey()
+						+ "), clientAddress=" + peerAddress
+						+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
+			}
+			sipStack.getTimer().cancel(pingKeepAliveTimeoutTask);
+			pingKeepAliveTimeoutTask = new KeepAliveTimeoutTimerTask();
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				methodLog.append(", scheduling pingKeepAliveTimeoutTask to execute after ");
+				methodLog.append(keepAliveTimeout / 1000);
+				methodLog.append(" seconds");
+				logger.logDebug(methodLog.toString());
+			}
+			sipStack.getTimer().schedule(pingKeepAliveTimeoutTask, keepAliveTimeout);
+		}		
 	}
 
 	class KeepAliveTimeoutTimerTask extends SIPStackTimerTask {
