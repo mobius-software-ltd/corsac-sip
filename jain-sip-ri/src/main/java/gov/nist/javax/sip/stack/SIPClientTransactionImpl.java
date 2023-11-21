@@ -230,7 +230,7 @@ private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.
   private Contact originalRequestContact;
   private String originalRequestScheme;
 
-  private transient Object transactionTimerLock = new Object();
+  // private transient Object transactionTimerLock = new Object();
   private AtomicBoolean timerKStarted = new AtomicBoolean(false);
   private boolean transactionTimerCancelled = false;
   private Set<Integer> responsesReceived = new CopyOnWriteArraySet<Integer>();
@@ -700,7 +700,7 @@ private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.
   // * 500 ms
   private void scheduleTimerK(long time) {
     if (transactionTimer != null && timerKStarted.compareAndSet(false, true)) {
-      synchronized (transactionTimerLock) {
+      // synchronized (transactionTimerLock) {
         if (!transactionTimerCancelled) {
           sipStack.getTimer().cancel(transactionTimer);
           transactionTimer = null;
@@ -735,7 +735,7 @@ private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.
           }
           transactionTimerCancelled = true;
         }
-      }
+      // }
     }
   }
 
@@ -1455,18 +1455,18 @@ private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.
    */
   public void startTransactionTimer() {
     if (this.transactionTimerStarted.compareAndSet(false, true)) {
-      if (sipStack.getTimer() != null &&
+      if (sipStack.getTimer() != null)
       // Fix for http://code.google.com/p/jain-sip/issues/detail?id=10
-          transactionTimerLock != null)
+          //  && transactionTimerLock != null)
       {
-        synchronized (transactionTimerLock) {
+        // synchronized (transactionTimerLock) {
           if (!transactionTimerCancelled) {
             transactionTimer = new TransactionTimer();
             sipStack.getTimer().scheduleWithFixedDelay(transactionTimer,
                                                        baseTimerInterval,
                                                        baseTimerInterval);
           }
-        }
+        // }
       }
     }
   }
@@ -1898,7 +1898,7 @@ private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.
       respondTo = null;
       transactionTimer = null;
       lastResponse = null;
-      transactionTimerLock = null;
+      // transactionTimerLock = null;
       // transactionTimerStarted = null;
       timerKStarted = null;
     }

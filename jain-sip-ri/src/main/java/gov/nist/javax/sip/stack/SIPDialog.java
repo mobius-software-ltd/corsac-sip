@@ -296,7 +296,7 @@ public class SIPDialog implements DialogExt {
     private transient Set<SIPDialogEventListener> eventListeners;
     // added for Issue 248 :
     // https://jain-sip.dev.java.net/issues/show_bug.cgi?id=248
-    private transient Semaphore timerTaskLock = new Semaphore(1);
+    // private transient Semaphore timerTaskLock = new Semaphore(1);
 
     // We store here the useful data from the first transaction without having
     // to
@@ -952,15 +952,15 @@ public class SIPDialog implements DialogExt {
         newErrorEvent.setClientTransaction(clientTransaction);
 
         // Loop through all listeners of this transaction
-        synchronized (eventListeners) {
+        // synchronized (eventListeners) {
             
-            listenerIterator = eventListeners.iterator();
+            listenerIterator = new CopyOnWriteArraySet(eventListeners).iterator();
             while (listenerIterator.hasNext()) {
                 // Send the event to the next listener
                 nextListener = (SIPDialogEventListener) listenerIterator.next();
                 nextListener.dialogErrorEvent(newErrorEvent);
             }
-        }
+        // }
         // Clear the event listeners after propagating the error.
         eventListeners.clear();
         // Errors always terminate a dialog except if a timeout has occured
@@ -1384,15 +1384,15 @@ public class SIPDialog implements DialogExt {
         SIPServerTransaction tr = this.getInviteTransaction();
         if (tr != null) {
             if (tr.getCSeq() == cseqNumber) {
-                acquireTimerTaskSem();
-                try {
+                // acquireTimerTaskSem();
+                // try {
                     if (this.timerTask != null) {
                         this.getStack().getTimer().cancel(timerTask);
                         this.timerTask = null;
                     }
-                } finally {
-                    releaseTimerTaskSem();
-                }
+                // } finally {
+                //     releaseTimerTaskSem();
+                // }
                 if (this.dialogDeleteTask != null) {
                     this.getStack().getTimer().cancel(dialogDeleteTask);
                     this.dialogDeleteTask = null;
@@ -2973,8 +2973,8 @@ public class SIPDialog implements DialogExt {
             logger.logDebug(
                     "Starting dialog timer for " + getDialogId());
 
-        acquireTimerTaskSem();
-        try {
+        // acquireTimerTaskSem();
+        // try {
             if (this.timerTask != null) {
                 this.timerTask.transaction = transaction;
             } else {
@@ -2985,9 +2985,9 @@ public class SIPDialog implements DialogExt {
                         transaction.getBaseTimerInterval());
                 }
             }
-        } finally {
-            releaseTimerTaskSem();
-        }
+        // } finally {
+        //     releaseTimerTaskSem();
+        // }
 
         this.setRetransmissionTicks();
     }
@@ -2998,8 +2998,8 @@ public class SIPDialog implements DialogExt {
      */
     protected void stopTimer() {
         try {
-            acquireTimerTaskSem();
-            try {
+            // acquireTimerTaskSem();
+            // try {
                 if (this.timerTask != null) {
                     this.getStack().getTimer().cancel(timerTask);
                     this.timerTask = null;
@@ -3008,10 +3008,11 @@ public class SIPDialog implements DialogExt {
                     this.getStack().getTimer().cancel(this.earlyStateTimerTask);
                     this.earlyStateTimerTask = null;
                 }
-            } finally {
-                releaseTimerTaskSem();
-            }
+            // } finally {
+            //     releaseTimerTaskSem();
+            // }
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -3688,8 +3689,8 @@ public class SIPDialog implements DialogExt {
         } finally {
             if (sipResponse.getCSeq().getMethod().equals(Request.INVITE) &&
                     transaction != null && transaction instanceof ClientTransaction && this.getState() != DialogState.TERMINATED) {
-                this.acquireTimerTaskSem();
-                try {
+                // this.acquireTimerTaskSem();
+                // try {
                     if (this.getState() == DialogState.EARLY) {
                         if (this.earlyStateTimerTask != null) {
                             sipStack.getTimer()
@@ -3711,9 +3712,9 @@ public class SIPDialog implements DialogExt {
                         }
 
                     }
-                } finally {
-                    this.releaseTimerTaskSem();
-                }
+                // } finally {
+                //     this.releaseTimerTaskSem();
+                // }
             }
         }
 
@@ -4069,15 +4070,15 @@ public class SIPDialog implements DialogExt {
                         "SIPDialog::handleAck: ACK already seen by dialog -- dropping Ack"
                                 + " retransmission");
             }
-            acquireTimerTaskSem();
-            try {
+            // acquireTimerTaskSem();
+            // try {
                 if (this.timerTask != null) {
                     this.getStack().getTimer().cancel(timerTask);
                     this.timerTask = null;
                 }
-            } finally {
-                releaseTimerTaskSem();
-            }
+            // } finally {
+            //     releaseTimerTaskSem();
+            // }
             return false;
         } else if (this.getState() == DialogState.TERMINATED) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
@@ -4278,22 +4279,22 @@ public class SIPDialog implements DialogExt {
         this.sequenceNumberValidation = false;
     }
 
-    public void acquireTimerTaskSem() {
-        boolean acquired = false;
-        try {
-            acquired = this.timerTaskLock.tryAcquire(10, TimeUnit.SECONDS);
-        } catch (InterruptedException ex) {
-            acquired = false;
-        }
-        if (!acquired) {
-            throw new IllegalStateException(
-                    "Impossible to acquire the dialog timer task lock");
-        }
-    }
+    // public void acquireTimerTaskSem() {
+    //     boolean acquired = false;
+    //     try {
+    //         acquired = this.timerTaskLock.tryAcquire(10, TimeUnit.SECONDS);
+    //     } catch (InterruptedException ex) {
+    //         acquired = false;
+    //     }
+    //     if (!acquired) {
+    //         throw new IllegalStateException(
+    //                 "Impossible to acquire the dialog timer task lock");
+    //     }
+    // }
 
-    public void releaseTimerTaskSem() {
-        this.timerTaskLock.release();
-    }
+    // public void releaseTimerTaskSem() {
+    //     this.timerTaskLock.release();
+    // }
 
     public String getMergeId() {
         return this.firstTransactionMergeId;
@@ -4387,7 +4388,7 @@ public class SIPDialog implements DialogExt {
             if (eventListeners != null) {
                 eventListeners.clear();
             }
-            timerTaskLock = null;
+            // timerTaskLock = null;
             ackSem = null;            
             contactHeader = null;
             eventHeader = null;
