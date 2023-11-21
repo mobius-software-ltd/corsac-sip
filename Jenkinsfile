@@ -1,6 +1,6 @@
 def runTestsuite(enableNetty, forkCount=1, profile="defaultProfile") {
      withMaven(maven: 'maven-3.6.3',traceability: true) {
-        sh "mvn -B -f jain-sip-testsuite/pom.xml  install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" "
+        sh "mvn -B -f jain-sip-testsuite/pom.xml  clean install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" "
      }
 }
 

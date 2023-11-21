@@ -954,7 +954,7 @@ public class SIPDialog implements DialogExt {
         // Loop through all listeners of this transaction
         // synchronized (eventListeners) {
             
-            listenerIterator = new CopyOnWriteArraySet(eventListeners).iterator();
+            listenerIterator = new CopyOnWriteArraySet<SIPDialogEventListener>(eventListeners).iterator();
             while (listenerIterator.hasNext()) {
                 // Send the event to the next listener
                 nextListener = (SIPDialogEventListener) listenerIterator.next();
