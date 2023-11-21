@@ -57,7 +57,6 @@ import javax.sip.header.ExpiresHeader;
 import javax.sip.header.ExtensionHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.Header;
-import javax.sip.header.HeaderFactory;
 import javax.sip.header.InReplyToHeader;
 import javax.sip.header.MaxForwardsHeader;
 import javax.sip.header.MimeVersionHeader;
@@ -163,7 +162,7 @@ import gov.nist.javax.sip.parser.StringMsgParser;
 *
 *
 */
-public class HeaderFactoryImpl implements HeaderFactory , HeaderFactoryExt {
+public class HeaderFactoryImpl implements HeaderFactoryExt {
 
     /**
      * Determines whether or not we should tolerate and strip address scope

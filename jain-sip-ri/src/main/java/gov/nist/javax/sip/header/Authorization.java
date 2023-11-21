@@ -28,9 +28,9 @@
 *******************************************************************************/
 package gov.nist.javax.sip.header;
 
-import gov.nist.javax.sip.header.ims.AuthorizationHeaderIms;
+import javax.sip.header.AuthorizationHeader;
 
-import javax.sip.header.*;
+import gov.nist.javax.sip.header.ims.AuthorizationHeaderIms;
 
 /**
  * Authorization SIP header.
@@ -44,7 +44,7 @@ import javax.sip.header.*;
  */
 public class Authorization
     extends gov.nist.javax.sip.header.AuthenticationHeader
-    implements javax.sip.header.AuthorizationHeader, AuthorizationHeaderIms {
+    implements AuthorizationHeaderIms {
 
     /**
      * Comment for <code>serialVersionUID</code>

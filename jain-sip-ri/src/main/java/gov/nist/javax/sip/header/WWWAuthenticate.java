@@ -28,10 +28,9 @@
 *******************************************************************************/
 package gov.nist.javax.sip.header;
 
-import gov.nist.javax.sip.header.ims.WWWAuthenticateHeaderIms;
-
 import javax.sip.address.URI;
-import javax.sip.header.*;
+
+import gov.nist.javax.sip.header.ims.WWWAuthenticateHeaderIms;
 
 /**
  * The WWWAuthenticate SIP header.
@@ -45,7 +44,7 @@ import javax.sip.header.*;
 
 public class WWWAuthenticate
     extends AuthenticationHeader
-    implements WWWAuthenticateHeader, WWWAuthenticateHeaderIms {
+    implements WWWAuthenticateHeaderIms {
 
     /**
      * Comment for <code>serialVersionUID</code>

@@ -23,11 +23,11 @@
 */
 package gov.nist.javax.sip.header;
 
-import javax.sip.address.*;
+import javax.sip.address.Address;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.Parameters;
 
-import gov.nist.javax.sip.address.*;
+import gov.nist.javax.sip.address.AddressImpl;
 
 /** An abstract class for headers that take an address and parameters.
  *
@@ -41,7 +41,7 @@ import gov.nist.javax.sip.address.*;
  *
  *
  */
-public abstract class AddressParametersHeader extends ParametersHeader implements  Parameters {
+public abstract class AddressParametersHeader extends ParametersHeader {
 
     /**
 	 * 

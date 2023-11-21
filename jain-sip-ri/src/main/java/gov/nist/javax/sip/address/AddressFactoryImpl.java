@@ -25,12 +25,15 @@
 */
 package gov.nist.javax.sip.address;
 
-import gov.nist.javax.sip.parser.*;
-
+import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.regex.Pattern;
 
-import javax.sip.address.*;
+import javax.sip.address.SipURI;
+import javax.sip.address.TelURL;
+
+import gov.nist.javax.sip.parser.StringMsgParser;
+import gov.nist.javax.sip.parser.URLParser;
 
 /**
  * Implementation of the JAIN-SIP address factory.
@@ -120,8 +123,7 @@ public class AddressFactoryImpl implements AddressFactoryEx {
             addressImpl.setURI( uri );
             return addressImpl;
         } else {
-            StringMsgParser smp = new StringMsgParser();
-            return smp.parseAddress(address);
+            return StringMsgParser.parseAddress(address);
         }
     }
 
@@ -134,8 +136,7 @@ public class AddressFactoryImpl implements AddressFactoryEx {
         if (uri == null)
             throw new NullPointerException("null URI");
         try {
-            StringMsgParser smp = new StringMsgParser();
-            SipUri sipUri = smp.parseSIPUrl(uri);
+            SipUri sipUri = StringMsgParser.parseSIPUrl(uri);
             return (SipURI) sipUri;
         } catch (ParseException ex) {
             throw new ParseException(ex.getMessage(), 0);
@@ -194,8 +195,7 @@ public class AddressFactoryImpl implements AddressFactoryEx {
         	telUrl = "tel:" + uri;
         }
         try {
-            StringMsgParser smp = new StringMsgParser();
-            TelURLImpl timp = (TelURLImpl) smp.parseUrl(telUrl);
+            TelURLImpl timp = (TelURLImpl) StringMsgParser.parseUrl(telUrl);
             return (TelURL) timp;
         } catch (ParseException ex) {
             throw new ParseException(ex.getMessage(), 0);

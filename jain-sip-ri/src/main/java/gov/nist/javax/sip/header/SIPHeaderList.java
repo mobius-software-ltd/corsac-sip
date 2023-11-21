@@ -46,7 +46,7 @@ import java.util.*;
  *
  * @version 1.2 $Revision: 1.16 $ $Date: 2005/10/09 18:47:53
  */
-public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader implements java.util.List<HDR>, Header {
+public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader implements java.util.List<HDR> {
 
     private static final long serialVersionUID = 1L;
 	

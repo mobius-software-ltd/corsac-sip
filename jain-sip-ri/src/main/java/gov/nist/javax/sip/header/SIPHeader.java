@@ -38,7 +38,7 @@ package gov.nist.javax.sip.header;
  */
 public abstract class SIPHeader
     extends SIPObject
-    implements SIPHeaderNames, javax.sip.header.Header, HeaderExt {
+    implements SIPHeaderNames, HeaderExt {
 	private static final long serialVersionUID = 1L;
 	/** name of this header
      */
