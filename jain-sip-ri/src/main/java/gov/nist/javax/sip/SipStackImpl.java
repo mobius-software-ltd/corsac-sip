@@ -56,6 +56,8 @@ import javax.sip.address.Router;
 import javax.sip.header.HeaderFactory;
 import javax.sip.message.Request;
 
+import com.mobius.software.common.dal.timers.WorkerPool;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.ServerLogger;
@@ -1122,6 +1124,13 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 					logger.logError(
 						"thread pool size - bad value " + ex.getMessage());
 			}
+		}		
+
+		workerPool = new WorkerPool();
+		if(this.threadPoolSize <= 0) {
+			workerPool.start(MAX_WORKERS);
+		} else {
+			workerPool.start(this.threadPoolSize);
 		}
 
 		int congetstionControlTimeout = Integer
@@ -1526,6 +1535,9 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",MobiusSipTimer.class.getName());
 		try {
 			setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
+			if(getTimer() instanceof MobiusSipTimer) {
+				((MobiusSipTimer)getTimer()).setPeriodicQueue(workerPool.getPeriodicQueue());
+			}
 			getTimer().start(this);
 			if (getThreadAuditor() != null && getThreadAuditor().isEnabled()) {
 	            // Start monitoring the timer thread
@@ -1860,7 +1872,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	 *
 	 * @see javax.sip.SipStack#start()
 	 */
-	public void start() throws ProviderDoesNotExistException, SipException {
+	public void start() throws ProviderDoesNotExistException, SipException {			
 		// Start a new event scanner if one does not exist.
 		if (this.eventScanner == null) {
 			this.eventScanner = new EventScanner(this);

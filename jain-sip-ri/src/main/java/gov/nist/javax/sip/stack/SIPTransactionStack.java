@@ -48,6 +48,9 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.header.EventHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+
+import com.mobius.software.common.dal.timers.WorkerPool;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketAddress;
@@ -83,6 +86,8 @@ public abstract class SIPTransactionStack implements
      */
     public static final int BASE_TIMER_INTERVAL = 500;
 
+    protected static final Integer MAX_WORKERS = 4;
+
     /*
      * Connection linger time (seconds) this is the time (in seconds) for which
      * we linger the TCP connection before closing it.
@@ -116,6 +121,7 @@ public abstract class SIPTransactionStack implements
     // Global timer. Use this for all timer tasks.
 
     private SipTimer timer;
+    protected WorkerPool workerPool = null;
 
     // List of pending server transactions
     private ConcurrentHashMap<String, SIPServerTransaction> pendingTransactions;
@@ -2166,6 +2172,10 @@ public abstract class SIPTransactionStack implements
      * stack.
      */
     public void stopStack() {
+        if (!toExit && this.workerPool != null) {
+            workerPool.stop();	
+            workerPool = null;
+        }
         // Prevent NPE on two concurrent stops
         this.toExit = true;        
 
@@ -2192,8 +2202,9 @@ public abstract class SIPTransactionStack implements
         closeAllSockets();
         // Let the processing complete.
 
-        if (this.timer != null)
+        if (this.timer != null) {
             this.timer.stop();
+        }
         try {
             Thread.sleep(1000);
         } catch (InterruptedException ex) {
@@ -2203,7 +2214,6 @@ public abstract class SIPTransactionStack implements
 
         this.dialogTable.clear();
         this.serverLogger.closeLogFile();
-
     }
     
     public void closeAllSockets() {
@@ -3546,12 +3556,4 @@ public abstract class SIPTransactionStack implements
 	public void setReleaseReferencesStrategy(ReleaseReferencesStrategy releaseReferencesStrategy) {
 		this.releaseReferencesStrategy = releaseReferencesStrategy;
 	}
-
-    /**
-     * 
-     * @return the threadPoolSize
-     */
-    public int getThreadPoolSize() {
-        return threadPoolSize;
-    }
 }

@@ -37,31 +37,20 @@ import gov.nist.javax.sip.stack.SIPStackTimerTask;
  *
  */
 public class MobiusSipTimer implements SipTimer {
-	private static StackLogger logger = CommonLogger.getLogger(ScheduledExecutorSipTimer.class);
-	private static final Integer MAX_WORKERS = 4;
+	private static StackLogger logger = CommonLogger.getLogger(ScheduledExecutorSipTimer.class);	
 
 	protected SipStackImpl sipStackImpl;
-	
-	private WorkerPool workerPool = null; 
+	private PeriodicQueuedTasks<Timer> periodicQueue;	
 	private AtomicBoolean started = new AtomicBoolean(false);
-	private PeriodicQueuedTasks<Timer> periodicQueue;
-	
-    
-	public MobiusSipTimer() {
-		
-	}
 	
 	/* (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#stop()
 	 */
-	public void stop() {		
-		if(isStarted()) {
-			workerPool.stop();	
-			started.set(false);
-			if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
-				logger.logInfo("the Mobius sip stack timer " + this.getClass().getName() + " has been stopped");
-			}
-		}			
+	public void stop() {	
+		started.set(false);	
+		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
+			logger.logInfo("the Mobius sip stack timer " + this.getClass().getName() + " has been stopped");
+		}
 	}
 
 	/* (non-Javadoc)
@@ -93,14 +82,7 @@ public class MobiusSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl)
 	 */
 	public void start(SipStackImpl sipStack) {
-		sipStackImpl= sipStack;
-		workerPool = new WorkerPool();
-		if(sipStack.getThreadPoolSize() <= 0) {
-			workerPool.start(MAX_WORKERS);
-		} else {
-			workerPool.start(sipStack.getThreadPoolSize());
-		}
-		periodicQueue = workerPool.getPeriodicQueue();
+		sipStackImpl= sipStack;		
 		started.set(true);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
 			logger.logInfo("the sip stack timer " + this.getClass().getName() + " has been started");
@@ -115,6 +97,14 @@ public class MobiusSipTimer implements SipTimer {
 
 		return true;
 	}
+
+	public PeriodicQueuedTasks<Timer> getPeriodicQueue() {
+		return periodicQueue;
+	}
+
+	public void setPeriodicQueue(PeriodicQueuedTasks<Timer> periodicQueue) {
+		this.periodicQueue = periodicQueue;
+	}	
 
 	private class MobiusSipTimerTask implements Timer {
 		private SIPStackTimerTask task;
