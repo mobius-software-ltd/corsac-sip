@@ -1,9 +1,7 @@
 package performance.uas;
 
-import gov.nist.javax.sip.message.RequestExt;
 import java.io.File;
 import java.io.FileInputStream;
-
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -13,7 +11,6 @@ import javax.sip.Dialog;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
 import javax.sip.ListeningPoint;
-import javax.sip.PeerUnavailableException;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
@@ -31,6 +28,8 @@ import javax.sip.header.ToHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+
+import gov.nist.javax.sip.message.RequestExt;
 
 
 /**
@@ -169,7 +168,7 @@ public class Shootme implements SipListener {
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
         final Request request = requestEvent.getRequest();
-        final Dialog dialog = requestEvent.getDialog();
+        // final Dialog dialog = requestEvent.getDialog();
         try {
             final Response response = messageFactory.createResponse(200, request);
             if(serverTransactionId == null) {
@@ -189,11 +188,13 @@ public class Shootme implements SipListener {
     }
 
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
-    	Request request = null;
+    	// Request request = null;
     	if(timeoutEvent.getClientTransaction() == null) {
-    		request = timeoutEvent.getServerTransaction().getRequest();
+    		// request = 
+                timeoutEvent.getServerTransaction().getRequest();
     	} else {
-    		request = timeoutEvent.getClientTransaction().getRequest();
+    		// request = 
+                timeoutEvent.getClientTransaction().getRequest();
     	}
     	//System.out.println(request);
     }
@@ -258,11 +259,13 @@ public class Shootme implements SipListener {
 
     public void processTransactionTerminated(
             TransactionTerminatedEvent transactionTerminatedEvent) {
-    	Request request = null;
+    	// Request request = null;
     	if(transactionTerminatedEvent.getClientTransaction() == null) {
-    		request = transactionTerminatedEvent.getServerTransaction().getRequest();
+    		// request = 
+                transactionTerminatedEvent.getServerTransaction().getRequest();
     	} else {
-    		request = transactionTerminatedEvent.getClientTransaction().getRequest();
+    		// request = 
+                transactionTerminatedEvent.getClientTransaction().getRequest();
     	}
     	//System.out.println(request);
     }

@@ -358,7 +358,7 @@ public class Torture extends DefaultHandler implements ParseExceptionListener,
                     sipHeader = StringMsgParser.parseSIPHeader(testMessage);
                     encodedMessage = sipHeader.encode();
                 } else if (testMessageType.equals(SIP_URL)) {
-                    sipURL = stringParser.parseSIPUrl(testMessage.trim());
+                    sipURL = StringMsgParser.parseSIPUrl(testMessage.trim());
                     encodedMessage = sipURL.encode();
                 } else
                     throw new SAXException("Torture: Internal error");
