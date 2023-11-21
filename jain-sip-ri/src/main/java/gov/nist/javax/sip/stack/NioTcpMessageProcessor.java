@@ -38,6 +38,8 @@ import java.nio.channels.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.mobius.software.common.dal.timers.Task;
+
 /**
  * NIO implementation for TCP.
  * 
@@ -301,11 +303,19 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                 if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                     logger.logDebug("Connected Succesfully");        
                 }        		
-    			if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
-    				sipStack.getSelfRoutingThreadpoolExecutor().execute(new Runnable() {
-    					public void run() {
+    			if(sipStack.getExecutorService() != null) {
+    				sipStack.getExecutorService().offerLast(new Task() {
+                        long startTime = System.currentTimeMillis();
+
+                        @Override
+    					public void execute() {
     						nioTcpMessageChannel.triggerConnectSuccess();
     					}
+
+                        @Override
+                        public long getStartTime() {
+                            return startTime;
+                        }
     				});    				
     			} else {
     				nioTcpMessageChannel.triggerConnectSuccess();
@@ -322,11 +332,19 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                         logger.logDebug("Cant connect ", e);        
                 }
                 selectionKey.cancel();
-    			if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
-    				sipStack.getSelfRoutingThreadpoolExecutor().execute(new Runnable() {
-    					public void run() {
+    			if(sipStack.getExecutorService() != null) {
+    				sipStack.getExecutorService().offerLast(new Task() {
+                        long startTime = System.currentTimeMillis();
+
+                        @Override
+    					public void execute() {
     						nioTcpMessageChannel.triggerConnectFailure(pendingData.get(socketChannel));
     					}
+
+                        @Override
+                        public long getStartTime() {
+                            return startTime;
+                        }
     				});
     			} else {
     				nioTcpMessageChannel.triggerConnectFailure(pendingData.get(socketChannel));                                           

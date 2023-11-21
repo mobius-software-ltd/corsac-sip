@@ -25,12 +25,63 @@
  */
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
+import javax.sip.DialogState;
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.ServerTransaction;
+import javax.sip.SipException;
+import javax.sip.SipListener;
+import javax.sip.Transaction;
+import javax.sip.TransactionState;
+import javax.sip.TransactionTerminatedEvent;
+import javax.sip.address.Hop;
+import javax.sip.address.Router;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.EventHeader;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+
+import com.mobius.software.common.dal.timers.CountableQueue;
+import com.mobius.software.common.dal.timers.Task;
+import com.mobius.software.common.dal.timers.WorkerPool;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.Host;
+import gov.nist.core.HostPort;
+import gov.nist.core.LogLevels;
+import gov.nist.core.LogWriter;
+import gov.nist.core.ServerLogger;
+import gov.nist.core.StackLogger;
+import gov.nist.core.ThreadAuditor;
 import gov.nist.core.net.AddressResolver;
 import gov.nist.core.net.DefaultNetworkLayer;
 import gov.nist.core.net.NetworkLayer;
 import gov.nist.core.net.SecurityManagerProvider;
-import gov.nist.javax.sip.*;
+import gov.nist.javax.sip.DefaultAddressResolver;
+import gov.nist.javax.sip.ListeningPointImpl;
+import gov.nist.javax.sip.LogRecordFactory;
+import gov.nist.javax.sip.ReleaseReferencesStrategy;
+import gov.nist.javax.sip.SIPConstants;
+import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.ThreadAffinityTask;
+import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.Event;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.extensions.JoinHeader;
@@ -40,24 +91,6 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.MessageParserFactory;
 import gov.nist.javax.sip.stack.timers.SipTimer;
-
-import javax.sip.*;
-import javax.sip.address.Hop;
-import javax.sip.address.Router;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.EventHeader;
-import javax.sip.message.Request;
-import javax.sip.message.Response;
-
-import com.mobius.software.common.dal.timers.WorkerPool;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /*
  * Jeff Keyser : architectural suggestions and contributions. Pierre De Rop and Thomas Froment :
@@ -119,8 +152,8 @@ public abstract class SIPTransactionStack implements
     protected static final Set<String> dialogCreatingMethods = new HashSet<String>();
 
     // Global timer. Use this for all timer tasks.
-
     private SipTimer timer;
+    // Global WorkerPool. Use this for all tasks, timer and executor.
     protected WorkerPool workerPool = null;
 
     // List of pending server transactions
@@ -281,13 +314,7 @@ public abstract class SIPTransactionStack implements
      * Conn timeout for TCP outgoign sockets -- maximum time in millis the stack
      * will wait to open a connection.
      */
-    protected int connTimeout = 10000; 
-    
-    /*
-     * Threads number for initialization SeparateAffinitityExecutorSipTimer
-     */
-    
-    protected int separateAffinitityExecutorSipTimerThreadPool = 8; 
+    protected int connTimeout = 10000;     
 
     /*
      * The socket factory. Can be overriden by applications that want direct
@@ -389,9 +416,6 @@ public abstract class SIPTransactionStack implements
     
     protected ClientAuthType clientAuth = ClientAuthType.Default;
     
-    // ThreadPool when parsed SIP messages are processed. Affects the case when many TCP calls use single socket.
-    private int tcpPostParsingThreadPoolSize = 0;
-
     // Minimum time between NAT kee alive pings from clients.
     // Any ping that exceeds this time will result in  CRLF CRLF going
     // from the UDP message channel.
@@ -414,8 +438,6 @@ public abstract class SIPTransactionStack implements
     public List<SIPMessageValve> sipMessageValves;
     
     public SIPEventInterceptor sipEventInterceptor;
-
-    protected static ScheduledExecutorService selfRoutingThreadpoolExecutor;
 
     private int threadPriority = Thread.MAX_PRIORITY;
 
@@ -440,31 +462,9 @@ public abstract class SIPTransactionStack implements
 
     protected boolean computeContentLengthFromMessage = false;
 
-    
-    public ScheduledExecutorService getSelfRoutingThreadpoolExecutor() {
-        if(selfRoutingThreadpoolExecutor == null) {
-            if(this.threadPoolSize<=0) {
-                
-                selfRoutingThreadpoolExecutor = new ThreadAffinityExecutor(16);
-            } else {
-                selfRoutingThreadpoolExecutor = new ThreadAffinityExecutor(this.threadPoolSize);
-            }
-        }
-        return selfRoutingThreadpoolExecutor;
-    }
-      /**
-     * Executor used to optimise the ReinviteSender Runnable in the sendRequest
-     * of the SipDialog
-       */
-    private ExecutorService reinviteExecutor = Executors
-            .newCachedThreadPool(new ThreadFactory() {
-        private int threadCount = 0;
-
-        public Thread newThread(Runnable pRunnable) {
-                    return new Thread(pRunnable, String.format("%s-%d",
-                            "ReInviteSender", threadCount++));
-        }
-    });
+    public CountableQueue<Task> getExecutorService() {
+        return workerPool.getQueue();
+    }    
 
     // / Timer to regularly ping the thread auditor (on behalf of the timer
     // thread)
@@ -619,8 +619,6 @@ public abstract class SIPTransactionStack implements
         this.serverDialogMergeTestTable = new ConcurrentHashMap<String, SIPDialog>();
         this.terminatedServerTransactionsPendingAck = new ConcurrentHashMap<String,SIPServerTransaction>();
         this.forkedClientTransactionTable = new ConcurrentHashMap<String,SIPClientTransaction>();
-
-//        this.timer = new DefaultTimer();
 
         this.activeClientTransactionCount = new AtomicInteger(0);
 
@@ -2188,11 +2186,6 @@ public abstract class SIPTransactionStack implements
         //     clientTransactionTable.notifyAll();
         // }
         
-        if(selfRoutingThreadpoolExecutor != null && selfRoutingThreadpoolExecutor instanceof ExecutorService) {
-        	((ExecutorService)selfRoutingThreadpoolExecutor).shutdown();
-        }
-        selfRoutingThreadpoolExecutor = null;
-
         // Threads must periodically check this flag.
         MessageProcessor[] processorList;
         processorList = getMessageProcessors();
@@ -2320,28 +2313,6 @@ public abstract class SIPTransactionStack implements
      */
     public void setSingleThreaded() {
         this.threadPoolSize = 1;
-    }
-
-    /**
-     * If all calls are occurring on a single TCP socket then the stack would process them in single thread.
-     * This property allows immediately after parsing to split the load into many threads which increases
-     * the performance significantly. If set to 0 then we just use the old model with single thread.
-     *
-     * @return
-     */
-    public int getTcpPostParsingThreadPoolSize() {
-        return tcpPostParsingThreadPoolSize;
-    }
-
-    /**
-     * If all calls are occurring on a single TCP socket then the stack would process them in single thread.
-     * This property allows immediately after parsing to split the load into many threads which increases
-     * the performance significantly. If set to 0 then we just use the old model with single thread.
-     *
-     * @param tcpPostParsingThreadPoolSize
-     */
-    public void setTcpPostParsingThreadPoolSize(int tcpPostParsingThreadPoolSize) {
-        this.tcpPostParsingThreadPoolSize = tcpPostParsingThreadPoolSize;
     }
 
     /**
@@ -3230,14 +3201,6 @@ public abstract class SIPTransactionStack implements
     public abstract SipListener getSipListener();
 
     /**
-     * Executor used to optimize the ReinviteSender Runnable in the sendRequest
-     * of the SipDialog
-   */
-    public ExecutorService getReinviteExecutor() {
-    return reinviteExecutor;
-  }
-
-    /**
      * @param messageParserFactory the messageParserFactory to set
      */
     public void setMessageParserFactory(MessageParserFactory messageParserFactory) {
@@ -3361,8 +3324,10 @@ public abstract class SIPTransactionStack implements
     protected void selfRouteMessage(RawMessageChannel channel, SIPMessage messageToSend) {
         try {
             ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
+                long startTime = System.currentTimeMillis();
 
-                public void run() {
+                @Override
+                public void execute() {
                     try {
                         channel.processMessage((SIPMessage) messageToSend.clone());
                     } catch (Exception ex) {
@@ -3372,11 +3337,16 @@ public abstract class SIPTransactionStack implements
                     }
                 }
 
+                @Override
+                public long getStartTime() {
+                    return startTime;
+                }
+
                 public String getThreadHash() {
                     return messageToSend.getCallId().getCallId();
                 }
             };
-            getSelfRoutingThreadpoolExecutor().execute(processMessageTask);
+            getExecutorService().offerLast(processMessageTask);
         } catch (Exception e) {
             logger.logError("Error passing message in self routing", e);
         }
@@ -3513,20 +3483,7 @@ public abstract class SIPTransactionStack implements
 	 */
 	public void setConnectionLingerTimer(int connectionLingerTimer) {
 		SIPTransactionStack.connectionLingerTimer = connectionLingerTimer;
-	}
-	
-	/**
-	 * @param separateAffinitityExecutorSipTimerThreadPool the number of threads for SeparateAffinitityExecutorSipTimer
-	 */
-	
-	public void setSeparateAffinitityExecutorSipTimerThreadPool(int separateAffinitityExecutorSipTimerThreadPool) {
-		this.separateAffinitityExecutorSipTimerThreadPool = separateAffinitityExecutorSipTimerThreadPool;
-	}
-	
-	public int getSeparateAffinitityExecutorSipTimerThreadPool() {
-		return this.separateAffinitityExecutorSipTimerThreadPool;
-	}
-	
+	}	
 
 	/**
 	 * @return the stackCongestionControlTimeout

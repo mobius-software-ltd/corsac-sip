@@ -23,7 +23,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.text.ParseException;
 import java.util.Iterator;
-import java.util.concurrent.Semaphore;
 
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.sip.ListeningPoint;
@@ -337,8 +336,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				public void operationComplete(ChannelFuture completeFuture) {
 					assert future == completeFuture;
 					if (!future.isSuccess()) {
-						if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
-							sipStack.getSelfRoutingThreadpoolExecutor().execute(
+						if(sipStack.getExecutorService() != null) {
+							sipStack.getExecutorService().offerLast(
 								new NettyConnectionFailureThread(current) 
 							);
 						} else {

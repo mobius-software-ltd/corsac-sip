@@ -73,7 +73,6 @@ import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelperImpl;
 import gov.nist.javax.sip.clientauthutils.SecureAccountManager;
 import gov.nist.javax.sip.parser.MessageParserFactory;
-import gov.nist.javax.sip.parser.PostParseExecutorServices;
 import gov.nist.javax.sip.parser.StringMsgParser;
 import gov.nist.javax.sip.parser.StringMsgParserFactory;
 import gov.nist.javax.sip.stack.ByteBufferFactory;
@@ -1134,25 +1133,11 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		}
 
 		int congetstionControlTimeout = Integer
-		.parseInt(configurationProperties.getProperty(
-				"gov.nist.javax.sip.CONGESTION_CONTROL_TIMEOUT",
-		"8000"));
+				.parseInt(configurationProperties.getProperty(
+				"gov.nist.javax.sip.CONGESTION_CONTROL_TIMEOUT", "8000"));
 		super.setStackCongestionControlTimeout(congetstionControlTimeout);
 
-		String tcpTreadPoolSize = configurationProperties
-		.getProperty("gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE");
-		if (tcpTreadPoolSize != null) {
-			try {
-				int threads = Integer.valueOf(tcpTreadPoolSize).intValue();
-				super.setTcpPostParsingThreadPoolSize(threads);
-				PostParseExecutorServices.setPostParseExcutorSize(this, threads, congetstionControlTimeout);
-			} catch (NumberFormatException ex) {
-				if (logger.isLoggingEnabled())
-					logger.logError(
-							"TCP post-parse thread pool size - bad value " + tcpTreadPoolSize + " : " + ex.getMessage());
-			}
-		}
-
+		
 		String serverTransactionTableSize = configurationProperties
 				.getProperty("gov.nist.javax.sip.MAX_SERVER_TRANSACTIONS");
 		if (serverTransactionTableSize != null) {
@@ -1466,9 +1451,6 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		super.setConnectionLingerTimer(Integer.parseInt(configurationProperties.getProperty(
 				"gov.nist.javax.sip.LINGER_TIMER", "8")));
 		
-		super.setSeparateAffinitityExecutorSipTimerThreadPool(Integer.parseInt(configurationProperties.getProperty(
-				"gov.nist.javax.sip.SEPARATE_AFFINITITY_EXECUTOR_SIP_TIMER_THREADS", "8")));
-
 		super.isBackToBackUserAgent = Boolean
 				.parseBoolean(configurationProperties.getProperty(
 						"gov.nist.javax.sip.IS_BACK_TO_BACK_USER_AGENT",
@@ -1529,9 +1511,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 				.logError(
 						"Bad configuration value for gov.nist.javax.sip.NIO_BLOCKING_MODE=" + nioMode, e);
 		}
-
-
-
+		
 		String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",MobiusSipTimer.class.getName());
 		try {
 			setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
@@ -1864,7 +1844,6 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 			this.eventScanner.forceStop();
 		
 		this.eventScanner = null;
-		PostParseExecutorServices.shutdownThreadpool();
 	}
 
 	/*

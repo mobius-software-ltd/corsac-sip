@@ -34,7 +34,6 @@ import javax.sip.TimeoutEvent;
 import javax.sip.TransactionTerminatedEvent;
 
 import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.parser.PostParseExecutorServices;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.ScenarioHarness;
 
@@ -96,10 +95,10 @@ public class ReInviteTCPPostParserThreadPoolTest extends ScenarioHarness impleme
     }
 
     public void testSendInvite() throws Exception {
-        int threads = 32;
-        PostParseExecutorServices.setPostParseExcutorSize((SipStackImpl) getRiProtocolObjects().sipStack, threads, 10000);
-        ((SipStackImpl)getRiProtocolObjects().sipStack).setTcpPostParsingThreadPoolSize(threads);
-        ((SipStackImpl)getTiProtocolObjects().sipStack).setTcpPostParsingThreadPoolSize(threads);
+        // int threads = 32;
+        // PostParseExecutorServices.setPostParseExcutorSize((SipStackImpl) getRiProtocolObjects().sipStack, threads, 10000);
+        // ((SipStackImpl)getRiProtocolObjects().sipStack).setTcpPostParsingThreadPoolSize(threads);
+        // ((SipStackImpl)getTiProtocolObjects().sipStack).setTcpPostParsingThreadPoolSize(threads);
         getRiProtocolObjects().start();        
         getTiProtocolObjects().start();
                    

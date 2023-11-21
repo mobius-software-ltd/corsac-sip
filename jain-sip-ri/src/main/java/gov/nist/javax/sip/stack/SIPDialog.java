@@ -77,6 +77,8 @@ import javax.sip.header.TimeStampHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.mobius.software.common.dal.timers.Task;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogLevels;
@@ -411,9 +413,10 @@ public class SIPDialog implements DialogExt {
      * ACK for the previous re-INVITE has been sent before sending the next
      * re-INVITE.
      */
-    public class ReInviteSender implements Runnable, Serializable {
+    public class ReInviteSender implements Task, Serializable {
         private static final long serialVersionUID = 1019346148741070635L;
         ClientTransaction ctx;
+        long startTime = System.currentTimeMillis();
 
         public void terminate() {
             try {
@@ -436,7 +439,8 @@ public class SIPDialog implements DialogExt {
             }
         }
 
-        public void run() {
+        @Override
+        public void execute() {
             try {
                 long timeToWait = 0;
                 long startTime = System.currentTimeMillis();
@@ -526,6 +530,11 @@ public class SIPDialog implements DialogExt {
             } finally {
                 this.ctx = null;
             }
+        }
+
+        @Override
+        public long getStartTime() {
+            return startTime;
         }
     }
 
@@ -2667,7 +2676,7 @@ public class SIPDialog implements DialogExt {
         	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
         		logger.logDebug("SIPDialog::sendRequest " + this + " clientTransaction = " + clientTransaction);
         	}
-            sipStack.getReinviteExecutor().execute(
+            sipStack.getExecutorService().offerLast(
                     (new ReInviteSender(clientTransaction)));
             return;
         }        

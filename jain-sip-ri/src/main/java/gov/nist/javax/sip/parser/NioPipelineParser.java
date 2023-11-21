@@ -28,6 +28,11 @@
  ******************************************************************************/
 package gov.nist.javax.sip.parser;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
@@ -39,11 +44,6 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.stack.ConnectionOrientedMessageChannel;
 import gov.nist.javax.sip.stack.QueuedMessageDispatchBase;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.ParseException;
 
 /**
  * This is a FSM that can parse a single stream of messages with they bodies and 
@@ -98,7 +98,7 @@ public class NioPipelineParser {
 		}
 	}
 	
-    public class Dispatch implements ThreadAffinityTask, QueuedMessageDispatchBase{
+    public class Dispatch implements ThreadAffinityTask, QueuedMessageDispatchBase {
     	String callId;
         UnparsedMessage unparsedMessage;
     	long time;
@@ -167,6 +167,14 @@ public class NioPipelineParser {
         public String getThreadHash() {
             return callId;
         }
+		@Override
+		public void execute() {
+			run();
+		}
+		@Override
+		public long getStartTime() {
+			return time;
+		}
     };
 	
 	public void close() {
@@ -285,7 +293,7 @@ public class NioPipelineParser {
 			message = new StringBuilder();
 			final byte[] msgBodyBytes = messageBody;			
 			
-			if(sipStack.getSelfRoutingThreadpoolExecutor() != null) {
+			if(sipStack.getExecutorService() != null) {
 				final String callId = this.callId;
 				if(callId == null || callId.trim().length() < 1) {
 					// http://code.google.com/p/jain-sip/issues/detail?id=18
@@ -293,7 +301,7 @@ public class NioPipelineParser {
 					throw new IOException("received message with no Call-ID");
 				}
                                                                                 
-                sipStack.getSelfRoutingThreadpoolExecutor().execute(new Dispatch(new UnparsedMessage(msgLines, msgBodyBytes), callId)); // run in executor thread
+                sipStack.getExecutorService().offerLast(new Dispatch(new UnparsedMessage(msgLines, msgBodyBytes), callId)); // run in executor thread
 			} else {
 				SIPMessage sipMessage = null;
 				

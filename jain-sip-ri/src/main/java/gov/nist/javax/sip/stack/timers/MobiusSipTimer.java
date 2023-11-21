@@ -19,7 +19,6 @@
 package gov.nist.javax.sip.stack.timers;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 import com.mobius.software.common.dal.timers.PeriodicQueuedTasks;
 import com.mobius.software.common.dal.timers.Timer;
@@ -36,7 +35,7 @@ import gov.nist.javax.sip.stack.SIPStackTimerTask;
  *
  */
 public class MobiusSipTimer implements SipTimer {
-	private static StackLogger logger = CommonLogger.getLogger(ScheduledExecutorSipTimer.class);	
+	private static StackLogger logger = CommonLogger.getLogger(MobiusSipTimer.class);	
 
 	protected SipStackImpl sipStackImpl;
 	private PeriodicQueuedTasks<Timer> periodicQueue;	
@@ -56,7 +55,7 @@ public class MobiusSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
 	public boolean schedule(SIPStackTimerTask task, long delay) {
-		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(task, delay);
+		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay);
 		task.setSipTimerTask(timerTask);
 		periodicQueue.store(timerTask.getRealTimestamp(),timerTask); 		
 		
@@ -69,7 +68,7 @@ public class MobiusSipTimer implements SipTimer {
 	 */
 	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
-		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(task, delay, period);
+		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay, period);
 		task.setSipTimerTask(timerTask);
 		periodicQueue.store(timerTask.getRealTimestamp(),timerTask); 		
 
@@ -104,65 +103,6 @@ public class MobiusSipTimer implements SipTimer {
 	public void setPeriodicQueue(PeriodicQueuedTasks<Timer> periodicQueue) {
 		this.periodicQueue = periodicQueue;
 	}	
-
-	private class MobiusSipTimerTask implements Timer {
-		private SIPStackTimerTask task;
-		private long startTime;
-		private AtomicLong timestamp;
-		private AtomicLong period;
-
-		public MobiusSipTimerTask(SIPStackTimerTask task, long timeout) {
-			this.task = task;	
-			this.startTime=System.currentTimeMillis();
-			this.timestamp = new AtomicLong(System.currentTimeMillis() + timeout);		
-			this.period = new AtomicLong(-1);
-		}
-
-		public MobiusSipTimerTask(SIPStackTimerTask task, long timeout, long period) {
-			this.task = task;	
-			this.startTime=System.currentTimeMillis();
-			this.timestamp = new AtomicLong(System.currentTimeMillis() + timeout);		
-			this.period = new AtomicLong(period);
-		}
-		
-		@Override
-		public void execute() {
-			if(timestamp.get()<Long.MAX_VALUE) {
-				try {
-					// task can be null if it has been cancelled
-					if(task != null) {
-						Thread.currentThread().setName(task.getTaskName());
-						task.runTask();
-					}
-				} catch (Throwable e) {
-					System.out.println("SIP stack timer task failed due to exception:");
-					e.printStackTrace();
-				}
-				if(period.get() > 0) {
-					timestamp.set(System.currentTimeMillis() + period.get());
-					periodicQueue.store(timestamp.get(),this); 
-				}
-			}
-		}
-
-		@Override
-		public long getStartTime() 
-		{
-			return startTime;
-		}
-
-		@Override
-		public Long getRealTimestamp() 
-		{
-			return timestamp.get();
-		}
-
-		@Override
-		public void stop() 
-		{
-			timestamp.set(Long.MAX_VALUE);
-		}			
-	}
 
 	/*
 	 * (non-Javadoc)

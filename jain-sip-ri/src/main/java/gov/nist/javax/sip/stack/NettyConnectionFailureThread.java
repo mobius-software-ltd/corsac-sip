@@ -18,18 +18,29 @@
  */
 package gov.nist.javax.sip.stack;
 
+import com.mobius.software.common.dal.timers.Task;
+
 /**
  * Thread that triggers the connection failure event on the message channel 
  * 
  * @author Jean Deruelle
  */
-public class NettyConnectionFailureThread implements Runnable {
+public class NettyConnectionFailureThread implements Task {
 	NettyStreamMessageChannel messageChannel;
+	long startTime;
+
 	public NettyConnectionFailureThread(NettyStreamMessageChannel messageChannel) {
 		this.messageChannel = messageChannel;
+		startTime = System.currentTimeMillis();
 	}
 
-	public void run() {
+	@Override
+	public void execute() {
 		messageChannel.triggerConnectFailure();
+	}
+
+	@Override
+	public long getStartTime() {
+		return startTime;
 	}
 }

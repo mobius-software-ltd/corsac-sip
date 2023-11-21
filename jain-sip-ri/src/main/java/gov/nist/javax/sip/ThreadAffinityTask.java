@@ -1,5 +1,7 @@
 package gov.nist.javax.sip;
 
+import com.mobius.software.common.dal.timers.Task;
+
 /**
  * All tasks that requires to be under ConcurrenyControlMode have to extend
  * this interface so they can be assigned to proper thread.
@@ -10,6 +12,6 @@ package gov.nist.javax.sip;
  * The afinnity object will be added to MDC vars automatically behind the scenes.
  * 
  */
-public interface ThreadAffinityTask extends Runnable, ThreadAffinityIdentifier{
+public interface ThreadAffinityTask extends Task, ThreadAffinityIdentifier{
 
 }
