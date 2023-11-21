@@ -1,9 +1,8 @@
 package tools.tracesviewer;
 
-import java.util.*;
-import java.io.*;
+import java.util.Vector;
 
-public class TracesSessions extends Vector<TracesSession> implements Serializable {
+public class TracesSessions extends Vector<TracesSession> {
 	private static final long serialVersionUID = 1L;
 
 	protected String name = null;

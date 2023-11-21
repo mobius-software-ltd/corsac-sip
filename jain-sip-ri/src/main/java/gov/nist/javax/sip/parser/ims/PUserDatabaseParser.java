@@ -26,6 +26,7 @@ package gov.nist.javax.sip.parser.ims;
 */
 
 import java.text.ParseException;
+
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.ims.PUserDatabase;
 import gov.nist.javax.sip.parser.Lexer;
@@ -48,7 +49,7 @@ import gov.nist.javax.sip.parser.TokenTypes;
  * Eg: P-User-Database: <aaa://host.example.com;transport=tcp>
  *
  */
-public class PUserDatabaseParser extends ParametersParser implements TokenTypes{
+public class PUserDatabaseParser extends ParametersParser {
 
     /**
      *

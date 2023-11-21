@@ -310,7 +310,8 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
         String key = messageChannel.getKey();
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Caching " + key + " value " + messageChannel);
-        NettyStreamMessageChannel previousChannel = messageChannels.putIfAbsent(key, messageChannel);
+        // NettyStreamMessageChannel previousChannel = 
+            messageChannels.putIfAbsent(key, messageChannel);
         // FIXME: should we close the channel here ? This is making the testsuite fail with Netty
         // if (previousChannel != null) {
             // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))

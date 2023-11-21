@@ -83,7 +83,6 @@ import gov.nist.javax.sip.parser.TokenTypes;
 
 public class PAccessNetworkInfoParser
     extends HeaderParser
-    implements TokenTypes
 {
 
     public PAccessNetworkInfoParser(String accessNetwork) {

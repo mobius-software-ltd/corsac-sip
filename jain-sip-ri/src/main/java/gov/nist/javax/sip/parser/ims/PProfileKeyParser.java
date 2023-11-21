@@ -25,6 +25,7 @@ package gov.nist.javax.sip.parser.ims;
 *
 */
 import java.text.ParseException;
+
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.ims.PProfileKey;
 import gov.nist.javax.sip.parser.AddressParametersParser;
@@ -37,7 +38,7 @@ import gov.nist.javax.sip.parser.TokenTypes;
  * Rancore Technologies Pvt Ltd, Mumbai India.
  *
  */
-public class PProfileKeyParser extends AddressParametersParser implements TokenTypes{
+public class PProfileKeyParser extends AddressParametersParser {
 
     protected PProfileKeyParser(Lexer lexer) {
         super(lexer);

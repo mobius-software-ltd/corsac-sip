@@ -25,7 +25,9 @@ package gov.nist.javax.sip.parser.ims;
 *
 */
 import java.text.ParseException;
+
 import javax.sip.InvalidArgumentException;
+
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.ims.PAssertedService;
 import gov.nist.javax.sip.header.ims.ParameterNamesIms;
@@ -42,7 +44,7 @@ import gov.nist.javax.sip.parser.TokenTypes;
  * P-Asserted-Service: urn:urn-7:3gpp-service.exampletelephony.version1
  *
  */
-public class PAssertedServiceParser extends HeaderParser implements TokenTypes{
+public class PAssertedServiceParser extends HeaderParser {
 
     protected PAssertedServiceParser(Lexer lexer) {
         super(lexer);

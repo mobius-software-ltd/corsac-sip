@@ -29,6 +29,8 @@
 
 package gov.nist.javax.sip.parser.ims;
 
+import java.text.ParseException;
+
 import gov.nist.core.Token;
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.ims.PVisitedNetworkID;
@@ -36,8 +38,6 @@ import gov.nist.javax.sip.header.ims.PVisitedNetworkIDList;
 import gov.nist.javax.sip.parser.Lexer;
 import gov.nist.javax.sip.parser.ParametersParser;
 import gov.nist.javax.sip.parser.TokenTypes;
-
-import java.text.ParseException;
 
 /**
  * P-Visited-Network-ID header parser.
@@ -58,7 +58,7 @@ import java.text.ParseException;
 
  */
 
-public class PVisitedNetworkIDParser extends ParametersParser implements TokenTypes {
+public class PVisitedNetworkIDParser extends ParametersParser {
 
     /**
      * Constructor

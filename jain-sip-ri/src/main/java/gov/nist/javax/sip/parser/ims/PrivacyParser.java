@@ -30,6 +30,8 @@
 
 package gov.nist.javax.sip.parser.ims;
 
+import java.text.ParseException;
+
 /**
  * Privacy header parser.
  *
@@ -40,24 +42,19 @@ package gov.nist.javax.sip.parser.ims;
  * Privacy-hdr  =  "Privacy" HCOLON priv-value *(";" priv-value)
  * priv-value   =   "header" / "session" / "user" / "none" / "critical" / token
  */
-
-import gov.nist.core.*;
+import gov.nist.core.Token;
 import gov.nist.javax.sip.header.SIPHeader;
-import gov.nist.javax.sip.parser.Lexer;
-import gov.nist.javax.sip.parser.TokenTypes;
-import gov.nist.javax.sip.parser.HeaderParser;
-
-import java.text.ParseException;
-
 import gov.nist.javax.sip.header.ims.Privacy;
 import gov.nist.javax.sip.header.ims.PrivacyList;
 import gov.nist.javax.sip.header.ims.SIPHeaderNamesIms;
+import gov.nist.javax.sip.parser.HeaderParser;
+import gov.nist.javax.sip.parser.Lexer;
+import gov.nist.javax.sip.parser.TokenTypes;
 
 
 
 public class PrivacyParser
-    extends HeaderParser
-    implements TokenTypes
+    extends HeaderParser    
 {
 
 

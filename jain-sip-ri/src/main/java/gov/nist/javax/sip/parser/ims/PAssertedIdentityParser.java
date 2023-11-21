@@ -29,17 +29,15 @@
 
 package gov.nist.javax.sip.parser.ims;
 
-import gov.nist.javax.sip.parser.Lexer;
-import gov.nist.javax.sip.parser.TokenTypes;
-
 import java.text.ParseException;
 
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.ims.PAssertedIdentity;
 import gov.nist.javax.sip.header.ims.PAssertedIdentityList;
 import gov.nist.javax.sip.header.ims.SIPHeaderNamesIms;
-
 import gov.nist.javax.sip.parser.AddressParametersParser;
+import gov.nist.javax.sip.parser.Lexer;
+import gov.nist.javax.sip.parser.TokenTypes;
 
 /**
  * @author ALEXANDRE MIGUEL SILVA SANTOS
@@ -47,7 +45,7 @@ import gov.nist.javax.sip.parser.AddressParametersParser;
 
 public class PAssertedIdentityParser
     extends AddressParametersParser
-    implements TokenTypes{
+{
 
     /**
      * Constructor

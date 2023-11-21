@@ -1,9 +1,9 @@
 package tools.tracesviewer;
 
-import java.util.*;
-import java.io.*;
+import java.util.Iterator;
+import java.util.Vector;
 
-public class TracesSession extends Vector<TracesMessage> implements Serializable {
+public class TracesSession extends Vector<TracesMessage> {
 	private static final long serialVersionUID = 1L;
 
 	protected String logDescription = null;

@@ -43,7 +43,7 @@ import gov.nist.javax.sip.parser.TokenTypes;
  * P-Preferred-Service: urn:urn-7:3gpp-service.exampletelephony.version1
  *
  */
-public class PPreferredServiceParser extends HeaderParser implements TokenTypes{
+public class PPreferredServiceParser extends HeaderParser {
 
     protected PPreferredServiceParser(Lexer lexer) {
         super(lexer);

@@ -29,6 +29,8 @@
 
 package gov.nist.javax.sip.parser.ims;
 
+import java.text.ParseException;
+
 import gov.nist.core.NameValue;
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.ims.PChargingVector;
@@ -37,8 +39,6 @@ import gov.nist.javax.sip.parser.Lexer;
 import gov.nist.javax.sip.parser.ParametersParser;
 import gov.nist.javax.sip.parser.TokenTypes;
 
-import java.text.ParseException;
-
 /**
  * P-Charging-Vector header parser.
  *
@@ -46,7 +46,7 @@ import java.text.ParseException;
  */
 
 public class PChargingVectorParser
-extends ParametersParser implements TokenTypes {
+extends ParametersParser {
 
     public PChargingVectorParser(String chargingVector) {
 
