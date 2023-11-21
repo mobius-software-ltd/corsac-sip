@@ -35,15 +35,12 @@ import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.security.GeneralSecurityException;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
@@ -89,6 +86,7 @@ import gov.nist.javax.sip.stack.SIPEventInterceptor;
 import gov.nist.javax.sip.stack.SIPMessageValve;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.timers.DefaultSipTimer;
+import gov.nist.javax.sip.stack.timers.MobiusSipTimer;
 import gov.nist.javax.sip.stack.timers.SipTimer;
 
 /**
@@ -1525,7 +1523,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 
 
 
-		String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",DefaultSipTimer.class.getName());
+		String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",MobiusSipTimer.class.getName());
 		try {
 			setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
 			getTimer().start(this);

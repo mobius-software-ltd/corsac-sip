@@ -3546,4 +3546,12 @@ public abstract class SIPTransactionStack implements
 	public void setReleaseReferencesStrategy(ReleaseReferencesStrategy releaseReferencesStrategy) {
 		this.releaseReferencesStrategy = releaseReferencesStrategy;
 	}
+
+    /**
+     * 
+     * @return the threadPoolSize
+     */
+    public int getThreadPoolSize() {
+        return threadPoolSize;
+    }
 }

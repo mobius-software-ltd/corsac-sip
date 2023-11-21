@@ -32,6 +32,11 @@
 			<artifactId>log4j-api</artifactId>
 		</dependency>   
         <dependency>
+            <groupId>com.mobius-software</groupId>
+            <artifactId>mobius-timers</artifactId>
+            <version>${version.mobius-timers}</version>
+        </dependency>
+        <dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
             <version>${version.netty}</version>
