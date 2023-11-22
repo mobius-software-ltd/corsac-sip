@@ -150,6 +150,7 @@ public class Shootist implements SipListener {
         logger.info("transaction state is " + tid.getState());
         logger.info("Dialog = " + tid.getDialog());
         logger.info("Dialog State is " + tid.getDialog().getState());
+        logger.info("PRACK Triggered received " + prackTriggerReceived);
         SipProvider provider = (SipProvider) responseReceivedEvent.getSource();
         dialog = tid.getDialog();
 
@@ -161,10 +162,10 @@ public class Shootist implements SipListener {
                     dialog.sendAck(ackRequest);
                 }
 
-            } else if ( response.getStatusCode() == Shootme.PRACK_CODE) {
-                prackTriggerReceived = true;
+            } else if ( response.getStatusCode() == Shootme.PRACK_CODE) {                
                 RequireHeader requireHeader = (RequireHeader) response.getHeader(RequireHeader.NAME);
-                if ( requireHeader.getOptionTag().equalsIgnoreCase("100rel")) {
+                if (!prackTriggerReceived && requireHeader.getOptionTag().equalsIgnoreCase("100rel")) {
+                    prackTriggerReceived = true;
                     Dialog dialog = tid.getDialog();
                     Request prackRequest = dialog.createPrack(response);
                     // create Request URI
