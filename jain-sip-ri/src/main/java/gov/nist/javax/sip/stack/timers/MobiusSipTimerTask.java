@@ -76,6 +76,8 @@ public class MobiusSipTimerTask implements Timer {
 
     @Override
     public void stop() {
+        // Making sure we stop both one shot and periodic timers
         timestamp.set(Long.MAX_VALUE);
+        period.set(-1);
     }
 }

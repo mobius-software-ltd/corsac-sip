@@ -318,17 +318,20 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	}
 
 	protected void writeMessage(ByteBuf message) throws IOException {
-		if(sipStack.nioMode.equals(NIOMode.BLOCKING)) {
-			try {
-				ChannelFuture future = channel.writeAndFlush(message).sync();
-				if (future.isSuccess() == false) {
-					throw new IOException("Failed to send message " + message.toString());
-				}	
-			} catch (InterruptedException e) {
-				logger.logError("Failed to reconnect ", e);					
-				throw new IOException(e);
-			}
-		} else {			
+		// Commenting Blocking mode as it creates deadlock 
+		// when sync() is called from the listener from channelhandler
+		// You MUST NOT call ChannelFuture.sync() in your ChannelHandler.
+		// if(sipStack.nioMode.equals(NIOMode.BLOCKING)) {
+		// 	try {
+		// 		ChannelFuture future = channel.writeAndFlush(message).sync();
+		// 		if (future.isSuccess() == false) {
+		// 			throw new IOException("Failed to send message " + message.toString());
+		// 		}	
+		// 	} catch (InterruptedException e) {
+		// 		logger.logError("Failed to reconnect ", e);					
+		// 		throw new IOException(e);
+		// 	}
+		// } else {			
 			ChannelFuture future = channel.writeAndFlush(message);
 			final NettyStreamMessageChannel current = this;
 			future.addListener(new ChannelFutureListener() {
@@ -346,7 +349,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					}							
 				}
 			});				
-		}
+		// }
 	}
 
 	/**
