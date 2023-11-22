@@ -18,7 +18,7 @@ def build() {
 }
 
 def publishTestsuiteResults() {
-    // junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
+    junit testResults: '**/target/surefire-reports/*.xml', keepLongStdio: true, allowEmptyResults: true//, testDataPublishers: [[$class: 'StabilityTestDataPublisher']]
     /**recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
     recordIssues enabledForFailure: true, tool: checkStyle()
     recordIssues enabledForFailure: true, tool: spotBugs()*/    
