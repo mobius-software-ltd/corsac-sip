@@ -40,6 +40,18 @@ import org.apache.logging.log4j.core.config.Configuration;
 import test.tck.msgflow.callflows.ScenarioHarness;
 
 /**
+ * Shootist send INVITE
+ * Shootme receives INVITE and sends OK
+ * Shootist receives OK and sends ACK. 
+ * Shootist sends re-INVITE
+ * Shootme receives re-INVITE and sends OK
+ * Shootist receives OK and sends ACK. 
+ * Shootme receives ACK and sends re-INVITE
+ * Shootist receives re-INVITE and sends OK
+ * Shootme receives OK and sends ACK
+ * Shootist receives ACK and sends BYE
+ * Shootme receives BYE and sends 200 OK
+ * 
  * @author M. Ranganathan
  *
  */

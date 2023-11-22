@@ -57,6 +57,9 @@ public class MobiusSipTimer implements SipTimer {
 	public boolean schedule(SIPStackTimerTask task, long delay) {
 		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay);
 		task.setSipTimerTask(timerTask);
+		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+			logger.logDebug("Scheduling timer  " + task + " with delay " + delay);
+		}
 		periodicQueue.store(timerTask.getRealTimestamp(),timerTask); 		
 		
 		return true;
@@ -70,6 +73,9 @@ public class MobiusSipTimer implements SipTimer {
 			long period) {
 		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay, period);
 		task.setSipTimerTask(timerTask);
+		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + " and period " + period);
+		}
 		periodicQueue.store(timerTask.getRealTimestamp(),timerTask); 		
 
 		return true;

@@ -2516,8 +2516,8 @@ public class SIPDialog implements DialogExt {
             cseq.setSeqNumber(getLocalSeqNumber() + 1);
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug(
-                        "SIPDialog::createRequest:setting Request Seq Number to " + cseq.getSeqNumber());
-
+                        "SIPDialog::createRequest:setting Request " + method + " Seq Number to " + cseq.getSeqNumber());
+                logger.logStackTrace();
             }
         } catch (InvalidArgumentException ex) {
             InternalErrorHandler.handleException(ex);

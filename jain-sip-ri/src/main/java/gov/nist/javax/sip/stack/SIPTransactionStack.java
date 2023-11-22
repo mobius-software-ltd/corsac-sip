@@ -1608,6 +1608,10 @@ public abstract class SIPTransactionStack implements
 
                 }
                 // Creating a new server tx. May fail under heavy load.
+                if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug(
+                            "No transaction found " + currentTransaction + " Creating new server transaction for request " + requestReceived);
+                }
                 currentTransaction = createServerTransaction(requestMessageChannel);
                 if (currentTransaction != null) {
                     // currentTransaction.setPassToListener();

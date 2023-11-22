@@ -653,6 +653,13 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                              * retransmitted ACK for 200 OK responses to the
                              * listener.
                              */
+                            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                                logger.logDebug("sipStack.isDeliverRetransmittedAckToListener:" +
+                                    sipStack.isDeliverRetransmittedAckToListener() + 
+                                    ", sipStack.isNon2XXAckPassedToListener:" +
+                                    sipStack.isNon2XXAckPassedToListener() + 
+                                    ", ackTransaction:" + ackTransaction);
+                            }
                             if ((!sipStack
                                     .isDeliverRetransmittedAckToListener())
                                     || (ackTransaction != null && !sipStack
