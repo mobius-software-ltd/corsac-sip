@@ -1,0 +1,34 @@
+@startuml Netty Datagram Oriented Transport Protocol Response Sending
+!includeurl https://raw.githubusercontent.com/RestComm/design/master/telestax-style.plantuml!0
+
+autonumber
+Application -> MessageFactoryImpl : createResponse
+Application -> RequestEvent : getServerTransaction(request)
+Application -> SipProviderImpl : if previous is null\ngetNewServerTransaction(request)
+SipProviderImpl -> SipStackImpl : acquireSem()
+SipProviderImpl -> SipProviderImpl : findTransaction
+SipProviderImpl -> SipStackImpl : createServerTransaction(request.MessageChannel)
+SipStackImpl -> SipServerTransactionImpl : new
+SipServerTransactionImpl -> SipServerTransactionImpl : setMessageChannel
+SipProviderImpl -> SipStackImpl : releaseSem()
+Application -> SipServerTransactionImpl : sendResponse(response)
+SipServerTransactionImpl -> SipServerTransactionImpl : checkHeaders    
+alt re-INVITE case
+    SipServerTransactionImpl -> SipDialog : acquireSem()
+end
+SipServerTransactionImpl -> SipServerTransactionImpl : sendMessage    
+SipServerTransactionImpl -> SipServerTransactionImpl : sendResponse 
+SipServerTransactionImpl -> SipStack : createRawMessageChannel 
+SipStackImpl -> NettyDatagramMessageProcessor : createMessageChannel(hostPort)
+NettyDatagramMessageProcessor -> NettyDatagramMessageProcessor : select one of the Netty Channels from the pool
+NettyDatagramMessageProcessor -> NettyDatagramMessageChannel : new
+SipTransactionImpl -> NettyDatagramMessageChannel : sendMessage 
+NettyDatagramMessageChannel -> NettyDatagramMessageChannel : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
+alt external procesing case
+    NettyDatagramMessageChannel -> NettyDatagramMessageChannel : processMessage done in a\nThread through a ThreadPoolExecutor 
+else internal processing case
+    NettyDatagramMessageChannel -> Channel : writeAndFlush(msg ByteBuf)
+end
+SipServerTransactionImpl -> SipServerTransactionImpl : startTransactionTimer    
+SipServerTransactionImpl -> SipDialog : startRetransmitTimer    
+@enduml
