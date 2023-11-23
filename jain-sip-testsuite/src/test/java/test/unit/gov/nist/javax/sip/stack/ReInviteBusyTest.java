@@ -309,23 +309,18 @@ public class ReInviteBusyTest extends TestCase {
         }
 
         public void processAck(RequestEvent requestEvent, ServerTransaction serverTransaction) {
-            SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-            try {
+            // SipProvider sipProvider = (SipProvider) requestEvent.getSource();
+            // try {
                 logger.info("shootme: got an ACK " + requestEvent.getRequest());
 
                /* int ackCount = ((ApplicationData) dialog.getApplicationData()).ackCount;*/
 
-                dialog = inviteTid.getDialog();
-                Thread.sleep(2000);
-                logger.info("shootme is sending RE INVITE now");
-                System.out.println("Got an ACK " );
-                this.reInviteCount++;
-                this.sendReInvite(sipProvider);
-            } catch (Exception ex) {
-                String s = "Unexpected error";
-                logger.error(s, ex);
-                ReInviteBusyTest.fail(s);
-            }
+                
+            // } catch (Exception ex) {
+            //     String s = "Unexpected error";
+            //     logger.error(s, ex);
+            //     ReInviteBusyTest.fail(s);
+            // }
         }
 
         /**
@@ -343,7 +338,7 @@ public class ReInviteBusyTest extends TestCase {
                 if (st == null) {
                     st = sipProvider.getNewServerTransaction(request);
                     logger.info("Server transaction created!" + request);
-
+                
                     System.out.println("Dialog = " + st.getDialog());
                     if (st.getDialog().getApplicationData() == null) {
                         st.getDialog().setApplicationData(new ApplicationData());
@@ -354,9 +349,9 @@ public class ReInviteBusyTest extends TestCase {
                     // If Server transaction is not null, then
                     // this is a re-invite.
                 	System.out.println("Dialog = " + st.getDialog());
-                       
-                    logger.info("This is a RE INVITE ");
-                    this.reInviteCount++;
+                    this.reInviteCount++;   
+                    logger.info("This is a RE INVITE " + reInviteCount);
+                    
                     ReInviteBusyTest.assertSame("Dialog mismatch ", st.getDialog(), this.dialog);
                     finalResponse = Response.BUSY_HERE;
                 }
@@ -394,6 +389,15 @@ public class ReInviteBusyTest extends TestCase {
                 st.sendResponse(response);
                 logger.info("TxState after sendResponse = " + st.getState());
                 this.inviteTid = st;
+
+                dialog = inviteTid.getDialog();
+                if(this.reInviteCount >= 1) {
+                    Thread.sleep(2000);                
+                    // System.out.println("Got an ACK for RE-INVITE" );
+                    logger.info("shootme is sending RE INVITE now");
+                    this.reInviteCount++;
+                    this.sendReInvite(sipProvider);
+                }
             } catch (Exception ex) {
                 String s = "unexpected exception";
 
