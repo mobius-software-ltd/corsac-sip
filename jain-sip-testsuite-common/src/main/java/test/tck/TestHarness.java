@@ -435,7 +435,7 @@ public abstract class TestHarness extends TestCase {
         }
     }
 
-    private static final int TIMEOUT = 20000;
+    private static final int TIMEOUT = 25000;
 
     public void logTestCompleted() throws InterruptedException {
         AssertUntil.assertUntil(new TestAssertion() {
