@@ -130,9 +130,9 @@ public class Shootist implements SipListener {
         }
     }
 
-    public void processResponse(ResponseEvent responseReceivedEvent) {
-        logger.info("Got a response");
+    public void processResponse(ResponseEvent responseReceivedEvent) {        
         Response response = (Response) responseReceivedEvent.getResponse();
+        logger.info("Got a response: " + response);
         ClientTransaction tid = responseReceivedEvent.getClientTransaction();
         CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 

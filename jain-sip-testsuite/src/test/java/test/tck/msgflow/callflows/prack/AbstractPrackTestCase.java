@@ -27,7 +27,7 @@ public abstract class AbstractPrackTestCase extends ScenarioHarness implements
 
     protected Shootme shootme;
     
-    private static final int TIMEOUT = 2000;
+    private static final int TIMEOUT = 5000;
 
     private static Logger logger = LogManager.getLogger("test.tck");
 

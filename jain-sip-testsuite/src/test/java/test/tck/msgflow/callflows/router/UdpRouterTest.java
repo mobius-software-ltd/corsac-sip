@@ -19,7 +19,13 @@
 */
 package test.tck.msgflow.callflows.router;
 
-
+/**
+ * Shootist sends INVITE
+ * Shootme receives INVITE and sends 100 Trying then 200 OK
+ * Shootist receives 200 OK and sends ACK.
+ * Shootme receives ACK and sends BYE.
+ * Shootist receives BYE and sends OK.
+ */
 public class UdpRouterTest extends AbstractRouterTestCase {
     //boolean myFlag;
     public void setUp() throws Exception {
