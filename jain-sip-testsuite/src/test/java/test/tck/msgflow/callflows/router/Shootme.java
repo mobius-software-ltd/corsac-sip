@@ -129,7 +129,7 @@ public class Shootme implements SipListener {
         SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
         try {
-            logger.info("shootme: got an Invite sending Trying");
+            logger.info("inviteReceived:" + inviteReceived + ", shootme: got an Invite sending Trying");
             // logger.info("shootme: " + request);
             Response response = messageFactory.createResponse(Response.TRYING,
                     request);
@@ -234,6 +234,7 @@ public class Shootme implements SipListener {
             
             @Override
             public boolean assertCondition() {
+                logger.info("Shootme: inviteReceived=" + inviteReceived);
                 return inviteReceived;
             }
         };

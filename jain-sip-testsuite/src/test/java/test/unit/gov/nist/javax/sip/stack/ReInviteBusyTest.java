@@ -86,8 +86,7 @@ import test.tck.msgflow.callflows.TestAssertion;
 /**
  * Shootist send INVITE
  * Shootme receives INVITE and sends OK
- * Shootist receives OK and sends ACK. 
- * Shootist sends re-INVITE
+ * Shootist receives OK and sends ACK and re-INVITE. 
  * Shootme receives ACK and sends re-INVITE
  * Shootme receives re-INVITE and sends 486 Busy
  * Shootist receives re-INVITE and sends 486 Busy

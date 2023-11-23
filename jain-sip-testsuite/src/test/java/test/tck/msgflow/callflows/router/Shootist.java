@@ -146,16 +146,16 @@ public class Shootist implements SipListener {
             ServerTransaction serverTransactionId) {
         try {
             logger.info("shootist:  got a bye .");
+            this.gotBye = true;
             if (serverTransactionId == null) {
                 logger.info("shootist:  null TID.");
                 return;
             }
             Dialog dialog = serverTransactionId.getDialog();
             logger.info("Dialog State = " + dialog.getState());
-            Response response = messageFactory.createResponse(200, request);
-            this.gotBye = true;
-            serverTransactionId.sendResponse(response);
-            logger.info("shootist:  Sending OK.");
+            logger.info("gotBye: " + gotBye + ", shootist:  Sending OK.");
+            Response response = messageFactory.createResponse(200, request);                        
+            serverTransactionId.sendResponse(response);            
             logger.info("Dialog State = " + dialog.getState());
 
         } catch (Exception ex) {
@@ -190,7 +190,7 @@ public class Shootist implements SipListener {
                 if (cseq.getMethod().equals(Request.INVITE)) {
                     this.gotInviteOK = true;
                     Request ackRequest = dialog.createAck(cseq.getSeqNumber());
-                    logger.info("Sending ACK");
+                    logger.info("gotInviteOK:" + gotInviteOK + ", Sending ACK");
                     dialog.sendAck(ackRequest);                    
                 }
             }
@@ -318,6 +318,7 @@ public class Shootist implements SipListener {
 
             @Override
             public boolean assertCondition() {
+                logger.info("Shootist: gotBye=" + gotBye + ", gotInviteOK=" + gotInviteOK);
                 return gotBye && gotInviteOK;
             }
         };
