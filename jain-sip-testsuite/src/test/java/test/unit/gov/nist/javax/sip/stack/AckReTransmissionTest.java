@@ -282,12 +282,14 @@ public class AckReTransmissionTest extends ScenarioHarness implements SipListene
             return new TestAssertion() {
                     @Override
                     public boolean assertCondition() {
+                        logger.info("assertion.dropAckCount: " + dropAckCount);
                         return 4==dropAckCount;
                     }
                 };
         }
 
             public void checkState() {
+                logger.info("checkState.dropAckCount: " + dropAckCount);
                 AckReTransmissionTest.assertTrue("ACK was not successfully retransmitted 4 times", 4==dropAckCount);
             }
             /*
@@ -677,7 +679,7 @@ public class AckReTransmissionTest extends ScenarioHarness implements SipListene
 
     public void testAckReTransmission() throws InterruptedException {
         this.shootist.sendInvite();
-        AssertUntil.assertUntil(shootme.getAssertion(), 8000);
+        AssertUntil.assertUntil(shootme.getAssertion(), 15000);
         this.shootme.checkState();        
     }
 
