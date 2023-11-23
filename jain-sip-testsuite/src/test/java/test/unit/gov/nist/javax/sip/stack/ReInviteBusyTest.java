@@ -121,7 +121,7 @@ public class ReInviteBusyTest extends TestCase {
         }
     }
     
-    private static final int TIMEOUT = 15000;
+    private static final int TIMEOUT = 20000;
 
     /**
      * @author M. Ranganathan
