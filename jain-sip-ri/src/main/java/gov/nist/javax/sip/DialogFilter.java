@@ -993,8 +993,9 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     && lastTransaction.getState() != TransactionState.TERMINATED)
                      {
                 if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
-                	logger.logDebug("DialogFilter::processRequest:lastTransaction.getState(): " + lastTransaction.getState() +       
-                                    " Sending 491 response for clientTx.");
+                	logger.logDebug("DialogFilter::processRequest:lastTransaction " + lastTransaction 
+                                    + ", getState(): " + lastTransaction.getState() 
+                                    + ", Sending 491 response for clientTx.");
                 }
                 this.sendRequestPendingResponse(sipRequest, transaction);
                 return;
