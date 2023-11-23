@@ -490,6 +490,10 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
             if (lastTransaction != null
                     && sipProvider.isDialogErrorsAutomaticallyHandled()) {               
                 final String lastTransactionMethod = lastTransaction.getMethod();
+                if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                    logger.logDebug("lastTransaction: " + lastTransaction + 
+                        ", state: " + lastTransaction.getInternalState());
+                }
                 if (lastTransaction instanceof SIPServerTransaction) {
                     // Handle Pseudo State Trying on Server Transaction
                     if ((lastTransaction.getInternalState() == TransactionState._PROCEEDING
