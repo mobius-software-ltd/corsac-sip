@@ -298,6 +298,8 @@ public class Shootme  implements SipListener {
 
     public void checkState() {
         ApplicationData data = (ApplicationData) dialog.getApplicationData();
+        logger.info("data AckCountr:" + data.ackCount + 
+                ", okRecieved:" + okRecieved);
         ReInviteTest.assertTrue(data.ackCount == 1);
         ReInviteTest.assertTrue(okRecieved);
     }
