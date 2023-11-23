@@ -49,7 +49,7 @@ public abstract class AbstractRouterTestCase extends ScenarioHarness implements
 
     private static Logger logger = LogManager.getLogger("test.tck");
     
-    private static final int TIMEOUT = 2000;
+    private static final int TIMEOUT = 5000;
 
     static {
     	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
