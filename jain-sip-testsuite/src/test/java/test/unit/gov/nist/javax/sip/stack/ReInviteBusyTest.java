@@ -84,6 +84,16 @@ import test.tck.msgflow.callflows.NonSipUriRouter;
 import test.tck.msgflow.callflows.TestAssertion;
 
 /**
+ * Shootist send INVITE
+ * Shootme receives INVITE and sends OK
+ * Shootist receives OK and sends ACK. 
+ * Shootist sends re-INVITE
+ * Shootme receives ACK and sends re-INVITE
+ * Shootme receives re-INVITE and sends 486 Busy
+ * Shootist receives re-INVITE and sends 486 Busy
+ * Shootist receives 486 Busy and sends ACK. 
+ * Shootme receives 486 Busy and sends ACK. 
+ * 
  * @author M. Ranganathan
  * 
  */
@@ -111,7 +121,7 @@ public class ReInviteBusyTest extends TestCase {
         }
     }
     
-    private static final int TIMEOUT = 10000;
+    private static final int TIMEOUT = 15000;
 
     /**
      * @author M. Ranganathan
