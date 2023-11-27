@@ -22,17 +22,24 @@ SipStackImpl -> SipStackImpl : createClientTransaction(tx, msgChannel)
 SipStackImpl -> SipClientTransactionImpl : new
 SipClientTransactionImpl -> SipClientTransactionImpl : setMessageChannel
 Application -> SipClientTransactionImpl : sendRequest(request)
-SipClientTransactionImpl -> SipClientTransactionImpl : checkHeaders    
-alt re-INVITE case
-    SipClientTransactionImpl -> SipDialog : acquireSem()
-end
-SipClientTransactionImpl -> SipClientTransactionImpl : sendMessage    
+SipClientTransactionImpl -> SipClientTransactionImpl : checkHeaders 
+
+SipClientTransactionImpl -> OutgoingMessageProcessingTask : new
+NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
+NettyMessageHandler -> MessageProcessorQueue : offer first task to the queue
+
+MessageProcessor -> OutgoingMessageProcessingTask : pull task from queue
+MessageProcessor -> OutgoingMessageProcessingTask : run task
+
+OutgoingMessageProcessingTask -> SipClientTransactionImpl : sendMessage    
 SipClientTransactionImpl -> SipClientTransactionImpl : update FSM and timers
 SipClientTransactionImpl -> SipTransactionImpl : sendMessage
 SipTransactionImpl -> SipTransactionImpl : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
-alt external procesing case
-    SipTransactionImpl -> NettyStreamMessageChannel : processMessage done in a\nThread through a ThreadPoolExecutor 
-else internal processing case
+alt internal processing case
+    SipTransactionImpl -> IncomingMessageProcessingTask : new
+    NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
+    NettyMessageHandler -> MessageProcessorQueue : offer last task to the queue    
+else external processing case
     SipTransactionImpl -> NettyStreamMessageChannel : sendMessage     
     NettyStreamMessageChannel -> SIPMessage: encodeAsBytes
     NettyStreamMessageChannel -> NettyStreamMessageChannel: sendTCPMessage
@@ -44,12 +51,8 @@ else internal processing case
     else channel active
         NettyStreamMessageChannel -> NettyStreamMessageChannel : writeMessage(msg ByteBuf)        
     end    
-    alt BlockingMode
-        NettyStreamMessageChannel -> Channel : write(msg ByteBuf) sync
-    else NonBlockingMode
-        NettyStreamMessageChannel -> Channel : write(msg ByteBuf) async
-        Channel -> ChannelFutureListener : operationComplete
-        ChannelFutureListener -> ChannelFutureListener : if not successful trigger IOException async
-    end    
+    NettyStreamMessageChannel -> Channel : write(msg ByteBuf) async
+    Channel -> ChannelFutureListener : operationComplete
+    ChannelFutureListener -> ChannelFutureListener : if not successful trigger IOException async    
 end
 @enduml

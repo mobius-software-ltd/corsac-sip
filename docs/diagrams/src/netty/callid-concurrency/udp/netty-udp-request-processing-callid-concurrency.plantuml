@@ -6,16 +6,30 @@ actor UAC
 
 UAC -> Socket : INVITE
 group Netty EventLoop Thread
-    Socket -> Channel : DatagramPacket
-    Channel -> NettyDatagramMessageDecoder : decode(DatagramPacket)
-    NettyDatagramMessageDecoder -> NettyMessageParser : new
-    NettyDatagramMessageDecoder -> NettyMessageParser : parseBytes(ByteBuf) \n all SIP Messages \n from the ByteBuf
-    NettyDatagramMessageDecoder -> ChannelInboundHandler : consume all SIP Messages \n decoded by the Parser \n and pass them upstream
-    ChannelInboundHandler -> NettyMessageHandler : channelRead(SIPMessage)
-    NettyMessageHandler -> NettyDatagramMessageProcessor : createMessageChannel
-    NettyDatagramMessageProcessor -> NettyDatagramMessageChannel : new Datagram Channel
-    NettyMessageHandler -> SIPEventInterceptor : beforeMessage(SIPMessage)
-    NettyMessageHandler -> NettyDatagramMessageChannel : processMessage(SIPMessage)
+    alt message from network case
+        Socket -> Channel : DatagramPacket
+        Channel -> NettyDatagramMessageDecoder : decode(DatagramPacket)
+        NettyDatagramMessageDecoder -> NettyMessageParser : new
+        NettyDatagramMessageDecoder -> NettyMessageParser : parseBytes(ByteBuf) \n all SIP Messages \n from the ByteBuf
+        NettyDatagramMessageDecoder -> ChannelInboundHandler : consume all SIP Messages \n decoded by the Parser \n and pass them upstream
+        ChannelInboundHandler -> NettyMessageHandler : channelRead(SIPMessage)
+        NettyMessageHandler -> NettyDatagramMessageProcessor : createMessageChannel
+        NettyDatagramMessageProcessor -> NettyDatagramMessageChannel : new Datagram Channel
+
+        NettyMessageHandler -> IncomingMessageProcessingTask : new
+        NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
+        NettyMessageHandler -> MessageProcessorQueue : offer last last task to the queue        
+    else message self routing case
+        SipTransactionImpl -> IncomingMessageProcessingTask : new
+        NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
+        NettyMessageHandler -> MessageProcessorQueue : offer last task to the queue    
+    end 
+end
+group MessageProcessor Thread        
+    MessageProcessor -> IncomingMessageProcessingTask : pull task from queue
+    MessageProcessor -> IncomingMessageProcessingTask : run task
+    IncomingMessageProcessingTask -> SIPEventInterceptor : beforeMessage(SIPMessage)
+    IncomingMessageProcessingTask -> NettyDatagramMessageChannel : processMessage(SIPMessage)
     NettyDatagramMessageChannel -> NettyDatagramMessageChannel : check message validity and RPort
     NettyDatagramMessageChannel -> NettyDatagramMessageChannel : processSIPMessage(SIPMessage)
     NettyDatagramMessageChannel -> SIPTransactionStack : newSIPServerRequest
@@ -26,9 +40,6 @@ group Netty EventLoop Thread
     SIPTransactionStack -> NISTSIPMessageFactoryImpl : newSIPServerRequest 
     NISTSIPMessageFactoryImpl -> DialogFilter : new
     SIPTransactionStack -> SIPServerTransaction : setRequestInterface(DialogFilter)) 
-    SIPTransactionStack -> SIPServerTransaction : acquireSem()
-    SIPServerTransaction -> TransactionSemaphore : acquire()
-    TransactionSemaphore -> ReentrantLock : lock() or tryLock(MILLIS) \n depending on the listener timeout
     SIPTransactionStack -> NettyDatagramMessageChannel : send 100 Trying \n (if INVITE already being processed)
     NettyDatagramMessageChannel -> SIPServerTransaction : processRequest
     SIPServerTransaction -> SIPServerTransaction : update FSM state
@@ -39,10 +50,7 @@ group Netty EventLoop Thread
     DialogFilter -> SipProviderImpl : handleEvent
     SipProviderImpl -> EventWrapper : new
     SipProviderImpl -> EventScanner : deliverEvent(EventWrapper) \n if reentrant listener
-    EventScanner -> SIPListener : processRequest    
-    NettyDatagramMessageChannel -> SIPServerTransaction : releaseSem()
-    SIPServerTransaction -> TransactionSemaphore : release()
-    TransactionSemaphore -> ReentrantLock : unlock()    
+    EventScanner -> SIPListener : processRequest        
     NettyMessageHandler -> SIPEventInterceptor : afterMessage(SIPMessage)
 end
 @enduml

@@ -12,10 +12,15 @@ SipStackImpl -> SipServerTransactionImpl : new
 SipServerTransactionImpl -> SipServerTransactionImpl : setMessageChannel
 SipProviderImpl -> SipStackImpl : releaseSem()
 Application -> SipServerTransactionImpl : sendResponse(response)
+
+SipServerTransactionImpl -> OutgoingMessageProcessingTask : new
+NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
+NettyMessageHandler -> MessageProcessorQueue : offer first task to the queue
+MessageProcessor -> OutgoingMessageProcessingTask : pull task from queue
+MessageProcessor -> OutgoingMessageProcessingTask : run task
+
+OutgoingMessageProcessingTask -> SipServerTransactionImpl : sendResponse(response)    
 SipServerTransactionImpl -> SipServerTransactionImpl : checkHeaders    
-alt re-INVITE case
-    SipServerTransactionImpl -> SipDialog : acquireSem()
-end
 SipServerTransactionImpl -> SipServerTransactionImpl : sendMessage    
 SipServerTransactionImpl -> SipServerTransactionImpl : sendResponse 
 SipServerTransactionImpl -> SipStack : createRawMessageChannel 
@@ -24,9 +29,11 @@ NettyDatagramMessageProcessor -> NettyDatagramMessageProcessor : select one of t
 NettyDatagramMessageProcessor -> NettyDatagramMessageChannel : new
 SipTransactionImpl -> NettyDatagramMessageChannel : sendMessage 
 NettyDatagramMessageChannel -> NettyDatagramMessageChannel : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
-alt external procesing case
-    NettyDatagramMessageChannel -> NettyDatagramMessageChannel : processMessage done in a\nThread through a ThreadPoolExecutor 
-else internal processing case
+alt internal processing case
+    NettyDatagramMessageChannel -> IncomingMessageProcessingTask : new
+    NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
+    NettyMessageHandler -> MessageProcessorQueue : offer last task to the queue    
+else external processing case
     NettyDatagramMessageChannel -> Channel : writeAndFlush(msg ByteBuf)
 end
 SipServerTransactionImpl -> SipServerTransactionImpl : startTransactionTimer    

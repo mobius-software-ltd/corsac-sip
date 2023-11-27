@@ -2676,7 +2676,7 @@ public class SIPDialog implements DialogExt {
         	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
         		logger.logDebug("SIPDialog::sendRequest " + this + " clientTransaction = " + clientTransaction);
         	}
-            sipStack.getExecutorService().offerLast(
+            sipStack.getExecutorService().offerFirst(
                     (new ReInviteSender(clientTransaction)));
             return;
         }        

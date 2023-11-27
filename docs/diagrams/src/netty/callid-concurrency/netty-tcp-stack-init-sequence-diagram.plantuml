@@ -1,0 +1,29 @@
+@startuml Netty Stream Oriented Transport Protocols Initialization Process
+!includeurl https://raw.githubusercontent.com/RestComm/design/master/telestax-style.plantuml!0
+
+autonumber
+
+Application -> SIPFactory : createSipStack
+SIPFactory -> SIPStackImpl : new
+SIPStackImpl -> WorkerPool : new
+SIPStackImpl -> WorkerPool : start(sipStack.threadPoolSize)
+SIPStackImpl -> ConcurrentHashMap : new(sipStack.threadPoolSize)
+loop sipStack.threadPoolSize times
+    SIPStackImpl -> CountableQueue : new(sipStack.threadPoolSize)
+end
+SIPStackImpl -> EventScanner : new
+Application -> SIPStackImpl : createListeningPoint
+SIPStackImpl -> NettyMessageProcessorFactory : createMessageProcessor
+NettyMessageProcessorFactory -> NettyStreamMessageProcessor : new
+NettyStreamMessageProcessor -> bossGroup : new (1) \n used for incoming messages
+NettyStreamMessageProcessor -> workerGroup : new (sipStack.threadPoolSize) \n used for incoming messages
+NettyStreamMessageProcessor -> messageChannels : new ConcurrentHashMap(sipStack.threadPoolSize) \n used for outgoing messages
+NettyStreamMessageProcessor -> sslContext : sslContexts Creation
+SIPStackImpl -> NettyStreamMessageProcessor : start
+NettyStreamMessageProcessor -> ServerBootstrap : new with bossGroup\n and workerGroup
+NettyStreamMessageProcessor -> ServerBootstrap : bind
+NettyStreamMessageProcessor -> NettyStreamChannelInitializer : new
+NettyStreamChannelInitializer -> NettyStreamMessageDecoder : new
+NettyStreamChannelInitializer -> ReadTimeoutHandler : new
+NettyStreamChannelInitializer -> NettyMessageHandler : new
+@enduml

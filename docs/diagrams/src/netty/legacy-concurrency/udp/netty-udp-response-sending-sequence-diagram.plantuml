@@ -24,9 +24,9 @@ NettyDatagramMessageProcessor -> NettyDatagramMessageProcessor : select one of t
 NettyDatagramMessageProcessor -> NettyDatagramMessageChannel : new
 SipTransactionImpl -> NettyDatagramMessageChannel : sendMessage 
 NettyDatagramMessageChannel -> NettyDatagramMessageChannel : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
-alt external procesing case
+alt internal processing case
     NettyDatagramMessageChannel -> NettyDatagramMessageChannel : processMessage done in a\nThread through a ThreadPoolExecutor 
-else internal processing case
+else external processing case
     NettyDatagramMessageChannel -> Channel : writeAndFlush(msg ByteBuf)
 end
 SipServerTransactionImpl -> SipServerTransactionImpl : startTransactionTimer    

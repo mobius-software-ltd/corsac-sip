@@ -26,9 +26,9 @@ SipClientTransactionImpl -> SipClientTransactionImpl : sendMessage
 SipClientTransactionImpl -> SipClientTransactionImpl : update FSM and timers
 SipClientTransactionImpl -> SipTransactionImpl : sendMessage
 SipTransactionImpl -> SipTransactionImpl : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
-alt external procesing case
+alt internal processing case
     SipTransactionImpl -> NettyDatagramMessageChannel : processMessage done in a\nThread through a ThreadPoolExecutor 
-else internal processing case
+else external processing case
     SipTransactionImpl -> NettyDatagramMessageChannel : sendMessage     
     NettyDatagramMessageChannel -> Channel : writeAndFlush(msg ByteBuf)    
 end

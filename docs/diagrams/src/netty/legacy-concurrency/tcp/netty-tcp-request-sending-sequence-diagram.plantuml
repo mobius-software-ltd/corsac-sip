@@ -30,9 +30,9 @@ SipClientTransactionImpl -> SipClientTransactionImpl : sendMessage
 SipClientTransactionImpl -> SipClientTransactionImpl : update FSM and timers
 SipClientTransactionImpl -> SipTransactionImpl : sendMessage
 SipTransactionImpl -> SipTransactionImpl : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
-alt external procesing case
+alt internal processing case
     SipTransactionImpl -> NettyStreamMessageChannel : processMessage done in a\nThread through a ThreadPoolExecutor 
-else internal processing case
+else external processing case
     SipTransactionImpl -> NettyStreamMessageChannel : sendMessage     
     NettyStreamMessageChannel -> SIPMessage: encodeAsBytes
     NettyStreamMessageChannel -> NettyStreamMessageChannel: sendTCPMessage
@@ -44,12 +44,8 @@ else internal processing case
     else channel active
         NettyStreamMessageChannel -> NettyStreamMessageChannel : writeMessage(msg ByteBuf)        
     end    
-    alt BlockingMode
-        NettyStreamMessageChannel -> Channel : write(msg ByteBuf) sync
-    else NonBlockingMode
-        NettyStreamMessageChannel -> Channel : write(msg ByteBuf) async
-        Channel -> ChannelFutureListener : operationComplete
-        ChannelFutureListener -> ChannelFutureListener : if not successful trigger IOException async
-    end    
+    NettyStreamMessageChannel -> Channel : write(msg ByteBuf) async
+    Channel -> ChannelFutureListener : operationComplete
+    ChannelFutureListener -> ChannelFutureListener : if not successful trigger IOException async    
 end
 @enduml
