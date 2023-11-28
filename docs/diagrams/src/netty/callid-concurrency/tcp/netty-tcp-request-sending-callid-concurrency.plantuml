@@ -2,57 +2,58 @@
 !includeurl https://raw.githubusercontent.com/RestComm/design/master/telestax-style.plantuml!0
 
 autonumber
-actor UAC
 
-Application -> MessageFactoryImpl : createRequest
-Application -> SipProviderImpl : getNewClientTransaction(request)
-SipProviderImpl -> SipStackImpl : getNextHop(request)
-SipProviderImpl -> SipProviderImpl : createClientTransaction(request, hop)
-SipProviderImpl -> SipStackImpl : addClientTransaction(tx)
-SipProviderImpl -> SipStackImpl : findListeningPoint()
-SipProviderImpl -> SipStackImpl : createMessageChannel(request,\nlisteningPoint.messageprocessor, hop)
-SipStackImpl -> NettyStreamMessageProcessor : createMessageChannel(hostPort)
-NettyStreamMessageProcessor -> NettyStreamMessageProcessor : construcMessageChannel(hostPort)
-NettyStreamMessageProcessor -> NettyStreamMessageChannel : new
-NettyStreamMessageChannel -> Bootstrap : new
-NettyStreamMessageChannel -> EventLoop : new (with new default thread pool)
-NettyStreamMessageChannel -> NettyStreamChannelInitializer: new
-NettyStreamMessageChannel -> NettyConnectionListener: new
-SipStackImpl -> SipStackImpl : createClientTransaction(tx, msgChannel)
-SipStackImpl -> SipClientTransactionImpl : new
-SipClientTransactionImpl -> SipClientTransactionImpl : setMessageChannel
-Application -> SipClientTransactionImpl : sendRequest(request)
-SipClientTransactionImpl -> SipClientTransactionImpl : checkHeaders 
+group MessageProcessorExecutor WorkerThread        
+    Application -> MessageFactoryImpl : createRequest
+    Application -> SipProviderImpl : getNewClientTransaction(request)
+    SipProviderImpl -> SipStackImpl : getNextHop(request)
+    SipProviderImpl -> SipProviderImpl : createClientTransaction(request, hop)
+    SipProviderImpl -> SipStackImpl : addClientTransaction(tx)
+    SipProviderImpl -> SipStackImpl : findListeningPoint()
+    SipProviderImpl -> SipStackImpl : createMessageChannel(request,\nlisteningPoint.messageprocessor, hop)
+    SipStackImpl -> NettyStreamMessageProcessor : createMessageChannel(hostPort)
+    NettyStreamMessageProcessor -> NettyStreamMessageProcessor : construcMessageChannel(hostPort)
+    NettyStreamMessageProcessor -> NettyStreamMessageChannel : new
+    NettyStreamMessageChannel -> Bootstrap : new
+    NettyStreamMessageChannel -> EventLoop : new (with new default thread pool)
+    NettyStreamMessageChannel -> NettyStreamChannelInitializer: new
+    NettyStreamMessageChannel -> NettyConnectionListener: new
+    SipStackImpl -> SipStackImpl : createClientTransaction(tx, msgChannel)
+    SipStackImpl -> SipClientTransactionImpl : new
+    SipClientTransactionImpl -> SipClientTransactionImpl : setMessageChannel
+    Application -> SipClientTransactionImpl : sendRequest(request)
+    SipClientTransactionImpl -> SipClientTransactionImpl : checkHeaders 
 
-SipClientTransactionImpl -> OutgoingMessageProcessingTask : new
-NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
-NettyMessageHandler -> MessageProcessorQueue : offer first task to the queue
+    SipClientTransactionImpl -> OutgoingMessageProcessingTask : new
+    SipClientTransactionImpl -> MessageProcessorExecutor : addTaskFirst
+end
 
-MessageProcessor -> OutgoingMessageProcessingTask : pull task from queue
-MessageProcessor -> OutgoingMessageProcessingTask : run task
+group MessageProcessorExecutor WorkerThread        
+    MessageProcessorExecutor -> MessageProcessorExecutor : pull task from queue
+    MessageProcessorExecutor -> OutgoingMessageProcessingTask : execute
 
-OutgoingMessageProcessingTask -> SipClientTransactionImpl : sendMessage    
-SipClientTransactionImpl -> SipClientTransactionImpl : update FSM and timers
-SipClientTransactionImpl -> SipTransactionImpl : sendMessage
-SipTransactionImpl -> SipTransactionImpl : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
-alt internal processing case
-    SipTransactionImpl -> IncomingMessageProcessingTask : new
-    NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
-    NettyMessageHandler -> MessageProcessorQueue : offer last task to the queue    
-else external processing case
-    SipTransactionImpl -> NettyStreamMessageChannel : sendMessage     
-    NettyStreamMessageChannel -> SIPMessage: encodeAsBytes
-    NettyStreamMessageChannel -> NettyStreamMessageChannel: sendTCPMessage
-    alt channel null or not active
-        NettyStreamMessageChannel -> nettyConnectionListener: addPendingMessage(byteBuf)
-        NettyStreamMessageChannel -> Boostrap: connect asynchronously
-        NettyConnectionListener -> NettyConnectionListener: operationComplete
-        NettyConnectionListener -> NettyStreamMessageChannel: writeMessage
-    else channel active
-        NettyStreamMessageChannel -> NettyStreamMessageChannel : writeMessage(msg ByteBuf)        
-    end    
-    NettyStreamMessageChannel -> Channel : write(msg ByteBuf) async
-    Channel -> ChannelFutureListener : operationComplete
-    ChannelFutureListener -> ChannelFutureListener : if not successful trigger IOException async    
+    OutgoingMessageProcessingTask -> SipClientTransactionImpl : sendMessage    
+    SipClientTransactionImpl -> SipClientTransactionImpl : update FSM and timers
+    SipClientTransactionImpl -> SipTransactionImpl : sendMessage
+    SipTransactionImpl -> SipTransactionImpl : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
+    alt internal processing case
+        SipTransactionImpl -> IncomingMessageProcessingTask : new
+        NettyMessageHandler -> MessageProcessorExecutor : addTaskLast
+    else external processing case
+        SipTransactionImpl -> NettyStreamMessageChannel : sendMessage     
+        NettyStreamMessageChannel -> SIPMessage: encodeAsBytes
+        NettyStreamMessageChannel -> NettyStreamMessageChannel: sendTCPMessage
+        alt channel null or not active
+            NettyStreamMessageChannel -> nettyConnectionListener: addPendingMessage(byteBuf)
+            NettyStreamMessageChannel -> Boostrap: connect asynchronously
+            NettyConnectionListener -> NettyConnectionListener: operationComplete
+            NettyConnectionListener -> NettyStreamMessageChannel: writeMessage
+        else channel active
+            NettyStreamMessageChannel -> NettyStreamMessageChannel : writeMessage(msg ByteBuf)        
+        end    
+        NettyStreamMessageChannel -> Channel : write(msg ByteBuf) async
+        Channel -> ChannelFutureListener : operationComplete
+        ChannelFutureListener -> ChannelFutureListener : if not successful trigger IOException async    
+    end
 end
 @enduml

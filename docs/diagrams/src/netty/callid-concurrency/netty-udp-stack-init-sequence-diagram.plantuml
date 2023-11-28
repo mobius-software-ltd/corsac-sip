@@ -7,7 +7,7 @@ Application -> SIPFactory : createSipStack
 SIPFactory -> SIPStackImpl : new
 SIPStackImpl -> WorkerPool : new
 SIPStackImpl -> WorkerPool : start(sipStack.threadPoolSize)
-SIPStackImpl -> ConcurrentHashMap : new(sipStack.threadPoolSize)
+SIPStackImpl -> MessageProcessorExecutor : start(sipStack.threadPoolSize)
 Application -> SIPStackImpl : createListeningPoint
 SIPStackImpl -> NettyMessageProcessorFactory : createMessageProcessor
 NettyMessageProcessorFactory -> NettyDatagramMessageProcessor : new

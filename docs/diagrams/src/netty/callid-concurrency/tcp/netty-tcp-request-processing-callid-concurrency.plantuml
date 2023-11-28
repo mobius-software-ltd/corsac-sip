@@ -18,17 +18,16 @@ group Netty EventLoop Thread
         NettyMessageHandler -> NettyMessageHandler : deal with RFC5626 keepalives
 
         NettyMessageHandler -> IncomingMessageProcessingTask : new
-        NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
-        NettyMessageHandler -> MessageProcessorQueue : offer last task to the queue
+        NettyMessageHandler -> MessageProcessorExecutor : addTaskLast        
     else message self routing case
         SipTransactionImpl -> IncomingMessageProcessingTask : new
-        NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
-        NettyMessageHandler -> MessageProcessorQueue : offer last task to the queue    
+        NettyMessageHandler -> MessageProcessorExecutor : addTaskLast        
     end 
 end
-group MessageProcessor Thread        
-    MessageProcessor -> IncomingMessageProcessingTask : pull task from queue
-    MessageProcessor -> IncomingMessageProcessingTask : run task
+group MessageProcessorExecutor WorkerThread        
+    MessageProcessorExecutor -> MessageProcessorExecutor : pull task from queue
+    MessageProcessorExecutor -> IncomingMessageProcessingTask : execute
+    
     IncomingMessageProcessingTask -> SIPEventInterceptor : beforeMessage(SIPMessage)
     IncomingMessageProcessingTask -> NettyStreamMessageChannel : processMessage(SIPMessage)
     NettyStreamMessageChannel -> NettyStreamMessageChannel : check message validity and RPort

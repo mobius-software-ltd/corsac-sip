@@ -2,40 +2,43 @@
 !includeurl https://raw.githubusercontent.com/RestComm/design/master/telestax-style.plantuml!0
 
 autonumber
-Application -> MessageFactoryImpl : createResponse
-Application -> RequestEvent : getServerTransaction(request)
-Application -> SipProviderImpl : if previous is null\ngetNewServerTransaction(request)
-SipProviderImpl -> SipStackImpl : acquireSem()
-SipProviderImpl -> SipProviderImpl : findTransaction
-SipProviderImpl -> SipStackImpl : createServerTransaction(request.MessageChannel)
-SipStackImpl -> SipServerTransactionImpl : new
-SipServerTransactionImpl -> SipServerTransactionImpl : setMessageChannel
-SipProviderImpl -> SipStackImpl : releaseSem()
-Application -> SipServerTransactionImpl : sendResponse(response)
+group MessageProcessorExecutor WorkerThread        
+    Application -> MessageFactoryImpl : createResponse
+    Application -> RequestEvent : getServerTransaction(request)
+    Application -> SipProviderImpl : if previous is null\ngetNewServerTransaction(request)
+    SipProviderImpl -> SipStackImpl : acquireSem()
+    SipProviderImpl -> SipProviderImpl : findTransaction
+    SipProviderImpl -> SipStackImpl : createServerTransaction(request.MessageChannel)
+    SipStackImpl -> SipServerTransactionImpl : new
+    SipServerTransactionImpl -> SipServerTransactionImpl : setMessageChannel
+    SipProviderImpl -> SipStackImpl : releaseSem()
+    Application -> SipServerTransactionImpl : sendResponse(response)
 
-SipServerTransactionImpl -> OutgoingMessageProcessingTask : new
-NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
-NettyMessageHandler -> MessageProcessorQueue : offer first task to the queue
-MessageProcessor -> OutgoingMessageProcessingTask : pull task from queue
-MessageProcessor -> OutgoingMessageProcessingTask : run task
-
-OutgoingMessageProcessingTask -> SipServerTransactionImpl : sendResponse(response)    
-SipServerTransactionImpl -> SipServerTransactionImpl : checkHeaders    
-SipServerTransactionImpl -> SipServerTransactionImpl : sendMessage    
-SipServerTransactionImpl -> SipServerTransactionImpl : sendResponse 
-SipServerTransactionImpl -> SipStack : createRawMessageChannel 
-SipStackImpl -> NettyDatagramMessageProcessor : createMessageChannel(hostPort)
-NettyDatagramMessageProcessor -> NettyDatagramMessageProcessor : select one of the Netty Channels from the pool
-NettyDatagramMessageProcessor -> NettyDatagramMessageChannel : new
-SipTransactionImpl -> NettyDatagramMessageChannel : sendMessage 
-NettyDatagramMessageChannel -> NettyDatagramMessageChannel : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
-alt internal processing case
-    NettyDatagramMessageChannel -> IncomingMessageProcessingTask : new
-    NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
-    NettyMessageHandler -> MessageProcessorQueue : offer last task to the queue    
-else external processing case
-    NettyDatagramMessageChannel -> Channel : writeAndFlush(msg ByteBuf)
+    SipServerTransactionImpl -> OutgoingMessageProcessingTask : new
+    SipServerTransactionImpl -> MessageProcessorExecutor : addTaskFirst    
 end
-SipServerTransactionImpl -> SipServerTransactionImpl : startTransactionTimer    
-SipServerTransactionImpl -> SipDialog : startRetransmitTimer    
+group MessageProcessorExecutor WorkerThread
+    MessageProcessorExecutor -> MessageProcessorExecutor : pull task from queue
+    MessageProcessorExecutor -> OutgoingMessageProcessingTask : execute
+
+    OutgoingMessageProcessingTask -> SipServerTransactionImpl : sendResponse(response)    
+    SipServerTransactionImpl -> SipServerTransactionImpl : checkHeaders    
+    SipServerTransactionImpl -> SipServerTransactionImpl : sendMessage    
+    SipServerTransactionImpl -> SipServerTransactionImpl : sendResponse 
+    SipServerTransactionImpl -> SipStack : createRawMessageChannel 
+    SipStackImpl -> NettyDatagramMessageProcessor : createMessageChannel(hostPort)
+    NettyDatagramMessageProcessor -> NettyDatagramMessageProcessor : select one of the Netty Channels from the pool
+    NettyDatagramMessageProcessor -> NettyDatagramMessageChannel : new
+    SipTransactionImpl -> NettyDatagramMessageChannel : sendMessage 
+    NettyDatagramMessageChannel -> NettyDatagramMessageChannel : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
+    alt internal processing case
+        NettyDatagramMessageChannel -> IncomingMessageProcessingTask : new
+        NettyMessageHandler -> MessageProcessorQueue : hash based on call id to one of the queues
+        NettyMessageHandler -> MessageProcessorQueue : offer last task to the queue    
+    else external processing case
+        NettyDatagramMessageChannel -> Channel : writeAndFlush(msg ByteBuf)
+    end
+    SipServerTransactionImpl -> SipServerTransactionImpl : startTransactionTimer    
+    SipServerTransactionImpl -> SipDialog : startRetransmitTimer    
+end
 @enduml
