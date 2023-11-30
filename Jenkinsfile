@@ -12,7 +12,7 @@ def build() {
             sh "mvn -B -f pom.xml -Dmaven.test.redirectTestOutputToFile=true clean install -P sctp"
         }
     } catch(err) {
-        publishResults()
+        publishTestsuiteResults()
         throw err
     }
 }
