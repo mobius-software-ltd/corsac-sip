@@ -50,7 +50,8 @@ public class Shootist extends TestHarness implements SipListener {
 
     private static Logger logger = LogManager.getLogger(Shootist.class);
 
-
+    private ViaHeader viaBye;
+    private ServerTransaction serverTransactionId;
 
     public void processRequest(RequestEvent requestReceivedEvent) {
         Request request = requestReceivedEvent.getRequest();
@@ -71,6 +72,7 @@ public class Shootist extends TestHarness implements SipListener {
             ServerTransaction serverTransactionId) {
         try {
             logger.info("shootist:  got a bye . ServerTxId = " + serverTransactionId);
+            this.serverTransactionId = serverTransactionId;
             this.byeReceived  = true;
             if (serverTransactionId == null) {
                 logger.info("shootist:  null TID.");
@@ -84,15 +86,8 @@ public class Shootist extends TestHarness implements SipListener {
                     200, request);
             serverTransactionId.sendResponse(response);
             logger.info("shootist:  Sending OK.");
-            logger.info("Dialog State = " + dialog.getState());
-            ViaHeader via = (ViaHeader) request.getHeader(ViaHeader.NAME);
-            if (via.getTransport().equalsIgnoreCase("UDP")) {
-                assertEquals("Check for Transaction State of Completed", TransactionState.COMPLETED,serverTransactionId.getState());
-            } else {
-                assertEquals("Check for Transaction State of Completed", TransactionState.TERMINATED,serverTransactionId.getState());
-            }
-            assertEquals("Check for Dialog state of terminated",DialogState.TERMINATED, dialog.getState() );
-
+            logger.info("Dialog State = " + dialog.getState());            
+            viaBye = (ViaHeader) request.getHeader(ViaHeader.NAME);
         } catch (Exception ex) {
             ex.printStackTrace();
             junit.framework.TestCase.fail("Exit JVM");
@@ -402,6 +397,13 @@ public class Shootist extends TestHarness implements SipListener {
     }
 
     public void checkState() {
+        
+        if (viaBye.getTransport().equalsIgnoreCase("UDP")) {
+                assertEquals("Check for Transaction State of Completed", TransactionState.COMPLETED,serverTransactionId.getState());
+        } else {
+                assertEquals("Check for Transaction State of Completed", TransactionState.TERMINATED,serverTransactionId.getState());
+        }
+        assertEquals("Check for Dialog state of terminated",DialogState.TERMINATED, dialog.getState() );
         //assertTrue(dialogTerminatedCount == dialogCount);
         logger.info("byeRecieved = " + this.byeReceived);
         logger.info("redirectRecieved" + this.redirectReceived);

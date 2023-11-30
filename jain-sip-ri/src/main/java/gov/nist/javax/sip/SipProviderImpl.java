@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
+import javax.sip.IOExceptionEvent;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
 import javax.sip.ObjectInUseException;
@@ -61,7 +62,9 @@ import javax.sip.message.Response;
 import gov.nist.core.CommonLogger;
 import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogLevels;
+import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
+import gov.nist.core.executor.Task;
 import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
 import gov.nist.javax.sip.address.RouterExt;
 import gov.nist.javax.sip.header.CallID;
@@ -175,13 +178,13 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
 
         EventWrapper eventWrapper = new EventWrapper(sipEvent, transaction);
 
-        if (!sipStack.isReEntrantListener()) {
-            // Run the event in the context of a single thread.
-            this.eventScanner.addEvent(eventWrapper);
-        } else {
+        // if (!sipStack.isReEntrantListener()) {
+        //     // Run the event in the context of a single thread.
+        //     this.eventScanner.addEvent(eventWrapper);
+        // } else {
             // just call the delivery method
             this.eventScanner.deliverEvent(eventWrapper);
-        }
+        // }
     }
 
     /** Creates a new instance of SipProviderImpl */
@@ -725,58 +728,9 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         if ((!sipRequest.isNullRequest()) && sipRequest.getTopmostVia() == null)
             throw new SipException("Invalid SipRequest -- no via header!");
 
-        try {
-            /*
-             * JvB: Via branch should already be OK, dont touch it here? Some
-             * apps forward statelessly, and then it's not set. So set only when
-             * not set already, dont overwrite CANCEL branch here..
-             */
-            if (!sipRequest.isNullRequest()) {
-                Via via = sipRequest.getTopmostVia();
-                String branch = via.getBranch();
-                if (branch == null || branch.length() == 0) {
-                    via.setBranch(sipRequest.getTransactionId());
-                }
-            }
-            MessageChannel messageChannel = null;
-            if (this.listeningPoints.containsKey(hop.getTransport()
-                    .toUpperCase())) {
-                messageChannel = sipStack.createRawMessageChannel(
-                        this.getListeningPoint(hop.getTransport()).getIPAddress(),
-                        this.getListeningPoint(hop.getTransport()).getPort(), hop);
-            }
-            
-            if (messageChannel != null) {
-                messageChannel.sendMessage((SIPMessage) sipRequest,hop);
-            } else {
-                if ( logger.isLoggingEnabled(LogLevels.TRACE_DEBUG) ) {
-                    logger.logDebug("Could not create a message channel for " + hop.toString() + " listeningPoints = " + this.listeningPoints);
-                }
-                throw new SipException(
-                        "Could not create a message channel for "
-                                + hop.toString());
-            }
-        } catch (IOException ex) {
-        	// not needed as we throw the exception below and it pollutes the logs
-//            if (logger.isLoggingEnabled()) {
-//                logger.logException(ex);
-//            }
-
-        	if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG) ) {
-        		logger.logDebug("Could not create a message channel for " + hop.toString() + " listeningPoints = " + this.listeningPoints + " because of an IO issue " + ex.getMessage());
-            }
-        	
-            throw new SipException(
-                    "IO Exception occured while Sending Request", ex);
-
-        } catch (ParseException ex1) {
-            InternalErrorHandler.handleException(ex1);
-        } finally {
-            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
-                logger.logDebug(
-                        "done sending " + request.getMethod() + " to hop "
-                                + hop);
-        }
+        SipProviderOutgoingRequestTask outgoingMessageProcessingTask = 
+            new SipProviderOutgoingRequestTask(sipRequest, hop);
+        sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
     }
 
     /*
@@ -825,30 +779,9 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         Hop hop = sipStack.getAddressResolver().resolveAddress(
                 new HopImpl(host, port, transport));
 
-        try {
-            ListeningPointImpl listeningPoint = (ListeningPointImpl) this
-                    .getListeningPoint(transport);
-            if (listeningPoint == null)
-                throw new SipException(
-                        "whoopsa daisy! no listening point found for transport "
-                                + transport);
-            MessageChannel messageChannel = sipStack.createRawMessageChannel(
-                    this.getListeningPoint(hop.getTransport()).getIPAddress(),
-                    listeningPoint.port, hop);
-            // Fix for https://github.com/RestComm/jain-sip/issues/133
-            if (messageChannel != null) {
-            	messageChannel.sendMessage(sipResponse);
-            } else {
-                if ( logger.isLoggingEnabled(LogLevels.TRACE_DEBUG) ) {
-                    logger.logDebug("Could not create a message channel for " + hop.toString() + " listeningPoints = " + this.listeningPoints);
-                }
-                throw new SipException(
-                        "Could not create a message channel for "
-                                + hop.toString());
-            }
-        } catch (IOException ex) {
-            throw new SipException(ex.getMessage());
-        }
+        SipProviderOutgoingResponseTask outgoingMessageProcessingTask = 
+            new SipProviderOutgoingResponseTask(sipResponse, hop);
+        sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
     }
 
     /*
@@ -1046,7 +979,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         }
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
             logger.logDebug(
-                    "Dialog TimeoutError occured on " + sipDialog);
+                    "Dialog TimeoutError occured on " + sipDialog + " with Reason " + reason);
         }
         DialogTimeoutEvent ev = new DialogTimeoutEvent(this, sipDialog, reason);
         ev.setClientTransaction(dialogErrorEvent.getClientTransaction());
@@ -1165,5 +1098,170 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         return sipListener;
     }
 
-   
+    public class SipProviderOutgoingRequestTask implements Task {
+        private final String taskName = SipProviderOutgoingRequestTask.class.getSimpleName();
+        private StackLogger logger = CommonLogger.getLogger(SipProviderOutgoingRequestTask.class);
+        private String id;
+        private long startTime;
+        private SIPRequest sipRequest;
+        private Hop hop;
+
+        public SipProviderOutgoingRequestTask(SIPRequest sipRequest, Hop hop) {
+            startTime = System.currentTimeMillis();
+            if(sipRequest.isNullRequest()) {
+                this.id = hop.toString();
+            } else {
+                this.id = sipRequest.getCallId().getCallId();
+            }
+            this.sipRequest = sipRequest;
+            this.hop = hop;
+        }
+
+        @Override
+        public void execute() {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("Executing task with id: " + id);
+            }
+
+            try {
+                /*
+                 * JvB: Via branch should already be OK, dont touch it here? Some
+                 * apps forward statelessly, and then it's not set. So set only when
+                 * not set already, dont overwrite CANCEL branch here..
+                 */
+                if (!sipRequest.isNullRequest()) {
+                    Via via = sipRequest.getTopmostVia();
+                    String branch = via.getBranch();
+                    if (branch == null || branch.length() == 0) {
+                        via.setBranch(sipRequest.getTransactionId());
+                    }
+                }
+                MessageChannel messageChannel = null;
+                if (listeningPoints.containsKey(hop.getTransport()
+                        .toUpperCase())) {
+                    messageChannel = sipStack.createRawMessageChannel(
+                            getListeningPoint(hop.getTransport()).getIPAddress(),
+                            getListeningPoint(hop.getTransport()).getPort(), hop);
+                }
+
+                if (messageChannel != null) {
+                    messageChannel.sendMessage((SIPMessage) sipRequest, hop);
+                } else {
+                    if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                        logger.logDebug("Could not create a message channel for " + hop.toString()
+                                + " listeningPoints = " + listeningPoints);
+                    }
+                    IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                    handleEvent(exceptionEvent, null);
+                }
+            } catch (IOException ex) {
+                // not needed as we throw the exception below and it pollutes the logs
+                // if (logger.isLoggingEnabled()) {
+                // logger.logException(ex);
+                // }
+
+                if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                    logger.logDebug("Could not create a message channel for " + hop.toString() + " listeningPoints = "
+                            + listeningPoints + " because of an IO issue " + ex.getMessage());
+                }
+
+                IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                handleEvent(exceptionEvent, null);
+            } catch (ParseException ex1) {
+                InternalErrorHandler.handleException(ex1);
+            } finally {
+                if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
+                    logger.logDebug(
+                            "done sending " + sipRequest.getMethod() + " to hop "
+                                    + hop);
+            }      
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public long getStartTime() {
+            return startTime;
+        }
+
+        @Override
+        public String getTaskName() {
+            return taskName;
+        }
+    }
+
+    public class SipProviderOutgoingResponseTask implements Task {
+        private final String taskName = SipProviderOutgoingResponseTask.class.getSimpleName();
+        private StackLogger logger = CommonLogger.getLogger(SipProviderOutgoingResponseTask.class);
+        private String id;
+        private long startTime;
+        private SIPResponse sipResponse;
+        private Hop hop;
+
+        public SipProviderOutgoingResponseTask(SIPResponse sipResponse, Hop hop) {
+            startTime = System.currentTimeMillis();
+            this.id = sipResponse.getCallId().getCallId();
+            this.sipResponse = sipResponse;
+            this.hop = hop;
+        }
+
+        @Override
+        public void execute() {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("Executing task with id: " + id);
+            }
+
+            try {
+                ListeningPointImpl listeningPoint = (ListeningPointImpl) getListeningPoint(hop.getTransport());
+                if (listeningPoint == null) {
+                    IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                    handleEvent(exceptionEvent, null);
+                    return;
+                    // throw new SipException(
+                    //         "whoopsa daisy! no listening point found for transport "
+                    //                 + hop.getTransport());
+                }
+                    
+                MessageChannel messageChannel = sipStack.createRawMessageChannel(
+                        getListeningPoint(hop.getTransport()).getIPAddress(),
+                        listeningPoint.port, hop);
+                // Fix for https://github.com/RestComm/jain-sip/issues/133
+                if (messageChannel != null) {
+                    messageChannel.sendMessage(sipResponse);
+                } else {
+                    if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                        logger.logDebug("Could not create a message channel for " + hop.toString()
+                                + " listeningPoints = " + listeningPoints);
+                    }
+                    IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                    handleEvent(exceptionEvent, null);
+                    // throw new SipException(
+                    //         "Could not create a message channel for "
+                    //                 + hop.toString());
+                }
+            } catch (IOException ex) {
+                IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                handleEvent(exceptionEvent, null);
+                // throw new SipException(ex.getMessage());
+            }
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public long getStartTime() {
+            return startTime;
+        }
+
+        @Override
+        public String getTaskName() {
+            return taskName;
+        }
+    }
 }

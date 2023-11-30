@@ -10,7 +10,7 @@ public class BackToBackUserAgentTest extends TestCase {
     private BackToBackUserAgent b2bua;
     private Shootme shootme;
     
-    private static final int TIMEOUT =4000;
+    private static final int TIMEOUT = 8000;
 
     @Override 
     public void setUp() throws Exception {

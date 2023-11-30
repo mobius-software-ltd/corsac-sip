@@ -31,6 +31,9 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import gov.nist.javax.sip.DialogTimeoutEvent;
 import gov.nist.javax.sip.ListeningPointExt;
 import gov.nist.javax.sip.SipListenerExt;
@@ -39,7 +42,7 @@ import test.tck.msgflow.callflows.ProtocolObjects;
 
 
 public class BackToBackUserAgent implements SipListenerExt {
-    
+    private static Logger logger = LogManager.getLogger(BackToBackUserAgent.class);
     private HashSet<Dialog> dialogs = new HashSet<Dialog>();
     private ListeningPoint[] listeningPoints = new ListeningPoint[2]; 
     private SipProvider[] providers = new SipProvider[2];
@@ -166,6 +169,7 @@ public class BackToBackUserAgent implements SipListenerExt {
         try {
             Response response = responseEvent.getResponse();
             Dialog dialog = responseEvent.getDialog();
+            logger.info("B2BUA - response: " + response + " received for dialog: " + dialog);
             this.lastResponseTable.put(dialog, response);
              ServerTransaction serverTransaction = (ServerTransaction)responseEvent.getClientTransaction().getApplicationData();
             Request stRequest = serverTransaction.getRequest();

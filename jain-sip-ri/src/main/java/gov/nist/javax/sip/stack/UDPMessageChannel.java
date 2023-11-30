@@ -158,7 +158,7 @@ public class UDPMessageChannel extends MessageChannel implements
         
         @Override
         public String getThreadHash() {
-            return null;
+            return this.toString();
         }         
 
         public void runTask() {

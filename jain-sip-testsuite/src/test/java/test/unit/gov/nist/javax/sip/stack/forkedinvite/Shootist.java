@@ -63,6 +63,8 @@ import test.tck.msgflow.callflows.TestAssertion;
 
 public class Shootist implements SipListener {
 
+    private static final int BYE_TIMEOUT = 4000;
+
     private ContactHeader contactHeader;
 
     private ClientTransaction inviteTid;
@@ -275,11 +277,11 @@ public class Shootist implements SipListener {
                             //  sleeping to see how it reacts with retrans
                             logger.info("Waiting to Send ACK");
                             Thread.sleep(1000);
-                            logger.info("Sending " + ackRequest);
+                            logger.info("Sending " + ackRequest + " for dialog " + dialog.getDialogId());
                             dialog.sendAck(ackRequest);
                             
                             if ( callerSendsBye ) {
-                                timer.schedule( new SendBye(ackedDialog), 2000  );
+                                timer.schedule( new SendBye(ackedDialog), BYE_TIMEOUT  );
                             }
                         } else {
                             TestCase.assertTrue("retransmission flag should be true",responseReceivedEvent.isRetransmission()); 

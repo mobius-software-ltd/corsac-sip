@@ -37,8 +37,9 @@ group MessageProcessorExecutor WorkerThread
     SipClientTransactionImpl -> SipTransactionImpl : sendMessage
     SipTransactionImpl -> SipTransactionImpl : loop through MessageProcessors\n and check if msg is aimed\nat the SIP Stack itself
     alt internal processing case
-        SipTransactionImpl -> IncomingMessageProcessingTask : new
-        NettyMessageHandler -> MessageProcessorExecutor : addTaskLast
+        SipTransactionImpl -> SIPTransactionStack : selfrouteMessage(SIPMessage)
+        SIPTransactionStack -> IncomingMessageProcessingTask : new
+        SIPTransactionStack -> MessageProcessorExecutor : addTaskLast
     else external processing case
         SipTransactionImpl -> NettyStreamMessageChannel : sendMessage     
         NettyStreamMessageChannel -> SIPMessage: encodeAsBytes

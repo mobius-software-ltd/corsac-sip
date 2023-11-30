@@ -31,5 +31,6 @@ public interface RawMessageChannel {
 
     public abstract void processMessage(SIPMessage sipMessage) throws Exception ;
     public String getTransport();
+    public SIPTransactionStack getSIPStack();  
 
 }

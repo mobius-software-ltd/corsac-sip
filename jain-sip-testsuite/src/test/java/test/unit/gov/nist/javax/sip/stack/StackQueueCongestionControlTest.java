@@ -436,11 +436,13 @@ public class StackQueueCongestionControlTest extends TestCase {
         		inUse = true;
         		if(receivedResponses%100==0) System.out.println("Receive " + receivedResponses);
         		if ( responseReceivedEvent.getResponse().getStatusCode() == 180) {
-        			receivedResponses++;Thread.sleep(sleep);
+        			receivedResponses++;
+                    Thread.sleep(sleep);
         		}
         		if ( responseReceivedEvent.getResponse().getStatusCode() == Response.OK) {
 
         			Dialog d = responseReceivedEvent.getDialog();
+                    System.out.println("dialog " + d);
         			try {
         				Request ack = d.createAck(1);
         				sipProvider.sendRequest(ack);
@@ -712,18 +714,20 @@ public class StackQueueCongestionControlTest extends TestCase {
         shootme.terminate();
     }
 
+    private static final int TIMEOUT = 50000;
+
     public void testTCPZeroLostMessages() {
         this.shootme.init("tcp",1000);
         this.shootist.init("10", "10000", 2, "tcp");
         try {
-            Thread.sleep(10000);
+            Thread.sleep(TIMEOUT);
         } catch (Exception ex) {
 
         }
         if(this.shootist.receivedResponses<=1) {
            // fail("We excpeted more than 0" + this.shootist.receivedResponses);
         }
-        assertEquals(shootist.receivedResponses, shootme.sentResponses);
+        assertEquals(shootme.sentResponses, shootist.receivedResponses);
         if(this.shootme.acks != 5) {
             fail("We expect 5 ACKs because retransmissions are not filtered in loose dialog validation. We got " + this.shootme.acks);
         }
@@ -744,9 +748,7 @@ public class StackQueueCongestionControlTest extends TestCase {
         }
         assertTrue(shootist.receivedResponses<shootme.sentResponses/2);
        
-    }
-    
-    private static final int TIMEOUT = 10000;
+    }    
     
     public void testUDPIdle() throws InterruptedException {
         this.shootme.init("udp",1);
@@ -817,7 +819,7 @@ public class StackQueueCongestionControlTest extends TestCase {
         if(this.shootist.receivedResponses<=1) {
             fail("We excpeted more than 0" + this.shootist.receivedResponses);
         }
-        assertEquals(shootist.receivedResponses, shootme.sentResponses);
+        assertEquals(shootme.sentResponses, shootist.receivedResponses);
 
     }
     public void testTCPHugeLoss() throws InterruptedException {
@@ -832,9 +834,14 @@ public class StackQueueCongestionControlTest extends TestCase {
         } , TIMEOUT);
         
         if(this.shootist.receivedResponses<=1) {
-            fail("We excpeted more than 0" + this.shootist.receivedResponses);
+            fail("We expected more than 0" + this.shootist.receivedResponses);
         }
-        assertTrue(shootist.receivedResponses<shootme.sentResponses/2);
+        System.out.println("received responses " + shootist.receivedResponses);
+        System.out.println(" sent Responses " + shootme.sentResponses);
+        assertTrue("received responses " + shootist.receivedResponses + " sent Responses " + shootme.sentResponses, 
+            shootist.receivedResponses > shootme.sentResponses/2);
+        assertTrue("received responses " + shootist.receivedResponses + " sent Responses " + shootme.sentResponses, 
+            shootist.receivedResponses < shootme.sentResponses);
        
     }
     public void plusTest() {

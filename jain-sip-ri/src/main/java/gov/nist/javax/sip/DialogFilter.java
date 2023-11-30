@@ -1394,6 +1394,8 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
             logger.logDebug(
                     "Transaction = " + transaction);
+            logger.logDebug(
+                    "Dialog = " + dialog);
         }
 
         if (transaction == null) {

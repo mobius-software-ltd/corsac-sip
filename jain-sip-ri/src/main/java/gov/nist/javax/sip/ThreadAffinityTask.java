@@ -1,6 +1,6 @@
 package gov.nist.javax.sip;
 
-import com.mobius.software.common.dal.timers.Task;
+import gov.nist.core.executor.Task;
 
 /**
  * All tasks that requires to be under ConcurrenyControlMode have to extend

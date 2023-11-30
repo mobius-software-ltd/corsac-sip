@@ -26,6 +26,7 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
+import gov.nist.core.executor.IncomingMessageProcessingTask;
 import gov.nist.javax.sip.message.SIPMessage;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -62,44 +63,29 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         if (reliableTransport && sipMessage.isNullRequest()) {
             processCRLFs(ctx, sipMessage, nettyMessageChannel);
             return;
-        } 
+        }         
 
-        RawMessageChannel rawMessageChannel = (RawMessageChannel)nettyMessageChannel;
         final String callId = sipMessage.getCallId().getCallId();
-
-        try {
-            if (callId == null || callId.trim().length() < 1) {
-                // http://code.google.com/p/jain-sip/issues/detail?id=18
-                // NIO Message with no Call-ID throws NPE
-                throw new IOException("received message with no Call-ID");
-            }
-            if (sipStack.sipEventInterceptor != null) {
-                if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-                    logger.logDebug("calling beforeMessage eventinterceptor for message " + sipMessage);
-                }
-                sipStack.sipEventInterceptor.beforeMessage(sipMessage);
-            }
-
-            rawMessageChannel.processMessage(sipMessage);
-            
-            // } catch (ParseException e) {
-            // // https://java.net/jira/browse/JSIP-499 move the ParseException here so the
-            // finally block
-            // // is called, the semaphore released and map cleaned up if need be
-            // if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-            // logger.logDebug("Problem parsing message " + msg.toString() + " " +
-            // e.getMessage());
-            // }
-        } catch (Exception e) {
-            logger.logError("Error occured processing message " + msg.toString(), e);                
-        } finally {                
-            if (sipStack.sipEventInterceptor != null) {
-                if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-                    logger.logDebug("calling afterMessage eventinterceptor for message " + sipMessage);
-                }
-                sipStack.sipEventInterceptor.afterMessage(sipMessage);
-            }
-        }       
+        if (callId == null || callId.trim().length() < 1) {
+            // http://code.google.com/p/jain-sip/issues/detail?id=18
+            // NIO Message with no Call-ID throws NPE
+            logger.logError("Error occured processing message " + msg.toString(), new IOException("received message with no Call-ID"));                                
+            return;
+        }
+        
+        RawMessageChannel rawMessageChannel = (RawMessageChannel)nettyMessageChannel;
+        IncomingMessageProcessingTask incomingMessageProcessingTask = 
+            new IncomingMessageProcessingTask(rawMessageChannel, sipMessage);
+        sipStack.getMessageProcessorExecutor().addTaskLast(incomingMessageProcessingTask);
+        // } catch (ParseException e) {
+        // // https://java.net/jira/browse/JSIP-499 move the ParseException here so the
+        // finally block
+        // // is called, the semaphore released and map cleaned up if need be
+        // if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+        // logger.logDebug("Problem parsing message " + msg.toString() + " " +
+        // e.getMessage());
+        // }
+               
     }
 
     private void processCRLFs(ChannelHandlerContext ctx, SIPMessage sipMessage,

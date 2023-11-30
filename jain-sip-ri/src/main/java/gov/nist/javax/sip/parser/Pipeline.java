@@ -70,7 +70,7 @@ public class Pipeline extends InputStream {
         
         @Override
         public String getThreadHash() {
-            return null;
+            return pipeline.toString();
         }         
 
         public void runTask() {

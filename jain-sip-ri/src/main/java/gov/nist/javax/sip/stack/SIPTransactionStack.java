@@ -68,6 +68,8 @@ import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.core.ThreadAuditor;
+import gov.nist.core.executor.IncomingMessageProcessingTask;
+import gov.nist.core.executor.MessageProcessorExecutor;
 import gov.nist.core.net.AddressResolver;
 import gov.nist.core.net.DefaultNetworkLayer;
 import gov.nist.core.net.NetworkLayer;
@@ -80,7 +82,6 @@ import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.ThreadAffinityTask;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.Event;
 import gov.nist.javax.sip.header.Via;
@@ -153,8 +154,10 @@ public abstract class SIPTransactionStack implements
 
     // Global timer. Use this for all timer tasks.
     private SipTimer timer;
-    // Global WorkerPool. Use this for all tasks, timer and executor.
+    // Global WorkerPool. Use this for all timers.
     protected WorkerPool workerPool = null;
+    // Global MessageProcessorExecutor. Use this for all tasks except timers.
+    protected MessageProcessorExecutor messageProcessorExecutor = null;    
 
     // List of pending server transactions
     private ConcurrentHashMap<String, SIPServerTransaction> pendingTransactions;
@@ -464,7 +467,15 @@ public abstract class SIPTransactionStack implements
 
     public CountableQueue<Task> getExecutorService() {
         return workerPool.getQueue();
-    }    
+    }
+    
+    public MessageProcessorExecutor getMessageProcessorExecutor() {
+        return messageProcessorExecutor;
+    }
+
+    public void setMessageProcessorExecutor(MessageProcessorExecutor messageProcessorExecutor) {
+        this.messageProcessorExecutor = messageProcessorExecutor;
+    }
 
     // / Timer to regularly ping the thread auditor (on behalf of the timer
     // thread)
@@ -480,7 +491,7 @@ public abstract class SIPTransactionStack implements
         
         @Override
         public String getThreadHash() {
-            return null;
+            return threadHandle.toString();
         }         
 
         public void runTask() {
@@ -507,17 +518,18 @@ public abstract class SIPTransactionStack implements
 
 
     class RemoveForkedTransactionTimerTask extends SIPStackTimerTask {
-
+        private final String id;
         private final String forkId;
 
-        public RemoveForkedTransactionTimerTask(String forkId) {
+        public RemoveForkedTransactionTimerTask(String id, String forkId) {
         	super(RemoveForkedTransactionTimerTask.class.getSimpleName());
+            this.id = id;
             this.forkId = forkId;
         }
         
         @Override
         public String getThreadHash() {
-            return null;
+            return id;
         }         
 
         @Override
@@ -960,8 +972,13 @@ public abstract class SIPTransactionStack implements
             // in the Dialog
             // Table
             // This happens before the dialog state is assigned.
-
-            if (!dialog.testAndSetIsDialogTerminatedEventDelivered()) {
+            boolean isDialogTerminatedEventDelivered = dialog.testAndSetIsDialogTerminatedEventDelivered();
+            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("removed dialog from table " + dialog +
+                    ", dialog.testAndSetIsDialogTerminatedEventDelivered() " + isDialogTerminatedEventDelivered +
+                    ", isDialogTerminatedEventDeliveredForNullDialog" + isDialogTerminatedEventDeliveredForNullDialog);
+            }
+            if (!isDialogTerminatedEventDelivered) {
                 DialogTerminatedEvent event = new DialogTerminatedEvent(dialog
                         .getSipProvider(), dialog);
 
@@ -1956,7 +1973,7 @@ public abstract class SIPTransactionStack implements
         	                        "Scheduling to remove forked client transaction : forkId = " + forkId + " in "  + this.maxForkTime + " seconds");
         	        	}
         				this.timer.schedule(new RemoveForkedTransactionTimerTask(
-        						forkId), this.maxForkTime * 1000);
+        						clientTx.getOriginalRequestCallId(), forkId), this.maxForkTime * 1000);
         				clientTx.stopExpiresTimer();
         			}
         		}
@@ -2177,6 +2194,8 @@ public abstract class SIPTransactionStack implements
         if (!toExit && this.workerPool != null) {
             workerPool.stop();	
             workerPool = null;
+            messageProcessorExecutor.stop();
+            messageProcessorExecutor = null;
         }
         // Prevent NPE on two concurrent stops
         this.toExit = true;        
@@ -3326,37 +3345,42 @@ public abstract class SIPTransactionStack implements
      * @param messageToSend message to send
      */
     protected void selfRouteMessage(RawMessageChannel channel, SIPMessage messageToSend) {
-        try {
-            ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
-                long startTime = System.currentTimeMillis();
+        // try {
+            // ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
+            //     long startTime = System.currentTimeMillis();
 
-                @Override
-                public void execute() {
-                    try {
-                        channel.processMessage((SIPMessage) messageToSend.clone());
-                    } catch (Exception ex) {
-                        if (logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
-                            logger.logError("Error self routing message cause by: ", ex);
-                        }
-                    }
-                }
+            //     @Override
+            //     public void execute() {
+            //         try {
+            //             channel.processMessage((SIPMessage) messageToSend.clone());
+            //         } catch (Exception ex) {
+            //             if (logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
+            //                 logger.logError("Error self routing message cause by: ", ex);
+            //             }
+            //         }
+            //     }
 
-                @Override
-                public long getStartTime() {
-                    return startTime;
-                }
+            //     @Override
+            //     public long getStartTime() {
+            //         return startTime;
+            //     }
 
-                public String getThreadHash() {
-                    return messageToSend.getCallId().getCallId();
-                }
-            };
-            getExecutorService().offerLast(processMessageTask);
-        } catch (Exception e) {
-            logger.logError("Error passing message in self routing", e);
-        }
-        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
-            logger.logDebug("Self routing message " + channel.getTransport());
-        }
+            //     public String getThreadHash() {
+            //         return messageToSend.getCallId().getCallId();
+            //     }
+            //     @Override
+            //     public String getId() {
+            //         return messageToSend.getCallId().getCallId();
+            //     }
+            // };
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("Self routing message " + channel.getTransport());
+            }
+            IncomingMessageProcessingTask processMessageTask = new IncomingMessageProcessingTask(channel, (SIPMessage) messageToSend.clone());
+            getMessageProcessorExecutor().addTaskLast(processMessageTask);
+        // } catch (Exception e) {
+        //     logger.logError("Error passing message in self routing", e);
+        // }        
     }
 
     /**

@@ -116,6 +116,15 @@ public class Shootme  implements SipListener {
             ServerTransaction serverTransaction) {
              logger.info("shootme: got an ACK "
                     + requestEvent.getRequest());
+        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
+        try {
+            this.sendReInvite(sipProvider);
+        } catch (Exception ex) {
+            String s = "unexpected exception";
+
+            logger.error(s,ex);
+            ReInviteTest.fail(s);
+        }
     }
 
     /**
@@ -178,7 +187,7 @@ public class Shootme  implements SipListener {
             response.setHeader(contactHeader);
             st.sendResponse(response);
             logger.info("TxState after sendResponse = " + st.getState());
-            this.sendReInvite(sipProvider);
+            // this.sendReInvite(sipProvider);
         } catch (Exception ex) {
             String s = "unexpected exception";
 

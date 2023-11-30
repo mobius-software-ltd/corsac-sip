@@ -20,11 +20,10 @@ package gov.nist.javax.sip.stack.timers;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.mobius.software.common.dal.timers.PeriodicQueuedTasks;
-import com.mobius.software.common.dal.timers.Timer;
-
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
+import gov.nist.core.executor.PeriodicQueuedTasks;
+import gov.nist.core.executor.Timer;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
@@ -96,10 +95,12 @@ public class MobiusSipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
 	 */
-	public boolean cancel(SIPStackTimerTask task) {		
-		((MobiusSipTimerTask)task.getSipTimerTask()).stop();
-
-		return true;
+	public boolean cancel(SIPStackTimerTask task) {	
+		if((MobiusSipTimerTask)task.getSipTimerTask() != null) {	
+			((MobiusSipTimerTask)task.getSipTimerTask()).stop();		
+			return true;
+		}
+		return false;
 	}
 
 	public PeriodicQueuedTasks<Timer> getPeriodicQueue() {

@@ -812,7 +812,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
     	}
         @Override
         public String getThreadHash() {
-            return null;
+            return ConnectionOrientedMessageChannel.this.toString();
         } 
         
         public void runTask() {

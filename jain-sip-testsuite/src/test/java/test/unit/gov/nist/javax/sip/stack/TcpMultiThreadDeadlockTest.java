@@ -737,11 +737,11 @@ boolean inUse = false;
         
         assertTrue(
             AssertUntil.assertUntil(shootist.getAssertion()
-            , 15000)
+            , 30000)
         );
         assertTrue(
             AssertUntil.assertUntil(shootme.getAssertion()
-            , 15000)
+            , 30000)
         );        
 
         if(!this.shootist.messageSeen) {

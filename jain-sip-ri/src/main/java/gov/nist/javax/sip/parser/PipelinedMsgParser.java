@@ -37,8 +37,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
-import com.mobius.software.common.dal.timers.Task;
-
 /*
  *
  * Lamine Brahimi and Yann Duponchel (IBM Zurich) noticed that the parser was
@@ -52,6 +50,7 @@ import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
+import gov.nist.core.executor.Task;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.stack.ConnectionOrientedMessageChannel;
@@ -249,6 +248,7 @@ public final class PipelinedMsgParser implements Runnable {
     }
     
     public class Dispatch implements Task {
+        private final String taskName = Dispatch.class.getSimpleName();
     	CallIDOrderingStructure callIDOrderingStructure;
     	String callId;
     	long time;
@@ -317,6 +317,14 @@ public final class PipelinedMsgParser implements Runnable {
         @Override
         public long getStartTime() {
             return time;
+        }
+        @Override
+        public String getId() {
+            return callId;
+        }
+        @Override
+        public String getTaskName() {
+            return taskName;
         }
     };
     /**
@@ -581,7 +589,7 @@ public final class PipelinedMsgParser implements Runnable {
                             // that could be processed in parallel
                             callIDOrderingStructure.getMessagesForCallID().offer(sipMessage);                                                                                   
                             
-                            sipStack.getExecutorService().offerLast(new Dispatch(callIDOrderingStructure, callId)); // run in executor thread
+                            sipStack.getMessageProcessorExecutor().addTaskLast(new Dispatch(callIDOrderingStructure, callId)); // run in executor thread
                         }
                     } catch (Exception ex) {
                         // fatal error in processing - close the

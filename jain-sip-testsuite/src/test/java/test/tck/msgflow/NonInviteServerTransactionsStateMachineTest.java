@@ -250,14 +250,14 @@ public class NonInviteServerTransactionsStateMachineTest
             } catch (SipException ex) {
                 ex.printStackTrace();
                 fail("The TI failed to send a RINGING response");
-            }
+            }            
+            //Check whether the RINGING is received by the RI.
+            waitForMessage();
             //The Transaction should still be PROCEEDING
             assertEquals(
                 "The Transaction did not remain PROCEEDING after transmitting a RINGING response",
                 TransactionState.PROCEEDING,
                 tran.getState());
-            //Check whether the RINGING is received by the RI.
-            waitForMessage();
             responseEvent = responseCollector.extractCollectedResponseEvent();
             assertNotNull(
                 "The RINGING response was not received by the RI",
@@ -341,14 +341,14 @@ public class NonInviteServerTransactionsStateMachineTest
             } catch (SipException ex) {
                 ex.printStackTrace();
                 fail("The TI failed to send a OK response");
-            }
+            }            
+            //Check whether the OK is received by the RI.
+            waitForMessage();
             //The Transaction should now be COMPLETED
             assertEquals(
                 "The Transaction did not remain COMPLETED after transmitting a BUSY_HERE response",
                 TransactionState.COMPLETED,
                 tran.getState());
-            //Check whether the OK is received by the RI.
-            waitForMessage();
             responseEvent = responseCollector.extractCollectedResponseEvent();
             assertNotNull(
                 "The OK response was not received by the RI",
@@ -479,14 +479,14 @@ public class NonInviteServerTransactionsStateMachineTest
                 throw new TiUnexpectedError(
                     "Failed to send a TRYING response",
                     ex);
-            }
+            }            
+            waitForMessage();
             //The transaction should now be PROCEEDING
             assertEquals(
                 "The transaction did not pass into the PROCEEDING state "
                     + "upon transmission of a 1xx response.",
                 TransactionState.PROCEEDING,
                 tran.getState());
-            waitForMessage();
             ResponseEvent responseEvent =
                 responseCollector.extractCollectedResponseEvent();
             assertNotNull(
@@ -563,14 +563,14 @@ public class NonInviteServerTransactionsStateMachineTest
             } catch (SipException ex) {
                 ex.printStackTrace();
                 fail("The TI failed to send a OK response");
-            }
+            }            
+            //Check whether the OK is received by the RI.
+            waitForMessage();
             //The Transaction should now be COMPLETED
             assertEquals(
                 "The Transaction did not remain COMPLETED after transmitting a BUSY_HERE response",
                 TransactionState.COMPLETED,
                 tran.getState());
-            //Check whether the OK is received by the RI.
-            waitForMessage();
             responseEvent = responseCollector.extractCollectedResponseEvent();
             assertNotNull(
                 "The OK response was not received by the RI",

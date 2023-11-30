@@ -51,6 +51,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
 
     private static final int TIMEOUT = 60000;
 
+    // private static Logger logger = LogManager.getLogger(DialogTimeoutTest.class);
+    
     static {
     	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
     	Configuration configuration = logContext.getConfiguration();
@@ -111,10 +113,10 @@ public class DialogTimeoutTest extends ScenarioHarness {
                 fail("unexpected exception ",e);
             }
 
-            assertTrue("Test Failed - Didnt receive Dialog Timeout Event", 
+            assertTrue("Test Failed - Didnt receive Dialog Timeout Event: shootme state " + shootme.checkState() + " , shootist state:" + shootist.checkState(), 
                 AssertUntil.assertUntil(new TestAssertion() {
                     @Override
-                    public boolean assertCondition() {
+                    public boolean assertCondition() {                        
                         return shootme.checkState() && shootist.checkState();
                     };
                 }, TIMEOUT)
@@ -162,7 +164,7 @@ public class DialogTimeoutTest extends ScenarioHarness {
         }
 
         
-        assertTrue("Test Failed - Didnt receive Dialog Timeout Event", 
+        assertTrue("Test Failed - Didnt receive Dialog Timeout Event: shootme state " + shootme.checkState() + " , shootist state:" + shootist.checkState(), 
             AssertUntil.assertUntil(new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
@@ -208,7 +210,7 @@ public class DialogTimeoutTest extends ScenarioHarness {
         }
 
         
-        assertTrue("Test Failed - Didnt receive Dialog Timeout Event", 
+        assertTrue("Test Failed - Didnt receive Dialog Timeout Event: shootme state " + shootme.checkState() + " , shootist state:" + shootistNotImplementingSipListenerExt.checkState(),
             AssertUntil.assertUntil(new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
@@ -254,7 +256,7 @@ public class DialogTimeoutTest extends ScenarioHarness {
             fail("unexpected exception ", e);
         }
 
-        assertTrue("Test Failed - Didnt receive Dialog Timeout Event", 
+        assertTrue("Test Failed - Didnt receive Dialog Timeout Event: shootme state " + shootme.checkState() + " , shootist state:" + shootist.checkState(), 
             AssertUntil.assertUntil(new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
@@ -301,7 +303,7 @@ public class DialogTimeoutTest extends ScenarioHarness {
             fail("unexpected exception ", e);
         }
         
-        assertTrue("Test Failed - Didnt receive Dialog Timeout Event", 
+        assertTrue("Test Failed - Didnt receive Dialog Timeout Event: shootme state " + shootmeNotImplementingListener.checkState(), 
             AssertUntil.assertUntil(new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
@@ -310,7 +312,7 @@ public class DialogTimeoutTest extends ScenarioHarness {
             }, TIMEOUT)
         );
 
-        assertTrue("Test Failed - didn't received Dialog Terminated Event", 
+        assertTrue("Test Failed - didn't received Dialog Terminated Event: shootist state:" + shootist.checkState(), 
             AssertUntil.assertUntil(new TestAssertion() {
                 @Override
                 public boolean assertCondition() {

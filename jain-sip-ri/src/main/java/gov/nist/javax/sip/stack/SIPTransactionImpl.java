@@ -39,11 +39,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,13 +53,11 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import gov.nist.core.CommonLogger;
-import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
-import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.address.AddressFactoryImpl;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
@@ -125,7 +120,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     protected boolean isMapped;
 
-    private transient TransactionSemaphore semaphore;
+    // private transient TransactionSemaphore semaphore;
 
     // protected boolean eventPending; // indicate that an event is pending
     // here.
@@ -144,6 +139,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     // so we keep only those data instead
     protected byte[] originalRequestBytes;
     protected long originalRequestCSeqNumber;
+    protected String originalRequestCallId;
     protected String originalRequestBranch;
     protected boolean originalRequestHasPort;
 
@@ -210,64 +206,64 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     // Wrapper that uses a semaphore for non reentrant listener
     // and a lock for reetrant listener to avoid race conditions
     // when 2 responses 180/200 OK arrives at the same time
-    class TransactionSemaphore {
-        Semaphore sem = null;
-        ReentrantLock lock = null;
+    // class TransactionSemaphore {
+    //     Semaphore sem = null;
+    //     ReentrantLock lock = null;
 
-        public TransactionSemaphore() {
-            if(((SipStackImpl)sipStack).isReEntrantListener()) {
-                lock = new ReentrantLock();
-            } else {
-                sem = new Semaphore(1, true);
-            }
-        }
+    //     public TransactionSemaphore() {
+    //         if(((SipStackImpl)sipStack).isReEntrantListener()) {
+    //             lock = new ReentrantLock();
+    //         } else {
+    //             sem = new Semaphore(1, true);
+    //         }
+    //     }
 
-        public boolean acquire() {
-            try {
-                if(((SipStackImpl)sipStack).isReEntrantListener()) {
-                    lock.lock();
-                } else {
-                    sem.acquire();
-                }
-                return true;
-            } catch (Exception ex) {
-                logger.logError("Unexpected exception acquiring sem",
-                        ex);
-                InternalErrorHandler.handleException(ex);
-                return false;
-            }
-        }
+    //     public boolean acquire() {
+    //         try {
+    //             if(((SipStackImpl)sipStack).isReEntrantListener()) {
+    //                 lock.lock();
+    //             } else {
+    //                 sem.acquire();
+    //             }
+    //             return true;
+    //         } catch (Exception ex) {
+    //             logger.logError("Unexpected exception acquiring sem",
+    //                     ex);
+    //             InternalErrorHandler.handleException(ex);
+    //             return false;
+    //         }
+    //     }
 
-        public boolean tryAcquire() {
-            try {
-                if(((SipStackImpl)sipStack).isReEntrantListener()) {
-                    return lock.tryLock(sipStack.maxListenerResponseTime, TimeUnit.SECONDS);
-                } else {
-                    return sem.tryAcquire(sipStack.maxListenerResponseTime, TimeUnit.SECONDS);
-                }
-            } catch (Exception ex) {
-                logger.logError("Unexpected exception trying acquiring sem",
-                        ex);
-                InternalErrorHandler.handleException(ex);
-                return false;
-            }
-        }
+    //     public boolean tryAcquire() {
+    //         try {
+    //             if(((SipStackImpl)sipStack).isReEntrantListener()) {
+    //                 return lock.tryLock(sipStack.maxListenerResponseTime, TimeUnit.SECONDS);
+    //             } else {
+    //                 return sem.tryAcquire(sipStack.maxListenerResponseTime, TimeUnit.SECONDS);
+    //             }
+    //         } catch (Exception ex) {
+    //             logger.logError("Unexpected exception trying acquiring sem",
+    //                     ex);
+    //             InternalErrorHandler.handleException(ex);
+    //             return false;
+    //         }
+    //     }
 
-        public void release() {
-            try {
-                if(((SipStackImpl)sipStack).isReEntrantListener()) {
-                    if(lock.isHeldByCurrentThread()) {
-                        lock.unlock();
-                    }
-                } else {
-                    sem.release();
-                }
-            } catch (Exception ex) {
-                logger.logError("Unexpected exception releasing sem",
-                                ex);
-            }
-        }
-    }
+    //     public void release() {
+    //         try {
+    //             if(((SipStackImpl)sipStack).isReEntrantListener()) {
+    //                 if(lock.isHeldByCurrentThread()) {
+    //                     lock.unlock();
+    //                 }
+    //             } else {
+    //                 sem.release();
+    //             }
+    //         } catch (Exception ex) {
+    //             logger.logError("Unexpected exception releasing sem",
+    //                             ex);
+    //         }
+    //     }
+    // }
 
     /**
      * The linger timer is used to remove the transaction from the transaction
@@ -298,7 +294,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
             } else {
-                return null;
+                return originalRequestCallId;
             }
         }
     }
@@ -342,7 +338,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
             } else {
-                return null;
+                return originalRequestCallId;
             }
         }
     }
@@ -359,7 +355,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             MessageChannel newEncapsulatedChannel) {
 
         sipStack = newParentStack;
-        this.semaphore = new TransactionSemaphore();
+        // this.semaphore = new TransactionSemaphore();
 
         encapsulatedChannel = newEncapsulatedChannel;
 
@@ -412,6 +408,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
         this.originalRequest = newOriginalRequest;
         this.originalRequestCSeqNumber = newOriginalRequest.getCSeq().getSeqNumber();
+        this.originalRequestCallId = newOriginalRequest.getCallIdHeader().getCallId();
         final Via topmostVia = newOriginalRequest.getTopmostVia();
         this.originalRequestBranch = topmostVia.getBranch();
         this.originalRequestHasPort = topmostVia.hasPort();
@@ -559,6 +556,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     @Override
     public long getCSeq() {
         return this.originalRequestCSeqNumber;
+    }
+
+    public String getCallId() {
+        return this.originalRequestCallId;
     }
 
     /**
@@ -900,7 +901,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         newErrorEvent = new SIPTransactionErrorEvent(this, errorEventID);
 
         // Loop through all listeners of this transaction
-        synchronized (eventListeners) {
+        // synchronized (eventListeners) {
             listenerIterator = eventListeners.iterator();
             while (listenerIterator.hasNext()) {
                 // Send the event to the next listener
@@ -908,7 +909,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
                         .next();
                 nextListener.transactionErrorEvent(newErrorEvent);
             }
-        }
+        // }
         // Clear the event listeners after propagating the error.
         // Retransmit notifications are just an alert to the
         // application (they are not an error).
@@ -1197,6 +1198,9 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     @Override
     public void raiseIOExceptionEvent() {
         setState(TransactionState._TERMINATED);
+        if (expiresTimerTask != null) {
+            sipStack.getTimer().cancel(expiresTimerTask);
+        }
         String host = getPeerAddress();
         int port = getPeerPort();
         String transport = getTransport();
@@ -1210,20 +1214,21 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public boolean acquireSem() {
-        boolean retval = false;
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("acquireSem [[[[" + this);
-            logger.logStackTrace();
-        }
-        if ( this.sipStack.maxListenerResponseTime == -1 ) {
-            retval = this.semaphore.acquire();
-        } else {
-            retval = this.semaphore.tryAcquire();
-        }
-        if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug(
-                "acquireSem() returning : " + retval);
-        return retval;
+        // boolean retval = false;
+        // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+        //     logger.logDebug("acquireSem [[[[" + this);
+        //     logger.logStackTrace();
+        // }
+        // if ( this.sipStack.maxListenerResponseTime == -1 ) {
+        //     retval = this.semaphore.acquire();
+        // } else {
+        //     retval = this.semaphore.tryAcquire();
+        // }
+        // if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+        //     logger.logDebug(
+        //         "acquireSem() returning : " + retval);
+        // return retval;
+        return true;
     }
 
 
@@ -1232,28 +1237,28 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public void releaseSem() {
-        try {
+        // try {
 
-            this.toListener = false;
-            if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                logger.logDebug(
-                    "releaseSem() released this transaction sem : " + this);
-            this.semRelease();            
+        //     this.toListener = false;
+        //     if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+        //         logger.logDebug(
+        //             "releaseSem() released this transaction sem : " + this);
+        //     this.semRelease();            
 
-        } catch (Exception ex) {
-            logger.logError("Unexpected exception releasing sem",
-                    ex);
+        // } catch (Exception ex) {
+        //     logger.logError("Unexpected exception releasing sem",
+        //             ex);
 
-        }
+        // }
 
     }
 
     public void semRelease() {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("semRelease ]]]]" + this);
-            logger.logStackTrace();
-        }
-        this.semaphore.release();
+        // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+        //     logger.logDebug("semRelease ]]]]" + this);
+        //     logger.logStackTrace();
+        // }
+        // this.semaphore.release();
     }
 
     /**
@@ -1282,7 +1287,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      * @see gov.nist.javax.sip.stack.SIPTransaction#testAndSetTransactionTerminatedEvent()
      */
     @Override
-    public synchronized boolean testAndSetTransactionTerminatedEvent() {
+    public boolean testAndSetTransactionTerminatedEvent() {
         boolean retval = !this.terminatedEventDelivered;
         this.terminatedEventDelivered = true;
         return retval;

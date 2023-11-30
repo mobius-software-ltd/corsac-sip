@@ -981,7 +981,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 		@Override
 		public String getThreadHash() {
-			return null;
+			return channel.toString();
 		}
 
 		public void runTask() {

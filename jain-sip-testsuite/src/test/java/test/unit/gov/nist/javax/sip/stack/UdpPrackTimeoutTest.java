@@ -604,6 +604,8 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
                 try {
                     Response response = messageFactory.createResponse(Response.SERVER_INTERNAL_ERROR,
                             transaction.getRequest());
+                    ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);                    
+                    toHeader.setTag(toTag); // Application is supposed to set.
                     ServerTransaction st = (ServerTransaction) transaction;
 
                     dialog = st.getDialog();

@@ -63,6 +63,7 @@ import gov.nist.core.LogLevels;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.core.ThreadAuditor;
+import gov.nist.core.executor.MessageProcessorExecutor;
 import gov.nist.core.net.AddressResolver;
 import gov.nist.core.net.DefaultSecurityManagerProvider;
 import gov.nist.core.net.NetworkLayer;
@@ -1126,10 +1127,13 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		}		
 
 		workerPool = new WorkerPool();
+		messageProcessorExecutor = new MessageProcessorExecutor();
 		if(this.threadPoolSize <= 0) {
 			workerPool.start(MAX_WORKERS);
+			messageProcessorExecutor.start(MAX_WORKERS);
 		} else {
 			workerPool.start(this.threadPoolSize);
+			messageProcessorExecutor.start(this.threadPoolSize);
 		}
 
 		int congetstionControlTimeout = Integer
@@ -1516,7 +1520,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		try {
 			setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
 			if(getTimer() instanceof MobiusSipTimer) {
-				((MobiusSipTimer)getTimer()).setPeriodicQueue(workerPool.getPeriodicQueue());
+				((MobiusSipTimer)getTimer()).setPeriodicQueue(messageProcessorExecutor.getPeriodicQueue());
 			}
 			getTimer().start(this);
 			if (getThreadAuditor() != null && getThreadAuditor().isEnabled()) {

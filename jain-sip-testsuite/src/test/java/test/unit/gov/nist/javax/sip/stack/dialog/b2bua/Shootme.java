@@ -143,6 +143,7 @@ public class Shootme   implements SipListener {
         logger.info("Dialog State = " + requestEvent.getDialog().getState());
 
         this.ackSeen = true;
+        TestCase.assertEquals( DialogState.CONFIRMED , requestEvent.getDialog().getState() );
     }
 
     /**
@@ -233,8 +234,7 @@ public class Shootme   implements SipListener {
                 okResponse.addHeader(contactHeader);
                 inviteTid.sendResponse(okResponse);
                 logger.info("shootme: Dialog state after OK: "
-                        + inviteTid.getDialog().getState());
-                TestCase.assertEquals( DialogState.CONFIRMED , inviteTid.getDialog().getState() );
+                        + inviteTid.getDialog().getState());                
             } else {
                 logger.info("semdInviteOK: inviteTid = " + inviteTid + " state = " + inviteTid.getState());
             }

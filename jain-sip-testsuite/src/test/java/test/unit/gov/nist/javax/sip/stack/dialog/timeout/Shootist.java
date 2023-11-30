@@ -161,7 +161,7 @@ public class Shootist implements SipListenerExt {
     }
 
     public boolean checkState() {
-
+        logger.info("shootist: checkState " + stateIsOk);
         return stateIsOk;
     }
 
@@ -252,6 +252,7 @@ public class Shootist implements SipListenerExt {
 
     public void processDialogTerminated(
             DialogTerminatedEvent dialogTerminatedEvent) {
+        logger.info("shootist: DialogTerminatedEvent " + dialogTerminatedEvent + " , dialog:" + dialogTerminatedEvent.getDialog());
     	if(sendByeOnDialogTimeout) {
     		stateIsOk = true;
     		return;
@@ -315,6 +316,7 @@ public class Shootist implements SipListenerExt {
     public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {    	
 		DialogTimeoutEvent dialogTimeoutEvent = (DialogTimeoutEvent)timeoutEvent;
 		Dialog timeoutDialog = dialogTimeoutEvent.getDialog();
+        logger.info("shootist: dialog timeout " + dialogTimeoutEvent + ", reason: " +dialogTimeoutEvent.getReason() + " , dialog:" + timeoutDialog);
 		if(timeoutDialog == null){
 			DialogTimeoutTest.fail(
                     "Shootist: Exception on timeout, dialog shouldn't be null");
@@ -324,6 +326,7 @@ public class Shootist implements SipListenerExt {
 				new Timer().schedule(new ByeTask(dialog), 4000) ;
 			} else {
 				stateIsOk = true;
+                logger.info("shootist: dialog timeout stateIsOK: " + stateIsOk);
 			}
 		}
 	}

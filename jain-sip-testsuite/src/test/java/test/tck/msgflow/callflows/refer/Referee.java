@@ -2,6 +2,9 @@ package test.tck.msgflow.callflows.refer;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
@@ -100,6 +103,23 @@ public class Referee implements SipListener {
         }
     }
 
+    class MyTimerTask extends TimerTask {
+        ReferToHeader to;
+        Dialog dialog;
+
+        public MyTimerTask(ReferToHeader to, Dialog dialog) {
+            this.to = to;
+            this.dialog = dialog;
+        }   
+
+        public void run() {
+            logger.info("Dialog = " + dialog + ", state " + dialog.getState());
+            TestHarness.assertEquals(DialogState.CONFIRMED, dialog.getState());
+            sendInvite(to);
+        }
+
+    }
+
     public Referee(ProtocolObjects protObjects) {
         addressFactory = protObjects.addressFactory;
         messageFactory = protObjects.messageFactory;
@@ -147,7 +167,7 @@ public class Referee implements SipListener {
         logger.info("referee: got an REFER sending Accepted");
         logger.info("referee:  " + refer.getMethod());
         dialog = requestEvent.getDialog();
-        logger.info("referee : dialog = " + requestEvent.getDialog());
+        logger.info("referee : dialog = " + requestEvent.getDialog());        
 
         // Check that it has a Refer-To, if not bad request
         ReferToHeader refTo = (ReferToHeader) refer.getHeader(ReferToHeader.NAME);
@@ -212,7 +232,6 @@ public class Referee implements SipListener {
          */
         TestHarness.assertNull(dialog.getState());
         st.sendResponse(response);
-        TestHarness.assertEquals(DialogState.CONFIRMED, dialog.getState());
 
         // NOTIFY MUST have "refer" event, possibly with id
         referEvent = headerFactory.createEventHeader("refer");
@@ -221,10 +240,12 @@ public class Referee implements SipListener {
         long id = ((CSeqHeader) refer.getHeader("CSeq")).getSeqNumber();
         referEvent.setEventId(Long.toString(id));
 
-        // JvB: do this after receiving 100 response
-        // sendNotify( Response.TRYING, "Trying" );
-        // Then call the refer-to
-        sendInvite(refTo);
+        // // JvB: do this after receiving 100 response
+        // // sendNotify( Response.TRYING, "Trying" );
+        // // Then call the refer-to
+        // sendInvite(refTo);
+        //moving to async task so we can validate the state of the dialog after the response has been sent
+        new Timer().schedule(new MyTimerTask(refTo, dialog), 100);
     }
 
     private void sendNotify(int code, String reason)
@@ -415,9 +436,7 @@ public class Referee implements SipListener {
 
             // Create the client transaction.
             ClientTransaction inviteTid = mySipProvider.getNewClientTransaction(request);
-
-            logger.info("Invite Dialog = " + inviteTid.getDialog());
-
+                    
             // send the request out.
             inviteTid.sendRequest();
 

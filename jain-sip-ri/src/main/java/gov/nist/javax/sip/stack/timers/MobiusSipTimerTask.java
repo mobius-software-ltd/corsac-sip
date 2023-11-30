@@ -20,16 +20,19 @@ package gov.nist.javax.sip.stack.timers;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.mobius.software.common.dal.timers.Timer;
-
+import gov.nist.core.CommonLogger;
+import gov.nist.core.StackLogger;
+import gov.nist.core.executor.Timer;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
 public class MobiusSipTimerTask implements Timer {
+    private static StackLogger logger = CommonLogger.getLogger(MobiusSipTimerTask.class);
     private MobiusSipTimer timer;
     private SIPStackTimerTask task;
     private long startTime;
     private AtomicLong timestamp;
     private AtomicLong period;
+    private String id;
 
     public MobiusSipTimerTask(MobiusSipTimer timer, SIPStackTimerTask task, long timeout) {
         this.timer = timer;
@@ -37,6 +40,7 @@ public class MobiusSipTimerTask implements Timer {
         this.startTime = System.currentTimeMillis();
         this.timestamp = new AtomicLong(System.currentTimeMillis() + timeout);
         this.period = new AtomicLong(-1);
+        this.id = task.getThreadHash();
     }
 
     public MobiusSipTimerTask(MobiusSipTimer timer, SIPStackTimerTask task, long timeout, long period) {
@@ -53,8 +57,8 @@ public class MobiusSipTimerTask implements Timer {
                     Thread.currentThread().setName(task.getTaskName());
                     task.runTask();
                 }
-            } catch (Throwable e) {
-                System.out.println("SIP stack timer task failed due to exception:");
+            } catch (Exception e) {
+                logger.logError("SIP stack timer task failed due to exception:", e);
                 e.printStackTrace();
             }
             if (period.get() > 0) {
@@ -79,5 +83,15 @@ public class MobiusSipTimerTask implements Timer {
         // Making sure we stop both one shot and periodic timers
         timestamp.set(Long.MAX_VALUE);
         period.set(-1);
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getTaskName() {
+        return task.getTaskName();
     }
 }

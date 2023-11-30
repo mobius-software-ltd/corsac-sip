@@ -398,6 +398,8 @@ public class EventScanner implements Runnable {
     	// Change made by SIPquest
         try {
             // Check for null as listener could be removed.
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                        logger.logDebug("Delivering Event: " +timeoutEvent);
             if (sipListener != null)
                 sipListener.processTimeout(timeoutEvent);
         } catch (Exception ex) {
@@ -411,6 +413,8 @@ public class EventScanner implements Runnable {
     private void deliverDialogTimeoutEvent(DialogTimeoutEvent dialogTimeoutEvent, EventWrapper eventWrapper, SipListener sipListener) {
 	    try {
 	        // Check for null as listener could be removed.
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                        logger.logDebug("Delivering Event: " +dialogTimeoutEvent);
 	    	if (sipListener != null && sipListener instanceof SipListenerExt) {
 	        	((SipListenerExt)sipListener).processDialogTimeout(dialogTimeoutEvent);                    
 	        } else {
@@ -459,6 +463,8 @@ public class EventScanner implements Runnable {
     
     private void deliverDialogTerminatedEvent(DialogTerminatedEvent sipEvent, EventWrapper eventWrapper, SipListener sipListener) {
 	    try {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                        logger.logDebug("Delivering Event: " +sipEvent);
 	        if (sipListener != null)
 	            sipListener.processDialogTerminated(sipEvent);
 	    } catch (AbstractMethodError ame) {

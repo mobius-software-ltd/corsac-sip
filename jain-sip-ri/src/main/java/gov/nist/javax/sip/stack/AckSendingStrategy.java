@@ -27,6 +27,7 @@ package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
 
+import gov.nist.core.executor.Task;
 import gov.nist.javax.sip.message.SIPRequest;
 
 import javax.sip.SipException;
@@ -37,7 +38,7 @@ import javax.sip.address.Hop;
  * 
  * @author jonathan.agaliotis (CTS)
  */
-public interface AckSendingStrategy {
+public interface AckSendingStrategy extends Task {
 
     /**
      * send the ack request

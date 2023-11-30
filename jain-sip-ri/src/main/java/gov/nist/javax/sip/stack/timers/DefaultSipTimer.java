@@ -65,8 +65,8 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 					 Thread.currentThread().setName(task.getTaskName());
 					 task.runTask();					 
 				 }
-	        } catch (Throwable e) {
-	            System.out.println("SIP stack timer task failed due to exception:");
+	        } catch (Exception e) {
+	            logger.logError("SIP stack timer task failed due to exception:", e);
 	            e.printStackTrace();
 	        }
 		}

@@ -39,6 +39,7 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.Configuration;
@@ -72,7 +73,7 @@ public class Shootme implements SipListenerExt {
         public void run() {
             Request request = requestEvent.getRequest();
             try {
-                // System.out.println("shootme: got an Invite sending OK");
+                // logger.info("shootme: got an Invite sending OK");
                 Response response = messageFactory.createResponse(180, request);
                 ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
                 Address address = addressFactory.createAddress("Shootme <sip:" + myAddress + ":" + myPort + ">");
@@ -84,7 +85,7 @@ public class Shootme implements SipListenerExt {
                 }
                 st.getDialog().setApplicationData("some junk");
                 
-                // System.out.println("got a server tranasaction " + st);
+                // logger.info("got a server tranasaction " + st);
                 st.sendResponse(response); // send 180(RING)
                 response = messageFactory.createResponse(200, request);
                 toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
@@ -124,6 +125,8 @@ public class Shootme implements SipListenerExt {
 
     public final int myPort = NetworkPortAssigner.retrieveNextPort();
 
+    private static Logger logger = LogManager.getLogger(Shootme.class); 
+
     static {
     	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
     	Configuration configuration = logContext.getConfiguration();
@@ -138,7 +141,7 @@ public class Shootme implements SipListenerExt {
     }
 
     public boolean checkState() {
-
+        logger.info("shootme: checkState " + stateIsOk);
         return stateIsOk;
     }
 
@@ -162,17 +165,17 @@ public class Shootme implements SipListenerExt {
      */
     public void processAck(RequestEvent requestEvent, ServerTransaction serverTransaction) {
         try {
-            // System.out.println("*** shootme: got an ACK "
+            // logger.info("*** shootme: got an ACK "
             // + requestEvent.getRequest());
             if (serverTransaction == null) {
-                System.out.println("null server transaction -- ignoring the ACK!");
+                logger.info("null server transaction -- ignoring the ACK!");
                 return;
             }
             Dialog dialog = serverTransaction.getDialog();
 
-            System.out.println("Dialog Created = " + dialog.getDialogId() + " Dialog State = " + dialog.getState());
+            logger.info("Dialog Created = " + dialog.getDialogId() + " Dialog State = " + dialog.getState());
 
-            System.out.println("Waiting for INFO");
+            logger.info("Waiting for INFO");
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -181,6 +184,8 @@ public class Shootme implements SipListenerExt {
     }
 
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {        
+        logger.info("process DialogTerminatedEvent " + dialogTerminatedEvent + ", dialog:" + dialogTerminatedEvent.getDialog());
+        logger.info("autodialog" + protocolObjects.autoDialog + ", receiveBye:" + receiveBye);
     	if(!protocolObjects.autoDialog && !receiveBye) {
     		stateIsOk = false;
     		DialogTimeoutTest.fail("This shouldn't be called since a dialogtimeout event should be passed to the application instead!");
@@ -208,7 +213,7 @@ public class Shootme implements SipListenerExt {
      */
     public void processInvite(RequestEvent requestEvent, ServerTransaction serverTransaction) {
         try {
-            // System.out.println("ProcessInvite");
+            // logger.info("ProcessInvite");
             Request request = requestEvent.getRequest();
             SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             // Note you need to create the Server Transaction
@@ -228,7 +233,7 @@ public class Shootme implements SipListenerExt {
     }
 
     public void processIOException(IOExceptionEvent exceptionEvent) {
-        System.out.println("IOException event");
+        logger.info("IOException event");
         DialogTimeoutTest.fail("Got IOException event");
     }
 
@@ -236,7 +241,7 @@ public class Shootme implements SipListenerExt {
         Request request = requestEvent.getRequest();
         ServerTransaction serverTransactionId = requestEvent.getServerTransaction();
 
-        System.out.println("GOT REQUEST: " + request.getMethod());
+        logger.info("GOT REQUEST: " + request.getMethod());
 
         if (request.getMethod().equals(Request.INVITE)) {
             processInvite(requestEvent, serverTransactionId);
@@ -257,12 +262,12 @@ public class Shootme implements SipListenerExt {
             ServerTransaction serverTransactionId) {
         Request request = requestEvent.getRequest();
         Dialog dialog = requestEvent.getDialog();
-        System.out.println("local party = " + dialog.getLocalParty());
+        logger.info("local party = " + dialog.getLocalParty());
         try {
-            System.out.println("shootme:  got a bye sending OK.");
+            logger.info("shootme:  got a bye sending OK.");
             Response response = messageFactory.createResponse(200, request);
             serverTransactionId.sendResponse(response);
-            System.out.println("Dialog State is "
+            logger.info("Dialog State is "
                     + serverTransactionId.getDialog().getState());
 
         } catch (Exception ex) {
@@ -273,14 +278,14 @@ public class Shootme implements SipListenerExt {
     }
 
     public void processResponse(ResponseEvent responseReceivedEvent) {
-        // System.out.println("Got a response");
+        // logger.info("Got a response");
         Response response = (Response) responseReceivedEvent.getResponse();
         Transaction tid = responseReceivedEvent.getClientTransaction();
 
-        // System.out.println("Response received with client transaction id "
+        // logger.info("Response received with client transaction id "
         // + tid + ":\n" + response);
 
-        System.out.println("GOT RESPONSE: " + response.getStatusCode());
+        logger.info("GOT RESPONSE: " + response.getStatusCode());
         try {
             if (response.getStatusCode() == Response.OK && ((CSeqHeader) response.getHeader(CSeqHeader.NAME)).getMethod().equals(Request.INVITE)) {
 
@@ -298,6 +303,8 @@ public class Shootme implements SipListenerExt {
     }
 
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
+    	logger.info("shootme: process TimeoutEvent " + timeoutEvent);
+        logger.info("shootme: autodialog" + protocolObjects.autoDialog);
     	
     	if(protocolObjects.autoDialog) {
     		DialogTimeoutTest.fail(
@@ -305,21 +312,23 @@ public class Shootme implements SipListenerExt {
     		stateIsOk = false;
     	}    	    	
         /*
-         * System.out.println("state = " + transaction.getState());
-         * System.out.println("dialog = " + transaction.getDialog());
-         * System.out.println("dialogState = " +
+         * logger.info("state = " + transaction.getState());
+         * logger.info("dialog = " + transaction.getDialog());
+         * logger.info("dialogState = " +
          * transaction.getDialog().getState());
-         * System.out.println("Transaction Time out" +
+         * logger.info("Transaction Time out" +
          * transaction.getBranchId());
          */
 
     }
     
     public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
-        System.out.println("processDialogTerminated " + timeoutEvent.getDialog());
-        
+        logger.info("shootme: processDialogTimeout " + timeoutEvent.getDialog());        
+
         DialogTimeoutEvent dialogAckTimeoutEvent = (DialogTimeoutEvent)timeoutEvent;
         Dialog timeoutDialog = dialogAckTimeoutEvent.getDialog();
+
+        logger.info("shootme: dialog timeout " + timeoutEvent + ", reason: " + timeoutEvent.getReason() + " , dialog:" + timeoutDialog);
         if(timeoutDialog == null){
             DialogTimeoutTest.fail(
                     "Shootist: Exception on timeout, dialog shouldn't be null");
@@ -334,7 +343,7 @@ public class Shootme implements SipListenerExt {
 	}
 
     public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
-        // System.out.println("TransactionTerminatedEvent");
+        // logger.info("TransactionTerminatedEvent");
     }
 
     public void setResponseCodeToINFO(int responseCodeToINFO) {
@@ -364,8 +373,9 @@ public class Shootme implements SipListenerExt {
         }
 	    
         public void run() {             
-            System.out.println("Checking app data " + dialog.getApplicationData());
+            logger.info("Checking app data " + dialog.getApplicationData());
             if(dialog.getApplicationData() == null || !dialog.getApplicationData().equals("some junk")) {
+                logger.info("process checkappdata : setting stateIsOK to false");        
             	stateIsOk = false;
                 DialogTimeoutTest.fail("application data should never be null except if nullified by the application !");
             }            

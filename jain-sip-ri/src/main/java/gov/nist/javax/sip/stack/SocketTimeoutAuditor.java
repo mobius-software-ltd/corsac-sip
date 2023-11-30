@@ -56,7 +56,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
         
         @Override
         public String getThreadHash() {
-            return null;
+            return nioHandler.toString();
         }        
 	
 	public void runTask() {

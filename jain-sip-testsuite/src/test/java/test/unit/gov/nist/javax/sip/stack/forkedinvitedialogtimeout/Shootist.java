@@ -73,7 +73,6 @@ public class Shootist implements SipListenerExt {
     private int port;
 
     private String peerHost = "127.0.0.1";
-
     private int peerPort;
 
     private ListeningPoint listeningPoint;

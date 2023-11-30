@@ -158,7 +158,7 @@ public class HandshakeCompletedListenerImpl implements HandshakeCompletedListene
         
         @Override
         public String getThreadHash() {
-            return null;
+            return socket.toString();
         }         
     	
 		@Override

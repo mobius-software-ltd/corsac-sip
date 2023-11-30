@@ -20,14 +20,15 @@ group Netty EventLoop Thread
         NettyMessageHandler -> IncomingMessageProcessingTask : new
         NettyMessageHandler -> MessageProcessorExecutor : addTaskLast        
     else message self routing case
-        SipTransactionImpl -> IncomingMessageProcessingTask : new
-        NettyMessageHandler -> MessageProcessorExecutor : addTaskLast        
+        SipTransactionImpl -> SIPTransactionStack : selfrouteMessage(SIPMessage)
+        SIPTransactionStack -> IncomingMessageProcessingTask : new
+        SIPTransactionStack -> MessageProcessorExecutor : addTaskLast        
     end 
 end
 group MessageProcessorExecutor WorkerThread        
     MessageProcessorExecutor -> MessageProcessorExecutor : pull task from queue
     MessageProcessorExecutor -> IncomingMessageProcessingTask : execute
-    
+
     IncomingMessageProcessingTask -> SIPEventInterceptor : beforeMessage(SIPMessage)
     IncomingMessageProcessingTask -> NettyStreamMessageChannel : processMessage(SIPMessage)
     NettyStreamMessageChannel -> NettyStreamMessageChannel : check message validity and RPort

@@ -7,7 +7,7 @@ import test.tck.msgflow.callflows.TestAssertion;
 public class NotifyBefore202Test  extends TestCase {
 	Subscriber subscriber;
 	Notifier   notifier;
-        private static final int TIMEOUT = 60000;
+	private static final int TIMEOUT = 60000;
 	
 	
 	public void setUp() throws Exception {
@@ -25,18 +25,22 @@ public class NotifyBefore202Test  extends TestCase {
 	
 	/*
 	 * Non Regression test for issue http://java.net/jira/browse/JSIP-374
+	 *
+ 	 * SUBSCRIBER sends SUBSCRIBE
+ 	 * NOTIFIER sends NOTIFY before sending 202 Accepted
+	 * 
 	 */
 	public void testInDialogSubscribe() throws InterruptedException {
 		subscriber.setInDialogSubcribe(true);
 		subscriber.sendSubscribe();
 		assertTrue(
-                    AssertUntil.assertUntil(new TestAssertion() {
-                        @Override
-                        public boolean assertCondition() {
-                            return subscriber.checkState();
-                        };
-                    }, TIMEOUT)
-                );
+			AssertUntil.assertUntil(new TestAssertion() {
+				@Override
+				public boolean assertCondition() {
+					return subscriber.checkState();
+				};
+			}, TIMEOUT)
+		);
 	}
 	
 	public void tearDown() throws Exception {		

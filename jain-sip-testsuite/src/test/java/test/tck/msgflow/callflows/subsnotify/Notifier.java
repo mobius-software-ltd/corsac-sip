@@ -19,6 +19,9 @@
  */
 package test.tck.msgflow.callflows.subsnotify;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
@@ -102,38 +105,90 @@ public class Notifier implements SipListener {
         }
     }
 
-    class MyEventSource implements Runnable {
+    class MyEventSource extends TimerTask {
 
         private Notifier notifier;
+        private Request request;
         private EventHeader eventHeader;
+        private ContactHeader contactHeader;
+        private boolean isInitial;
 
-        public MyEventSource(Notifier notifier, EventHeader eventHeader) {
+        public MyEventSource(Notifier notifier, 
+                Request request, 
+                ContactHeader contactHeader, 
+                EventHeader eventHeader, 
+                boolean isInitial) {
+
             this.notifier = notifier;
+            this.contactHeader = contactHeader;
             this.eventHeader = eventHeader;
+            this.isInitial = isInitial;
+            this.request = request; 
         }
 
         public void run() {
             try {
-                for (int i = 0; i < 1; i++) {
+                if(isInitial) {
+                            /*
+                    * NOTIFY requests MUST contain a "Subscription-State" header with a
+                    * value of "active", "pending", or "terminated". The "active" value
+                    * indicates that the subscription has been accepted and has been
+                    * authorized (in most cases; see section 5.2.). The "pending" value
+                    * indicates that the subscription has been received, but that
+                    * policy information is insufficient to accept or deny the
+                    * subscription at this time. The "terminated" value indicates that
+                    * the subscription is not active.
+                    */
+                    Request notifyRequest = dialog.createRequest("NOTIFY");
 
-                    Thread.sleep(1000);
-                    Request request = this.notifier.dialog.createRequest(Request.NOTIFY);
-                    SubscriptionStateHeader subscriptionState = headerFactory
-                            .createSubscriptionStateHeader(SubscriptionStateHeader.ACTIVE);
-                    request.addHeader(subscriptionState);
-                    request.addHeader(eventHeader);
+                    // Mark the contact header, to check that the remote contact is updated
+                    ((SipURI) contactHeader.getAddress().getURI()).setParameter("id", "not");
 
-                    // Lets mark our Contact
-                    ((SipURI) dialog.getLocalParty().getURI()).setParameter("id", "not2");
+                    // Initial state is pending, second time we assume terminated (Expires==0)
+                    SubscriptionStateHeader sstate = headerFactory.createSubscriptionStateHeader(
+                            isInitial ? SubscriptionStateHeader.PENDING : SubscriptionStateHeader.TERMINATED);
 
-                    ClientTransaction ct = sipProvider.getNewClientTransaction(request);
+                    // Need a reason for terminated
+                    if (sstate.getState().equalsIgnoreCase("terminated")) {
+                        sstate.setReasonCode("deactivated");
+                    }
+
+                    notifyRequest.addHeader(sstate);
+                    notifyRequest.setHeader(eventHeader);
+                    notifyRequest.setHeader(contactHeader);
+                    // notifyRequest.setHeader(routeHeader);
+                    ClientTransaction ct = sipProvider.getNewClientTransaction(notifyRequest);
+
+                    // Let the other side know that the tx is pending acceptance
+                    //
+                    dialog.sendRequest(ct);
                     logger.info("NOTIFY Branch ID "
                             + ((ViaHeader) request.getHeader(ViaHeader.NAME)).getParameter("branch"));
-                    this.notifier.dialog.sendRequest(ct);
                     logger.info("Dialog " + dialog);
-                    logger.info("Dialog state after active NOTIFY: " + dialog.getState());
-                }
+                    logger.info("Dialog state after pending NOTIFY: " + dialog.getState());
+                    AbstractSubsnotifyTestCase.assertTrue("Dialog state after pending NOTIFY ",
+                    dialog.getState() == DialogState.CONFIRMED);
+                } else {
+                    for (int i = 0; i < 1; i++) {
 
+                        Thread.sleep(1000);
+                        Request request = this.notifier.dialog.createRequest(Request.NOTIFY);
+                        SubscriptionStateHeader subscriptionState = headerFactory
+                                .createSubscriptionStateHeader(SubscriptionStateHeader.ACTIVE);
+                        request.addHeader(subscriptionState);
+                        request.addHeader(eventHeader);
+
+                        // Lets mark our Contact
+                        ((SipURI) dialog.getLocalParty().getURI()).setParameter("id", "not2");
+
+                        ClientTransaction ct = sipProvider.getNewClientTransaction(request);
+                        logger.info("NOTIFY Branch ID "
+                                + ((ViaHeader) request.getHeader(ViaHeader.NAME)).getParameter("branch"));
+                        this.notifier.dialog.sendRequest(ct);
+                        logger.info("Dialog " + dialog);
+                        logger.info("Dialog state after active NOTIFY: " + dialog.getState());
+                    }
+                }
             } catch (Throwable ex) {
                 logger.info(ex.getMessage(), ex);
                 TestHarness.fail("Failed MyEventSource.run(), because of " + ex.getMessage());
@@ -225,52 +280,13 @@ public class Notifier implements SipListener {
              *  Do this before creating the NOTIFY request below
              */
             st.sendResponse(response);
-            //Thread.sleep(1000); // Be kind to implementations
-
-            /*
-             * NOTIFY requests MUST contain a "Subscription-State" header with a
-             * value of "active", "pending", or "terminated". The "active" value
-             * indicates that the subscription has been accepted and has been
-             * authorized (in most cases; see section 5.2.). The "pending" value
-             * indicates that the subscription has been received, but that
-             * policy information is insufficient to accept or deny the
-             * subscription at this time. The "terminated" value indicates that
-             * the subscription is not active.
-             */
-            Request notifyRequest = dialog.createRequest("NOTIFY");
-
-            // Mark the contact header, to check that the remote contact is updated
-            ((SipURI) contactHeader.getAddress().getURI()).setParameter("id", "not");
-
-            // Initial state is pending, second time we assume terminated (Expires==0)
-            SubscriptionStateHeader sstate = headerFactory.createSubscriptionStateHeader(
-                    isInitial ? SubscriptionStateHeader.PENDING : SubscriptionStateHeader.TERMINATED);
-
-            // Need a reason for terminated
-            if (sstate.getState().equalsIgnoreCase("terminated")) {
-                sstate.setReasonCode("deactivated");
-            }
-
-            notifyRequest.addHeader(sstate);
-            notifyRequest.setHeader(eventHeader);
-            notifyRequest.setHeader(contactHeader);
-            // notifyRequest.setHeader(routeHeader);
-            ClientTransaction ct = sipProvider.getNewClientTransaction(notifyRequest);
-
-            // Let the other side know that the tx is pending acceptance
-            //
-            dialog.sendRequest(ct);
-            logger.info("NOTIFY Branch ID "
-                    + ((ViaHeader) request.getHeader(ViaHeader.NAME)).getParameter("branch"));
-            logger.info("Dialog " + dialog);
-            logger.info("Dialog state after pending NOTIFY: " + dialog.getState());
-            AbstractSubsnotifyTestCase.assertTrue("Dialog state after pending NOTIFY ",
-                    dialog.getState() == DialogState.CONFIRMED);
-
-            if (isInitial) {
-                Thread myEventSource = new Thread(new MyEventSource(this, eventHeader));
-                myEventSource.start();
-            }
+            //Thread.sleep(1000); // Be kind to implementations            
+            new Timer().schedule(new MyEventSource(this, request, contactHeader, eventHeader, isInitial), 100);
+            
+            // if (isInitial) {                
+                // Thread myEventSource = new Thread(new MyEventSource(this, request, contactHeader, eventHeader, isInitial));
+                // myEventSource.start();
+            // }
         } catch (Throwable ex) {
             logger.info(ex.getMessage(), ex);
             TestHarness.fail("Failed to processs Subscriber, because of " + ex.getMessage());

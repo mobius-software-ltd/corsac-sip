@@ -99,6 +99,7 @@ public class NioPipelineParser {
 	}
 	
     public class Dispatch implements ThreadAffinityTask, QueuedMessageDispatchBase {
+		private final String taskName = Dispatch.class.getSimpleName();
     	String callId;
         UnparsedMessage unparsedMessage;
     	long time;
@@ -174,6 +175,14 @@ public class NioPipelineParser {
 		@Override
 		public long getStartTime() {
 			return time;
+		}
+		@Override
+		public String getId() {
+			return callId;
+		}
+		@Override
+		public String getTaskName() {
+			return taskName;
 		}
     };
 	
@@ -301,7 +310,7 @@ public class NioPipelineParser {
 					throw new IOException("received message with no Call-ID");
 				}
                                                                                 
-                sipStack.getExecutorService().offerLast(new Dispatch(new UnparsedMessage(msgLines, msgBodyBytes), callId)); // run in executor thread
+                sipStack.getMessageProcessorExecutor().addTaskLast(new Dispatch(new UnparsedMessage(msgLines, msgBodyBytes), callId)); // run in executor thread
 			} else {
 				SIPMessage sipMessage = null;
 				

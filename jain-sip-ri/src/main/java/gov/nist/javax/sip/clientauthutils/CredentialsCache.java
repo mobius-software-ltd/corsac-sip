@@ -41,7 +41,7 @@ class CredentialsCache {
         
         @Override
         public String getThreadHash() {
-            return null;
+            return callId;
         }         
 
         public void runTask() {
