@@ -395,10 +395,10 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
     }
 
-    class TransactionTimer extends SIPStackTimerTask {
+    class SIPServerTransactionTimer extends SIPStackTimerTask {
 
-        public TransactionTimer() {
-            super(TransactionTimer.class.getSimpleName());
+        public SIPServerTransactionTimer() {
+            super(SIPServerTransactionTimer.class.getSimpleName());
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("TransactionTimer() : " + getTransactionId());
             }
@@ -1504,7 +1504,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
                     // The timer is set to null when the Stack is
                     // shutting down.
-                    SIPStackTimerTask myTimer = new TransactionTimer();
+                    SIPStackTimerTask myTimer = new SIPServerTransactionTimer();
                     // Do not schedule when the stack is not alive.
                     if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
                         sipStack.getTimer().scheduleWithFixedDelay(myTimer, baseTimerInterval, baseTimerInterval);

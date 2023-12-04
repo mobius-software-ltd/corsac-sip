@@ -241,10 +241,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
   private boolean terminateDialogOnCleanUp = true;
 
-  public class TransactionTimer extends SIPStackTimerTask {
+  public class SIPClientTransactionTimer extends SIPStackTimerTask {
 
-    public TransactionTimer() {
-      super(TransactionTimer.class.getSimpleName());
+    public SIPClientTransactionTimer() {
+      super(SIPClientTransactionTimer.class.getSimpleName());
     }
 
     public void runTask() {
@@ -1433,7 +1433,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         if (!transactionTimerCancelled) {
           if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Start transaction timer : " + getTransactionId());
-          transactionTimer = new TransactionTimer();
+          transactionTimer = new SIPClientTransactionTimer();
           sipStack.getTimer().scheduleWithFixedDelay(transactionTimer,
               baseTimerInterval,
               baseTimerInterval);
