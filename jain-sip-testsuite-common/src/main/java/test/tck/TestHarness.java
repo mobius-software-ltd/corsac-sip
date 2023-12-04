@@ -488,14 +488,14 @@ public abstract class TestHarness extends TestCase {
         // For testing sending of stateless null keepalive messages.
         //@see test.tck.msgflow.SipProviderTest.testSendNullRequest
         properties.setProperty("javax.sip.OUTBOUND_PROXY", LOCAL_ADDRESS + ":" + peerPort + "/udp");
-        // if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-        //     logger.info("\nNIO Enabled\n");
-        //     properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
-        // }
-        // if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+        if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+            logger.info("\nNIO Enabled\n");
+            properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+        }
+        if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
         	logger.info("\nNetty Enabled\n");
         	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
-        // }
+        }
 
         return properties;
     }
@@ -525,14 +525,14 @@ public abstract class TestHarness extends TestCase {
         // For testing sending of stateless null keepalive messages.
         //@see test.tck.msgflow.SipProviderTest.testSendNullRequest
         properties.setProperty("javax.sip.OUTBOUND_PROXY", LOCAL_ADDRESS + ":" + peerPort + "/udp");
-        // if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
-        //     logger.info("\nNIO Enabled\n");
-        //     properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
-        // }
-        // if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+        if (System.getProperty("enableNIO") != null && System.getProperty("enableNIO").equalsIgnoreCase("true")) {
+            logger.info("\nNIO Enabled\n");
+            properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+        }
+        if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
         	logger.info("\nNetty Enabled\n");
         	properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
-        // }
+        }
         return properties;
     }
 
