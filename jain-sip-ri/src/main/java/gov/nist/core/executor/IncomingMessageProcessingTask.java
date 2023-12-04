@@ -27,7 +27,7 @@ public class IncomingMessageProcessingTask implements SIPTask {
     @Override
     public void execute() {        
         if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-            logger.logDebug("Executing task with id: " + id);
+            logger.logDebug("Executing task " + getTaskName() + " with id: " + id);
         }
         if (sipStack.sipEventInterceptor != null) {
             if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {

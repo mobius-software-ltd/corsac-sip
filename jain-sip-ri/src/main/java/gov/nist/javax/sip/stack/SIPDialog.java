@@ -1940,11 +1940,26 @@ public class SIPDialog implements DialogExt {
     public boolean addTransaction(SIPTransaction transaction) {
 
         SIPRequest sipRequest = (SIPRequest) transaction.getOriginalRequest();
-
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug(
+                    "SipDialog.addTransaction() firstTransactionSeen = "
+                            + firstTransactionSeen + 
+                            ", firstTransaction = " + firstTransaction + 
+                            ", firstTransactionId = " + firstTransactionId + 
+                            ", transactionId = " + transaction.getBranchId() +
+                            ", firstTransactionMethod = " + firstTransactionMethod + 
+                            ", transactionMethod = " + transaction.getMethod() +
+                            ", firstTransactionIsServerTransaction = " + firstTransactionIsServerTransaction +
+                            ", transactionIsServerTransaction = " + transaction.isServerTransaction());
+        }
         // Proessing a re-invite.
         if (firstTransactionSeen
                 && !firstTransactionId.equals(transaction.getBranchId())
                 && transaction.getMethod().equals(firstTransactionMethod)) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                    "SipDialog.addTransaction() setting reinviteFlag to true");
+            }
             setReInviteFlag(true);
         }
 
@@ -1955,6 +1970,11 @@ public class SIPDialog implements DialogExt {
         }
 
         if (firstTransactionSeen == false) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                    "SipDialog.addTransaction() first tx not seen");
+            }
+
             // Record the local and remote sequenc
             // numbers and the from and to tags for future
             // use on this dialog.
@@ -1993,6 +2013,10 @@ public class SIPDialog implements DialogExt {
         } else if (transaction.getMethod().equals(firstTransactionMethod)
                 && firstTransactionIsServerTransaction != transaction
                         .isServerTransaction()) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                    "SipDialog.addTransaction() first tx seen, reinvite");
+            }
             // This case occurs when you are processing a re-invite.
             // Switch from client side to server side for re-invite
             // (put the other side on hold).
@@ -2012,6 +2036,10 @@ public class SIPDialog implements DialogExt {
 
         } else if (firstTransaction == null
                 && transaction.isInviteTransaction()) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                    "SipDialog.addTransaction() first tx null");
+            }
             // jeand needed for reinvite reliable processing
             firstTransaction = transaction;
         }

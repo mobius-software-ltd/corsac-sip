@@ -958,7 +958,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     && transaction != null
                     && lastTransaction != null
                     && sipRequest.getCSeq().getSeqNumber() > lastTransaction.getCSeq()
-                    && lastTransaction instanceof SIPServerTransaction
+                    && lastTransaction instanceof SIPServerTransaction                    
                     && sipProvider.isDialogErrorsAutomaticallyHandled()
                     && dialog.isSequenceNumberValidation()
                     && lastTransaction.isInviteTransaction()
@@ -1006,6 +1006,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     && sipProvider.isDialogErrorsAutomaticallyHandled()
                     && lastTransaction.isInviteTransaction()
                     && lastTransaction instanceof ServerTransaction
+                    && lastTransaction != transaction
                     && sipRequest.getCSeq().getSeqNumber() > lastTransaction.getCSeq()
                     // Handle Pseudo State Trying on Server Transaction
                     && (lastTransaction.getInternalState() == TransactionState._PROCEEDING
@@ -1019,7 +1020,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                                     "Sending 491 response. Last transaction is in PROCEEDING state.");
                     logger.logDebug(
                             "last Transaction state = " + lastTransaction
-                                    + " state " + lastTransaction.getState());
+                                    + " state " + lastTransaction.getState() + ", current transaction " + transaction);
                 }
                 this.sendRequestPendingResponse(sipRequest, transaction);
                 return;

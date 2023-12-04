@@ -20,6 +20,7 @@
 package test.tck.msgflow.callflows.tls;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
@@ -55,6 +56,7 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 
+import gov.nist.javax.sip.ResponseEventExt;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 
@@ -68,7 +70,7 @@ public class Shootist  implements SipListener {
 
     private SipProvider provider;
 
-    private int reInviteCount;
+    private AtomicInteger reInviteCount;
 
     private ContactHeader contactHeader;
 
@@ -115,6 +117,7 @@ public class Shootist  implements SipListener {
     public Shootist(ProtocolObjects protocolObjects) {
         super();
         this.protocolObjects = protocolObjects;
+        reInviteCount = new AtomicInteger(0);
 
     }
 
@@ -125,7 +128,7 @@ public class Shootist  implements SipListener {
         ServerTransaction serverTransactionId = requestReceivedEvent
                 .getServerTransaction();
 
-        logger.info("\n\nRequest " + request.getMethod() + " received at "
+        logger.info("\n\nRequest " + request + " received at "
                 + protocolObjects.sipStack.getStackName()
                 + " with server transaction id " + serverTransactionId);
 
@@ -226,7 +229,8 @@ public class Shootist  implements SipListener {
         try {
             CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
             if (response.getStatusCode() == Response.OK
-                    && cseq.getMethod().equals(Request.INVITE)) {
+                    && cseq.getMethod().equals(Request.INVITE) 
+                    && !((ResponseEventExt)responseReceivedEvent).isRetransmission()) {
 
                 // Request cancel = inviteTid.createCancel();
                 // ClientTransaction ct =
@@ -243,14 +247,14 @@ public class Shootist  implements SipListener {
                 // to use UDP as the transport. Else, it will
                 // Use whatever transport was used to create
                 // the dialog.
-                if (reInviteCount == 0) {
+                if (reInviteCount.get() == 0) {
                     Request inviteRequest = dialog
                             .createRequest(Request.INVITE);
-                    Thread.sleep(100);
+                //     Thread.sleep(100);
                     ClientTransaction ct = provider
                             .getNewClientTransaction(inviteRequest);
                     dialog.sendRequest(ct);
-                    reInviteCount++;
+                    reInviteCount.incrementAndGet();
                 } else {
                     this.okReceived = true;
                 }
@@ -443,7 +447,7 @@ public class Shootist  implements SipListener {
 
 
     public void checkState() {
-        TlsTest.assertTrue(reInviteCount == 1 && this.okReceived);
+        TlsTest.assertTrue(reInviteCount.get() == 1 && this.okReceived);
         TlsTest.assertTrue(this.byeSent && this.byeOkRecieved);
 
     }

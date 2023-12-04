@@ -3338,42 +3338,11 @@ public abstract class SIPTransactionStack implements
      * @param messageToSend message to send
      */
     protected void selfRouteMessage(RawMessageChannel channel, SIPMessage messageToSend) {
-        // try {
-            // ThreadAffinityTask processMessageTask = new ThreadAffinityTask() {
-            //     long startTime = System.currentTimeMillis();
-
-            //     @Override
-            //     public void execute() {
-            //         try {
-            //             channel.processMessage((SIPMessage) messageToSend.clone());
-            //         } catch (Exception ex) {
-            //             if (logger.isLoggingEnabled(ServerLogger.TRACE_ERROR)) {
-            //                 logger.logError("Error self routing message cause by: ", ex);
-            //             }
-            //         }
-            //     }
-
-            //     @Override
-            //     public long getStartTime() {
-            //         return startTime;
-            //     }
-
-            //     public String getThreadHash() {
-            //         return messageToSend.getCallId().getCallId();
-            //     }
-            //     @Override
-            //     public String getId() {
-            //         return messageToSend.getCallId().getCallId();
-            //     }
-            // };
-            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
-                logger.logDebug("Self routing message " + channel.getTransport());
-            }
-            IncomingMessageProcessingTask processMessageTask = new IncomingMessageProcessingTask(channel, (SIPMessage) messageToSend.clone());
-            getMessageProcessorExecutor().addTaskLast(processMessageTask);
-        // } catch (Exception e) {
-        //     logger.logError("Error passing message in self routing", e);
-        // }        
+        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+            logger.logDebug("Self routing message " + channel.getTransport());
+        }
+        IncomingMessageProcessingTask processMessageTask = new IncomingMessageProcessingTask(channel, (SIPMessage) messageToSend.clone());
+        getMessageProcessorExecutor().addTaskLast(processMessageTask);        
     }
 
     /**

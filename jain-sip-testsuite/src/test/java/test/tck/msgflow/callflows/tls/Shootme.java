@@ -100,11 +100,12 @@ public class Shootme  implements SipListener {
     public void processAck(RequestEvent requestEvent,
             ServerTransaction serverTransaction) {
         SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-        try {
-            logger.info("shootme: got an ACK "
-                    + requestEvent.getRequest());
-
+        try {            
             int ackCount = ((ApplicationData) dialog.getApplicationData()).ackCount;
+            logger.info("shootme: got an ACK "
+                    + requestEvent.getRequest() + ", ackCount=" + ackCount + 
+                    ", serverTxId = " + serverTransaction + " dialog = " + dialog);
+
             if (ackCount == 1) {
                 dialog = inviteTid.getDialog();
                 this.sendReInvite(sipProvider);
