@@ -266,9 +266,9 @@ public abstract class SIPTransactionStack implements
      */
     protected int threadPoolSize;
     /*
-     * Time between checks for executing tasks, defaulting to 25 ms.
+     * Time between checks for executing tasks, defaulting to 10 ms.
      */
-    protected long taskInterval = 25L;
+    protected long taskInterval = 10L;
 
     /*
      * max number of simultaneous connections.
