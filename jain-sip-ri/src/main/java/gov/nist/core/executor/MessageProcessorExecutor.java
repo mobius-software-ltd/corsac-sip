@@ -26,9 +26,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import gov.nist.core.CommonLogger;
+import gov.nist.core.StackLogger;
+
 
 public class MessageProcessorExecutor {
-	// private static StackLogger logger = CommonLogger.getLogger(MessageProcessorExecutor.class);
+	private static StackLogger logger = CommonLogger.getLogger(MessageProcessorExecutor.class);
 	private long taskPoolInterval = 25L;
 	private CopyOnWriteArrayList<CountableQueue<Task>> callIdQueuesList;
 	private PeriodicQueuedTasks<Timer> periodicQueue;
@@ -71,6 +74,9 @@ public class MessageProcessorExecutor {
 	public void addTaskFirst(Task task) {
 		CountableQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
+			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+				logger.logDebug("Adding Task First : "  + task.getTaskName() + " " + task.getId());
+			}
 			queue.offerFirst(task);
 		}
 	}
@@ -78,6 +84,9 @@ public class MessageProcessorExecutor {
 	public void addTaskLast(Task task) {
 		CountableQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
+			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+				logger.logDebug("Adding Task Last : "  + task.getTaskName() + " " + task.getId());
+			}
 			queue.offerLast(task);
 		}
 	}
