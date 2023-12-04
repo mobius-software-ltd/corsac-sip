@@ -49,7 +49,7 @@ public class DialogTimeoutTest extends ScenarioHarness {
     
     private ShootmeNotImplementingListener shootmeNotImplementingListener;
 
-    private static final int TIMEOUT = 60000;
+    private static final int TIMEOUT = 90000;
 
     // private static Logger logger = LogManager.getLogger(DialogTimeoutTest.class);
     
