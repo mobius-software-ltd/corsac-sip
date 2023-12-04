@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MessageProcessorExecutor {
 	// private static StackLogger logger = CommonLogger.getLogger(MessageProcessorExecutor.class);
-	private static final long PERIOD = 25L;
+	private long taskPoolInterval = 25L;
 	private CopyOnWriteArrayList<CountableQueue<Task>> callIdQueuesList;
 	private PeriodicQueuedTasks<Timer> periodicQueue;
 	
@@ -38,12 +38,19 @@ public class MessageProcessorExecutor {
 
 	public MessageProcessorExecutor() {
 		callIdQueuesList = new CopyOnWriteArrayList<CountableQueue<Task>>();
-		periodicQueue=new PeriodicQueuedTasks<Timer>(PERIOD, this);		
+		periodicQueue=new PeriodicQueuedTasks<Timer>(taskPoolInterval, this);		
+	}
+
+	public MessageProcessorExecutor(long taskPoolInterval)
+	{
+		this.taskPoolInterval = taskPoolInterval;
+		callIdQueuesList = new CopyOnWriteArrayList<CountableQueue<Task>>();
+		periodicQueue=new PeriodicQueuedTasks<Timer>(taskPoolInterval, this);		
 	}
 
 	public void start(int workersNumber) {
 		timersExecutor = Executors.newScheduledThreadPool(1);
-		timersExecutor.scheduleAtFixedRate(new TimersRunner(periodicQueue), 0, PERIOD, TimeUnit.MILLISECONDS);
+		timersExecutor.scheduleAtFixedRate(new TimersRunner(periodicQueue), 0, taskPoolInterval, TimeUnit.MILLISECONDS);
 		
 		workersExecutors = Executors.newFixedThreadPool(workersNumber);
 

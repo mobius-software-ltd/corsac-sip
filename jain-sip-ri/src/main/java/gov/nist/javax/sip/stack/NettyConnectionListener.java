@@ -59,8 +59,8 @@ public class NettyConnectionListener implements ChannelFutureListener {
     @Override
     public void operationComplete(ChannelFuture channelFuture) throws Exception {
         if (!channelFuture.isSuccess()) {																 
-            if(sipStack != null && sipStack.getExecutorService() != null) {
-                sipStack.getExecutorService().offerLast(
+            if(sipStack != null && sipStack.getMessageProcessorExecutor() != null) {
+                sipStack.getMessageProcessorExecutor().addTaskLast(
                     new NettyConnectionFailureThread(messageChannel) 
                 );
             } else {

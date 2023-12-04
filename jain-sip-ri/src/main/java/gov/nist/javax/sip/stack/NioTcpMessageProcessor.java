@@ -29,6 +29,7 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.HostPort;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
+import gov.nist.core.executor.Task;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -37,8 +38,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import com.mobius.software.common.dal.timers.Task;
 
 /**
  * NIO implementation for TCP.
@@ -303,8 +302,8 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                 if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                     logger.logDebug("Connected Succesfully");        
                 }        		
-    			if(sipStack.getExecutorService() != null) {
-    				sipStack.getExecutorService().offerLast(new Task() {
+    			if(sipStack.getMessageProcessorExecutor() != null) {
+    				sipStack.getMessageProcessorExecutor().addTaskLast(new Task() {
                         long startTime = System.currentTimeMillis();
 
                         @Override
@@ -315,6 +314,16 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                         @Override
                         public long getStartTime() {
                             return startTime;
+                        }
+
+                        @Override
+                        public String getId() {
+                            return socketChannel.toString();
+                        }
+
+                        @Override
+                        public String getTaskName() {
+                            return NioTcpMessageProcessor.class.getName().concat(socketChannel.toString());
                         }
     				});    				
     			} else {
@@ -332,8 +341,8 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                         logger.logDebug("Cant connect ", e);        
                 }
                 selectionKey.cancel();
-    			if(sipStack.getExecutorService() != null) {
-    				sipStack.getExecutorService().offerLast(new Task() {
+    			if(sipStack.getMessageProcessorExecutor() != null) {
+    				sipStack.getMessageProcessorExecutor().addTaskLast(new Task() {
                         long startTime = System.currentTimeMillis();
 
                         @Override
@@ -344,6 +353,16 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                         @Override
                         public long getStartTime() {
                             return startTime;
+                        }
+
+                        @Override
+                        public String getId() {
+                            return socketChannel.toString();
+                        }
+
+                        @Override
+                        public String getTaskName() {
+                            return NioTcpMessageProcessor.class.getName().concat(socketChannel.toString());
                         }
     				});
     			} else {

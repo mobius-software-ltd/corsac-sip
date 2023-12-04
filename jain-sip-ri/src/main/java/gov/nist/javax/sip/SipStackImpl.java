@@ -56,8 +56,6 @@ import javax.sip.address.Router;
 import javax.sip.header.HeaderFactory;
 import javax.sip.message.Request;
 
-import com.mobius.software.common.dal.timers.WorkerPool;
-
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.ServerLogger;
@@ -87,7 +85,6 @@ import gov.nist.javax.sip.stack.OIOMessageProcessorFactory;
 import gov.nist.javax.sip.stack.SIPEventInterceptor;
 import gov.nist.javax.sip.stack.SIPMessageValve;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
-import gov.nist.javax.sip.stack.timers.DefaultSipTimer;
 import gov.nist.javax.sip.stack.timers.MobiusSipTimer;
 import gov.nist.javax.sip.stack.timers.SipTimer;
 
@@ -727,7 +724,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		this.sipProviders = new CopyOnWriteArrayList<SipProviderImpl>();
 		this.sipListener = null;
 		if(!getTimer().isStarted()) {
-			String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",DefaultSipTimer.class.getName());
+			String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",MobiusSipTimer.class.getName());
 			try {
 				setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
 				getTimer().start(this);
@@ -1124,15 +1121,24 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 					logger.logError(
 						"thread pool size - bad value " + ex.getMessage());
 			}
-		}		
-
-		workerPool = new WorkerPool();
-		messageProcessorExecutor = new MessageProcessorExecutor();
+		}
+		
+		String executorTaskIntervalString = configurationProperties
+				.getProperty("gov.nist.javax.sip.EXECUTOR_TASK_INTERVAL");
+		if (executorTaskIntervalString != null) {
+			try {
+				this.taskInterval = Long.valueOf(executorTaskIntervalString).intValue();
+			} catch (NumberFormatException ex) {
+				if (logger.isLoggingEnabled())
+					logger.logError(
+						"thread pool size - bad value " + ex.getMessage());
+			}
+		}
+		
+		messageProcessorExecutor = new MessageProcessorExecutor(taskInterval);
 		if(this.threadPoolSize <= 0) {
-			workerPool.start(MAX_WORKERS);
 			messageProcessorExecutor.start(MAX_WORKERS);
 		} else {
-			workerPool.start(this.threadPoolSize);
 			messageProcessorExecutor.start(this.threadPoolSize);
 		}
 

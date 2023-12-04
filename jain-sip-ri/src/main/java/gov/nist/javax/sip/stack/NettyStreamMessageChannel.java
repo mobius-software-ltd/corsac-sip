@@ -339,8 +339,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				public void operationComplete(ChannelFuture completeFuture) {
 					assert future == completeFuture;
 					if (!future.isSuccess()) {
-						if(sipStack.getExecutorService() != null) {
-							sipStack.getExecutorService().offerLast(
+						if(sipStack.getMessageProcessorExecutor() != null) {
+							sipStack.getMessageProcessorExecutor().addTaskLast(
 								new NettyConnectionFailureThread(current) 
 							);
 						} else {

@@ -56,10 +56,6 @@ import javax.sip.header.EventHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import com.mobius.software.common.dal.timers.CountableQueue;
-import com.mobius.software.common.dal.timers.Task;
-import com.mobius.software.common.dal.timers.WorkerPool;
-
 import gov.nist.core.CommonLogger;
 import gov.nist.core.Host;
 import gov.nist.core.HostPort;
@@ -154,8 +150,6 @@ public abstract class SIPTransactionStack implements
 
     // Global timer. Use this for all timer tasks.
     private SipTimer timer;
-    // Global WorkerPool. Use this for all timers.
-    protected WorkerPool workerPool = null;
     // Global MessageProcessorExecutor. Use this for all tasks except timers.
     protected MessageProcessorExecutor messageProcessorExecutor = null;    
 
@@ -271,6 +265,10 @@ public abstract class SIPTransactionStack implements
      * preallocated threads ( dynamically allocated threads).
      */
     protected int threadPoolSize;
+    /*
+     * Time between checks for executing tasks, defaulting to 25 ms.
+     */
+    protected long taskInterval = 25L;
 
     /*
      * max number of simultaneous connections.
@@ -465,9 +463,6 @@ public abstract class SIPTransactionStack implements
 
     protected boolean computeContentLengthFromMessage = false;
 
-    public CountableQueue<Task> getExecutorService() {
-        return workerPool.getQueue();
-    }
     
     public MessageProcessorExecutor getMessageProcessorExecutor() {
         return messageProcessorExecutor;
@@ -2191,9 +2186,7 @@ public abstract class SIPTransactionStack implements
      * stack.
      */
     public void stopStack() {
-        if (!toExit && this.workerPool != null) {
-            workerPool.stop();	
-            workerPool = null;
+        if (!toExit && this.messageProcessorExecutor != null) {
             messageProcessorExecutor.stop();
             messageProcessorExecutor = null;
         }

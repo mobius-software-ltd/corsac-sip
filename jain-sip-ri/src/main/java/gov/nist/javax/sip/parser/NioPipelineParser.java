@@ -302,7 +302,7 @@ public class NioPipelineParser {
 			message = new StringBuilder();
 			final byte[] msgBodyBytes = messageBody;			
 			
-			if(sipStack.getExecutorService() != null) {
+			if(sipStack.getMessageProcessorExecutor() != null) {
 				final String callId = this.callId;
 				if(callId == null || callId.trim().length() < 1) {
 					// http://code.google.com/p/jain-sip/issues/detail?id=18

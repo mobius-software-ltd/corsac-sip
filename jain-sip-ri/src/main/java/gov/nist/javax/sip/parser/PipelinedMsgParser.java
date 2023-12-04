@@ -549,7 +549,7 @@ public final class PipelinedMsgParser implements Runnable {
                 // return error from there.
                 if (sipMessageListener != null) {
                     try {
-                        if(sipStack.getExecutorService() == null) {
+                        if(sipStack.getMessageProcessorExecutor() == null) {
                         	
                             /**
                              * If gov.nist.javax.sip.TCP_POST_PARSING_THREAD_POOL_SIZE is disabled
@@ -650,7 +650,7 @@ public final class PipelinedMsgParser implements Runnable {
                 logger.logDebug("Couldn't close the rawInputStream " + this + " threadname " + mythread.getName() + " already closed ? " + rawInputStream.isClosed());
             // Ignore.
         }                
-        if(sipStack.getExecutorService() != null){
+        if(sipStack.getMessageProcessorExecutor() != null){
         	cleanMessageOrderingMap();
         	// synchronized (mythread) {
             // 	mythread.notifyAll();

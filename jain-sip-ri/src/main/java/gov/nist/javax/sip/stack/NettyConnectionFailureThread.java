@@ -18,7 +18,7 @@
  */
 package gov.nist.javax.sip.stack;
 
-import com.mobius.software.common.dal.timers.Task;
+import gov.nist.core.executor.Task;
 
 /**
  * Thread that triggers the connection failure event on the message channel 
@@ -42,5 +42,15 @@ public class NettyConnectionFailureThread implements Task {
 	@Override
 	public long getStartTime() {
 		return startTime;
+	}
+
+	@Override
+	public String getId() {
+		return "" + startTime;
+	}
+
+	@Override
+	public String getTaskName() {
+		return NettyConnectionFailureThread.class.getName().concat("-").concat(getId());
 	}
 }
