@@ -213,11 +213,11 @@ public class NonBlockingTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.NIO_MAX_SOCKET_IDLE_TIME", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS",
                         "false");
-                // if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
                     defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
-                // } else {
-                //     defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
-                // }
+                } else {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                }
                 this.sipFactory = SipFactory.getInstance();
                 this.sipFactory.resetFactory();
                 this.sipFactory.setPathName("gov.nist");
@@ -288,11 +288,11 @@ public class NonBlockingTest extends ScenarioHarness {
                 defaultProperties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.NIO_MAX_SOCKET_IDLE_TIME", "1000");
                 defaultProperties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS", "false");
-                // if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
+                if(System.getProperty("enableNetty") != null && System.getProperty("enableNetty").equalsIgnoreCase("true")) {
                     defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
-                // } else {
-                //     defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
-                // }
+                } else {
+                    defaultProperties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+                }
                 defaultProperties.setProperty("gov.nist.javax.sip.NIO_BLOCKING_MODE", "NONBLOCKING");
 
                 this.sipFactory = SipFactory.getInstance();

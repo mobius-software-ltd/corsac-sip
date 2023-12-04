@@ -30,6 +30,7 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 
+import gov.nist.javax.sip.ResponseEventExt;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 
@@ -236,7 +237,7 @@ public class Shootme  implements SipListener {
         try {
             if (response.getStatusCode() == Response.OK
                     && ((CSeqHeader) response.getHeader(CSeqHeader.NAME))
-                            .getMethod().equals(Request.INVITE)) {
+                            .getMethod().equals(Request.INVITE) && !((ResponseEventExt)responseReceivedEvent).isRetransmission()) {
                 this.okRecieved  = true;
                 ReInviteTest.assertNotNull( "INVITE 200 response should match a transaction", tid );
                 Dialog dialog = tid.getDialog();
