@@ -52,7 +52,7 @@ import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogWriter;
 import gov.nist.core.NameValueList;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.Task;
+import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
@@ -2032,7 +2032,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     terminateDialogOnCleanUp = enabled;
   }
 
-  public class ClientTransactionOutgoingMessageTask implements Task {
+  public class ClientTransactionOutgoingMessageTask implements SIPTask {
     private final String taskName = ClientTransactionOutgoingMessageTask.class.getSimpleName();
     private StackLogger logger = CommonLogger.getLogger(ClientTransactionOutgoingMessageTask.class);
     private String id;

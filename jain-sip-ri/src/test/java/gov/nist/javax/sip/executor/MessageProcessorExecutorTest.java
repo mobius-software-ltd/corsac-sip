@@ -16,7 +16,7 @@ public class MessageProcessorExecutorTest {
     @Before
     public void setUp() {
         executor = new MessageProcessorExecutor();
-        executor.start(8);
+        executor.start(8, 25L);
     }
 
     @Test

@@ -2,7 +2,7 @@ package gov.nist.core.executor;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CountableQueue<T extends Task>
+public class CountableQueue<T extends SIPTask>
 {
 	private ConcurrentLinkedDeque<T> queue = new ConcurrentLinkedDeque<T>();
 	private AtomicInteger counter = new AtomicInteger(0);

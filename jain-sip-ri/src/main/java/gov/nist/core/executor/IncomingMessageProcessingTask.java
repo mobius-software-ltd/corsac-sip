@@ -6,7 +6,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.stack.RawMessageChannel;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 
-public class IncomingMessageProcessingTask implements Task {
+public class IncomingMessageProcessingTask implements SIPTask {
     private static StackLogger logger = CommonLogger.getLogger(IncomingMessageProcessingTask.class);
     private static final String taskName = IncomingMessageProcessingTask.class.getSimpleName();
     private String id;

@@ -20,9 +20,9 @@ package gov.nist.core.executor;
  */
 public class TimersRunner implements Runnable
 {
-	private PeriodicQueuedTasks<Timer> scheduler;
+	private PeriodicQueuedTasks<SIPTimer> scheduler;
 
-	public TimersRunner(PeriodicQueuedTasks<Timer> scheduler)
+	public TimersRunner(PeriodicQueuedTasks<SIPTimer> scheduler)
 	{
 		this.scheduler = scheduler;
 	}

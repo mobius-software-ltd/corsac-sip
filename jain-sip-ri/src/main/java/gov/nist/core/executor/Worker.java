@@ -27,10 +27,10 @@ public class Worker  implements Runnable
 
 	private static final long TASK_POLL_INTERVAL = 25L;
 	
-	private CountableQueue<gov.nist.core.executor.Task> queue;
+	private CountableQueue<SIPTask> queue;
 	private boolean isRunning;
 	
-	public Worker(CountableQueue<Task> queue, boolean isRunning)
+	public Worker(CountableQueue<SIPTask> queue, boolean isRunning)
 	{
 		this.queue = queue;
 		this.isRunning = isRunning;
@@ -43,7 +43,7 @@ public class Worker  implements Runnable
 		{
 			while (isRunning)
 			{
-				Task task = this.queue.take();
+				SIPTask task = this.queue.take();
 				if (task != null)
 				{
                     if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {

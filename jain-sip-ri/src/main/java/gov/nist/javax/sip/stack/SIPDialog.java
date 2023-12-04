@@ -80,7 +80,7 @@ import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.NameValueList;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.Task;
+import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.DialogExt;
 import gov.nist.javax.sip.ListeningPointImpl;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
@@ -432,7 +432,7 @@ public class SIPDialog implements DialogExt {
      * ACK for the previous re-INVITE has been sent before sending the next
      * re-INVITE.
      */
-    public class ReInviteSender implements Task, Serializable {
+    public class ReInviteSender implements SIPTask, Serializable {
         private static final long serialVersionUID = 1019346148741070635L;
         private final String taskName = ReInviteSender.class.getSimpleName();
         ClientTransaction ctx;
@@ -4404,7 +4404,7 @@ public class SIPDialog implements DialogExt {
       return originalDialog;
     } 
     
-    public class DialogOutgoingMessageProcessingTask implements Task {
+    public class DialogOutgoingMessageProcessingTask implements SIPTask {
         private final String taskName = DialogOutgoingMessageProcessingTask.class.getSimpleName();
         private StackLogger logger = CommonLogger.getLogger(DialogOutgoingMessageProcessingTask.class);
         private String id;

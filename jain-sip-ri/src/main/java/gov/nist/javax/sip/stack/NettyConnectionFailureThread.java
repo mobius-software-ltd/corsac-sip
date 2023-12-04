@@ -18,14 +18,14 @@
  */
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.executor.Task;
+import gov.nist.core.executor.SIPTask;
 
 /**
  * Thread that triggers the connection failure event on the message channel 
  * 
  * @author Jean Deruelle
  */
-public class NettyConnectionFailureThread implements Task {
+public class NettyConnectionFailureThread implements SIPTask {
 	NettyStreamMessageChannel messageChannel;
 	long startTime;
 

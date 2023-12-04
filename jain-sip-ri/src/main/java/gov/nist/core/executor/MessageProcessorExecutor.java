@@ -18,13 +18,11 @@
  */
 package gov.nist.core.executor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import com.mobius.software.common.dal.timers.CountableQueue;
+import com.mobius.software.common.dal.timers.PeriodicQueuedTasks;
+import com.mobius.software.common.dal.timers.Task;
+import com.mobius.software.common.dal.timers.Timer;
+import com.mobius.software.common.dal.timers.WorkerPool;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
@@ -32,46 +30,21 @@ import gov.nist.core.StackLogger;
 
 public class MessageProcessorExecutor {
 	private static StackLogger logger = CommonLogger.getLogger(MessageProcessorExecutor.class);
-	private long taskPoolInterval = 25L;
-	private CopyOnWriteArrayList<CountableQueue<Task>> callIdQueuesList;
-	private PeriodicQueuedTasks<Timer> periodicQueue;
-	
-	private ScheduledExecutorService timersExecutor;
-	private ExecutorService workersExecutors;
+	private WorkerPool workerPool;
+	private int workersNumber;
 
-	public MessageProcessorExecutor() {
-		callIdQueuesList = new CopyOnWriteArrayList<CountableQueue<Task>>();
-		periodicQueue=new PeriodicQueuedTasks<Timer>(taskPoolInterval, this);		
-	}
-
-	public MessageProcessorExecutor(long taskPoolInterval)
-	{
-		this.taskPoolInterval = taskPoolInterval;
-		callIdQueuesList = new CopyOnWriteArrayList<CountableQueue<Task>>();
-		periodicQueue=new PeriodicQueuedTasks<Timer>(taskPoolInterval, this);		
-	}
-
-	public void start(int workersNumber) {
-		timersExecutor = Executors.newScheduledThreadPool(1);
-		timersExecutor.scheduleAtFixedRate(new TimersRunner(periodicQueue), 0, taskPoolInterval, TimeUnit.MILLISECONDS);
-		
-		workersExecutors = Executors.newFixedThreadPool(workersNumber);
-
-		List<Worker> workers = new ArrayList<Worker>();
-		for (int i = 0; i < workersNumber; i++) {
-			CountableQueue<Task> queue = new CountableQueue<Task>();
-			callIdQueuesList.add(queue);
-			workers.add(new Worker(queue, true));
-			workersExecutors.execute(workers.get(i));
-		}
+	public void start(int workersNumber, long taskInterval) {
+		this.workersNumber = workersNumber;	
+		workerPool = new WorkerPool(taskInterval);
+		workerPool.start(workersNumber);
 	}
 
 	public void stop() {
-		workersExecutors.shutdown();
-		workersExecutors = null;
+		workerPool.stop();
+		workerPool = null;
 	}
 
-	public void addTaskFirst(Task task) {
+	public void addTaskFirst(SIPTask task) {
 		CountableQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
@@ -81,7 +54,7 @@ public class MessageProcessorExecutor {
 		}
 	}
 
-	public void addTaskLast(Task task) {
+	public void addTaskLast(SIPTask task) {
 		CountableQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
@@ -96,14 +69,14 @@ public class MessageProcessorExecutor {
 		// if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 		// 	logger.logDebug("Queue index: " + index + " for id: " + id);
 		// }
-		return callIdQueuesList.get(index);		
+		return workerPool.getLocalQueue(index);		
 	}
 
 	public int findQueueIndex(String id) {
-		return Math.abs(id.hashCode()) % callIdQueuesList.size();
+		return Math.abs(id.hashCode()) % workersNumber;
 	}
 
 	public PeriodicQueuedTasks<Timer> getPeriodicQueue() {
-		return periodicQueue;
+		return workerPool.getPeriodicQueue();
 	}	
 }

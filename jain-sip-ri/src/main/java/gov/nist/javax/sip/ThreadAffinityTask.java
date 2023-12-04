@@ -1,6 +1,6 @@
 package gov.nist.javax.sip;
 
-import gov.nist.core.executor.Task;
+import gov.nist.core.executor.SIPTask;
 
 /**
  * All tasks that requires to be under ConcurrenyControlMode have to extend
@@ -12,6 +12,6 @@ import gov.nist.core.executor.Task;
  * The afinnity object will be added to MDC vars automatically behind the scenes.
  * 
  */
-public interface ThreadAffinityTask extends Task, ThreadAffinityIdentifier{
+public interface ThreadAffinityTask extends SIPTask, ThreadAffinityIdentifier{
 
 }

@@ -51,7 +51,7 @@ import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.Task;
+import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
@@ -2076,7 +2076,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         // }
     }
 
-    public class ServerTransactionOutgoingMessageTask implements Task {
+    public class ServerTransactionOutgoingMessageTask implements SIPTask {
         private final String taskName = ServerTransactionOutgoingMessageTask.class.getSimpleName();
         private StackLogger logger = CommonLogger.getLogger(ServerTransactionOutgoingMessageTask.class);
         private String id;

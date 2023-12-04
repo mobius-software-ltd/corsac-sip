@@ -25,19 +25,29 @@
  */
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.HostPort;
-import gov.nist.core.LogWriter;
-import gov.nist.core.StackLogger;
-import gov.nist.core.executor.Task;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.*;
-import java.util.*;
+import java.nio.channels.CancelledKeyException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ClosedSelectorException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Queue;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.HostPort;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
+import gov.nist.core.executor.SIPTask;
 
 /**
  * NIO implementation for TCP.
@@ -303,7 +313,7 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                     logger.logDebug("Connected Succesfully");        
                 }        		
     			if(sipStack.getMessageProcessorExecutor() != null) {
-    				sipStack.getMessageProcessorExecutor().addTaskLast(new Task() {
+    				sipStack.getMessageProcessorExecutor().addTaskLast(new SIPTask() {
                         long startTime = System.currentTimeMillis();
 
                         @Override
@@ -342,7 +352,7 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                 }
                 selectionKey.cancel();
     			if(sipStack.getMessageProcessorExecutor() != null) {
-    				sipStack.getMessageProcessorExecutor().addTaskLast(new Task() {
+    				sipStack.getMessageProcessorExecutor().addTaskLast(new SIPTask() {
                         long startTime = System.currentTimeMillis();
 
                         @Override

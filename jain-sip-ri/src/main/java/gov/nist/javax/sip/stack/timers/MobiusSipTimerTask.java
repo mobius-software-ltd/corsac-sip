@@ -22,10 +22,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.Timer;
+import gov.nist.core.executor.SIPTimer;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
-public class MobiusSipTimerTask implements Timer {
+public class MobiusSipTimerTask implements SIPTimer {
     private static StackLogger logger = CommonLogger.getLogger(MobiusSipTimerTask.class);
     private MobiusSipTimer timer;
     private SIPStackTimerTask task;

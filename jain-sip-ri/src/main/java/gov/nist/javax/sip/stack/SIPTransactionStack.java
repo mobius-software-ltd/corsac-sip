@@ -150,7 +150,7 @@ public abstract class SIPTransactionStack implements
 
     // Global timer. Use this for all timer tasks.
     private SipTimer timer;
-    // Global MessageProcessorExecutor. Use this for all tasks except timers.
+    // Global Message Processor Executor. Use this for all tasks except timers.
     protected MessageProcessorExecutor messageProcessorExecutor = null;    
 
     // List of pending server transactions

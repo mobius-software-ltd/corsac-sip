@@ -20,10 +20,11 @@ package gov.nist.javax.sip.stack.timers;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.mobius.software.common.dal.timers.PeriodicQueuedTasks;
+import com.mobius.software.common.dal.timers.Timer;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.PeriodicQueuedTasks;
-import gov.nist.core.executor.Timer;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
 

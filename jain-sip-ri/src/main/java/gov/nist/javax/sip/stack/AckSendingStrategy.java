@@ -27,18 +27,18 @@ package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
 
-import gov.nist.core.executor.Task;
-import gov.nist.javax.sip.message.SIPRequest;
-
 import javax.sip.SipException;
 import javax.sip.address.Hop;
+
+import gov.nist.core.executor.SIPTask;
+import gov.nist.javax.sip.message.SIPRequest;
 
 /**
  * Implement this and set it in a SIPDialog to override the sending of an ack message
  * 
  * @author jonathan.agaliotis (CTS)
  */
-public interface AckSendingStrategy extends Task {
+public interface AckSendingStrategy extends SIPTask {
 
     /**
      * send the ack request

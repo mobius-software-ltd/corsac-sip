@@ -1134,12 +1134,12 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 						"thread pool size - bad value " + ex.getMessage());
 			}
 		}
-		
-		messageProcessorExecutor = new MessageProcessorExecutor(taskInterval);
+				
+		messageProcessorExecutor = new MessageProcessorExecutor();
 		if(this.threadPoolSize <= 0) {
-			messageProcessorExecutor.start(MAX_WORKERS);
+			messageProcessorExecutor.start(MAX_WORKERS, taskInterval);
 		} else {
-			messageProcessorExecutor.start(this.threadPoolSize);
+			messageProcessorExecutor.start(this.threadPoolSize, taskInterval);
 		}
 
 		int congetstionControlTimeout = Integer

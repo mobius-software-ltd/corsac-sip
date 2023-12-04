@@ -21,16 +21,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class PeriodicQueuedTasks<T extends Timer>
+public class PeriodicQueuedTasks<T extends SIPTimer>
 {
 	private ConcurrentHashMap<Long, ConcurrentLinkedQueue<T>> queues = new ConcurrentHashMap<Long, ConcurrentLinkedQueue<T>>();
-	private MessageProcessorExecutor messageProcessorExecutor;
+	private MessageProcessorExecutorBak messageProcessorExecutor;
 	private ConcurrentLinkedQueue<T> passAwayQueue = new ConcurrentLinkedQueue<T>();
 
 	private long period;
 	private AtomicLong previousRun = new AtomicLong(0);
 
-	public PeriodicQueuedTasks(long period, MessageProcessorExecutor messageProcessorExecutor)
+	public PeriodicQueuedTasks(long period, MessageProcessorExecutorBak messageProcessorExecutor)
 	{
 		this.messageProcessorExecutor = messageProcessorExecutor;
 		this.period = period;

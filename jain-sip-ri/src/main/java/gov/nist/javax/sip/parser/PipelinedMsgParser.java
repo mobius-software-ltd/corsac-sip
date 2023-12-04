@@ -50,7 +50,7 @@ import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.Task;
+import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.stack.ConnectionOrientedMessageChannel;
@@ -247,7 +247,7 @@ public final class PipelinedMsgParser implements Runnable {
         
     }
     
-    public class Dispatch implements Task {
+    public class Dispatch implements SIPTask {
         private final String taskName = Dispatch.class.getSimpleName();
     	CallIDOrderingStructure callIDOrderingStructure;
     	String callId;

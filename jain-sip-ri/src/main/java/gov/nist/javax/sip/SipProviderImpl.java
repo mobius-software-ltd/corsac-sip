@@ -64,7 +64,7 @@ import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.Task;
+import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
 import gov.nist.javax.sip.address.RouterExt;
 import gov.nist.javax.sip.header.CallID;
@@ -1098,7 +1098,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         return sipListener;
     }
 
-    public class SipProviderOutgoingRequestTask implements Task {
+    public class SipProviderOutgoingRequestTask implements SIPTask {
         private final String taskName = SipProviderOutgoingRequestTask.class.getSimpleName();
         private StackLogger logger = CommonLogger.getLogger(SipProviderOutgoingRequestTask.class);
         private String id;
@@ -1193,7 +1193,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         }
     }
 
-    public class SipProviderOutgoingResponseTask implements Task {
+    public class SipProviderOutgoingResponseTask implements SIPTask {
         private final String taskName = SipProviderOutgoingResponseTask.class.getSimpleName();
         private StackLogger logger = CommonLogger.getLogger(SipProviderOutgoingResponseTask.class);
         private String id;
