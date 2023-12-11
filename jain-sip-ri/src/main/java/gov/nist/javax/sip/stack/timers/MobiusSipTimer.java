@@ -41,6 +41,19 @@ public class MobiusSipTimer implements SipTimer {
 	private PeriodicQueuedTasks<Timer> periodicQueue;	
 	private AtomicBoolean started = new AtomicBoolean(false);
 	
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl)
+	 */
+	public void start(SipStackImpl sipStack) {
+		sipStackImpl= sipStack;		
+		periodicQueue = sipStack.getMessageProcessorExecutor().getPeriodicQueue();
+		started.set(true);
+		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
+			logger.logInfo("the sip stack timer " + this.getClass().getName() + " has been started");
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#stop()
 	 */
@@ -58,7 +71,7 @@ public class MobiusSipTimer implements SipTimer {
 		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay);
 		task.setSipTimerTask(timerTask);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-			logger.logDebug("Scheduling timer  " + task + " with delay " + delay);
+			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + " to run at " + timerTask.getRealTimestamp());
 		}
 		periodicQueue.store(timerTask.getRealTimestamp(),timerTask); 		
 		
@@ -74,24 +87,14 @@ public class MobiusSipTimer implements SipTimer {
 		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay, period);
 		task.setSipTimerTask(timerTask);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + " and period " + period);
+			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + 
+				" and period " + period + " to run at " + timerTask.getRealTimestamp());
 		}
 		periodicQueue.store(timerTask.getRealTimestamp(),timerTask); 		
 
 		return true;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl)
-	 */
-	public void start(SipStackImpl sipStack) {
-		sipStackImpl= sipStack;		
-		started.set(true);
-		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
-			logger.logInfo("the sip stack timer " + this.getClass().getName() + " has been started");
-		}
-	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
@@ -107,11 +110,7 @@ public class MobiusSipTimer implements SipTimer {
 	public PeriodicQueuedTasks<Timer> getPeriodicQueue() {
 		return periodicQueue;
 	}
-
-	public void setPeriodicQueue(PeriodicQueuedTasks<Timer> periodicQueue) {
-		this.periodicQueue = periodicQueue;
-	}	
-
+	
 	/*
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#isStarted()

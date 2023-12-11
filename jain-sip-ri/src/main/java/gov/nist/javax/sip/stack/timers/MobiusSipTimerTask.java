@@ -63,6 +63,10 @@ public class MobiusSipTimerTask implements SIPTimer {
             }
             if (period.get() > 0) {
                 timestamp.set(System.currentTimeMillis() + period.get());
+                if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+                    logger.logDebug("Scheduling periodic task " + task.getTaskName() + 
+                        " with period " + period.get() + " next execution at " + timestamp.get());
+                }
                 timer.getPeriodicQueue().store(timestamp.get(), this);
             }
         }

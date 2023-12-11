@@ -764,6 +764,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("processRequest: " + transactionRequest.getFirstLine());
+            logger.logDebug("txmethod: " + transactionRequest.getMethod() + ", method: " + getMethod());
             logger.logDebug("tx state = " + this.getRealState());
         }
 
@@ -791,8 +792,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 }
                 // If an invite transaction is ACK'ed while in
                 // the completed state,
-            } else if (isInviteTransaction() && TransactionState._COMPLETED == getRealState()
-                    && transactionRequest.getMethod().equals(Request.ACK)) {
+            } else if (isInviteTransaction() && 
+                    TransactionState._COMPLETED == getRealState() && 
+                    // Adding confirmed state in case of retranmissions of ACK
+                    TransactionState._CONFIRMED == getRealState() && 
+                    transactionRequest.getMethod().equals(Request.ACK)) {
 
                 // @jvB bug fix
                 this.setState(TransactionState._CONFIRMED);

@@ -34,12 +34,18 @@ public class MessageProcessorExecutor {
 	private int workersNumber;
 
 	public void start(int workersNumber, long taskInterval) {
+		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+			logger.logDebug("Starting MessageProcessorExecutor with workersNumber: " + workersNumber + " and taskInterval: " + taskInterval);
+		}
 		this.workersNumber = workersNumber;	
 		workerPool = new WorkerPool(taskInterval);
 		workerPool.start(workersNumber);
 	}
 
 	public void stop() {
+		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+			logger.logDebug("Stopping MessageProcessorExecutor");
+		}
 		workerPool.stop();
 		workerPool = null;
 	}
@@ -48,9 +54,12 @@ public class MessageProcessorExecutor {
 		CountableQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-				logger.logDebug("Adding Task First : "  + task.getTaskName() + " " + task.getId());
+				logger.logDebug("Adding Task First : "  + task.getTaskName() + " " + task.getId() + ", Queue Size: "  + queue.size());
 			}
 			queue.offerFirst(task);
+			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {				
+				logger.logDebug("Queue Size: "  + queue.size());
+			}
 		}
 	}
 
@@ -58,9 +67,12 @@ public class MessageProcessorExecutor {
 		CountableQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-				logger.logDebug("Adding Task Last : "  + task.getTaskName() + " " + task.getId());
+				logger.logDebug("Adding Task Last : "  + task.getTaskName() + " " + task.getId() + ", Queue Size: "  + queue.size());
 			}
 			queue.offerLast(task);
+			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {				
+				logger.logDebug("Queue Size: "  + queue.size());
+			}
 		}
 	}
 
