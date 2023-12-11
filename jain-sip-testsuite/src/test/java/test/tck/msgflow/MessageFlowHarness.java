@@ -105,32 +105,16 @@ public class MessageFlowHarness extends TestHarness {
     private final int RI_PORT = NetworkPortAssigner.retrieveNextPort();
     private final int TI_PORT = NetworkPortAssigner.retrieveNextPort();
 
+    private boolean autoDialog = true;
+
     public MessageFlowHarness(String name) {
         this(name,true);
     }
 
     protected MessageFlowHarness(String name, boolean autoDialog) {
         super(name, autoDialog);
-        System.out.println("Initializing test " + name);
-
-        try {
-            if ( riFactory != null)
-                riFactory.resetFactory();
-
-            riSipStack = riFactory.createSipStack(getRiProperties(autoDialog, TI_PORT));
-            assertTrue( "RI must be gov.nist", riSipStack instanceof SIPTransactionStack );
-
-            tiFactory.resetFactory();
-            tiFactory.setPathName( getImplementationPath() );
-            tiSipStack = tiFactory.createSipStack(getTiProperties(RI_PORT));
-            if (riSipStack == tiSipStack) {
-                throw new TckInternalError("riSipStack should not the same as tiSipStack");
-            }
-        } catch (TckInternalError ex){
-            throw ex;
-        } catch (Exception ex) {
-            fail("initialization failed");
-        }
+        this.autoDialog = autoDialog;
+        
     }
 
     // issue 17 on dev.java.net specify the headerFactory to use
@@ -159,7 +143,26 @@ public class MessageFlowHarness extends TestHarness {
      *             pass through and surface at JUnit Level.
      */
     public void setUp() throws java.lang.Exception {
+        System.out.println("Initializing test " + getName());
 
+        try {
+            if ( riFactory != null)
+                riFactory.resetFactory();
+
+            riSipStack = riFactory.createSipStack(getRiProperties(autoDialog, TI_PORT));
+            assertTrue( "RI must be gov.nist", riSipStack instanceof SIPTransactionStack );
+
+            tiFactory.resetFactory();
+            tiFactory.setPathName( getImplementationPath() );
+            tiSipStack = tiFactory.createSipStack(getTiProperties(RI_PORT));
+            if (riSipStack == tiSipStack) {
+                throw new TckInternalError("riSipStack should not the same as tiSipStack");
+            }
+        } catch (TckInternalError ex){
+            throw ex;
+        } catch (Exception ex) {
+            fail("initialization failed");
+        }
         riListeningPoint = riSipStack.createListeningPoint(LOCAL_ADDRESS, RI_PORT,
                 "udp");
         riSipProvider = riSipStack.createSipProvider(riListeningPoint);
