@@ -41,6 +41,11 @@ import test.tck.msgflow.callflows.ScenarioHarness;
 
 public class SelfroutingTest extends ScenarioHarness {
 
+    /**
+     *
+     */
+    private static final int TIMEOUT = 4000;
+
     protected Shootist shootist;
 
     private static Logger logger = LogManager.getLogger("test.tck");
@@ -157,24 +162,24 @@ public class SelfroutingTest extends ScenarioHarness {
         public boolean okToInviteReceived;
 
         public void processResponse(ResponseEvent responseReceivedEvent) {
-            logger.info("Got a response");
-
             Response response = (Response) responseReceivedEvent.getResponse();
+            logger.info("Got a response " + response);
             Transaction tid = responseReceivedEvent.getClientTransaction();
 
             logger.info("Response received with client transaction id " + tid
                     + ":\n" + response.getStatusCode());
             if (tid != null) {
 				logger.info("Dialog = " + responseReceivedEvent.getDialog());
-				logger.info("Dialog State is "
+                if(responseReceivedEvent.getDialog() != null)
+				    logger.info("Dialog State is "
 						+ responseReceivedEvent.getDialog().getState());
 			}
             try {
-            	if (response.getStatusCode() == Response.OK) {
-            		if(((CSeqHeader) response.getHeader(CSeqHeader.NAME))
-            				.getMethod().equals(Request.INVITE)) {
-            			okToInviteReceived = true;
-            		}
+            	if (response.getStatusCode() == Response.OK && 
+            		    (((CSeqHeader) response.getHeader(CSeqHeader.NAME))
+            				.getMethod().equals(Request.INVITE))) {
+                        logger.info("setting okToInviteReceived to true");
+            			okToInviteReceived = true;            		
             	}
             } catch (Exception ex) {
                 logger.error(ex);
@@ -424,7 +429,7 @@ public class SelfroutingTest extends ScenarioHarness {
     	}.start();
         
         try {
-			Thread.sleep(4000);
+			Thread.sleep(TIMEOUT);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -456,7 +461,7 @@ public class SelfroutingTest extends ScenarioHarness {
     	}.start();
         
         try {
-			Thread.sleep(4000);
+			Thread.sleep(TIMEOUT);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
