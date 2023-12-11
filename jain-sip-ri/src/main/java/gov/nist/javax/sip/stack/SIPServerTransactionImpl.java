@@ -793,9 +793,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 // If an invite transaction is ACK'ed while in
                 // the completed state,
             } else if (isInviteTransaction() && 
-                    TransactionState._COMPLETED == getRealState() && 
+                    (TransactionState._COMPLETED == getRealState() ||
                     // Adding confirmed state in case of retranmissions of ACK
-                    TransactionState._CONFIRMED == getRealState() && 
+                    TransactionState._CONFIRMED == getRealState()) && 
                     transactionRequest.getMethod().equals(Request.ACK)) {
 
                 // @jvB bug fix
