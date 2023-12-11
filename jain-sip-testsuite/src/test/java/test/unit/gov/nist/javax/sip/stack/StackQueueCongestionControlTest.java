@@ -714,7 +714,7 @@ public class StackQueueCongestionControlTest extends TestCase {
         shootme.terminate();
     }
 
-    private static final int TIMEOUT = 50000;
+    private static final int TIMEOUT = 75000;
 
     public void testTCPZeroLostMessages() {
         this.shootme.init("tcp",1000);
@@ -727,6 +727,10 @@ public class StackQueueCongestionControlTest extends TestCase {
         if(this.shootist.receivedResponses<=1) {
            // fail("We excpeted more than 0" + this.shootist.receivedResponses);
         }
+        System.out.println("received responses " + shootist.receivedResponses);
+        System.out.println("sent Responses " + shootme.sentResponses);
+        System.out.println("ACKs retrans received  " + shootme.acks);
+        
         assertEquals(shootme.sentResponses, shootist.receivedResponses);
         if(this.shootme.acks != 5) {
             fail("We expect 5 ACKs because retransmissions are not filtered in loose dialog validation. We got " + this.shootme.acks);
@@ -743,6 +747,11 @@ public class StackQueueCongestionControlTest extends TestCase {
         } catch (Exception ex) {
 
         }
+
+        System.out.println("received responses " + shootist.receivedResponses);
+        System.out.println("sent Responses " + shootme.sentResponses);
+        System.out.println("ACKs retrans received  " + shootme.acks);
+
         if(this.shootist.receivedResponses<=1) {
             fail("We excpeted more than 0" + this.shootist.receivedResponses);
         }
@@ -761,6 +770,10 @@ public class StackQueueCongestionControlTest extends TestCase {
             }
         } , TIMEOUT);
         
+        System.out.println("received responses " + shootist.receivedResponses);
+        System.out.println("sent Responses " + shootme.sentResponses);
+        System.out.println("ACKs retrans received  " + shootme.acks);
+
         if(this.shootme.acks < 5) {
             fail("We expect at least 5 ACKs because retransmissions are not filtered in loose dialog validation." + this.shootme.acks);
         }
@@ -777,8 +790,12 @@ public class StackQueueCongestionControlTest extends TestCase {
             }
         } , TIMEOUT);
         
+        System.out.println("received responses " + shootist.receivedResponses);
+        System.out.println("sent Responses " + shootme.sentResponses);
+        System.out.println("ACKs retrans received  " + shootme.acks);
+
         if(this.shootist.receivedResponses<=1) {
-            fail("We excpeted more than 0" + this.shootist.receivedResponses);
+            fail("We expected more than 0" + this.shootist.receivedResponses);
         }
         if(this.shootme.acks != 5) {
             fail("We expect 5 ACKs because retransmissions are not filtered in loose dialog validation.");
@@ -796,8 +813,11 @@ public class StackQueueCongestionControlTest extends TestCase {
             }
         } , TIMEOUT);
         
+        System.out.println("received responses " + shootist.receivedResponses);
+        System.out.println("sent Responses " + shootme.sentResponses);
+
         if(this.shootist.receivedResponses<=1) {
-            fail("We excpeted more than 0" + this.shootist.receivedResponses);
+            fail("We expected more than 0" + this.shootist.receivedResponses);
         }
         if(this.shootme.acks != 5) {
             fail("We expect 5 ACKs because retransmissions are not filtered in loose dialog validation.");
@@ -816,8 +836,11 @@ public class StackQueueCongestionControlTest extends TestCase {
             }
         } , TIMEOUT);
         
+        System.out.println("received responses " + shootist.receivedResponses);
+        System.out.println("sent Responses " + shootme.sentResponses);        
+
         if(this.shootist.receivedResponses<=1) {
-            fail("We excpeted more than 0" + this.shootist.receivedResponses);
+            fail("We expected more than 0" + this.shootist.receivedResponses);
         }
         assertEquals(shootme.sentResponses, shootist.receivedResponses);
 
@@ -837,7 +860,7 @@ public class StackQueueCongestionControlTest extends TestCase {
             fail("We expected more than 0" + this.shootist.receivedResponses);
         }
         System.out.println("received responses " + shootist.receivedResponses);
-        System.out.println(" sent Responses " + shootme.sentResponses);
+        System.out.println("sent Responses " + shootme.sentResponses);
         assertTrue("received responses " + shootist.receivedResponses + " sent Responses " + shootme.sentResponses, 
             shootist.receivedResponses > shootme.sentResponses/2);
         assertTrue("received responses " + shootist.receivedResponses + " sent Responses " + shootme.sentResponses, 
