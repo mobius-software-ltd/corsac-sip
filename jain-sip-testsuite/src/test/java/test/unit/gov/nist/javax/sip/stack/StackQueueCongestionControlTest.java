@@ -230,7 +230,7 @@ public class StackQueueCongestionControlTest extends TestCase {
             		ex.printStackTrace();
             		//junit.framework.TestCase.fail("Exit JVM");
             	}
-            	if(q%100==0) System.out.println("Send " + q);
+            	if(q%10==0) System.out.println("Send " + q);
             }
             try {
                 Response okResponse = messageFactory.createResponse(200,
