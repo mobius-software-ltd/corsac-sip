@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
+import gov.nist.core.executor.MessageProcessorExecutor;
 import gov.nist.core.executor.SIPTimer;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
@@ -33,6 +34,7 @@ public class MobiusSipTimerTask implements SIPTimer {
     private AtomicLong timestamp;
     private AtomicLong period;
     private String id;
+    private MessageProcessorExecutor messageProcessorExecutor;
 
     public MobiusSipTimerTask(MobiusSipTimer timer, SIPStackTimerTask task, long timeout) {
         this.timer = timer;
@@ -41,6 +43,7 @@ public class MobiusSipTimerTask implements SIPTimer {
         this.timestamp = new AtomicLong(System.currentTimeMillis() + timeout);
         this.period = new AtomicLong(-1);
         this.id = task.getThreadHash();
+        this.messageProcessorExecutor = timer.sipStackImpl.getMessageProcessorExecutor();
     }
 
     public MobiusSipTimerTask(MobiusSipTimer timer, SIPStackTimerTask task, long timeout, long period) {
@@ -97,5 +100,10 @@ public class MobiusSipTimerTask implements SIPTimer {
     @Override
     public String getTaskName() {
         return task.getTaskName();
+    }
+
+    @Override
+    public Integer getQueueIndex() {
+        return messageProcessorExecutor.findQueueIndex(id);
     }
 }
