@@ -609,6 +609,10 @@ public class InviteClientTransactionsStateMachineTest extends
             }
             // Wait for the retransmission timer to fire if it had not already
             // done so.
+            if(logger.isDebugEnabled()) {
+                logger.debug("tran.getRetransmitTimer() = "
+                        + tran.getRetransmitTimer());
+            }
             if (tran.getRetransmitTimer() > MESSAGES_ARRIVE_FOR)
                 sleep((long) tran.getRetransmitTimer() - MESSAGES_ARRIVE_FOR); // subtract
                                                                                 // the
@@ -798,6 +802,10 @@ public class InviteClientTransactionsStateMachineTest extends
             }
             // Wait for the retransmission timer to fire if it had not already
             // done so.
+            if(logger.isDebugEnabled()) {
+                logger.debug("tran.getRetransmitTimer() = "
+                        + tran.getRetransmitTimer());
+            }
             if (tran.getRetransmitTimer() > MESSAGES_ARRIVE_FOR)
                 sleep((long) tran.getRetransmitTimer() - MESSAGES_ARRIVE_FOR); // subtract
                                                                                 // the
@@ -1016,6 +1024,10 @@ public class InviteClientTransactionsStateMachineTest extends
             }
             // Wait for the retransmission timer to fire if it had not already
             // done so.
+            if(logger.isDebugEnabled()) {
+                logger.debug("tran.getRetransmitTimer() = "
+                        + tran.getRetransmitTimer());
+            }
             if (tran.getRetransmitTimer() > MESSAGES_ARRIVE_FOR)
                 sleep((long) tran.getRetransmitTimer() - MESSAGES_ARRIVE_FOR); // subtract
                                                                                 // the

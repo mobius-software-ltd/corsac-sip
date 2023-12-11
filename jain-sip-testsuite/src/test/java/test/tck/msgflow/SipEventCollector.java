@@ -330,6 +330,8 @@ class SipEventCollector {
         }
 
         public void processRequest(RequestEvent evt) {
+            if(logger.isDebugEnabled())
+                logger.debug("collectedEvent: " + collectedEvent + ", evt:" +  evt);
             // Ignore secondary and null events
             if (collectedEvent != null || evt == null)
                 return;

@@ -1090,7 +1090,12 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   public void fireRetransmissionTimer() {
 
     try {
-
+      if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+        logger.logDebug("fireRetransmissionTimer " + this + 
+            ", Internal State:" + this.getInternalState() +
+            ", isMapped:" + this.isMapped +
+            ", lastRequest:" + this.lastRequest);
+      }
       // Resend the last request sent
       if (this.getInternalState() < 0 || !this.isMapped)
         return;

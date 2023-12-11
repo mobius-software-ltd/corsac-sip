@@ -685,7 +685,11 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     @Override
     public void fireTimer() {
         // If the timeout timer is enabled,
-    	
+    	if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("fireTimer " + this + 
+                " timeoutTimerTicksLeft = " + timeoutTimerTicksLeft +
+                " retransmissionTimerTicksLeft = " + retransmissionTimerTicksLeft);
+        }
         if (timeoutTimerTicksLeft.get() != -1) {
             // Count down the timer, and if it has run out,
             if (timeoutTimerTicksLeft.decrementAndGet() == 0) {
