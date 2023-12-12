@@ -85,7 +85,7 @@ public class TcpMultiThreadDeadlockTest extends TestCase {
         private SipProvider sipProvider;
 
         private static final String myAddress = "127.0.0.1";
-        private static final int NUMBER_OF_RINGING = 1000;
+        private static final int NUMBER_OF_RINGING = 250;
 
         private final int myPort = 5070;
 

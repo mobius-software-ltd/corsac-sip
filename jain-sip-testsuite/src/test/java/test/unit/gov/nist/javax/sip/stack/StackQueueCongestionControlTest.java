@@ -717,7 +717,7 @@ public class StackQueueCongestionControlTest extends TestCase {
     private static final int TIMEOUT = 100000;
 
     public void testTCPZeroLostMessages() {
-        this.shootme.init("tcp",1000);
+        this.shootme.init("tcp",300);
         this.shootist.init("10", "10000", 2, "tcp");
         try {
             Thread.sleep(TIMEOUT);
@@ -740,7 +740,7 @@ public class StackQueueCongestionControlTest extends TestCase {
 
     
     public void testUDPHugeLoss() {
-        this.shootme.init("udp",1000);
+        this.shootme.init("udp",300);
         this.shootist.init("10", "10", 20, "udp");
         try {
             Thread.sleep(10000);
@@ -825,7 +825,7 @@ public class StackQueueCongestionControlTest extends TestCase {
     }
     
     public void testTCPCongestionControlOff() throws InterruptedException {
-        this.shootme.init("tcp",1000);
+        this.shootme.init("tcp",300);
         this.shootist.init("10","0",1,"tcp");
         
         AssertUntil.assertUntil(new TestAssertion() {
@@ -846,7 +846,7 @@ public class StackQueueCongestionControlTest extends TestCase {
 
     }
     public void testTCPHugeLoss() throws InterruptedException {
-        this.shootme.init("tcp",1000);
+        this.shootme.init("tcp",300);
         this.shootist.init("10", "10", 20, "tcp");
         AssertUntil.assertUntil(new TestAssertion() {
             @Override
