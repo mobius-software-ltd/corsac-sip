@@ -444,7 +444,7 @@ public abstract class TestHarness extends TestCase {
                 return testPassed;
             }
          ;
-                    }, TIMEOUT);
+        }, TIMEOUT);
         TestCase.assertTrue(testPassed);
         logger.info(this.getName() + " Completed");
     }

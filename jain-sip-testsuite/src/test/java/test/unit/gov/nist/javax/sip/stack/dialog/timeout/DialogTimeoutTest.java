@@ -122,8 +122,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
                 }, TIMEOUT)
             );
 
-            doTearDown(false);
-            doSetUp();
+            // doTearDown(false);
+            // doSetUp();
     }
     
     // check that the apps gets called for timeout event when no ack is received nor sent
@@ -173,8 +173,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
             }, TIMEOUT)
         );        
 
-        doTearDown(false);
-        doSetUp();
+        // doTearDown(false);
+        // doSetUp();
     }
     
     // check that the caller application doesn't get called on timeout but called on dialog terminated event when it is not implementing the new listener
@@ -219,8 +219,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
             }, TIMEOUT)
         );
 
-        doTearDown(false);
-        doSetUp();
+        // doTearDown(false);
+        // doSetUp();
     }
     
     // check that the apps don't get called on tiemout event if autodialog is true but get called on dialog terminated event
@@ -265,8 +265,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
             }, TIMEOUT)
         );        
 
-        doTearDown(false);
-        doSetUp();
+        // doTearDown(false);
+        // doSetUp();
     }
     
     // test checking that when the B2BUA flag is set to true, the app doesn't get called on dialog timeout but get called for dialog terminated 
@@ -321,8 +321,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
             }, TIMEOUT)
         );        
 
-        doTearDown(false);
-        doSetUp();
+        // doTearDown(false);
+        // doSetUp();
     }
 
     public void tearDown() {

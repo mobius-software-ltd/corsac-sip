@@ -38,7 +38,7 @@ public class MessageProcessorExecutor {
 			logger.logDebug("Starting MessageProcessorExecutor with workersNumber: " + workersNumber + " and taskInterval: " + taskInterval);
 		}
 		this.workersNumber = workersNumber;	
-		workerPool = new WorkerPool(taskInterval, Boolean.FALSE);
+		workerPool = new WorkerPool(taskInterval);
 		workerPool.start(workersNumber);
 	}
 

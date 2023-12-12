@@ -71,6 +71,8 @@ public class MobiusSipTimerTask implements SIPTimer {
                         " with period " + period.get() + " next execution at " + timestamp.get());
                 }
                 timer.getPeriodicQueue().store(timestamp.get(), this);
+            } else {
+                timestamp.set(Long.MAX_VALUE);
             }
         }
     }
