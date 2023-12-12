@@ -22,6 +22,7 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 
 import gov.nist.javax.sip.SipStackImpl;
+import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.ScenarioHarness;
@@ -333,14 +334,15 @@ public class DialogTimeoutTest extends ScenarioHarness {
     private void doTearDown(boolean definetly) {
         try {
             Thread.sleep(3000);
+            if (definetly) {
+                TestCase.assertTrue(testPassed);                
+            }
             // this.shootist.checkState();
             // this.shootme.checkState();
             shootmeProtocolObjs.destroy();
             shootistProtocolObjs.destroy();
             Thread.sleep(1000);
-            this.providerTable.clear();
-            if (definetly)
-                logTestCompleted();
+            this.providerTable.clear();            
         } catch (Exception ex) {
             ex.printStackTrace();
         }

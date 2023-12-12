@@ -95,7 +95,7 @@
 
     <properties>
         <version.netty>4.1.63.Final</version.netty>
-        <version.mobius-timers>1.0.0-13</version.mobius-timers>
+        <version.mobius-timers>1.0.0-16</version.mobius-timers>
         <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
         <!-- IDEs has a problem when we use late binding with @ in the surefire arg line.
         Therefore we set this empty property here-->

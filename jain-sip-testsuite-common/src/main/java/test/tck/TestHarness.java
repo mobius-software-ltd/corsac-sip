@@ -57,7 +57,7 @@ public abstract class TestHarness extends TestCase {
     // on either side of the protocol. It helps account for failures that are
     // not triggered in the
     // main test thread. It has to be initialized before each run.
-    private static boolean testPassed = true;
+    public static boolean testPassed = true;
 
     protected static MessageFactory tiMessageFactory;
 

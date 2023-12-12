@@ -740,7 +740,7 @@ public class StackQueueCongestionControlTest extends TestCase {
 
     
     public void testUDPHugeLoss() {
-        this.shootme.init("udp",300);
+        this.shootme.init("udp",1000);
         this.shootist.init("10", "10", 20, "udp");
         try {
             Thread.sleep(10000);
