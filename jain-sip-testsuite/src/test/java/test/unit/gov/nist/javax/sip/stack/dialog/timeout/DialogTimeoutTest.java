@@ -73,7 +73,8 @@ public class DialogTimeoutTest extends ScenarioHarness {
     }
 
     private void doSetUp() {
-        try {            
+        try {    
+            testPassed = true;        
             super.setUp();            
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -335,7 +336,7 @@ public class DialogTimeoutTest extends ScenarioHarness {
         try {
             Thread.sleep(3000);
             if (definetly) {
-                TestCase.assertTrue(testPassed);                
+                TestCase.assertTrue("Test failed " + failureReason, testPassed);                
             }
             // this.shootist.checkState();
             // this.shootme.checkState();

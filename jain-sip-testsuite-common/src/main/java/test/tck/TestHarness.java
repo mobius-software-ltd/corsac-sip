@@ -58,6 +58,7 @@ public abstract class TestHarness extends TestCase {
     // not triggered in the
     // main test thread. It has to be initialized before each run.
     public static boolean testPassed = true;
+    public static String failureReason = null;
 
     protected static MessageFactory tiMessageFactory;
 
@@ -148,6 +149,8 @@ public abstract class TestHarness extends TestCase {
 
     protected TestHarness(String name, boolean autoDialog) {
         super(name);
+        failureReason = null;
+        testPassed = true;
         this.testResult = new TestResult();
 
         getRIFactories(autoDialog);
@@ -219,6 +222,7 @@ public abstract class TestHarness extends TestCase {
         println(stringWriter.getBuffer().toString());
 
         testPassed = false;
+        failureReason = reason;
         if (abortOnFail) {
             new Exception().printStackTrace();
             junit.framework.TestCase.fail("Exit JVM");
