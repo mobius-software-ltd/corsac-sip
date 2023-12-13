@@ -825,7 +825,7 @@ public class StackQueueCongestionControlTest extends TestCase {
     }
     
     public void testTCPCongestionControlOff() throws InterruptedException {
-        this.shootme.init("tcp",300);
+        this.shootme.init("tcp",100);
         this.shootist.init("10","0",1,"tcp");
         
         AssertUntil.assertUntil(new TestAssertion() {

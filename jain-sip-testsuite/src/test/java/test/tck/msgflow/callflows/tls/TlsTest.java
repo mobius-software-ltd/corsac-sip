@@ -113,7 +113,7 @@ public class TlsTest extends ScenarioHarness implements SipListener {
         }
     }
 
-    public void testSendInvite() {
+    public void testTlsTestSendInvite() {
         this.shootist.sendInvite();
     }
 
