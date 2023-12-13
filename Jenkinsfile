@@ -153,7 +153,7 @@ node("slave-xlarge") {
         sh 'sudo apt update & sudo apt-get -y install libsctp1'
 
         stage("TCK & Testsuite") {
-            runTestsuite("${ENABLE_NETTY}", "${FORK_COUNT}", "${TEST_TO_RUN}" "parallel-testing")
+            runTestsuite("${ENABLE_NETTY}", "${FORK_COUNT}", "${TEST_TO_RUN}", "parallel-testing")
         }
      
         stage("Publish TCK & Testsuite Results") {
