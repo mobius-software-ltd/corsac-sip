@@ -1,7 +1,15 @@
-def runTestsuite(enableNetty, forkCount=1, profile="defaultProfile") {
-     withMaven(maven: 'maven-3.6.3',traceability: true) {
-        sh "mvn -B -f jain-sip-testsuite/pom.xml  clean install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" "
-     }
+def runTestsuite(enableNetty, forkCount=1, testToRun, profile="defaultProfile") {
+    if($testToRun.isEmpty()) {
+        echo "Running the entire testsuite"
+        withMaven(maven: 'maven-3.6.3',traceability: true) {
+            sh "mvn -B -f jain-sip-testsuite/pom.xml  clean install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" "
+        }
+    } else {
+        echo "Running the testsuite for $testToRun"
+        withMaven(maven: 'maven-3.6.3',traceability: true) {
+            sh "mvn -B -f jain-sip-testsuite/pom.xml  clean install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" -Dtest=\"$testToRun\""
+        }
+    }
 }
 
 
@@ -74,6 +82,7 @@ node("slave-xlarge") {
             string(name: 'RUN_TESTSUITE', defaultValue: "true", description: 'Whether the testsuite should run or not', trim: true),
             string(name: 'ENABLE_NETTY', defaultValue: "true", description: 'Whether the testsuite should run using Netty', trim: true),
             string(name: 'FORK_COUNT', defaultValue: '20', description: 'Number of forks to run the testsuite', trim: true),
+            string(name: 'TEST_TO_RUN', defaultValue: "", description: 'if a single test needs to be running to avoid rerunning the entire testsuite again', trim: true),
             string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true),
             string(name: 'RUN_UAS_PERF_TESTS', defaultValue: "true", description: 'Whether the UAS performance tests should run or not', trim: true),
             string(name: 'RUN_B2BUA_PERF_TESTS', defaultValue: "true", description: 'Whether the B2BUA performance tests should run or not', trim: true),
@@ -87,7 +96,7 @@ node("slave-xlarge") {
             string(name: 'POST_PERF_ADDITIONAL_SLEEP_TIME', defaultValue: "300", description: 'Additional Sleep time after performance test to ensure proper cleanup', trim: true),
             string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true),
             string(name: 'PERF_JAIN_SIP_RI_VERSION', defaultValue: "current", description: 'Version of JAIN SIP RI to use for running perf tests (example: 7.0.5.287)', trim: true),
-            string(name: 'PERF_LOG4J_VERSION', defaultValue: "1.2.17", description: 'Version of LOG4J to go with the specific version of JAIN SIP RI to use for running perf tests', trim: true)
+            string(name: 'PERF_LOG4J_VERSION', defaultValue: "1.2.17", description: 'Version of LOG4J to go with the specific version of JAIN SIP RI to use for running perf tests', trim: true)            
         ])
     ])
 
@@ -144,7 +153,7 @@ node("slave-xlarge") {
         sh 'sudo apt update & sudo apt-get -y install libsctp1'
 
         stage("TCK & Testsuite") {
-            runTestsuite("${ENABLE_NETTY}", "${FORK_COUNT}" , "parallel-testing")
+            runTestsuite("${ENABLE_NETTY}", "${FORK_COUNT}", "${TEST_TO_RUN}" "parallel-testing")
         }
      
         stage("Publish TCK & Testsuite Results") {
