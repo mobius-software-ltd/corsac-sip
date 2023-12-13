@@ -1,5 +1,5 @@
 def runTestsuite(enableNetty, forkCount=1, testToRun, profile="defaultProfile") {
-    if($testToRun.isEmpty()) {
+    if ($testToRun == "all") {    
         echo "Running the entire testsuite"
         withMaven(maven: 'maven-3.6.3',traceability: true) {
             sh "mvn -B -f jain-sip-testsuite/pom.xml  clean install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" "
@@ -82,7 +82,7 @@ node("slave-xlarge") {
             string(name: 'RUN_TESTSUITE', defaultValue: "true", description: 'Whether the testsuite should run or not', trim: true),
             string(name: 'ENABLE_NETTY', defaultValue: "true", description: 'Whether the testsuite should run using Netty', trim: true),
             string(name: 'FORK_COUNT', defaultValue: '20', description: 'Number of forks to run the testsuite', trim: true),
-            string(name: 'TEST_TO_RUN', defaultValue: "", description: 'if a single test needs to be running to avoid rerunning the entire testsuite again', trim: true),
+            string(name: 'TESTS_TO_RUN', defaultValue: "all", description: 'if a single test needs to be running to avoid rerunning the entire testsuite again', trim: true),
             string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true),
             string(name: 'RUN_UAS_PERF_TESTS', defaultValue: "true", description: 'Whether the UAS performance tests should run or not', trim: true),
             string(name: 'RUN_B2BUA_PERF_TESTS', defaultValue: "true", description: 'Whether the B2BUA performance tests should run or not', trim: true),
