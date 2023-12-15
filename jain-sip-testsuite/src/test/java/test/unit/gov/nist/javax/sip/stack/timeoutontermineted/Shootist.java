@@ -156,12 +156,19 @@ public class Shootist implements SipListener {
         return new TestAssertion() {
             @Override
             public boolean assertCondition() {
+                System.out.println("INVITE transaction should temrinate." + seen_txTerm);
+                System.out.println("INVITE transaction should not timeout." + seen_txTimeout);
+                System.out.println("INVITE Dialog should die." + seen_dte);
                 return seen_txTerm && seen_txTimeout && seen_dte;
             };
         }; 
     }
 
     public void checkState() {
+        System.out.println("INVITE transaction should temrinate." + seen_txTerm);
+        System.out.println("INVITE transaction should not timeout." + seen_txTimeout);
+        System.out.println("INVITE Dialog should die." + seen_dte);
+        
         TestCase.assertTrue("INVITE transaction should temrinate.", seen_txTerm);
         TestCase.assertFalse("INVITE transaction should not timeout.", seen_txTimeout);
         TestCase.assertTrue("INVITE Dialog should die.", seen_dte);

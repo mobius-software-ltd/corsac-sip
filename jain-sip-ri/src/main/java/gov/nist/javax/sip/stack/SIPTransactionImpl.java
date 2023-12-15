@@ -162,7 +162,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     private transient int retransmissionTimerLastTickCount;
 
     // Number of ticks before the message is retransmitted
-    private transient int retransmissionTimerTicksLeft;
+    protected transient int retransmissionTimerTicksLeft;
 
     // Number of ticks before the transaction times out
     protected AtomicInteger timeoutTimerTicksLeft=new AtomicInteger(-1);

@@ -378,6 +378,11 @@ public class CancelEventTest extends ScenarioHarness {
             return new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
+                    System.out.println("cancelOK = " + cancelOk);
+                    System.out.println("cancelTerm = " + cancelTxTerm);
+                    System.out.println("inviteTxTerm = " + inviteTxTerm);
+                    System.out.println("dialogTerminated = " + dialogTerminated);
+
                     return cancelOk && cancelTxTerm && inviteTxTerm && dialogTerminated;
                 }
             };

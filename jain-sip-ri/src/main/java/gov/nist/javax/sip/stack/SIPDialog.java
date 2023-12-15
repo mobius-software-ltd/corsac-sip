@@ -3638,15 +3638,21 @@ public class SIPDialog implements DialogExt {
      *            - response that was sent.
      */
     public void startRetransmitTimer(SIPServerTransaction sipServerTx,
-            Response response) {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug(
-                    "startRetransmitTimer() " + response.getStatusCode()
-                            + " method " + sipServerTx.getMethod());
-        }
+            Response response) {        
         if (sipServerTx.isInviteTransaction()
                 && response.getStatusCode() / 100 == 2) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                        "starting Retransmit Timer " + response.getStatusCode()
+                                + " method " + sipServerTx.getMethod());
+            }
             this.startTimer(sipServerTx);
+        } else {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                        "not starting Retransmit Timer " + response.getStatusCode()
+                                + " method " + sipServerTx.getMethod());
+            }
         }
     }
 

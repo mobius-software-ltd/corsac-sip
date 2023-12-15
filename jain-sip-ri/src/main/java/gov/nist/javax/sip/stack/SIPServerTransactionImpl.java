@@ -280,7 +280,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     }
 
     class ProvisionalResponseTask extends SIPStackTimerTask {
-
+        private StackLogger logger = CommonLogger.getLogger(ProvisionalResponseTask.class);
         int ticks;
 
         int ticksLeft;
@@ -311,10 +311,15 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
              */
             // If the transaction has terminated,
             if (serverTransaction.isTerminated()) {
-
+                if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug("canceling ProvisionalResponseTask as tx is terminated");
+                }
                 sipStack.getTimer().cancel(this);
 
             } else {
+                if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug("ProvisionalResponseTask ticksLeft " + ticksLeft);
+                }
                 ticksLeft--;
                 if (ticksLeft == -1) {
                     serverTransaction.fireReliableResponseRetransmissionTimer();
@@ -324,6 +329,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     // determines when the server
                     // transaction abandons retransmitting the response
                     if (this.ticksLeft >= SIPTransactionImpl.TIMER_H) {
+                        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                            logger.logDebug("canceling ProvisionalResponseTask and firing timeout timer");
+                        }
                         sipStack.getTimer().cancel(this);
                         setState(TransactionState._TERMINATED);
                         fireTimeoutTimer();
@@ -1655,7 +1663,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
     @Override
     public void sendReliableProvisionalResponse(Response relResponse) throws SipException {
-
+        
         /*
          * After the first reliable provisional response for a request has been
          * acknowledged, the
@@ -1672,44 +1680,10 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             this.pendingReliableResponseMethod = reliableResponse.getCSeq().getMethod();
             this.pendingReliableCSeqNumber = reliableResponse.getCSeq().getSeqNumber();
         }
-        /*
-         * In addition, it MUST contain a Require header field containing the option tag
-         * 100rel,
-         * and MUST include an RSeq header field.
-         */
-        RSeq rseq = (RSeq) relResponse.getHeader(RSeqHeader.NAME);
-        if (relResponse.getHeader(RSeqHeader.NAME) == null) {
-            rseq = new RSeq();
-            relResponse.setHeader(rseq);
-        }
 
-        try {
-            if (rseqNumber < 0) {
-                this.rseqNumber = (int) (Math.random() * 1000);
-            }
-            this.rseqNumber++;
-            rseq.setSeqNumber(this.rseqNumber);
-            this.pendingReliableRSeqNumber = rseq.getSeqNumber();
-
-            // start the timer task which will retransmit the reliable response
-            // until the PRACK is received. Cannot send a second provisional.
-            this.lastResponse = (SIPResponse) relResponse;
-            // if (this.getDialog() != null && interlockProvisionalResponses) {
-            //     boolean acquired = this.provisionalResponseSem.tryAcquire(1, TimeUnit.SECONDS);
-            //     if (!acquired) {
-            //         throw new SipException("Unacknowledged reliable response");
-            //     }
-            // }
-            // moved the task scheduling before the sending of the message to overcome
-            // Issue 265 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=265
-            this.provisionalResponseTask = new ProvisionalResponseTask();
-            this.sipStack.getTimer().scheduleWithFixedDelay(provisionalResponseTask, 0,
-                    SIPTransactionStack.BASE_TIMER_INTERVAL);
-            this.sendMessage((SIPMessage) relResponse);
-        } catch (Exception ex) {
-            InternalErrorHandler.handleException(ex);
-        }
-
+        ServerTransactionOutgoingProvisionalResponseTask outgoingMessageProcessingTask = 
+            new ServerTransactionOutgoingProvisionalResponseTask((SIPResponse) relResponse);
+        sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);        
     }
 
     /**
@@ -2220,7 +2194,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     sipStack.retransmissionAlertTransactions.put(dialogId, SIPServerTransactionImpl.this);
                     sipStack.getTimer().scheduleWithFixedDelay(retransmissionAlertTimerTask, 0,
                             SIPTransactionStack.BASE_TIMER_INTERVAL);
-
+                    // retransmissionAlertTimerTask.runTask();
                 }
 
                 // Send message after possibly inserting the Dialog
@@ -2271,4 +2245,77 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
     }
 
+    public class ServerTransactionOutgoingProvisionalResponseTask implements SIPTask {
+        private final String taskName = ServerTransactionOutgoingProvisionalResponseTask.class.getSimpleName();
+        private StackLogger logger = CommonLogger.getLogger(ServerTransactionOutgoingProvisionalResponseTask.class);
+        private String id;
+        private long startTime;
+        
+        SIPResponse relResponse;
+
+        public ServerTransactionOutgoingProvisionalResponseTask(SIPResponse sipResponse) {
+            startTime = System.currentTimeMillis();
+            this.id = sipResponse.getCallId().getCallId();
+            this.relResponse = sipResponse;
+        }
+
+        @Override
+        public void execute() {
+            try {            
+                /*
+                * In addition, it MUST contain a Require header field containing the option tag
+                * 100rel,
+                * and MUST include an RSeq header field.
+                */
+                RSeq rseq = (RSeq) relResponse.getHeader(RSeqHeader.NAME);
+                if (relResponse.getHeader(RSeqHeader.NAME) == null) {
+                    rseq = new RSeq();
+                    relResponse.setHeader(rseq);
+                }
+
+                if (rseqNumber < 0) {
+                    rseqNumber = (int) (Math.random() * 1000);
+                }
+                rseqNumber++;
+                rseq.setSeqNumber(rseqNumber);
+                pendingReliableRSeqNumber = rseq.getSeqNumber();
+                // start the timer task which will retransmit the reliable response
+                // until the PRACK is received. Cannot send a second provisional.
+                lastResponse = (SIPResponse) relResponse;
+                // if (this.getDialog() != null && interlockProvisionalResponses) {
+                //     boolean acquired = this.provisionalResponseSem.tryAcquire(1, TimeUnit.SECONDS);
+                //     if (!acquired) {
+                //         throw new SipException("Unacknowledged reliable response");
+                //     }
+                // }
+                // moved the task scheduling before the sending of the message to overcome
+                // Issue 265 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=265
+                provisionalResponseTask = new ProvisionalResponseTask();                
+                sipStack.getTimer().scheduleWithFixedDelay(provisionalResponseTask, 0,
+                        SIPTransactionStack.BASE_TIMER_INTERVAL);
+                // provisionalResponseTask.runTask();
+                sendMessage((SIPMessage) relResponse);
+                
+            } catch (Exception ex) {
+                InternalErrorHandler.handleException(ex);
+                raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);                
+            }
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public long getStartTime() {
+            return startTime;
+        }
+
+        @Override
+        public String getTaskName() {
+            return taskName;
+        }
+
+    }
 }

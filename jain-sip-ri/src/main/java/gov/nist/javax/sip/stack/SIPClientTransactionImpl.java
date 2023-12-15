@@ -229,14 +229,14 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   private transient SIPStackTimerTask transactionTimer;
 
   // jeand/ avoid keeping the full Original Request in memory
-  private String originalRequestFromTag;  
+  private String originalRequestFromTag;
   private Event originalRequestEventHeader;
   private Contact originalRequestContact;
   private String originalRequestScheme;
 
   // private transient Object transactionTimerLock = new Object();
   private AtomicBoolean timerKStarted = new AtomicBoolean(false);
-  private boolean transactionTimerCancelled = false;
+  private AtomicBoolean transactionTimerCancelled = new AtomicBoolean(false);
   private Set<Integer> responsesReceived = new CopyOnWriteArraySet<Integer>();
 
   private boolean terminateDialogOnCleanUp = true;
@@ -249,9 +249,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
     public void runTask() {
       if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-          logger.logDebug("running transaction timer  = " + getTransactionId() + 
+        logger.logDebug("running transaction timer  = " + getTransactionId() +
             ", isTerminated " + isTerminated());
-        }
+      }
       // If the transaction has terminated,
       if (isTerminated()) {
 
@@ -709,7 +709,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   private void scheduleTimerK(long time) {
     if (transactionTimer != null && timerKStarted.compareAndSet(false, true)) {
       // synchronized (transactionTimerLock) {
-      if (!transactionTimerCancelled) {
+      if (!transactionTimerCancelled.get()) {
         sipStack.getTimer().cancel(transactionTimer);
         transactionTimer = null;
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -741,7 +741,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         } else {
           task.runTask();
         }
-        transactionTimerCancelled = true;
+        transactionTimerCancelled.set(true);
       }
       // }
     }
@@ -1079,8 +1079,8 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       }
     }
 
-    ClientTransactionOutgoingMessageTask outgoingMessageProcessingTask = 
-      new ClientTransactionOutgoingMessageTask(sipRequest);
+    ClientTransactionOutgoingMessageTask outgoingMessageProcessingTask = new ClientTransactionOutgoingMessageTask(
+        sipRequest);
     sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
   }
 
@@ -1090,8 +1090,8 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   public void fireRetransmissionTimer() {
 
     try {
-      if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        logger.logDebug("fireRetransmissionTimer " + this + 
+      if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+        logger.logDebug("fireRetransmissionTimer " + this +
             ", Internal State:" + this.getInternalState() +
             ", isMapped:" + this.isMapped +
             ", lastRequest:" + this.lastRequest);
@@ -1435,13 +1435,13 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       // && transactionTimerLock != null)
       {
         // synchronized (transactionTimerLock) {
-        if (!transactionTimerCancelled) {
-          if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug("Start transaction timer : " + getTransactionId());
-          transactionTimer = new SIPClientTransactionTimer();
-          sipStack.getTimer().scheduleWithFixedDelay(transactionTimer,
-              baseTimerInterval,
-              baseTimerInterval);
+        if (!transactionTimerCancelled.get()) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+              logger.logDebug("Start transaction timer : " + getTransactionId());
+            transactionTimer = new SIPClientTransactionTimer();
+            sipStack.getTimer().scheduleWithFixedDelay(transactionTimer,
+                baseTimerInterval,
+                baseTimerInterval);
         }
         // }
       }
@@ -1572,56 +1572,56 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
          */
 
         // synchronized (this) {
-          /*
-           * We need synchronization here because two responses may compete for the
-           * default dialog simultaneously
-           */
-          if (defaultDialog != null) {
-            if (sipResponse.getFromTag() != null) {
-              String defaultDialogId = defaultDialog.getDialogId();
-              if (defaultDialog.getLastResponseMethod() == null
-                  || (method.equals(Request.SUBSCRIBE)
-                      && defaultDialog.getLastResponseMethod().equals(Request.NOTIFY)
-                      && defaultDialogId.equals(dialogId))) {
-                // The default dialog has not been claimed yet.
-                defaultDialog.setLastResponse(this, sipResponse);
-                dialog = defaultDialog;
-              } else {
-                /*
-                 * check if we have created one previously (happens in the case of
-                 * REINVITE processing. JvB: should not happen, this.defaultDialog
-                 * should then get set in Dialog#sendRequest line 1662
-                 */
-
-                dialog = sipStack.getDialog(dialogId);
-                if (dialog == null) {
-                  if (defaultDialog.isAssigned()) {
-                    /*
-                     * Nop we dont have one. so go ahead and allocate a new
-                     * one.
-                     */
-                    dialog = sipStack.createDialog(this, sipResponse);
-                    dialog.setOriginalDialog(defaultDialog);
-                  }
-                }
-
-              }
-              if (dialog != null) {
-                this.setDialog(dialog, dialog.getDialogId());
-              } else {
-                logger.logError("dialog is unexpectedly null", new NullPointerException());
-              }
+        /*
+         * We need synchronization here because two responses may compete for the
+         * default dialog simultaneously
+         */
+        if (defaultDialog != null) {
+          if (sipResponse.getFromTag() != null) {
+            String defaultDialogId = defaultDialog.getDialogId();
+            if (defaultDialog.getLastResponseMethod() == null
+                || (method.equals(Request.SUBSCRIBE)
+                    && defaultDialog.getLastResponseMethod().equals(Request.NOTIFY)
+                    && defaultDialogId.equals(dialogId))) {
+              // The default dialog has not been claimed yet.
+              defaultDialog.setLastResponse(this, sipResponse);
+              dialog = defaultDialog;
             } else {
-              throw new RuntimeException("Response without from-tag");
+              /*
+               * check if we have created one previously (happens in the case of
+               * REINVITE processing. JvB: should not happen, this.defaultDialog
+               * should then get set in Dialog#sendRequest line 1662
+               */
+
+              dialog = sipStack.getDialog(dialogId);
+              if (dialog == null) {
+                if (defaultDialog.isAssigned()) {
+                  /*
+                   * Nop we dont have one. so go ahead and allocate a new
+                   * one.
+                   */
+                  dialog = sipStack.createDialog(this, sipResponse);
+                  dialog.setOriginalDialog(defaultDialog);
+                }
+              }
+
+            }
+            if (dialog != null) {
+              this.setDialog(dialog, dialog.getDialogId());
+            } else {
+              logger.logError("dialog is unexpectedly null", new NullPointerException());
             }
           } else {
-            // Need to create a new Dialog, this becomes default
-            // JvB: not sure if this ever gets executed
-            if (sipStack.isAutomaticDialogSupportEnabled) {
-              dialog = sipStack.createDialog(this, sipResponse);
-              this.setDialog(dialog, dialog.getDialogId());
-            }
+            throw new RuntimeException("Response without from-tag");
           }
+        } else {
+          // Need to create a new Dialog, this becomes default
+          // JvB: not sure if this ever gets executed
+          if (sipStack.isAutomaticDialogSupportEnabled) {
+            dialog = sipStack.createDialog(this, sipResponse);
+            this.setDialog(dialog, dialog.getDialogId());
+          }
+        }
         // } // synchronized
       } else {
         dialog = defaultDialog;
@@ -1949,7 +1949,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       }
       // Let the connection linger for a while and then close
       // it.
-      if (((SipStackImpl) getSIPStack()).isReEntrantListener() && 
+      if (((SipStackImpl) getSIPStack()).isReEntrantListener() &&
           getReleaseReferencesStrategy() != ReleaseReferencesStrategy.None) {
         cleanUp();
       }

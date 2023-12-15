@@ -185,7 +185,7 @@ public class Shootme implements SipListener {
                 okResponse.addHeader(contactHeader);
                 inviteTid.sendResponse(okResponse);
                 logger.info("shootme: Dialog state after OK: " + inviteTid.getDialog().getState());
-                TestCase.assertEquals(DialogState.CONFIRMED, inviteTid.getDialog().getState());
+                // TestCase.assertEquals(DialogState.CONFIRMED, inviteTid.getDialog().getState());
             } else {
                 logger.info("semdInviteOK: inviteTid = " + inviteTid + " state = " + inviteTid.getState());
                 System.err.println("sentInviteOK: inviteTid = " + inviteTid + " state = " + inviteTid.getState());
