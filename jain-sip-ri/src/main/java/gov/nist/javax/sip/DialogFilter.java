@@ -471,6 +471,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 break;   
             case Request.CANCEL:
                 continueProcessing = processCancel(sipRequest, transaction, dialog, dialogId, sipProvider);
+                dialog = (SIPDialog) transaction.getDialog();
                 break;   
             case Request.INVITE:
                 continueProcessing = processInvite(sipRequest, transaction, dialog, dialogId, sipProvider);
@@ -903,7 +904,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
 
     private boolean processCancel(SIPRequest sipRequest, SIPServerTransaction transaction, SIPDialog dialog,
             String dialogId, SipProviderImpl sipProvider) {
-        
+                
         SIPServerTransaction st = (SIPServerTransaction) sipStack
                     .findCancelTransaction(sipRequest, true);
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
@@ -914,43 +915,39 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                             + transaction.isTransactionMapped());
 
         }
-        // Processing incoming CANCEL.
-        // Check if we can process the CANCEL request.
-        if (sipRequest.getMethod().equals(Request.CANCEL)) {
-            // If the CANCEL comes in too late, there's not
-            // much that the Listener can do so just do the
-            // default action and avoid bothering the listener.
-            if (st != null
-                    && st.getInternalState() == TransactionState._TERMINATED) {
-                // If transaction already exists but it is
-                // too late to cancel the transaction then
-                // just respond OK to the CANCEL and bail.
-                if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
-                    logger.logDebug(
-                            "Too late to cancel Transaction");
-                // send OK and just ignore the CANCEL.
-                try {
-
-                    transaction.sendResponse(sipRequest
-                            .createResponse(Response.OK));
-                } catch (Exception ex) {
-                    if (ex.getCause() != null
-                            && ex.getCause() instanceof IOException) {
-                        st.raiseIOExceptionEvent();
-                    }
-                }
-                return false;
-            }
+        
+        // If the CANCEL comes in too late, there's not
+        // much that the Listener can do so just do the
+        // default action and avoid bothering the listener.
+        if (st != null
+                && st.getInternalState() == TransactionState._TERMINATED) {
+            // If transaction already exists but it is
+            // too late to cancel the transaction then
+            // just respond OK to the CANCEL and bail.
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
                 logger.logDebug(
-                        "Cancel transaction = " + st);
+                        "Too late to cancel Transaction");
+            // send OK and just ignore the CANCEL.
+            try {
 
+                transaction.sendResponse(sipRequest
+                        .createResponse(Response.OK));
+            } catch (Exception ex) {
+                if (ex.getCause() != null
+                        && ex.getCause() instanceof IOException) {
+                    st.raiseIOExceptionEvent();
+                }
+            }
+            return false;
         }
+        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
+            logger.logDebug(
+                    "Cancel transaction = " + st);
+
         if (transaction != null && st != null && st.getDialog() != null) {
             // Found an invite tx corresponding to the CANCEL.
             // Set up the client tx and pass up to listener.
-            transaction.setDialog((SIPDialog) st.getDialog(), dialogId);
-            dialog = (SIPDialog) st.getDialog();
+            transaction.setDialog((SIPDialog) st.getDialog(), dialogId);            
         } else if (st == null
                 && sipProvider.isAutomaticDialogSupportEnabled()
                 && transaction != null) {
@@ -976,9 +973,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 transaction.releaseSem();
             }
             return false;
-
-        }
-
+        } 
         // INVITE was handled statefully so the CANCEL must also be
         // statefully handled.
         if (st != null) {
