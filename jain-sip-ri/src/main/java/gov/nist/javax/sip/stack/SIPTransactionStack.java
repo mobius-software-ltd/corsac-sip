@@ -2018,8 +2018,7 @@ public abstract class SIPTransactionStack implements
      * @param serverTransaction
      *            -- server transaction to add to the set.
      */
-    public SIPTransaction addTransaction(SIPServerTransaction serverTransaction)
-            throws IOException {
+    public SIPTransaction addTransaction(SIPServerTransaction serverTransaction) {
         SIPTransaction oldTx = addTransactionHash(serverTransaction);
         if(oldTx == null) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
@@ -2040,7 +2039,7 @@ public abstract class SIPTransactionStack implements
         if (sipTransaction instanceof SIPClientTransaction) {
             if (!this.unlimitedClientTransactionTableSize) {
                 if (this.activeClientTransactionCount.get() > clientTransactionTableHiwaterMark) {
-                    try {
+                    // try {
                         // Doesn't make sense to wait in real time systems
                         // We are returning the tx if it already exists                        
 
@@ -2053,14 +2052,14 @@ public abstract class SIPTransactionStack implements
                         existingTx = clientTransactionTable.get(key);
                 
                         return existingTx;
-                    } catch (Exception ex) {
-                        if (logger.isLoggingEnabled()) {
-                            logger.logError(
-                                    "Exception occured while waiting for room",
-                                    ex);
-                        }
+                    // } catch (Exception ex) {
+                    //     if (logger.isLoggingEnabled()) {
+                    //         logger.logError(
+                    //                 "Exception occured while waiting for room",
+                    //                 ex);
+                    //     }
 
-                    }
+                    // }
                 }
             } else {
                 this.activeClientTransactionCount.incrementAndGet();

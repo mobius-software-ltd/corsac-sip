@@ -928,7 +928,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             if (logger.isLoggingEnabled())
                 logger.logError("IOException ", e);
             // this.semRelease();
-            this.raiseIOExceptionEvent();
+            this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
         }
 
     }

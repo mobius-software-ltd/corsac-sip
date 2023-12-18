@@ -39,6 +39,7 @@ import javax.net.ssl.SSLException;
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.IOExceptionEventExt.Reason;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
@@ -484,7 +485,7 @@ public class NioTcpMessageChannel extends ConnectionOrientedMessageChannel {
                     }
                 } else {
                 	//17.2.4 Handling Transport Errors
-                    transaction.raiseIOExceptionEvent();
+                    transaction.raiseIOExceptionEvent(Reason.ConnectionFailure);
                 }
             }
         }

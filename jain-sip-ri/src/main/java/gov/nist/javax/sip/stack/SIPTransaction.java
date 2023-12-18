@@ -28,6 +28,7 @@ package gov.nist.javax.sip.stack;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.IOExceptionEventExt.Reason;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -411,7 +412,7 @@ public interface SIPTransaction extends TransactionExt {
    * Exceptions that are attributable to this transaction.
    * 
    */
-  public void raiseIOExceptionEvent();
+  public void raiseIOExceptionEvent(Reason reason);
 
   /**
    * Set true to pass the request up to the listener. False otherwise.

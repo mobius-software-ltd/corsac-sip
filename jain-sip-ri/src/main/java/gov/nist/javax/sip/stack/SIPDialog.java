@@ -47,7 +47,6 @@ import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogDoesNotExistException;
 import javax.sip.DialogState;
-import javax.sip.IOExceptionEvent;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
 import javax.sip.ObjectInUseException;
@@ -82,6 +81,7 @@ import gov.nist.core.NameValueList;
 import gov.nist.core.StackLogger;
 import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.DialogExt;
+import gov.nist.javax.sip.IOExceptionEventExt;
 import gov.nist.javax.sip.ListeningPointImpl;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SipListenerExt;
@@ -338,6 +338,7 @@ public class SIPDialog implements DialogExt {
         private ListeningPointImpl lp = null;
         private SIPRequest ackRequest = null;
         private long startTime;
+        private MessageChannel messageChannel = null;
 
         public AckSendingStrategyImpl(SIPRequest ackRequest, Hop hop, ListeningPointImpl lp) {
             this.ackRequest = ackRequest;
@@ -349,7 +350,7 @@ public class SIPDialog implements DialogExt {
         @Override
         public void send(SIPRequest ackRequest) throws SipException, IOException {
             InetAddress inetAddress = InetAddress.getByName(hop.getHost());
-            MessageChannel messageChannel = lp.getMessageProcessor()
+            messageChannel = lp.getMessageProcessor()
                     .createMessageChannel(inetAddress, hop.getPort());
             messageChannel.sendMessage(ackRequest);
         }
@@ -359,7 +360,7 @@ public class SIPDialog implements DialogExt {
             try {
                 send(ackRequest);
             } catch (Exception ex) {                                
-                raiseIOException(hop.getHost(), hop.getPort(), hop
+                raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, messageChannel.getHost(), messageChannel.getPort(), hop.getHost(), hop.getPort(), hop
                         .getTransport());
             }
             if (dialogDeleteTask != null) {
@@ -650,7 +651,7 @@ public class SIPDialog implements DialogExt {
                         }
                     } catch (IOException ex) {
 
-                        raiseIOException(transaction.getPeerAddress(),
+                        raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, transaction.getHost(), transaction.getPort(), transaction.getPeerAddress(),
                                 transaction.getPeerPort(), transaction
                                         .getPeerProtocol());
 
@@ -959,13 +960,12 @@ public class SIPDialog implements DialogExt {
      * @param protocol
      *            -- protocol (udp/tcp/tls)
      */
-    private void raiseIOException(String host, int port, String protocol) {
+    private void raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason reason, String host, int port, String peerHost, int peerPort, String protocol) {
         // Error occured in retransmitting response.
         // Deliver the error event to the listener
         // Kill the dialog.
 
-        IOExceptionEvent ioError = new IOExceptionEvent(this, host, port,
-                protocol);
+        IOExceptionEventExt ioError = new IOExceptionEventExt(this, reason, host, port, peerHost, peerPort, protocol);
         sipProvider.handleEvent(ioError, null);
 
         setState(SIPDialog.TERMINATED_STATE);
@@ -4641,13 +4641,13 @@ public class SIPDialog implements DialogExt {
                 }
                 
             } catch(SipException e) {                            
-                raiseIOException(
+                raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, clientTransaction.getHost(), clientTransaction.getPort(),
                     getSipProvider().getListeningPoint(
                         clientTransaction.getTransport()).getIPAddress(), 
                         firstTransactionPort, 
                         clientTransaction.getTransport());
             } catch(IOException e) {
-                raiseIOException(
+                raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, clientTransaction.getHost(), clientTransaction.getPort(),
                     getSipProvider().getListeningPoint(
                         clientTransaction.getTransport()).getIPAddress(), 
                         firstTransactionPort, 

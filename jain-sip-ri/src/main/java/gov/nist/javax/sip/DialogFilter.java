@@ -793,7 +793,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 return false;
             }
 
-            try {
+            // try {
                 if (sipProvider == dialog.getSipProvider()) {
                     sipStack.addTransaction(transaction);
                     // This will set the remote sequence number.
@@ -804,11 +804,11 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     transaction.setDialog(dialog, dialogId);
 
                 }
-            } catch (IOException ex) {
-                transaction.raiseIOExceptionEvent();
-                sipStack.removeTransaction(transaction);
-                return false;
-            }
+            // } catch (IOException ex) {
+            //     transaction.raiseIOExceptionEvent();
+            //     sipStack.removeTransaction(transaction);
+            //     return false;
+            // }
 
         }
         return true;
@@ -935,7 +935,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
             } catch (Exception ex) {
                 if (ex.getCause() != null
                         && ex.getCause() instanceof IOException) {
-                    st.raiseIOExceptionEvent();
+                    st.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
                 }
             }
             return false;
@@ -1054,16 +1054,16 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         // and automatic dialog support is disabled (i.e. the app wants
         // to manage its own dialog layer.
         if (transaction != null && dialog != null) {
-            try {
+            // try {
                 if (sipProvider == dialog.getSipProvider()) {
                     sipStack.addTransaction(transaction);
                     dialog.addTransaction(transaction);
                     transaction.setDialog(dialog, dialogId);
                 }
 
-            } catch (IOException ex) {
-                InternalErrorHandler.handleException(ex);
-            }
+            // } catch (IOException ex) {
+            //     InternalErrorHandler.handleException(ex);
+            // }
         }
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
             logger.logDebug(
@@ -1307,12 +1307,12 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                         */
 
                     if (sipStack.isDeliverTerminatedEventForAck()) {
-                        try {
+                        // try {
                             sipStack.addTransaction(transaction);
                             transaction.scheduleAckRemoval();
-                        } catch (IOException ex) {
+                        // } catch (IOException ex) {
 
-                        }
+                        // }
                     } else {
                         transaction.setMapped(true);
                     }

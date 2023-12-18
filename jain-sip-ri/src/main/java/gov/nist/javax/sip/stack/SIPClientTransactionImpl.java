@@ -1156,7 +1156,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
       }
     } catch (IOException e) {
-      this.raiseIOExceptionEvent();
+      this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
       raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
     }
 
@@ -2104,7 +2104,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // throw new SipException(ex.getMessage() == null ? "IO Error sending request" :
         // ex.getMessage(),
         // ex);
-        raiseIOExceptionEvent();
+        raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
 
       }
     }

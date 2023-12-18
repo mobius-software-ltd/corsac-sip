@@ -46,7 +46,6 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.sip.Dialog;
-import javax.sip.IOExceptionEvent;
 import javax.sip.TransactionState;
 import javax.sip.address.SipURI;
 import javax.sip.message.Request;
@@ -55,9 +54,11 @@ import javax.sip.message.Response;
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.IOExceptionEventExt;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.IOExceptionEventExt.Reason;
 import gov.nist.javax.sip.address.AddressFactoryImpl;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
@@ -1200,7 +1201,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      * @see gov.nist.javax.sip.stack.SIPTransaction#raiseIOExceptionEvent()
      */
     @Override
-    public void raiseIOExceptionEvent() {
+    public void raiseIOExceptionEvent(Reason reason) {
         setState(TransactionState._TERMINATED);
         if (expiresTimerTask != null) {
             sipStack.getTimer().cancel(expiresTimerTask);
@@ -1208,8 +1209,8 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         String host = getPeerAddress();
         int port = getPeerPort();
         String transport = getTransport();
-        IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, host,
-                port, transport);
+        IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(
+            this, reason, getHost(), getPort(), host, port, transport);
         getSipProvider().handleEvent(exceptionEvent, this);
     }
 

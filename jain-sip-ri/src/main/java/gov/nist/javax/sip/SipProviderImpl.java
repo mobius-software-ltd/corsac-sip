@@ -38,7 +38,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
-import javax.sip.IOExceptionEvent;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
 import javax.sip.ObjectInUseException;
@@ -533,15 +532,15 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                     "Transaction not available");
                 if (transaction.getOriginalRequest() == null)
                     transaction.setOriginalRequest(sipRequest);
-                try {
+                // try {
                     if(sipStack.addTransaction(transaction) != null) {
                         throw new TransactionAlreadyExistsException(
                             "server transaction already exists!");
                     }
-                } catch (IOException ex) {
-                    throw new TransactionUnavailableException(
-                    "Error sending provisional response");
-                }
+                // } catch (IOException ex) {
+                //     throw new TransactionUnavailableException(
+                //     "Error sending provisional response");
+                // }
                 // So I can handle timeouts.
                 transaction.addEventListener(this);
                 if (isAutomaticDialogSupportEnabled()) {
@@ -584,15 +583,15 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                     if (transaction.getOriginalRequest() == null)
                         transaction.setOriginalRequest(sipRequest);
                     // Map the transaction.
-                    try {
+                    // try {
                         if(sipStack.addTransaction(transaction) != null) {
                             throw new TransactionAlreadyExistsException(
                                 "server transaction already exists!");
                         }
-                    } catch (IOException ex) {
-                        throw new TransactionUnavailableException(
-                        "Could not send back provisional response!");
-                    }
+                    // } catch (IOException ex) {
+                    //     throw new TransactionUnavailableException(
+                    //     "Could not send back provisional response!");
+                    // }
 
                     // If there is a dialog already assigned then just update the
                     // dialog state.
@@ -1151,7 +1150,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                         logger.logDebug("Could not create a message channel for " + hop.toString()
                                 + " listeningPoints = " + listeningPoints);
                     }
-                    IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                    IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(this, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionFailure, getListeningPoint(hop.getTransport()).getIPAddress(), getListeningPoint(hop.getTransport()).getPort(), hop.getHost(), hop.getPort(), hop.getTransport());
                     handleEvent(exceptionEvent, null);
                 }
             } catch (IOException ex) {
@@ -1165,7 +1164,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                             + listeningPoints + " because of an IO issue " + ex.getMessage());
                 }
 
-                IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(this, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionFailure, getListeningPoint(hop.getTransport()).getIPAddress(), getListeningPoint(hop.getTransport()).getPort(), hop.getHost(), hop.getPort(), hop.getTransport());
                 handleEvent(exceptionEvent, null);
             } catch (ParseException ex1) {
                 InternalErrorHandler.handleException(ex1);
@@ -1217,7 +1216,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
             try {
                 ListeningPointImpl listeningPoint = (ListeningPointImpl) getListeningPoint(hop.getTransport());
                 if (listeningPoint == null) {
-                    IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                    IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(this, gov.nist.javax.sip.IOExceptionEventExt.Reason.NoListeninPointForTransport, null, -1, hop.getHost(), hop.getPort(), hop.getTransport());
                     handleEvent(exceptionEvent, null);
                     return;
                     // throw new SipException(
@@ -1236,14 +1235,14 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                         logger.logDebug("Could not create a message channel for " + hop.toString()
                                 + " listeningPoints = " + listeningPoints);
                     }
-                    IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                    IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(this, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionFailure, getListeningPoint(hop.getTransport()).getIPAddress(), getListeningPoint(hop.getTransport()).getPort(), hop.getHost(), hop.getPort(), hop.getTransport());
                     handleEvent(exceptionEvent, null);
                     // throw new SipException(
                     //         "Could not create a message channel for "
                     //                 + hop.toString());
                 }
             } catch (IOException ex) {
-                IOExceptionEvent exceptionEvent = new IOExceptionEvent(this, hop.getHost(), hop.getPort(), hop.getTransport());
+                IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(this, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionFailure, getListeningPoint(hop.getTransport()).getIPAddress(), getListeningPoint(hop.getTransport()).getPort(), hop.getHost(), hop.getPort(), hop.getTransport());
                 handleEvent(exceptionEvent, null);
                 // throw new SipException(ex.getMessage());
             }

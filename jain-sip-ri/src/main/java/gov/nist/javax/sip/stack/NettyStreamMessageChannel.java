@@ -1072,7 +1072,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					}
 				} else {
 					//17.2.4 Handling Transport Errors
-					transaction.raiseIOExceptionEvent();
+					transaction.raiseIOExceptionEvent(Reason.ConnectionFailure);
 				}
 			}
 		}
