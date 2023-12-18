@@ -54,7 +54,6 @@ import javax.sip.address.Router;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.EventHeader;
 import javax.sip.message.Request;
-import javax.sip.message.Response;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.Host;
@@ -1148,9 +1147,9 @@ public abstract class SIPTransactionStack implements
                       && eventHdr.match(hisEvent)
                       && notifyMessage.getCallId().getCallId().equalsIgnoreCase(
                                 ct.getOriginalRequestCallId())) {
-                    if (!this.isDeliverUnsolicitedNotify() ) {
-                        ct.acquireSem();
-                    }
+                    // if (!this.isDeliverUnsolicitedNotify() ) {
+                    //     ct.acquireSem();
+                    // }
                     if (retval == null) {
                         //take first matching tx, just in case
                         retval = ct;                    	
@@ -1613,10 +1612,10 @@ public abstract class SIPTransactionStack implements
                 if (currentTransaction != null) {
                     // Associate the tx with the received request.
                     requestReceived.setTransaction(currentTransaction);
-                    if (currentTransaction.acquireSem())
+                    // if (currentTransaction.acquireSem())
                         return currentTransaction;
-                    else
-                        return null;
+                    // else
+                    //     return null;
 
                 }
                 // Creating a new server tx. May fail under heavy load.
@@ -1649,29 +1648,32 @@ public abstract class SIPTransactionStack implements
             currentTransaction.setRequestInterface(sipMessageFactory
                     .newSIPServerRequest(requestReceived, currentTransaction));
 
-        if (currentTransaction != null && currentTransaction.acquireSem()) {
+        if (currentTransaction != null) {
+            // && currentTransaction.acquireSem()) {
             return currentTransaction;
-        } else if (currentTransaction != null) {
-            try {
-                /*
-                 * Already processing a message for this transaction. SEND a
-                 * trying ( message already being processed ).
-                 */
-                if (currentTransaction
-                        .isMessagePartOfTransaction(requestReceived)
-                        && currentTransaction.getMethod().equals(
-                                requestReceived.getMethod())) {
-                    SIPResponse trying = requestReceived
-                            .createResponse(Response.TRYING);
-                    trying.removeContent();
-                    currentTransaction.getMessageChannel().sendMessage(trying);
-                }
-            } catch (Exception ex) {
-                if (logger.isLoggingEnabled())
-                    logger.logError("Exception occured sending TRYING");
-            }
-            return null;
-        } else {
+        } 
+        // else if (currentTransaction != null) {
+        //     try {
+        //         /*
+        //          * Already processing a message for this transaction. SEND a
+        //          * trying ( message already being processed ).
+        //          */
+        //         if (currentTransaction
+        //                 .isMessagePartOfTransaction(requestReceived)
+        //                 && currentTransaction.getMethod().equals(
+        //                         requestReceived.getMethod())) {
+        //             SIPResponse trying = requestReceived
+        //                     .createResponse(Response.TRYING);
+        //             trying.removeContent();
+        //             currentTransaction.getMessageChannel().sendMessage(trying);
+        //         }
+        //     } catch (Exception ex) {
+        //         if (logger.isLoggingEnabled())
+        //             logger.logError("Exception occured sending TRYING");
+        //     }
+        //     return null;
+        // } 
+        else {
             return null;
         }
     }
@@ -1772,7 +1774,7 @@ public abstract class SIPTransactionStack implements
         }
 
         // Aquire the sem -- previous request may still be processing.
-        boolean acquired = currentTransaction.acquireSem();
+        // boolean acquired = currentTransaction.acquireSem();
         // Set ths transaction's encapsulated response interface
         // from the superclass
         if (logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
@@ -1780,7 +1782,7 @@ public abstract class SIPTransactionStack implements
                     .currentTimeMillis(), "before processing");
         }
 
-        if (acquired) {
+        // if (acquired) {
             ServerResponseInterface sri = sipMessageFactory
                     .newSIPServerResponse(responseReceived, currentTransaction.getMessageChannel());
             if (sri != null) {
@@ -1790,18 +1792,18 @@ public abstract class SIPTransactionStack implements
                     logger
                             .logDebug("returning null - serverResponseInterface is null!");
                 }
-                currentTransaction.releaseSem();
+                // currentTransaction.releaseSem();
                 return null;
             }
-        } else {
-        	logger.logWarning(
-                "Application is blocked -- could not acquire semaphore -- dropping response");
-        }
+        // } else {
+        // 	logger.logWarning(
+        //         "Application is blocked -- could not acquire semaphore -- dropping response");
+        // }
 
-        if (acquired)
+        // if (acquired)
             return currentTransaction;
-        else
-            return null;
+        // else
+        //     return null;
 
     }
 

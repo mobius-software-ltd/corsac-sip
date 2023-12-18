@@ -166,9 +166,7 @@ public interface SIPServerTransaction extends SIPTransaction, ServerTransactionE
 
   public  void setMapped(boolean b);
 
-  public  void setPendingSubscribe(SIPClientTransaction pendingSubscribeClientTx);
-
-  public  void releaseSem();
+  public  void setPendingSubscribe(SIPClientTransaction pendingSubscribeClientTx);  
 
   /**
    * The INVITE Server Transaction corresponding to a CANCEL Server Transaction.

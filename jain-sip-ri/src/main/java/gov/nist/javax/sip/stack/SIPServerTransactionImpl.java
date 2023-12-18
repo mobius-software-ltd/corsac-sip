@@ -833,7 +833,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
                     }
 
-                    this.semRelease();
+                    // this.semRelease();
                 }
                 return;
 
@@ -843,7 +843,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
                 if (TransactionState._PROCEEDING == getRealState()
                         || TransactionState._COMPLETED == getRealState()) {
-                    this.semRelease();
+                    // this.semRelease();
                     // Resend the last response to
                     // the client
                     // Send the message to the client
@@ -853,12 +853,13 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     // retransmission of OK
                     if (requestOf != null)
                         requestOf.processRequest(transactionRequest, encapsulatedChannel);
-                    else
-                        this.semRelease();
-                } else {
-                    // none of the above? well release the lock anyhow!
-                    this.semRelease();
-                }
+                    // else
+                    //     this.semRelease();
+                } 
+                // else {
+                //     // none of the above? well release the lock anyhow!
+                //     this.semRelease();
+                // }
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                     logger.logDebug("completed processing retransmitted request : "
                             + transactionRequest.getFirstLine() + this + " txState = "
@@ -874,13 +875,14 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     // Only send original request to TU once!
                     if (toTu) {
                         requestOf.processRequest(transactionRequest, encapsulatedChannel);
-                    } else
-                        this.semRelease();
+                    } 
+                    // else
+                    //     this.semRelease();
                 } else {
                     if (requestOf != null)
                         requestOf.processRequest(transactionRequest, encapsulatedChannel);
-                    else
-                        this.semRelease();
+                    // else
+                    //     this.semRelease();
                 }
             } else {
                 // This seems like a common bug so I am allowing it through!
@@ -897,14 +899,15 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                             thisDialog.ackProcessed = true;
                         }
                         requestOf.processRequest(transactionRequest, encapsulatedChannel);
-                    } else {
-                        this.semRelease();
-                    }
+                    } 
+                    // else {
+                    //     this.semRelease();
+                    // }
 
                 } else if (transactionRequest.getMethod().equals(Request.CANCEL)) {
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                         logger.logDebug("Too late to cancel Transaction");
-                    this.semRelease();
+                    // this.semRelease();
                     // send OK and just ignore the CANCEL.
                     try {
                         this.sendMessage(transactionRequest.createResponse(Response.OK));
@@ -912,10 +915,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                         // Transaction is already terminated
                         // just ignore the IOException.
                     }
-                } else {
-                    // none of the above? well release the lock anyhow!
-                    this.semRelease();
-                }
+                } 
+                // else {
+                //     // none of the above? well release the lock anyhow!
+                //     this.semRelease();
+                // }
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                     logger.logDebug("Dropping request " + getRealState());
             }
@@ -923,7 +927,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         } catch (IOException e) {
             if (logger.isLoggingEnabled())
                 logger.logError("IOException ", e);
-            this.semRelease();
+            // this.semRelease();
             this.raiseIOExceptionEvent();
         }
 
@@ -1794,36 +1798,36 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
     }
 
-    /**
-     * @see gov.nist.javax.sip.stack.SIPServerTransaction#releaseSem()
-     */
-    @Override
-    public void releaseSem() {
-        // if (this.pendingSubscribeTransaction != null) {
-        //     /*
-        //      * When a notify is being processed we take a lock on the subscribe to avoid
-        //      * racing
-        //      * with the OK of the subscribe.
-        //      */
-        //     if (!sipStack.isDeliverUnsolicitedNotify()) {
-        //         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-        //             logger.logDebug(
-        //                     "releaseSem() released this transaction sem : " + this);
-        //         pendingSubscribeTransaction.releaseSem();
-        //     }
-        // } else if (this.inviteTransaction != null && this.getMethod().equals(Request.CANCEL)) {
-        //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-        //         logger.logDebug(
-        //                 "releaseSem() released this transaction sem : " + this);
-        //     /*
-        //      * When a CANCEL is being processed we take a nested lock on the associated
-        //      * INVITE
-        //      * server tx.
-        //      */
-        //     this.inviteTransaction.releaseSem();
-        // }
-        // super.releaseSem();
-    }
+    // /**
+    //  * @see gov.nist.javax.sip.stack.SIPServerTransaction#releaseSem()
+    //  */
+    // @Override
+    // public void releaseSem() {
+    //     // if (this.pendingSubscribeTransaction != null) {
+    //     //     /*
+    //     //      * When a notify is being processed we take a lock on the subscribe to avoid
+    //     //      * racing
+    //     //      * with the OK of the subscribe.
+    //     //      */
+    //     //     if (!sipStack.isDeliverUnsolicitedNotify()) {
+    //     //         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+    //     //             logger.logDebug(
+    //     //                     "releaseSem() released this transaction sem : " + this);
+    //     //         pendingSubscribeTransaction.releaseSem();
+    //     //     }
+    //     // } else if (this.inviteTransaction != null && this.getMethod().equals(Request.CANCEL)) {
+    //     //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+    //     //         logger.logDebug(
+    //     //                 "releaseSem() released this transaction sem : " + this);
+    //     //     /*
+    //     //      * When a CANCEL is being processed we take a nested lock on the associated
+    //     //      * INVITE
+    //     //      * server tx.
+    //     //      */
+    //     //     this.inviteTransaction.releaseSem();
+    //     // }
+    //     // super.releaseSem();
+    // }
 
     /**
      * The INVITE Server Transaction corresponding to a CANCEL Server Transaction.
@@ -1970,7 +1974,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // getCanceledInviteTransaction
             if (inviteTransaction != null && !getMethod().equals(Request.CANCEL)) {
                 // we release the semaphore for Cancel processing
-                inviteTransaction.releaseSem();
+                // inviteTransaction.releaseSem();
                 inviteTransaction = null;
             }
             if (originalRequest != null) {
@@ -2008,7 +2012,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             pendingReliableResponseMethod = null;
             if (pendingSubscribeTransaction != null) {
                 // making sure to release the semaphore before we nullify the tx
-                pendingSubscribeTransaction.releaseSem();
+                // pendingSubscribeTransaction.releaseSem();
                 pendingSubscribeTransaction = null;
             }
             // provisionalResponseSem = null;

@@ -648,9 +648,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // this transition.
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, sipDialog);
-        } else {
-          this.semRelease();
-        }
+        } 
+        // else {
+        //   this.semRelease();
+        // }
       } else if (200 <= statusCode && statusCode <= 699) {
         if (!isReliable()) {
           this.setState(TransactionState._COMPLETED);
@@ -661,9 +662,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // Send the response up to the TU.
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, sipDialog);
-        } else {
-          this.semRelease();
-        }
+        } 
+        // else {
+        //   this.semRelease();
+        // }
         if (isReliable() && TransactionState._TERMINATED == getInternalState()) {
           cleanUpOnTerminated();
         }
@@ -673,9 +675,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       if (statusCode / 100 == 1) {
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, sipDialog);
-        } else {
-          this.semRelease();
-        }
+        } 
+        // else {
+        //   this.semRelease();
+        // }
       } else if (200 <= statusCode && statusCode <= 699) {
         disableRetransmissionTimer();
         disableTimeoutTimer();
@@ -687,9 +690,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         }
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, sipDialog);
-        } else {
-          this.semRelease();
-        }
+        } 
+        // else {
+        //   this.semRelease();
+        // }
         if (isReliable() && TransactionState._TERMINATED == getInternalState()) {
           cleanUpOnTerminated();
         }
@@ -699,7 +703,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
         logger.logDebug(" Not sending response to TU! " + getState());
       }
-      this.semRelease();
+      // this.semRelease();
     }
   }
 
@@ -859,7 +863,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
             logger.logDebug("passing 2xx response up to the application");
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
         } else {
-          this.semRelease();
+          // this.semRelease();
           return;
         }
       } else if (dialog != null && dialog.getState() == DialogState.EARLY && statusCode >= 200 && statusCode < 300) {
@@ -877,11 +881,11 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
             logger.logDebug("passing 2xx response up to the application");
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
         } else {
-          this.semRelease();
+          // this.semRelease();
           return;
         }
       } else {
-        this.semRelease();
+        // this.semRelease();
         return;
       }
     } else if (TransactionState._CALLING == this.getInternalState()) {
@@ -897,9 +901,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // 200 responses are always seen by TU.
         if (respondTo != null)
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
-        else {
-          this.semRelease();
-        }
+        // else {
+        //   this.semRelease();
+        // }
 
       } else if (statusCode / 100 == 1) {
         disableRetransmissionTimer();
@@ -908,9 +912,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
         if (respondTo != null)
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
-        else {
-          this.semRelease();
-        }
+        // else {
+        //   this.semRelease();
+        // }
 
       } else if (300 <= statusCode && statusCode <= 699) {
         // Send back an ACK request
@@ -931,9 +935,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
          * TU, and the client transaction MUST generate an ACK request.
          */
 
-        if (this.getDialog() != null && ((SIPDialog) this.getDialog()).isBackToBackUserAgent()) {
-          ((SIPDialog) this.getDialog()).releaseAckSem();
-        }
+        // if (this.getDialog() != null && ((SIPDialog) this.getDialog()).isBackToBackUserAgent()) {
+        //   ((SIPDialog) this.getDialog()).releaseAckSem();
+        // }
 
         if (!isReliable()) {
           this.setState(TransactionState._COMPLETED);
@@ -944,25 +948,28 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         }
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
-        } else {
-          this.semRelease();
-        }
+        } 
+        // else {
+        //   this.semRelease();
+        // }
         cleanUpOnTimer();
       }
     } else if (TransactionState._PROCEEDING == this.getInternalState()) {
       if (statusCode / 100 == 1) {
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
-        } else {
-          this.semRelease();
-        }
+        } 
+        // else {
+        //   this.semRelease();
+        // }
       } else if (statusCode / 100 == 2) {
         this.setState(TransactionState._TERMINATED);
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
-        } else {
-          this.semRelease();
-        }
+        } 
+        // else {
+        //   this.semRelease();
+        // }
 
       } else if (300 <= statusCode && statusCode <= 699) {
         // Send back an ACK request
@@ -972,9 +979,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
           InternalErrorHandler.handleException(ex);
         }
 
-        if (this.getDialog() != null) {
-          ((SIPDialog) this.getDialog()).releaseAckSem();
-        }
+        // if (this.getDialog() != null) {
+        //   ((SIPDialog) this.getDialog()).releaseAckSem();
+        // }
         // JvB: update state before passing to app
         if (!isReliable()) {
           this.setState(TransactionState._COMPLETED);
@@ -987,9 +994,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // Pass up to the TU for processing.
         if (respondTo != null)
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
-        else {
-          this.semRelease();
-        }
+        // else {
+        //   this.semRelease();
+        // }
 
         // JvB: duplicate with line 874
         // if (!isReliable()) {
@@ -1003,9 +1010,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
           sendMessage((SIPRequest) createErrorAck());
         } catch (Exception ex) {
           InternalErrorHandler.handleException(ex);
-        } finally {
-          this.semRelease();
-        }
+        } 
+        // finally {
+        //   this.semRelease();
+        // }
       }
 
     }
@@ -1471,10 +1479,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
     // releasing ack semaphore to permit sending further invites for this dialog
     // needed to be able to fork new client transaction for this same dialog
-    SIPDialog dialog = (SIPDialog) getDialog();
-    if (dialog != null) {
-      dialog.releaseAckSem();
-    }
+    // SIPDialog dialog = (SIPDialog) getDialog();
+    // if (dialog != null) {
+    //   dialog.releaseAckSem();
+    // }
   }
 
   /**
@@ -2056,17 +2064,17 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         logger.logDebug("Executing task with id: " + id);
       }
 
-      if (isInviteTransaction()) {
-        SIPDialog dialog = getDefaultDialog();
+      // if (isInviteTransaction()) {
+      //   SIPDialog dialog = getDefaultDialog();
 
-        if (dialog != null && dialog.isBackToBackUserAgent()) {
-          // Block sending re-INVITE till we see the ACK.
-          if (!dialog.takeAckSem()) {
-            // throw new SipException("Failed to take ACK semaphore");
-          }
+      //   if (dialog != null && dialog.isBackToBackUserAgent()) {
+      //     // Block sending re-INVITE till we see the ACK.
+      //     if (!dialog.takeAckSem()) {
+      //       // throw new SipException("Failed to take ACK semaphore");
+      //     }
 
-        }
-      }
+      //   }
+      // }
       // Only map this after the fist request is sent out.
       isMapped = true;
       // Time extracted from the Expires header.

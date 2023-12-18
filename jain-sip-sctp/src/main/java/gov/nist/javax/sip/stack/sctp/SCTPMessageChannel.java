@@ -1,5 +1,16 @@
 package gov.nist.javax.sip.stack.sctp;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.text.ParseException;
+
+import com.sun.nio.sctp.MessageInfo;
+import com.sun.nio.sctp.SctpChannel;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
@@ -19,22 +30,9 @@ import gov.nist.javax.sip.parser.StringMsgParser;
 import gov.nist.javax.sip.stack.MessageChannel;
 import gov.nist.javax.sip.stack.RawMessageChannel;
 import gov.nist.javax.sip.stack.SIPClientTransaction;
-import gov.nist.javax.sip.stack.SIPServerTransaction;
-import gov.nist.javax.sip.stack.SIPTransaction;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.ServerRequestInterface;
 import gov.nist.javax.sip.stack.ServerResponseInterface;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.text.ParseException;
-
-import com.sun.nio.sctp.MessageInfo;
-import com.sun.nio.sctp.SctpChannel;
 
 /**
  * SCTP message channel
@@ -286,16 +284,16 @@ final class SCTPMessageChannel extends MessageChannel
                 logger.logDebug("About to process "
                         + sipRequest.getFirstLine() + "/" + sipServerRequest);
             }
-            try {
+            // try {
                 sipServerRequest.processRequest(sipRequest, this);
-            } finally {
-                if (sipServerRequest instanceof SIPTransaction) {
-                    SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
-                    if (!sipServerTx.passToListener()) {
-                        ((SIPTransaction) sipServerRequest).releaseSem();
-                    }
-                }
-            }
+            // } finally {
+            //     if (sipServerRequest instanceof SIPTransaction) {
+            //         SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
+            //         if (!sipServerTx.passToListener()) {
+            //             ((SIPTransaction) sipServerRequest).releaseSem();
+            //         }
+            //     }
+            // }
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug("Done processing "
                         + sipRequest.getFirstLine() + "/" + sipServerRequest);
@@ -318,7 +316,7 @@ final class SCTPMessageChannel extends MessageChannel
             ServerResponseInterface sipServerResponse = sipStack
                     .newSIPServerResponse(sipResponse, this);
             if (sipServerResponse != null) {
-                try {
+                // try {
                     if (sipServerResponse instanceof SIPClientTransaction
                             && !((SIPClientTransaction) sipServerResponse)
                                     .checkFromTag(sipResponse)) {
@@ -330,12 +328,12 @@ final class SCTPMessageChannel extends MessageChannel
                     }
 
                     sipServerResponse.processResponse(sipResponse, this);
-                } finally {
-                    if (sipServerResponse instanceof SIPTransaction
-                            && !((SIPTransaction) sipServerResponse)
-                                    .passToListener())
-                        ((SIPTransaction) sipServerResponse).releaseSem();
-                }
+                // } finally {
+                //     if (sipServerResponse instanceof SIPTransaction
+                //             && !((SIPTransaction) sipServerResponse)
+                //                     .passToListener())
+                //         ((SIPTransaction) sipServerResponse).releaseSem();
+                // }
 
                 // Normal processing of message.
             } else {

@@ -414,19 +414,6 @@ public interface SIPTransaction extends TransactionExt {
   public void raiseIOExceptionEvent();
 
   /**
-   * A given tx can process only a single outstanding event at a time. This
-   * semaphore gaurds re-entrancy to the transaction.
-   * 
-   */
-  public boolean acquireSem();
-
-  /**
-   * Release the transaction semaphore.
-   * 
-   */
-  public void releaseSem();
-
-  /**
    * Set true to pass the request up to the listener. False otherwise.
    * 
    */
@@ -541,7 +528,7 @@ public interface SIPTransaction extends TransactionExt {
 
   public void setAuditTag(long auditTag);
 
-  public void semRelease();
+  // public void semRelease();
 
   boolean isTransactionMapped();
 

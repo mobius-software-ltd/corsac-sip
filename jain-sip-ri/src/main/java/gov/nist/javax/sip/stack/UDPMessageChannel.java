@@ -581,16 +581,16 @@ public class UDPMessageChannel extends MessageChannel implements
                 logger.logDebug(
                         "About to process " + sipRequest.getFirstLine() + "/"
                                 + sipServerRequest);
-            try {
+            // try {
                 sipServerRequest.processRequest(sipRequest, this);
-            } finally {
-                if (sipServerRequest instanceof SIPTransaction) {
-                    SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
-                    if (!sipServerTx.passToListener()) {
-                        ((SIPTransaction) sipServerRequest).releaseSem();
-                    }
-                }
-            }
+            // } finally {
+            //     if (sipServerRequest instanceof SIPTransaction) {
+            //         SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
+            //         if (!sipServerTx.passToListener()) {
+            //             ((SIPTransaction) sipServerRequest).releaseSem();
+            //         }
+            //     }
+            // }
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug(
                         "Done processing " + sipRequest.getFirstLine() + "/"
@@ -622,7 +622,7 @@ public class UDPMessageChannel extends MessageChannel implements
             ServerResponseInterface sipServerResponse = sipStack
                     .newSIPServerResponse(sipResponse, this);
             if (sipServerResponse != null) {
-                try {
+                // try {
                     if (sipServerResponse instanceof SIPClientTransaction
                             && !((SIPClientTransaction) sipServerResponse)
                                     .checkFromTag(sipResponse)) {
@@ -634,12 +634,12 @@ public class UDPMessageChannel extends MessageChannel implements
                     }
 
                     sipServerResponse.processResponse(sipResponse, this);
-                } finally {
-                    if (sipServerResponse instanceof SIPTransaction
-                            && !((SIPTransaction) sipServerResponse)
-                                    .passToListener())
-                        ((SIPTransaction) sipServerResponse).releaseSem();
-                }
+                // } finally {
+                //     if (sipServerResponse instanceof SIPTransaction
+                //             && !((SIPTransaction) sipServerResponse)
+                //                     .passToListener())
+                //         ((SIPTransaction) sipServerResponse).releaseSem();
+                // }
 
                 // Normal processing of message.
             } else {

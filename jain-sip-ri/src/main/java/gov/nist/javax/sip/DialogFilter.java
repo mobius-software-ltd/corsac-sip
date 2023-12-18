@@ -128,11 +128,11 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     sipStack.addTransactionPendingAck(transaction);
                 }
                 transaction.sendResponse(sipResponse);
-                transaction.releaseSem();
+                // transaction.releaseSem();
             } catch (Exception ex) {
                 logger.logError(
                         "Problem sending error response", ex);
-                transaction.releaseSem();
+                // transaction.releaseSem();
                 sipStack.removeTransaction(transaction);
             }
         }
@@ -164,11 +164,11 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     sipStack.addTransactionPendingAck(transaction);
                 }
                 transaction.sendResponse(sipResponse);
-                transaction.releaseSem();
+                // transaction.releaseSem();
             } catch (Exception ex) {
                 logger.logError(
                         "Problem sending error response", ex);
-                transaction.releaseSem();
+                // transaction.releaseSem();
                 sipStack.removeTransaction(transaction);
 
             }
@@ -199,11 +199,11 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     sipStack.addTransactionPendingAck(transaction);
                 }
                 transaction.sendResponse(sipResponse);
-                transaction.releaseSem();
+                // transaction.releaseSem();
             } catch (Exception ex) {
                 logger.logError(
                         "Problem sending error response", ex);
-                transaction.releaseSem();
+                // transaction.releaseSem();
                 sipStack.removeTransaction(transaction);
 
             }
@@ -232,11 +232,11 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
             try {
                 sipStack.addTransactionPendingAck(transaction);
                 transaction.sendResponse(sipResponse);
-                transaction.releaseSem();
+                // transaction.releaseSem();
             } catch (Exception ex) {
                 logger.logError(
                         "Problem sending error response", ex);
-                transaction.releaseSem();
+                // transaction.releaseSem();
                 sipStack.removeTransaction(transaction);
 
             }
@@ -264,11 +264,11 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
             }
             try {
                 transaction.sendResponse(sipResponse);
-                transaction.releaseSem();
+                // transaction.releaseSem();
             } catch (Exception ex) {
                 logger.logError(
                         "Problem sending error response", ex);
-                transaction.releaseSem();
+                // transaction.releaseSem();
                 sipStack.removeTransaction(transaction);
 
             }
@@ -304,11 +304,11 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 sipResponse.setHeader(retryAfter);
                 sipStack.addTransactionPendingAck(transaction);
                 transaction.sendResponse(sipResponse);
-                transaction.releaseSem();
+                // transaction.releaseSem();
             } catch (Exception ex) {
                 logger.logError("Problem sending response",
                         ex);
-                transaction.releaseSem();
+                // transaction.releaseSem();
                 sipStack.removeTransaction(transaction);
             }
         }
@@ -970,7 +970,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
             }
             if (transaction != null) {
                 sipStack.removeTransaction(transaction);
-                transaction.releaseSem();
+                // transaction.releaseSem();
             }
             return false;
         } 
@@ -987,7 +987,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     transaction.setInviteTransaction(st);
                     // Dont let the INVITE and CANCEL be concurrently
                     // processed.
-                    st.acquireSem();
+                    // st.acquireSem();
 
                 }
 
@@ -1042,7 +1042,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
             // If the stack knows about the tx, then remove it.
             if (transaction != null) {
                 sipStack.removeTransaction(transaction);
-                transaction.releaseSem();
+                // transaction.releaseSem();
                 transaction = null;
             }
             return false;
@@ -1111,7 +1111,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
             }
             if (transaction != null) {
                 sipStack.removeTransaction(transaction);
-                transaction.releaseSem();
+                // transaction.releaseSem();
             }
             return false;
 
@@ -1122,7 +1122,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                             "Dropping out of sequence PRACK ");
                 if (transaction != null) {
                     sipStack.removeTransaction(transaction);
-                    transaction.releaseSem();
+                    // transaction.releaseSem();
                 }
                 return false;
             } else {

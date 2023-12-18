@@ -482,40 +482,40 @@ public class SIPDialog implements DialogExt {
                 
                
 
-                if (!SIPDialog.this.takeAckSem()) {
-                    /*
-                     * Could not send re-INVITE fire a timeout on the INVITE.
-                     */
-                    if (logger.isLoggingEnabled())
-                        logger
-                                .logError(
-                                        "Could not send re-INVITE time out ClientTransaction");
-                    ((SIPClientTransaction) ctx).fireTimeoutTimer();
-                    /*
-                     * Send BYE to the Dialog.
-                     */
-                    if (sipProvider.getSipListener() != null
-                            && sipProvider.getSipListener() instanceof SipListenerExt) {
-                        dialogTimedOut = true;
-                        raiseErrorEvent(SIPDialogErrorEvent.DIALOG_REINVITE_TIMEOUT,(SIPClientTransaction)ctx);
-                    } else {
-                        Request byeRequest = SIPDialog.this
-                                .createRequest(Request.BYE);
-                        if (MessageFactoryImpl.getDefaultUserAgentHeader() != null) {
-                            byeRequest.addHeader(MessageFactoryImpl
-                                    .getDefaultUserAgentHeader());
-                        }
-                        ReasonHeader reasonHeader = new Reason();
-                        reasonHeader.setCause(1024);
-                        reasonHeader.setText("Timed out waiting to re-INVITE");
-                        byeRequest.addHeader(reasonHeader);
-                        ClientTransaction byeCtx = SIPDialog.this
-                                .getSipProvider().getNewClientTransaction(
-                                        byeRequest);
-                        SIPDialog.this.sendRequest(byeCtx);
-                        return;
-                    }
-                }
+                // if (!SIPDialog.this.takeAckSem()) {
+                //     /*
+                //      * Could not send re-INVITE fire a timeout on the INVITE.
+                //      */
+                //     if (logger.isLoggingEnabled())
+                //         logger
+                //                 .logError(
+                //                         "Could not send re-INVITE time out ClientTransaction");
+                //     ((SIPClientTransaction) ctx).fireTimeoutTimer();
+                //     /*
+                //      * Send BYE to the Dialog.
+                //      */
+                //     if (sipProvider.getSipListener() != null
+                //             && sipProvider.getSipListener() instanceof SipListenerExt) {
+                //         dialogTimedOut = true;
+                //         raiseErrorEvent(SIPDialogErrorEvent.DIALOG_REINVITE_TIMEOUT,(SIPClientTransaction)ctx);
+                //     } else {
+                //         Request byeRequest = SIPDialog.this
+                //                 .createRequest(Request.BYE);
+                //         if (MessageFactoryImpl.getDefaultUserAgentHeader() != null) {
+                //             byeRequest.addHeader(MessageFactoryImpl
+                //                     .getDefaultUserAgentHeader());
+                //         }
+                //         ReasonHeader reasonHeader = new Reason();
+                //         reasonHeader.setCause(1024);
+                //         reasonHeader.setText("Timed out waiting to re-INVITE");
+                //         byeRequest.addHeader(reasonHeader);
+                //         ClientTransaction byeCtx = SIPDialog.this
+                //                 .getSipProvider().getNewClientTransaction(
+                //                         byeRequest);
+                //         SIPDialog.this.sendRequest(byeCtx);
+                //         return;
+                //     }
+                // }
                 if (getState() != DialogState.TERMINATED) {
 
                     timeToWait = System.currentTimeMillis() - startTime;
@@ -1435,9 +1435,9 @@ public class SIPDialog implements DialogExt {
                     this.ackLine = logger.getLineCount();
                     this.printDebugInfo();
                 }
-                if (this.isBackToBackUserAgent) {
-                    this.releaseAckSem();
-                }
+                // if (this.isBackToBackUserAgent) {
+                //     this.releaseAckSem();
+                // }
                 this.setState(CONFIRMED_STATE);
             }
         } else {
@@ -4028,9 +4028,9 @@ public class SIPDialog implements DialogExt {
               	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                     logger.logDebug(
                                " INVITE transaction not found");
-              	if ( this.isBackToBackUserAgent() ) {
-              		this.releaseAckSem();
-              	}
+              	// if ( this.isBackToBackUserAgent() ) {
+              	// 	this.releaseAckSem();
+              	// }
               	return false;
                
             }
@@ -4041,72 +4041,72 @@ public class SIPDialog implements DialogExt {
         return earlyDialogId;
     }
 
-    /**
-     * Release the semaphore for ACK processing so the next re-INVITE may
-     * proceed.
-     */
-    void releaseAckSem() {
-    	// if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        //     logger
-        //             .logDebug("releaseAckSem-enter]]" + this + " sem=" + this.ackSem + " b2bua=" + this.isBackToBackUserAgent);
-        //     logger.logStackTrace();
-        // }
-        // if (this.isBackToBackUserAgent) {
-        //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        //         logger
-        //                 .logDebug("releaseAckSem]]" + this + " sem=" + this.ackSem);
-        //         logger.logStackTrace();
-        //     }
-        //     if (this.ackSem.availablePermits() == 0 ) {
-        //         this.ackSem.release();
-        //         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        //             logger
-        //                     .logDebug("releaseAckSem]]" + this + " sem=" + this.ackSem);
-        //         }
-        //     }
-        // }
-    }
+    // /**
+    //  * Release the semaphore for ACK processing so the next re-INVITE may
+    //  * proceed.
+    //  */
+    // void releaseAckSem() {
+    // 	// if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //     //     logger
+    //     //             .logDebug("releaseAckSem-enter]]" + this + " sem=" + this.ackSem + " b2bua=" + this.isBackToBackUserAgent);
+    //     //     logger.logStackTrace();
+    //     // }
+    //     // if (this.isBackToBackUserAgent) {
+    //     //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //     //         logger
+    //     //                 .logDebug("releaseAckSem]]" + this + " sem=" + this.ackSem);
+    //     //         logger.logStackTrace();
+    //     //     }
+    //     //     if (this.ackSem.availablePermits() == 0 ) {
+    //     //         this.ackSem.release();
+    //     //         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //     //             logger
+    //     //                     .logDebug("releaseAckSem]]" + this + " sem=" + this.ackSem);
+    //     //         }
+    //     //     }
+    //     // }
+    // }
 
     // boolean isBlockedForReInvite() {
     // 	return this.ackSem.availablePermits() == 0;
     // }
     
-    boolean takeAckSem() {
-        // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        //     logger.logDebug("[takeAckSem " + this + " sem=" + this.ackSem);
-        // }
-        // try {
+    // boolean takeAckSem() {
+    //     // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //     //     logger.logDebug("[takeAckSem " + this + " sem=" + this.ackSem);
+    //     // }
+    //     // try {
         	
-        //     if (!this.ackSem.tryAcquire(2, TimeUnit.SECONDS)) {
-        //         if (logger.isLoggingEnabled()) {
-        //             logger.logError(
-        //                     "Cannot aquire ACK semaphore ");
-        //         }
+    //     //     if (!this.ackSem.tryAcquire(2, TimeUnit.SECONDS)) {
+    //     //         if (logger.isLoggingEnabled()) {
+    //     //             logger.logError(
+    //     //                     "Cannot aquire ACK semaphore ");
+    //     //         }
 
-        //         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        //             logger.logDebug(
-        //                     "Semaphore previously acquired at "
-        //                             + this.stackTrace + " sem=" + this.ackSem);
-        //             logger.logStackTrace();
+    //     //         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //     //             logger.logDebug(
+    //     //                     "Semaphore previously acquired at "
+    //     //                             + this.stackTrace + " sem=" + this.ackSem);
+    //     //             logger.logStackTrace();
 
-        //         }
-        //         return false;
-        //     }
+    //     //         }
+    //     //         return false;
+    //     //     }
    
-        //     if (logger.isLoggingEnabled(
-        //             StackLogger.TRACE_DEBUG)) {
+    //     //     if (logger.isLoggingEnabled(
+    //     //             StackLogger.TRACE_DEBUG)) {
 
-        //         this.recordStackTrace();
-        //     }
+    //     //         this.recordStackTrace();
+    //     //     }
 
-        // } catch (InterruptedException ex) {
-        //     logger.logError("Cannot aquire ACK semaphore");
-        //     return false;
+    //     // } catch (InterruptedException ex) {
+    //     //     logger.logError("Cannot aquire ACK semaphore");
+    //     //     return false;
 
-        // }
-        return true;
+    //     // }
+    //     return true;
 
-    }
+    // }
 
     /**
      * @param lastAckSent

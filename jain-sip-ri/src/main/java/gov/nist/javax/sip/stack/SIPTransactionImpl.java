@@ -1213,57 +1213,57 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         getSipProvider().handleEvent(exceptionEvent, this);
     }
 
-    /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#acquireSem()
-     */
-    @Override
-    public boolean acquireSem() {
-        // boolean retval = false;
-        // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        //     logger.logDebug("acquireSem [[[[" + this);
-        //     logger.logStackTrace();
-        // }
-        // if ( this.sipStack.maxListenerResponseTime == -1 ) {
-        //     retval = this.semaphore.acquire();
-        // } else {
-        //     retval = this.semaphore.tryAcquire();
-        // }
-        // if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-        //     logger.logDebug(
-        //         "acquireSem() returning : " + retval);
-        // return retval;
-        return true;
-    }
+    // /**
+    //  * @see gov.nist.javax.sip.stack.SIPTransaction#acquireSem()
+    //  */
+    // @Override
+    // public boolean acquireSem() {
+    //     // boolean retval = false;
+    //     // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //     //     logger.logDebug("acquireSem [[[[" + this);
+    //     //     logger.logStackTrace();
+    //     // }
+    //     // if ( this.sipStack.maxListenerResponseTime == -1 ) {
+    //     //     retval = this.semaphore.acquire();
+    //     // } else {
+    //     //     retval = this.semaphore.tryAcquire();
+    //     // }
+    //     // if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+    //     //     logger.logDebug(
+    //     //         "acquireSem() returning : " + retval);
+    //     // return retval;
+    //     return true;
+    // }
 
 
-    /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#releaseSem()
-     */
-    @Override
-    public void releaseSem() {
-        // try {
+    // /**
+    //  * @see gov.nist.javax.sip.stack.SIPTransaction#releaseSem()
+    //  */
+    // @Override
+    // public void releaseSem() {
+    //     // try {
 
-        //     this.toListener = false;
-        //     if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-        //         logger.logDebug(
-        //             "releaseSem() released this transaction sem : " + this);
-        //     this.semRelease();            
+    //     //     this.toListener = false;
+    //     //     if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+    //     //         logger.logDebug(
+    //     //             "releaseSem() released this transaction sem : " + this);
+    //     //     this.semRelease();            
 
-        // } catch (Exception ex) {
-        //     logger.logError("Unexpected exception releasing sem",
-        //             ex);
+    //     // } catch (Exception ex) {
+    //     //     logger.logError("Unexpected exception releasing sem",
+    //     //             ex);
 
-        // }
+    //     // }
 
-    }
+    // }
 
-    public void semRelease() {
-        // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        //     logger.logDebug("semRelease ]]]]" + this);
-        //     logger.logStackTrace();
-        // }
-        // this.semaphore.release();
-    }
+    // public void semRelease() {
+    //     // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //     //     logger.logDebug("semRelease ]]]]" + this);
+    //     //     logger.logStackTrace();
+    //     // }
+    //     // this.semaphore.release();
+    // }
 
     /**
      * @see gov.nist.javax.sip.stack.SIPTransaction#passToListener()

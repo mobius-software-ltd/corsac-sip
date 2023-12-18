@@ -353,16 +353,16 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
                 logger.logDebug(
                         "About to process " + sipRequest.getFirstLine() + "/"
                                 + sipServerRequest);
-            try {
+            // try {
                 sipServerRequest.processRequest(sipRequest, this);
-            } finally {
-                if (sipServerRequest instanceof SIPTransaction) {
-                    SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
-                    if (!sipServerTx.passToListener()) {
-                        ((SIPTransaction) sipServerRequest).releaseSem();
-                    }
-                }
-            }
+            // } finally {
+            //     if (sipServerRequest instanceof SIPTransaction) {
+            //         SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
+            //         if (!sipServerTx.passToListener()) {
+            //             ((SIPTransaction) sipServerRequest).releaseSem();
+            //         }
+            //     }
+            // }
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug(
                         "Done processing " + sipRequest.getFirstLine() + "/"
@@ -394,7 +394,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
             ServerResponseInterface sipServerResponse = sipStack
                     .newSIPServerResponse(sipResponse, this);
             if (sipServerResponse != null) {
-                try {
+                // try {
                     if (sipServerResponse instanceof SIPClientTransaction
                             && !((SIPClientTransaction) sipServerResponse)
                                     .checkFromTag(sipResponse)) {
@@ -406,12 +406,12 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
                     }
 
                     sipServerResponse.processResponse(sipResponse, this);
-                } finally {
-                    if (sipServerResponse instanceof SIPTransaction
-                            && !((SIPTransaction) sipServerResponse)
-                                    .passToListener())
-                        ((SIPTransaction) sipServerResponse).releaseSem();
-                }
+                // } finally {
+                //     if (sipServerResponse instanceof SIPTransaction
+                //             && !((SIPTransaction) sipServerResponse)
+                //                     .passToListener())
+                //         ((SIPTransaction) sipServerResponse).releaseSem();
+                // }
 
                 // Normal processing of message.
             } else {

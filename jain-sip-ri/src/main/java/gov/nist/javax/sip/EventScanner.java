@@ -277,12 +277,12 @@ public class EventScanner implements Runnable {
                                 + ((SIPRequest) (((RequestEvent) sipEvent)
                                         .getRequest())).getFirstLine());
             }
-            if (eventWrapper.transaction != null
-                    && ((SIPServerTransaction) eventWrapper.transaction)
-                            .passToListener()) {
-                ((SIPServerTransaction) eventWrapper.transaction)
-                        .releaseSem();
-            }
+            // if (eventWrapper.transaction != null
+            //         && ((SIPServerTransaction) eventWrapper.transaction)
+            //                 .passToListener()) {
+            //     ((SIPServerTransaction) eventWrapper.transaction)
+            //             .releaseSem();
+            // }
 
             if (eventWrapper.transaction != null)
                 sipStack
@@ -300,7 +300,7 @@ public class EventScanner implements Runnable {
     }
 
     private void deliverResponseEvent(ResponseEvent responseEvent, EventWrapper eventWrapper, SipListener sipListener) {
-    	try {
+    	// try {
             SIPResponse sipResponse = (SIPResponse) responseEvent
                     .getResponse();
             SIPDialog sipDialog = ((SIPDialog) responseEvent.getDialog());
@@ -386,12 +386,12 @@ public class EventScanner implements Runnable {
                 ct.clearState();
             }
             // mark no longer in the event queue.
-        } finally {
-            if (eventWrapper.transaction != null
-                    && eventWrapper.transaction.passToListener()) {
-                eventWrapper.transaction.releaseSem();
-            }
-        }
+        // } finally {
+        //     if (eventWrapper.transaction != null
+        //             && eventWrapper.transaction.passToListener()) {
+        //         eventWrapper.transaction.releaseSem();
+        //     }
+        // }
     }
     
     private void deliverTimeoutEvent(TimeoutEvent timeoutEvent, EventWrapper eventWrapper, SipListener sipListener) {

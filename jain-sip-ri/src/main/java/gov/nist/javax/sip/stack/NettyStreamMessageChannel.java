@@ -666,16 +666,16 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					.newSIPServerRequest(sipRequest, this);
 
 			if (sipServerRequest != null) {
-				try {
+				// try {
 					sipServerRequest.processRequest(sipRequest, this);
-				} finally {
-					if (sipServerRequest instanceof SIPTransaction) {
-						SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
-						if (!sipServerTx.passToListener())
-							((SIPTransaction) sipServerRequest)
-									.releaseSem();
-					}
-				}
+				// } finally {
+				// 	if (sipServerRequest instanceof SIPTransaction) {
+				// 		SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
+				// 		if (!sipServerTx.passToListener())
+				// 			((SIPTransaction) sipServerRequest)
+				// 					.releaseSem();
+				// 	}
+				// }
 			} else {
 				if (getMessageProcessor().sipStack.sipMessageValves.size() == 0) { // Allow message valves to nullify
 																					// messages without error
@@ -731,7 +731,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			ServerResponseInterface sipServerResponse = getMessageProcessor().sipStack
 					.newSIPServerResponse(sipResponse, this);
 			if (sipServerResponse != null) {
-				try {
+				// try {
 					if (sipServerResponse instanceof SIPClientTransaction
 							&& !((SIPClientTransaction) sipServerResponse)
 									.checkFromTag(sipResponse)) {
@@ -743,16 +743,16 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					}
 
 					sipServerResponse.processResponse(sipResponse, this);
-				} finally {
-					if (sipServerResponse instanceof SIPTransaction
-							&& !((SIPTransaction) sipServerResponse)
-									.passToListener()) {
-						// Note that the semaphore is released in event
-						// scanner if the
-						// request is actually processed by the Listener.
-						((SIPTransaction) sipServerResponse).releaseSem();
-					}
-				}
+				// } finally {
+				// 	if (sipServerResponse instanceof SIPTransaction
+				// 			&& !((SIPTransaction) sipServerResponse)
+				// 					.passToListener()) {
+				// 		// Note that the semaphore is released in event
+				// 		// scanner if the
+				// 		// request is actually processed by the Listener.
+				// 		((SIPTransaction) sipServerResponse).releaseSem();
+				// 	}
+				// }
 			} else {
 				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
 					NettyStreamMessageChannel.logger.logDebug(
