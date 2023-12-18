@@ -5,7 +5,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.sip.Dialog;
-import javax.sip.DialogState;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
 import javax.sip.ListeningPoint;
@@ -30,7 +29,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import junit.framework.TestCase;
-
 import test.tck.msgflow.callflows.TestAssertion;
 
 /**

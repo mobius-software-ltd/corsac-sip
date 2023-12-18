@@ -23,8 +23,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.ListeningPoint;
 
@@ -48,7 +46,6 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 public class NettyDatagramMessageProcessor extends MessageProcessor implements NettyMessageProcessor {
     private static StackLogger logger = CommonLogger.getLogger(NettyDatagramMessageProcessor.class);
     
-    protected final Map<String, NettyDatagramMessageChannel> messageChannels;
     protected final List<Channel> serverChannels;
     
     // multithreaded event loop that handles incoming connection and I/O operations
@@ -63,7 +60,6 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
             SIPTransactionStack sipStack, int port) throws IOException {
         super(ipAddress, port, ListeningPoint.UDP, sipStack);
 
-        this.messageChannels = new ConcurrentHashMap<String, NettyDatagramMessageChannel>();
         epollEventLoopGroup = new EpollEventLoopGroup(sipStack.threadPoolSize);
         serverChannels = new ArrayList<>(sipStack.threadPoolSize);
     }

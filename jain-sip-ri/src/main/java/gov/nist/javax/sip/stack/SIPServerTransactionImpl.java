@@ -2247,7 +2247,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
     public class ServerTransactionOutgoingProvisionalResponseTask implements SIPTask {
         private final String taskName = ServerTransactionOutgoingProvisionalResponseTask.class.getSimpleName();
-        private StackLogger logger = CommonLogger.getLogger(ServerTransactionOutgoingProvisionalResponseTask.class);
+        // private StackLogger logger = CommonLogger.getLogger(ServerTransactionOutgoingProvisionalResponseTask.class);
         private String id;
         private long startTime;
         
