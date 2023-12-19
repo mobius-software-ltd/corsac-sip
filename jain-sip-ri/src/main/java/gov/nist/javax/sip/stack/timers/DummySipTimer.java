@@ -54,7 +54,7 @@ public class DummySipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
     @Override
-	public boolean schedule(SIPTimerTask task, long delay) {
+	public boolean schedule(SIPStackTimerTask task, long delay) {
 		return true;
 	}
 	
@@ -63,7 +63,7 @@ public class DummySipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
 	@Override
-	public boolean scheduleWithFixedDelay(SIPTimerTask task, long delay,
+	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
 		return true;
 	}
@@ -73,7 +73,7 @@ public class DummySipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
 	 */
 	@Override
-	public boolean cancel(SIPTimerTask task) {
+	public boolean cancel(SIPStackTimerTask task) {
 		return true;
 	}
 

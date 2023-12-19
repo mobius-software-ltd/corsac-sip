@@ -702,7 +702,8 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
     }
 
     public void cancelPingKeepAliveTimeoutTaskIfStarted() {
-    	if(pingKeepAliveTimeoutTask != null && pingKeepAliveTimeoutTask.getSipTimerTask() != null) {
+    	if (pingKeepAliveTimeoutTask != null) {			 
+			// && pingKeepAliveTimeoutTask.getSipTimerTask() != null
     		try {
 				keepAliveSemaphore.acquire();
 			} catch (InterruptedException e) {

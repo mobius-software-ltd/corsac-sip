@@ -67,9 +67,9 @@ public class MobiusSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
 	@Override
-	public boolean schedule(SIPTimerTask task, long delay) {
+	public boolean schedule(SIPStackTimerTask task, long delay) {
 		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay);
-		((SIPStackTimerTask)task).setSipTimerTask(timerTask);
+		task.setSipTimerTask(timerTask);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + " to run at " + timerTask.getRealTimestamp());
 		}
@@ -83,10 +83,10 @@ public class MobiusSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
 	@Override
-	public boolean scheduleWithFixedDelay(SIPTimerTask task, long delay,
+	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
 		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay, period);
-		((SIPStackTimerTask)task).setSipTimerTask(timerTask);
+		task.setSipTimerTask(timerTask);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + 
 				" and period " + period + " to run at " + timerTask.getRealTimestamp());
@@ -101,9 +101,9 @@ public class MobiusSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
 	 */
 	@Override
-	public boolean cancel(SIPTimerTask task) {	
-		if(((SIPStackTimerTask)task).getSipTimerTask() != null) {	
-			((MobiusSipTimerTask) ((SIPStackTimerTask)task).getSipTimerTask()).stop();		
+	public boolean cancel(SIPStackTimerTask task) {	
+		if(task.getSipTimerTask() != null) {	
+			((MobiusSipTimerTask) task.getSipTimerTask()).stop();		
 			return true;
 		}
 		return false;

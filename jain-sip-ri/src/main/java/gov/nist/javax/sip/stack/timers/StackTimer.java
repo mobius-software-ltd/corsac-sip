@@ -25,7 +25,7 @@ public interface StackTimer {
 	 * @param delay the delay in milliseconds to schedule the task
 	 * @return true if the task was correctly scheduled, false otherwise
 	 */
-	boolean schedule(SIPTimerTask task, long delay);
+	boolean schedule(SIPStackTimerTask task, long delay);
 	
 	/**
 	 * Schedule a new SIPTimerTask after the specified delay
@@ -34,12 +34,12 @@ public interface StackTimer {
 	 * @param period the period to run the task after it has been first scheduled 
 	 * @return true if the task was correctly scheduled, false otherwise
 	 */
-	boolean scheduleWithFixedDelay(SIPTimerTask task, long delay, long period);
+	boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay, long period);
 
     /**
 	 * cancel a previously scheduled SIPTimerTask task
 	 * @param task task to cancel
 	 * @return true if the task was cancelled, false otherwise
 	 */
-	boolean cancel(SIPTimerTask task);
+	boolean cancel(SIPStackTimerTask task);
 }

@@ -886,7 +886,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	}
 
 	public void cancelPingKeepAliveTimeoutTaskIfStarted() {
-		if (pingKeepAliveTimeoutTask != null && pingKeepAliveTimeoutTask.getSipTimerTask() != null) {			
+		if (pingKeepAliveTimeoutTask != null) {			 
+			// && pingKeepAliveTimeoutTask.getSipTimerTask() != null
 			
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 				logger.logDebug("~~~ cancelPingKeepAliveTimeoutTaskIfStarted for MessageChannel(key=" + getKey()

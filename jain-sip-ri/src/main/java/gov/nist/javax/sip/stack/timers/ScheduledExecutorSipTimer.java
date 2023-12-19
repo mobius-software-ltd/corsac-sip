@@ -88,12 +88,12 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
 	@Override
-	public boolean schedule(SIPTimerTask task, long delay) {
+	public boolean schedule(SIPStackTimerTask task, long delay) {
 		if(threadPoolExecutor.isShutdown()) {
 			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
 		}
 		ScheduledFuture<?> future = threadPoolExecutor.schedule(new ScheduledSipTimerTask(task), delay, TimeUnit.MILLISECONDS);
-		((SIPStackTimerTask)task).setSipTimerTask(future);
+		task.setSipTimerTask(future);
 		return true;
 	}
 	
@@ -102,13 +102,13 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
 	@Override
-	public boolean scheduleWithFixedDelay(SIPTimerTask task, long delay,
+	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
 		if(threadPoolExecutor.isShutdown()) {
 			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
 		}
 		ScheduledFuture<?> future = threadPoolExecutor.scheduleWithFixedDelay(new ScheduledSipTimerTask(task), delay, period, TimeUnit.MILLISECONDS);
-		((SIPStackTimerTask)task).setSipTimerTask(future);
+		task.setSipTimerTask(future);
 		return true;
 	}
 
@@ -129,12 +129,12 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
 	 */
 	@Override
-	public boolean cancel(SIPTimerTask task) {
+	public boolean cancel(SIPStackTimerTask task) {
 		boolean cancelled = false;
 		ScheduledFuture<?> sipTimerTask = (ScheduledFuture<?>) ((SIPStackTimerTask)task).getSipTimerTask();
 		if(sipTimerTask != null) {
-			((SIPStackTimerTask)task).cleanUpBeforeCancel();			
-			((SIPStackTimerTask)task).setSipTimerTask(null);
+			task.cleanUpBeforeCancel();			
+			task.setSipTimerTask(null);
 			threadPoolExecutor.remove((Runnable)sipTimerTask);
 			cancelled = sipTimerTask.cancel(false);
 		} 

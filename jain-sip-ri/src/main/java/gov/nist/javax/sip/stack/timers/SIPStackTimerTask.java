@@ -50,18 +50,18 @@ public abstract class SIPStackTimerTask implements SIPTimerTask {
 	}
     
     
-    public void cleanUpBeforeCancel() {
+    protected void cleanUpBeforeCancel() {
     	
     }
     
-	public void setSipTimerTask(Object timer) {
+	protected void setSipTimerTask(Object timer) {
 		timerTask = timer;
 	}
 
-	public Object getSipTimerTask() {
+	protected Object getSipTimerTask() {
 		return timerTask;
 	}
-	public String getTaskName() {
+	protected String getTaskName() {
 		return taskName;
 	}
 	
