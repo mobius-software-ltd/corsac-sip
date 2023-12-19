@@ -1098,7 +1098,6 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
     }
 
     public class SipProviderOutgoingRequestTask implements SIPTask {
-        private final String taskName = SipProviderOutgoingRequestTask.class.getSimpleName();
         private StackLogger logger = CommonLogger.getLogger(SipProviderOutgoingRequestTask.class);
         private String id;
         private long startTime;
@@ -1184,16 +1183,10 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         @Override
         public long getStartTime() {
             return startTime;
-        }
-
-        @Override
-        public String getTaskName() {
-            return taskName;
-        }
+        }       
     }
 
     public class SipProviderOutgoingResponseTask implements SIPTask {
-        private final String taskName = SipProviderOutgoingResponseTask.class.getSimpleName();
         private StackLogger logger = CommonLogger.getLogger(SipProviderOutgoingResponseTask.class);
         private String id;
         private long startTime;
@@ -1256,11 +1249,6 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         @Override
         public long getStartTime() {
             return startTime;
-        }
-
-        @Override
-        public String getTaskName() {
-            return taskName;
         }
     }
 }

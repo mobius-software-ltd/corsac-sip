@@ -20,6 +20,7 @@ package gov.nist.javax.sip.stack;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -157,7 +158,7 @@ public class HandshakeCompletedListenerImpl implements HandshakeCompletedListene
     	}
         
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return socket.toString();
         }         
     	

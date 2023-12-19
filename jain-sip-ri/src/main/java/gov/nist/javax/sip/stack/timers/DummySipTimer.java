@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
 /**
  * Dummy Impl for testing purposes. Do not use this in production!!
@@ -54,8 +53,8 @@ public class DummySipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
-        @Override
-	public boolean schedule(SIPStackTimerTask task, long delay) {
+    @Override
+	public boolean schedule(SIPTimerTask task, long delay) {
 		return true;
 	}
 	
@@ -63,7 +62,8 @@ public class DummySipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
-	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
+	@Override
+	public boolean scheduleWithFixedDelay(SIPTimerTask task, long delay,
 			long period) {
 		return true;
 	}
@@ -72,8 +72,8 @@ public class DummySipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
 	 */
-        @Override
-	public boolean cancel(SIPStackTimerTask task) {
+	@Override
+	public boolean cancel(SIPTimerTask task) {
 		return true;
 	}
 

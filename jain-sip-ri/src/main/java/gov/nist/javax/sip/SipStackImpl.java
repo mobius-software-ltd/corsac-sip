@@ -87,6 +87,7 @@ import gov.nist.javax.sip.stack.SIPMessageValve;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.timers.MobiusSipTimer;
 import gov.nist.javax.sip.stack.timers.SipTimer;
+import gov.nist.javax.sip.stack.timers.StackTimer;
 
 /**
  * Implementation of SipStack.
@@ -2034,6 +2035,11 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	 */
 	public boolean isReEntrantListener() {
 		return reEntrantListener;
+	}
+
+	@Override
+	public StackTimer getStackTimer() {
+		return this.timer;
 	}
 
 

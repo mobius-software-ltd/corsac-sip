@@ -26,7 +26,7 @@
 package gov.nist.javax.sip.parser;
 
 import gov.nist.core.InternalErrorHandler;
-import gov.nist.javax.sip.stack.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.timers.SipTimer;
 
 import java.io.IOException;
@@ -69,7 +69,7 @@ public class Pipeline extends InputStream {
         }
         
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return pipeline.toString();
         }         
 

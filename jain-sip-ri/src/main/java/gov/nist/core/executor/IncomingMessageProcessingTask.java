@@ -8,7 +8,6 @@ import gov.nist.javax.sip.stack.SIPTransactionStack;
 
 public class IncomingMessageProcessingTask implements SIPTask {
     private static StackLogger logger = CommonLogger.getLogger(IncomingMessageProcessingTask.class);
-    private static final String taskName = IncomingMessageProcessingTask.class.getSimpleName();
     private String id;
     private long startTime;
     private RawMessageChannel rawMessageChannel;
@@ -27,7 +26,7 @@ public class IncomingMessageProcessingTask implements SIPTask {
     @Override
     public void execute() {        
         if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-            logger.logDebug("Executing task " + getTaskName() + " with id: " + id);
+            logger.logDebug("Executing task " + this + " with id: " + id);
         }
         if (sipStack.sipEventInterceptor != null) {
             if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
@@ -57,10 +56,6 @@ public class IncomingMessageProcessingTask implements SIPTask {
     @Override
     public long getStartTime() {
         return startTime;
-    }
-    @Override
-    public String getTaskName() {
-        return taskName;
-    }
+    }    
 }
 

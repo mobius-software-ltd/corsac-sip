@@ -65,6 +65,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.SIPClientTransactionImpl.ExpiresTimerTask;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 /*
  * Modifications for TLS Support added by Daniel J. Martinez Manzano
@@ -290,7 +291,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
@@ -334,7 +335,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();

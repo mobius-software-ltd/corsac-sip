@@ -1,6 +1,6 @@
 package gov.nist.javax.sip.clientauthutils;
 
-import gov.nist.javax.sip.stack.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.timers.SipTimer;
 
 import java.util.Collection;
@@ -40,7 +40,7 @@ class CredentialsCache {
         }
         
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return callId;
         }         
 

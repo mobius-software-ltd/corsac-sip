@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 /**
  * @author jean.deruelle@gmail.com
@@ -55,7 +56,7 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 	}
         
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return nioHandler.toString();
         }        
 	

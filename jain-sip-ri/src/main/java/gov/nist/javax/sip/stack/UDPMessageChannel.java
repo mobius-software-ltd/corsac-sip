@@ -64,6 +64,7 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.MessageParser;
 import gov.nist.javax.sip.parser.ParseExceptionListener;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 /*
  * Kim Kirby (Keyvoice) suggested that duplicate checking should be added to the
@@ -157,7 +158,7 @@ public class UDPMessageChannel extends MessageChannel implements
         }
         
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return this.toString();
         }         
 

@@ -64,6 +64,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 /*
  * Bug fixes / enhancements:Emil Ivov, Antonis Karydas, Daniel J. Martinez Manzano, Daniel, Hagai
@@ -177,6 +178,7 @@ import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
  */
 public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPServerTransaction {
     private static final long serialVersionUID = 1L;
+    private static final String TIMER_J_NAME = "TimerJ";
 
     private static StackLogger logger = CommonLogger.getLogger(SIPServerTransaction.class);
     private int rseqNumber = -1;
@@ -268,7 +270,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest) request).getCallIdHeader().getCallId();
@@ -343,7 +345,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest) request).getCallIdHeader().getCallId();
@@ -393,7 +395,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest) request).getCallIdHeader().getCallId();
@@ -450,7 +452,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
                 return ((SIPRequest) request).getCallIdHeader().getCallId();
@@ -1542,7 +1544,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 }
                 // The timer is set to null when the Stack is
                 // shutting down.
-                SIPStackTimerTask task = new SIPStackTimerTask("TimerJ") {
+                SIPStackTimerTask task = new SIPStackTimerTask(TIMER_J_NAME) {
 
                     public void runTask() {
                         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -1556,7 +1558,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     }
 
                     @Override
-                    public String getThreadHash() {
+                    public String getId() {
                         Request request = getRequest();
                         if (request != null && request instanceof SIPRequest) {
                             return ((SIPRequest) request).getCallIdHeader().getCallId();
@@ -2059,7 +2061,6 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     }
 
     public class ServerTransactionOutgoingMessageTask implements SIPTask {
-        private final String taskName = ServerTransactionOutgoingMessageTask.class.getSimpleName();
         private StackLogger logger = CommonLogger.getLogger(ServerTransactionOutgoingMessageTask.class);
         private String id;
         private long startTime;
@@ -2242,15 +2243,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         public long getStartTime() {
             return startTime;
         }
-
-        @Override
-        public String getTaskName() {
-            return taskName;
-        }
     }
 
     public class ServerTransactionOutgoingProvisionalResponseTask implements SIPTask {
-        private final String taskName = ServerTransactionOutgoingProvisionalResponseTask.class.getSimpleName();
         // private StackLogger logger = CommonLogger.getLogger(ServerTransactionOutgoingProvisionalResponseTask.class);
         private String id;
         private long startTime;
@@ -2315,11 +2310,5 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         public long getStartTime() {
             return startTime;
         }
-
-        @Override
-        public String getTaskName() {
-            return taskName;
-        }
-
     }
 }

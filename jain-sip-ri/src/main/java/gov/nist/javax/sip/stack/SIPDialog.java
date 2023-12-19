@@ -117,6 +117,7 @@ import gov.nist.javax.sip.parser.AddressParser;
 import gov.nist.javax.sip.parser.CallIDParser;
 import gov.nist.javax.sip.parser.ContactParser;
 import gov.nist.javax.sip.parser.RecordRouteParser;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 /*
  * Acknowledgements:
@@ -333,7 +334,6 @@ public class SIPDialog implements DialogExt {
     // //////////////////////////////////////////////////////
   
     public class AckSendingStrategyImpl implements AckSendingStrategy {
-        private final String taskName = AckSendingStrategyImpl.class.getSimpleName();
         private Hop hop = null;
         private ListeningPointImpl lp = null;
         private SIPRequest ackRequest = null;
@@ -382,11 +382,7 @@ public class SIPDialog implements DialogExt {
         @Override
         public String getId() {
             return ackRequest.getCallId().getCallId();
-        }
-        @Override
-        public String getTaskName() {
-            return taskName;
-        }
+        }       
     }
 
     class EarlyStateTimerTask extends SIPStackTimerTask implements Serializable {        
@@ -416,7 +412,7 @@ public class SIPDialog implements DialogExt {
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return getCallId().getCallId();
         }
 
@@ -435,7 +431,6 @@ public class SIPDialog implements DialogExt {
      */
     public class ReInviteSender implements SIPTask, Serializable {
         private static final long serialVersionUID = 1019346148741070635L;
-        private final String taskName = ReInviteSender.class.getSimpleName();
         ClientTransaction ctx;
         long startTime = System.currentTimeMillis();
 
@@ -561,12 +556,7 @@ public class SIPDialog implements DialogExt {
         @Override
         public String getId() {
             return SIPDialog.this.getCallId().getCallId();
-        }
-        
-        @Override
-        public String getTaskName() {
-            return taskName;
-        }
+        }        
     }
 
     class LingerTimer extends SIPStackTimerTask implements Serializable {
@@ -589,7 +579,7 @@ public class SIPDialog implements DialogExt {
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return getCallId().getCallId();
         }
 
@@ -690,7 +680,7 @@ public class SIPDialog implements DialogExt {
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return getCallId().getCallId();
         }
 
@@ -712,7 +702,7 @@ public class SIPDialog implements DialogExt {
         }
 
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return getCallId().getCallId();
         }
 
@@ -735,7 +725,7 @@ public class SIPDialog implements DialogExt {
         }
         
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return getCallId().getCallId();
         }        
 
@@ -4439,7 +4429,6 @@ public class SIPDialog implements DialogExt {
     } 
     
     public class DialogOutgoingMessageProcessingTask implements SIPTask {
-        private final String taskName = DialogOutgoingMessageProcessingTask.class.getSimpleName();
         private StackLogger logger = CommonLogger.getLogger(DialogOutgoingMessageProcessingTask.class);
         private String id;
         private long startTime;
@@ -4663,11 +4652,6 @@ public class SIPDialog implements DialogExt {
         @Override
         public long getStartTime() {
             return startTime;
-        }
-
-        @Override
-        public String getTaskName() {
-            return taskName;
-        }
+        }        
     }
 }

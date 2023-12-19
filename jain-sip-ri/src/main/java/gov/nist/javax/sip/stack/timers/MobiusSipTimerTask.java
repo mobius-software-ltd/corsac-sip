@@ -24,29 +24,28 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.core.executor.MessageProcessorExecutor;
 import gov.nist.core.executor.SIPTimer;
-import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
 public class MobiusSipTimerTask implements SIPTimer {
     private static StackLogger logger = CommonLogger.getLogger(MobiusSipTimerTask.class);
     private MobiusSipTimer timer;
-    private SIPStackTimerTask task;
+    private SIPTimerTask task;
     private long startTime;
     private AtomicLong timestamp;
     private AtomicLong period;
     private String id;
     private MessageProcessorExecutor messageProcessorExecutor;
 
-    public MobiusSipTimerTask(MobiusSipTimer timer, SIPStackTimerTask task, long timeout) {
+    public MobiusSipTimerTask(MobiusSipTimer timer, SIPTimerTask task, long timeout) {
         this.timer = timer;
         this.task = task;
         this.startTime = System.currentTimeMillis();
         this.timestamp = new AtomicLong(System.currentTimeMillis() + timeout);
         this.period = new AtomicLong(-1);
-        this.id = task.getThreadHash();
+        this.id = task.getId();
         this.messageProcessorExecutor = timer.sipStackImpl.getMessageProcessorExecutor();
     }
 
-    public MobiusSipTimerTask(MobiusSipTimer timer, SIPStackTimerTask task, long timeout, long period) {
+    public MobiusSipTimerTask(MobiusSipTimer timer, SIPTimerTask task, long timeout, long period) {
         this(timer, task, timeout);
         this.period = new AtomicLong(period);
     }
@@ -57,7 +56,7 @@ public class MobiusSipTimerTask implements SIPTimer {
             try {
                 // task can be null if it has been cancelled
                 if (task != null) {
-                    Thread.currentThread().setName(task.getTaskName());
+                    Thread.currentThread().setName(task.getClass().getName());
                     task.runTask();
                 }
             } catch (Exception e) {
@@ -67,7 +66,7 @@ public class MobiusSipTimerTask implements SIPTimer {
             if (period.get() > 0) {
                 timestamp.set(timestamp.get() + period.get());
                 if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-                    logger.logDebug("Scheduling periodic task " + task.getTaskName() + 
+                    logger.logDebug("Scheduling periodic task " + task + " with id " + task.getId() + 
                         " with period " + period.get() + " next execution at " + timestamp.get());
                 }
                 timer.getPeriodicQueue().store(timestamp.get(), this);
@@ -97,11 +96,6 @@ public class MobiusSipTimerTask implements SIPTimer {
     @Override
     public String getId() {
         return id;
-    }
-
-    @Override
-    public String getTaskName() {
-        return task.getTaskName();
     }
 
     @Override

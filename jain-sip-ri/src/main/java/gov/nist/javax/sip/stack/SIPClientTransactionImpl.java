@@ -73,6 +73,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 /*
  * Jeff Keyser -- initial. Daniel J. Martinez Manzano --Added support for TLS message channel.
@@ -189,6 +190,8 @@ import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
  * @version 1.2 $Revision: 1.144 $ $Date: 2010-12-02 22:04:16 $
  */
 public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPClientTransaction {
+  private static final String TIMER_K = "TimerK";
+
   /**
    * 
    */
@@ -276,7 +279,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     }
 
     @Override
-    public String getThreadHash() {
+    public String getId() {
       Request request = getRequest();
       if (request != null && request instanceof SIPRequest) {
         return ((SIPRequest) request).getCallIdHeader().getCallId();
@@ -309,7 +312,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     }
 
     @Override
-    public String getThreadHash() {
+    public String getId() {
       Request request = getRequest();
       if (request != null && request instanceof SIPRequest) {
         return ((SIPRequest) request).getCallIdHeader().getCallId();
@@ -720,7 +723,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
           logger.logDebug("starting TransactionTimerK() : " + getTransactionId() + " time "
               + time);
         }
-        SIPStackTimerTask task = new SIPStackTimerTask("TimerK") {
+        SIPStackTimerTask task = new SIPStackTimerTask(TIMER_K) {
 
           public void runTask() {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -731,7 +734,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
           }
 
           @Override
-          public String getThreadHash() {
+          public String getId() {
             Request request = getRequest();
             if (request != null && request instanceof SIPRequest) {
               return ((SIPRequest) request).getCallIdHeader().getCallId();
@@ -2046,7 +2049,6 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   }
 
   public class ClientTransactionOutgoingMessageTask implements SIPTask {
-    private final String taskName = ClientTransactionOutgoingMessageTask.class.getSimpleName();
     private StackLogger logger = CommonLogger.getLogger(ClientTransactionOutgoingMessageTask.class);
     private String id;
     private long startTime;
@@ -2117,11 +2119,6 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     @Override
     public long getStartTime() {
       return startTime;
-    }
-
-    @Override
-    public String getTaskName() {
-      return taskName;
-    }
+    }    
   }
 }

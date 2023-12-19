@@ -54,6 +54,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.SIPMessageListener;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -980,7 +981,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		}
 
 		@Override
-		public String getThreadHash() {
+		public String getId() {
 			return channel.toString();
 		}
 

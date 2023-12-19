@@ -46,11 +46,6 @@ public class NettyConnectionFailureThread implements SIPTask {
 
 	@Override
 	public String getId() {
-		return "" + startTime;
-	}
-
-	@Override
-	public String getTaskName() {
-		return NettyConnectionFailureThread.class.getName().concat("-").concat(getId());
+		return NettyConnectionFailureThread.class.getName().concat("-").concat("" + startTime);
 	}
 }

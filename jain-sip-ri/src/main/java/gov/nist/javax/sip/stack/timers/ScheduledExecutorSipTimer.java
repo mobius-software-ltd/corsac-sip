@@ -33,7 +33,6 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.NamingThreadFactory;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
 /**
  * Implementation of the SIP Timer based on java.util.concurrent.ScheduledThreadPoolExecutor
@@ -88,12 +87,13 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	/* (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
-	public boolean schedule(SIPStackTimerTask task, long delay) {
+	@Override
+	public boolean schedule(SIPTimerTask task, long delay) {
 		if(threadPoolExecutor.isShutdown()) {
 			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
 		}
 		ScheduledFuture<?> future = threadPoolExecutor.schedule(new ScheduledSipTimerTask(task), delay, TimeUnit.MILLISECONDS);
-		task.setSipTimerTask(future);
+		((SIPStackTimerTask)task).setSipTimerTask(future);
 		return true;
 	}
 	
@@ -101,13 +101,14 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
-	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
+	@Override
+	public boolean scheduleWithFixedDelay(SIPTimerTask task, long delay,
 			long period) {
 		if(threadPoolExecutor.isShutdown()) {
 			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
 		}
 		ScheduledFuture<?> future = threadPoolExecutor.scheduleWithFixedDelay(new ScheduledSipTimerTask(task), delay, period, TimeUnit.MILLISECONDS);
-		task.setSipTimerTask(future);
+		((SIPStackTimerTask)task).setSipTimerTask(future);
 		return true;
 	}
 
@@ -116,8 +117,7 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl)
 	 */
 	public void start(SipStackImpl sipStack) {
-		sipStackImpl= sipStack;
-		// TODO have a param in the stack properties to set the number of thread for the timer executor
+		sipStackImpl= sipStack;		
 		threadPoolExecutor.prestartAllCoreThreads();
 		schedulePurgeTaskIfNeeded();
 		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
@@ -128,12 +128,13 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
 	 */
-	public boolean cancel(SIPStackTimerTask task) {
+	@Override
+	public boolean cancel(SIPTimerTask task) {
 		boolean cancelled = false;
-		ScheduledFuture<?> sipTimerTask = (ScheduledFuture<?>) task.getSipTimerTask();
+		ScheduledFuture<?> sipTimerTask = (ScheduledFuture<?>) ((SIPStackTimerTask)task).getSipTimerTask();
 		if(sipTimerTask != null) {
-			task.cleanUpBeforeCancel();			
-			task.setSipTimerTask(null);
+			((SIPStackTimerTask)task).cleanUpBeforeCancel();			
+			((SIPStackTimerTask)task).setSipTimerTask(null);
 			threadPoolExecutor.remove((Runnable)sipTimerTask);
 			cancelled = sipTimerTask.cancel(false);
 		} 
@@ -141,9 +142,9 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	}
 
 	private class ScheduledSipTimerTask implements Runnable {
-		private SIPStackTimerTask task;
+		private SIPTimerTask task;
 
-		public ScheduledSipTimerTask(SIPStackTimerTask task) {
+		public ScheduledSipTimerTask(SIPTimerTask task) {
 			this.task= task;			
 		}
 		
@@ -151,7 +152,7 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 			 try {
 				 // task can be null if it has been cancelled
 				 if(task != null) {
-					 Thread.currentThread().setName(task.getTaskName());
+					 Thread.currentThread().setName(task.getClass().getName());
 					 task.runTask();
 				 }
 	        } catch (Throwable e) {

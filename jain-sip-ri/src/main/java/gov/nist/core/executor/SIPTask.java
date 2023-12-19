@@ -23,6 +23,5 @@ import com.mobius.software.common.dal.timers.Task;
 public interface SIPTask extends Task
 {
     String getId();
-	String getTaskName();
 }
 

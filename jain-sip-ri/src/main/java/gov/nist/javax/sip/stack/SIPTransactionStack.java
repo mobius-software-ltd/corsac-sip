@@ -86,6 +86,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.MessageParserFactory;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.timers.SipTimer;
 
 /*
@@ -148,7 +149,7 @@ public abstract class SIPTransactionStack implements
     protected static final Set<String> dialogCreatingMethods = new HashSet<String>();
 
     // Global timer. Use this for all timer tasks.
-    private SipTimer timer;
+    protected SipTimer timer;
     // Global Message Processor Executor. Use this for all tasks except timers.
     protected MessageProcessorExecutor messageProcessorExecutor = null;    
 
@@ -484,7 +485,7 @@ public abstract class SIPTransactionStack implements
         }
         
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return threadHandle.toString();
         }         
 
@@ -522,7 +523,7 @@ public abstract class SIPTransactionStack implements
         }
         
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return id;
         }         
 

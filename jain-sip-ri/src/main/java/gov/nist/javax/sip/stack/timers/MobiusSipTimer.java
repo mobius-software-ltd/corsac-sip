@@ -26,7 +26,6 @@ import com.mobius.software.common.dal.timers.Timer;
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
 /**
  * Implementation of the SIP Timer based on Mobius Software LTD Timers Library
@@ -67,9 +66,10 @@ public class MobiusSipTimer implements SipTimer {
 	/* (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
-	public boolean schedule(SIPStackTimerTask task, long delay) {
+	@Override
+	public boolean schedule(SIPTimerTask task, long delay) {
 		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay);
-		task.setSipTimerTask(timerTask);
+		((SIPStackTimerTask)task).setSipTimerTask(timerTask);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + " to run at " + timerTask.getRealTimestamp());
 		}
@@ -82,10 +82,11 @@ public class MobiusSipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
-	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
+	@Override
+	public boolean scheduleWithFixedDelay(SIPTimerTask task, long delay,
 			long period) {
 		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay, period);
-		task.setSipTimerTask(timerTask);
+		((SIPStackTimerTask)task).setSipTimerTask(timerTask);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + 
 				" and period " + period + " to run at " + timerTask.getRealTimestamp());
@@ -99,9 +100,10 @@ public class MobiusSipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
 	 */
-	public boolean cancel(SIPStackTimerTask task) {	
-		if((MobiusSipTimerTask)task.getSipTimerTask() != null) {	
-			((MobiusSipTimerTask)task.getSipTimerTask()).stop();		
+	@Override
+	public boolean cancel(SIPTimerTask task) {	
+		if(((SIPStackTimerTask)task).getSipTimerTask() != null) {	
+			((MobiusSipTimerTask) ((SIPStackTimerTask)task).getSipTimerTask()).stop();		
 			return true;
 		}
 		return false;

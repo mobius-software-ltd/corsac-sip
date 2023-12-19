@@ -1,12 +1,5 @@
 package gov.nist.javax.sip;
 
-import gov.nist.core.net.AddressResolver;
-import gov.nist.javax.sip.clientauthutils.AccountManager;
-import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
-import gov.nist.javax.sip.clientauthutils.SecureAccountManager;
-import gov.nist.javax.sip.header.extensions.JoinHeader;
-import gov.nist.javax.sip.header.extensions.ReplacesHeader;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketAddress;
@@ -15,6 +8,14 @@ import java.util.Collection;
 import javax.sip.Dialog;
 import javax.sip.SipStack;
 import javax.sip.header.HeaderFactory;
+
+import gov.nist.core.net.AddressResolver;
+import gov.nist.javax.sip.clientauthutils.AccountManager;
+import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
+import gov.nist.javax.sip.clientauthutils.SecureAccountManager;
+import gov.nist.javax.sip.header.extensions.JoinHeader;
+import gov.nist.javax.sip.header.extensions.ReplacesHeader;
+import gov.nist.javax.sip.stack.timers.StackTimer;
 
 /**
  * SIP Stack extensions to be added to the next spec revision. Only these may be safely used in
@@ -167,4 +168,13 @@ public interface SipStackExt extends SipStack {
                     InetAddress localAddress)
         throws IOException;
 
+
+    /**
+     * Returns the stack timer to schedule timer tasks 
+     * using the same thread pool as the stack and allowing
+     * for the same concurrency behavior
+     * 
+     * @return the stack timer
+     */
+    public StackTimer getStackTimer(); 
 }

@@ -54,7 +54,7 @@ public class MessageProcessorExecutor {
 		CountableQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-				logger.logDebug("Adding Task First : "  + task.getTaskName() + " " + task.getId() + ", Queue Size: "  + queue.size());
+				logger.logDebug("Adding Task First : "  + task + " " + task.getId() + ", Queue Size: "  + queue.size());
 			}
 			queue.offerFirst(task);
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {				
@@ -67,7 +67,7 @@ public class MessageProcessorExecutor {
 		CountableQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-				logger.logDebug("Adding Task Last : "  + task.getTaskName() + " " + task.getId() + ", Queue Size: "  + queue.size());
+				logger.logDebug("Adding Task Last : "  + task + " " + task.getId() + ", Queue Size: "  + queue.size());
 			}
 			queue.offerLast(task);
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {				

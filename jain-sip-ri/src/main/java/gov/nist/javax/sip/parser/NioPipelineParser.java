@@ -99,7 +99,6 @@ public class NioPipelineParser {
 	}
 	
     public class Dispatch implements ThreadAffinityTask, QueuedMessageDispatchBase {
-		private final String taskName = Dispatch.class.getSimpleName();
     	String callId;
         UnparsedMessage unparsedMessage;
     	long time;
@@ -179,10 +178,6 @@ public class NioPipelineParser {
 		@Override
 		public String getId() {
 			return callId;
-		}
-		@Override
-		public String getTaskName() {
-			return taskName;
 		}
     };
 	

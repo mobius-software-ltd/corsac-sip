@@ -248,7 +248,6 @@ public final class PipelinedMsgParser implements Runnable {
     }
     
     public class Dispatch implements SIPTask {
-        private final String taskName = Dispatch.class.getSimpleName();
     	CallIDOrderingStructure callIDOrderingStructure;
     	String callId;
     	long time;
@@ -321,10 +320,6 @@ public final class PipelinedMsgParser implements Runnable {
         @Override
         public String getId() {
             return callId;
-        }
-        @Override
-        public String getTaskName() {
-            return taskName;
         }
     };
     /**

@@ -57,6 +57,7 @@ import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.Pipeline;
 import gov.nist.javax.sip.parser.PipelinedMsgParser;
 import gov.nist.javax.sip.parser.SIPMessageListener;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 /**
  * @author jean.deruelle@gmail.com
@@ -811,7 +812,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
     		super(KeepAliveTimeoutTimerTask.class.getSimpleName());
     	}
         @Override
-        public String getThreadHash() {
+        public String getId() {
             return ConnectionOrientedMessageChannel.this.toString();
         } 
         
