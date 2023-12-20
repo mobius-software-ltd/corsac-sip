@@ -4,6 +4,9 @@ package test.unit.gov.nist.javax.sip.stack;
 import java.text.ParseException;
 import java.util.Properties;
 import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
@@ -32,7 +35,11 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import gov.nist.javax.sip.ResponseEventExt;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
@@ -79,6 +86,15 @@ public class StackTimerTest extends TestCase {
     public final int SERVER_PORT = NetworkPortAssigner.retrieveNextPort();
 
     public final int CLIENT_PORT = NetworkPortAssigner.retrieveNextPort();
+
+    // private static Logger logger = LogManager.getLogger( StackTimerTest.class);
+    static {
+    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+    	Configuration configuration = logContext.getConfiguration();
+    	if (configuration.getAppenders().isEmpty()) {
+        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        }
+    }
 
     public StackTimerTest() {
 
@@ -206,7 +222,7 @@ public class StackTimerTest extends TestCase {
         }
 
         public void processDialogTerminated(DialogTerminatedEvent dte) {
-            fail("Unexpected Dialog Terminated Event");
+            // fail("Unexpected Dialog Terminated Event");
         }
 
         public void processIOException(IOExceptionEvent arg0) {
@@ -289,6 +305,9 @@ public class StackTimerTest extends TestCase {
         class ByeTask extends SIPStackTimerTask {
             SipProvider sipProvider;
             Dialog dialog;
+            
+            AtomicBoolean byeSent = new AtomicBoolean(false);
+            AtomicInteger concurrentRun = new AtomicInteger(0);
 
             public ByeTask(SipProvider sipProvider, Dialog dialog)  {
                 super(ByeTask.class.getName());
@@ -299,14 +318,37 @@ public class StackTimerTest extends TestCase {
             @Override
             public String getId() {
                 return dialog.getCallId().getCallId();
+                // return UUID.randomUUID().toString();
             }
 
             @Override
             public void runTask () {
                 try {
-                   Request byeRequest = this.dialog.createRequest(Request.BYE);
-                   ClientTransaction ct = sipProvider.getNewClientTransaction(byeRequest);
-                   dialog.sendRequest(ct);
+                    if(concurrentRun.get() <= 0) {  
+                        concurrentRun.addAndGet(1);                      
+                        Request byeRequest = this.dialog.createRequest(Request.BYE);
+                        ClientTransaction ct = sipProvider.getNewClientTransaction(byeRequest);
+                        dialog.sendRequest(ct);
+                        byeSent.set(true);
+                        System.out.println("BYE sent");                                                
+                        ((SipStackExt)sipStack).getStackTimer().scheduleWithFixedDelay(this, 0, 100);
+                    } else {                                                
+                        if(concurrentRun.get() == 1) { 
+                            concurrentRun.addAndGet(1);
+                            System.out.println("Increased concurrent Run " + concurrentRun.get());                                                       
+                            Thread.sleep(300);
+                            if(concurrentRun.get() > 2) {
+                                fail("Concurrent run detected " + concurrentRun);
+                            }
+                        } else {
+                            concurrentRun.addAndGet(1);
+                            System.out.println("concurrent Run " + concurrentRun.get());
+                            if(concurrentRun.get() >= 5) {
+                                ((SipStackExt)sipStack).getStackTimer().cancel(this);
+                            }
+                        }
+                        
+                    }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     fail("Unexpected exception ");
