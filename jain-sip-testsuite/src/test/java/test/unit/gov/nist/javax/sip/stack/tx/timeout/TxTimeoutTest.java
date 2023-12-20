@@ -13,7 +13,7 @@
  * Permission to use this software is contingent upon your acceptance
  * of the terms of this agreement.
  */
- package test.unit.gov.nist.javax.sip.stack.tx.timeout;
+package test.unit.gov.nist.javax.sip.stack.tx.timeout;
 
 import javax.sip.SipProvider;
 import javax.sip.message.Request;
@@ -37,22 +37,21 @@ import test.tck.msgflow.callflows.TestAssertion;
  */
 public class TxTimeoutTest extends ScenarioHarness {
 
-	private ProtocolObjects shootistProtocolObjs;
+    private ProtocolObjects shootistProtocolObjs;
 
-	private ProtocolObjects shootmeProtocolObjs;
+    private ProtocolObjects shootmeProtocolObjs;
 
-	    
     protected Shootist shootist;
 
     private Shootme shootme;
-    
+
     private static final int TIMEOUT = 60000;
 
     static {
-    	LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
-    	Configuration configuration = logContext.getConfiguration();
-    	if (configuration.getAppenders().isEmpty()) {
-        	configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
+        LoggerContext logContext = (LoggerContext) LogManager.getContext(false);
+        Configuration configuration = logContext.getConfiguration();
+        if (configuration.getAppenders().isEmpty()) {
+            configuration.addAppender(ConsoleAppender.newBuilder().setName("Console").build());
         }
     }
 
@@ -67,119 +66,114 @@ public class TxTimeoutTest extends ScenarioHarness {
     }
 
     private void doSetUp() {
-        try {            
-            super.setUp();            
+        try {
+            super.setUp();
         } catch (Exception ex) {
             ex.printStackTrace();
             fail("unexpected exception ");
         }
     }
-    
- // check that the apps gets called for early dialog timeout event when no ack is received nor sent
+
+    // check that the apps gets called for early dialog timeout event when no ack is
+    // received nor sent
     public void testInviteTransactionTimeout() throws InterruptedException {
-        
-            try {
 
+        try {
 
-                this.shootmeProtocolObjs = new ProtocolObjects("shootme", "gov.nist", "udp", false,false, true);
-                ((SipStackImpl)shootmeProtocolObjs.sipStack).setAggressiveCleanup(true);                
-                shootme = new Shootme(shootmeProtocolObjs);
-                SipProvider shootmeProvider = shootme.createSipProvider();                
-                
-            	this.shootistProtocolObjs = new ProtocolObjects("shootist", "gov.nist", "udp", false,false, true);
-                shootist = new Shootist(shootistProtocolObjs, shootme);
-                SipProvider shootistProvider = shootist.createSipProvider();                
-               
-                shootist.init();
-                providerTable.put(shootistProvider, shootist);
+            this.shootmeProtocolObjs = new ProtocolObjects("shootme", "gov.nist", "udp", false, false, true);
+            ((SipStackImpl) shootmeProtocolObjs.sipStack).setAggressiveCleanup(true);
+            shootme = new Shootme(shootmeProtocolObjs);
+            SipProvider shootmeProvider = shootme.createSipProvider();
 
-                shootme.init(false);                
-                providerTable.put(shootmeProvider, shootme);
-                shootistProvider.addSipListener(shootist);
-                shootmeProvider.addSipListener(shootme);
+            this.shootistProtocolObjs = new ProtocolObjects("shootist", "gov.nist", "udp", false, false, true);
+            shootist = new Shootist(shootistProtocolObjs, shootme);
+            SipProvider shootistProvider = shootist.createSipProvider();
 
-                getRiProtocolObjects().start();
-                if (getTiProtocolObjects() != getRiProtocolObjects())
-                    getTiProtocolObjects().start();
-                
-                ((SipStackImpl)shootmeProtocolObjs.sipStack).setMaxTxLifetimeInvite(30);
-                ((SipStackImpl)shootistProtocolObjs.sipStack).setMaxTxLifetimeInvite(30);
-                
-                this.shootist.sendRequest(Request.INVITE);
-                Thread.currentThread();
-				Thread.sleep(10000);
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                fail("unexpected exception ");
-            }
-            
-            assertTrue("Test Failed - Didnt receive Dialog Timeout Event", 
+            shootist.init();
+            providerTable.put(shootistProvider, shootist);
+
+            shootme.init(false);
+            providerTable.put(shootmeProvider, shootme);
+            shootistProvider.addSipListener(shootist);
+            shootmeProvider.addSipListener(shootme);
+
+            getRiProtocolObjects().start();
+            if (getTiProtocolObjects() != getRiProtocolObjects())
+                getTiProtocolObjects().start();
+
+            ((SipStackImpl) shootmeProtocolObjs.sipStack).setMaxTxLifetimeInvite(30);
+            ((SipStackImpl) shootistProtocolObjs.sipStack).setMaxTxLifetimeInvite(30);
+
+            this.shootist.sendRequest(Request.INVITE);
+            Thread.currentThread();
+            Thread.sleep(10000);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("unexpected exception ");
+        }
+
+        assertTrue("Test Failed - Didnt receive Dialog Timeout Event",
                 AssertUntil.assertUntil(new TestAssertion() {
                     @Override
                     public boolean assertCondition() {
                         return shootme.checkState() && shootist.checkState();
                     };
-                }, TIMEOUT)
-            );            
+                }, TIMEOUT));
 
-
-//            doTearDown(false);
-//            doSetUp();
+        // doTearDown(false);
+        // doSetUp();
     }
-    
- // check that the apps gets called for early dialog timeout event when no ack is received nor sent
+
+    // check that the apps gets called for early dialog timeout event when no ack is
+    // received nor sent
     public void testNonInviteTransactionTimeout() throws InterruptedException {
-        
-            try {
 
-                this.shootmeProtocolObjs = new ProtocolObjects("shootme", "gov.nist", "udp", true,false, true);
-                ((SipStackImpl)shootmeProtocolObjs.sipStack).setAggressiveCleanup(true);                
-                shootme = new Shootme(shootmeProtocolObjs);
-                SipProvider shootmeProvider = shootme.createSipProvider();                
-                
-            	this.shootistProtocolObjs = new ProtocolObjects("shootist", "gov.nist", "udp", true,false, true);
-                shootist = new Shootist(shootistProtocolObjs,shootme);
-                SipProvider shootistProvider = shootist.createSipProvider();                
-               
-                shootist.init();
-                providerTable.put(shootistProvider, shootist);
+        try {
 
-                shootme.init(false);                
-                providerTable.put(shootmeProvider, shootme);
-                shootistProvider.addSipListener(shootist);
-                shootmeProvider.addSipListener(shootme);
+            this.shootmeProtocolObjs = new ProtocolObjects("shootme", "gov.nist", "udp", true, false, true);
+            ((SipStackImpl) shootmeProtocolObjs.sipStack).setAggressiveCleanup(true);
+            shootme = new Shootme(shootmeProtocolObjs);
+            SipProvider shootmeProvider = shootme.createSipProvider();
 
-                getRiProtocolObjects().start();
-                if (getTiProtocolObjects() != getRiProtocolObjects())
-                    getTiProtocolObjects().start();
-                
-                ((SipStackImpl)shootmeProtocolObjs.sipStack).setMaxTxLifetimeNonInvite(30);
-                ((SipStackImpl)shootistProtocolObjs.sipStack).setMaxTxLifetimeNonInvite(30);
-                
-                this.shootist.sendRequest(Request.MESSAGE);
-                Thread.currentThread();
-				Thread.sleep(10000);
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                fail("unexpected exception ");
-            }
+            this.shootistProtocolObjs = new ProtocolObjects("shootist", "gov.nist", "udp", true, false, true);
+            shootist = new Shootist(shootistProtocolObjs, shootme);
+            SipProvider shootistProvider = shootist.createSipProvider();
 
-            
-            assertTrue("Test Failed - Didnt receive Dialog Timeout Event", 
+            shootist.init();
+            providerTable.put(shootistProvider, shootist);
+
+            shootme.init(false);
+            providerTable.put(shootmeProvider, shootme);
+            shootistProvider.addSipListener(shootist);
+            shootmeProvider.addSipListener(shootme);
+
+            getRiProtocolObjects().start();
+            if (getTiProtocolObjects() != getRiProtocolObjects())
+                getTiProtocolObjects().start();
+
+            ((SipStackImpl) shootmeProtocolObjs.sipStack).setMaxTxLifetimeNonInvite(30);
+            ((SipStackImpl) shootistProtocolObjs.sipStack).setMaxTxLifetimeNonInvite(30);
+
+            this.shootist.sendRequest(Request.MESSAGE);
+            Thread.currentThread();
+            Thread.sleep(10000);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("unexpected exception ");
+        }
+
+        assertTrue("Test Failed - Didnt receive Dialog Timeout Event",
                 AssertUntil.assertUntil(new TestAssertion() {
                     @Override
                     public boolean assertCondition() {
                         return shootme.checkState() && shootist.checkState();
                     };
-                }, TIMEOUT)
-            );               
+                }, TIMEOUT));
 
-//            doTearDown(false);
-//            doSetUp();
+        // doTearDown(false);
+        // doSetUp();
     }
-    
+
     public void tearDown() {
         doTearDown(true);
 

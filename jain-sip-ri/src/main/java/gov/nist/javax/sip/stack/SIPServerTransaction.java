@@ -202,7 +202,7 @@ public interface SIPServerTransaction extends SIPTransaction, ServerTransactionE
    */
   public  long getPendingReliableRSeqNumber();
 
-  public  void waitForTermination();
+  // public  void waitForTermination();
 
   void sendReliableProvisionalResponse(Response relResponse) throws SipException;
 

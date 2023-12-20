@@ -44,6 +44,8 @@ import org.apache.logging.log4j.core.config.Configuration;
 import gov.nist.javax.sip.DialogTimeoutEvent;
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.message.MessageExt;
 import junit.framework.TestCase;
 
 
@@ -444,5 +446,10 @@ public class Shootist implements SipListenerExt {
 
         this.timeoutEventSeen = true;
      
+    }
+
+    @Override
+    public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+        logger.info("message Sent " + messageSentEvent + " transaction " + transaction);
     }
 }

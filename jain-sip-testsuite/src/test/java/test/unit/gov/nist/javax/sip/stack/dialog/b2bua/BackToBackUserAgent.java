@@ -38,6 +38,8 @@ import gov.nist.javax.sip.DialogTimeoutEvent;
 import gov.nist.javax.sip.ListeningPointExt;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.SipProviderExt;
+import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.message.MessageExt;
 import test.tck.msgflow.callflows.ProtocolObjects;
 
 
@@ -230,6 +232,11 @@ public class BackToBackUserAgent implements SipListenerExt {
 
     public void setTargetPort(int targetPort) {
         this.targetPort = targetPort;
+    }
+
+    @Override
+    public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+        logger.info("message Sent " + messageSentEvent + " transaction " + transaction);
     }
 
 }

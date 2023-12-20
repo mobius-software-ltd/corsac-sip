@@ -46,6 +46,8 @@ import gov.nist.javax.sip.ListeningPointExt;
 import gov.nist.javax.sip.ListeningPointImpl;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.message.MessageExt;
 import gov.nist.javax.sip.stack.ConnectionOrientedMessageChannel;
 import gov.nist.javax.sip.stack.ConnectionOrientedMessageProcessor;
 import gov.nist.javax.sip.stack.MessageProcessor;
@@ -316,6 +318,11 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
         public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
             // TODO Auto-generated method stub
             
+        }
+
+        @Override
+        public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+            logger.info("message Sent " + messageSentEvent + " transaction " + transaction);
         }       
     }
     
@@ -646,6 +653,12 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
         public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
             // TODO Auto-generated method stub
             
+        }
+
+
+        @Override
+        public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+            logger.info("message Sent " + messageSentEvent + " transaction " + transaction);
         }       
     }
 
@@ -902,5 +915,10 @@ public class RFC5626KeepAliveTest extends ScenarioHarness implements SipListener
     public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
         getSipListener(timeoutEvent).processDialogTimeout(timeoutEvent);
         
+    }
+
+    @Override
+    public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+        logger.info("message Sent " + messageSentEvent + " transaction " + transaction);
     }   
 }

@@ -52,16 +52,13 @@ import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogWriter;
 import gov.nist.core.NameValueList;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
-import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.Event;
-import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.header.RecordRouteList;
 import gov.nist.javax.sip.header.Route;
@@ -276,39 +273,6 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
       }
 
-    }
-
-    @Override
-    public String getId() {
-      Request request = getRequest();
-      if (request != null && request instanceof SIPRequest) {
-        return ((SIPRequest) request).getCallIdHeader().getCallId();
-      } else {
-        return originalRequestCallId;
-      }
-    }
-
-  }
-
-  class ExpiresTimerTask extends SIPStackTimerTask {
-
-    public ExpiresTimerTask() {
-      super(ExpiresTimerTask.class.getSimpleName());
-    }
-
-    @Override
-    public void runTask() {
-      SIPClientTransaction ct = SIPClientTransactionImpl.this;
-      SipProviderImpl provider = ct.getSipProvider();
-
-      if (ct.getState() != TransactionState.TERMINATED) {
-        TimeoutEvent tte = new TimeoutEvent(provider, ct, Timeout.TRANSACTION);
-        provider.handleEvent(tte, ct);
-      } else {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-          logger.logDebug("state = " + ct.getState());
-        }
-      }
     }
 
     @Override
@@ -1090,7 +1054,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       }
     }
 
-    ClientTransactionOutgoingMessageTask outgoingMessageProcessingTask = new ClientTransactionOutgoingMessageTask(
+    ClientTransactionOutgoingMessageTask outgoingMessageProcessingTask = new ClientTransactionOutgoingMessageTask(this, 
         sipRequest);
     sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
   }
@@ -2046,79 +2010,5 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    */
   public void setTerminateDialogOnCleanUp(boolean enabled) {
     terminateDialogOnCleanUp = enabled;
-  }
-
-  public class ClientTransactionOutgoingMessageTask implements SIPTask {
-    private StackLogger logger = CommonLogger.getLogger(ClientTransactionOutgoingMessageTask.class);
-    private String id;
-    private long startTime;
-    private SIPRequest sipRequest;
-
-    public ClientTransactionOutgoingMessageTask(SIPRequest sipRequest) {
-      startTime = System.currentTimeMillis();
-      this.id = sipRequest.getCallId().getCallId();
-      this.sipRequest = sipRequest;
-    }
-
-    @Override
-    public void execute() {
-      if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        logger.logDebug("Executing task with id: " + id);
-      }
-
-      // if (isInviteTransaction()) {
-      //   SIPDialog dialog = getDefaultDialog();
-
-      //   if (dialog != null && dialog.isBackToBackUserAgent()) {
-      //     // Block sending re-INVITE till we see the ACK.
-      //     if (!dialog.takeAckSem()) {
-      //       // throw new SipException("Failed to take ACK semaphore");
-      //     }
-
-      //   }
-      // }
-      // Only map this after the fist request is sent out.
-      isMapped = true;
-      // Time extracted from the Expires header.
-      int expiresTime = -1;
-
-      if (sipRequest.getHeader(ExpiresHeader.NAME) != null) {
-        Expires expires = (Expires) sipRequest.getHeader(ExpiresHeader.NAME);
-        expiresTime = expires.getExpires();
-      }
-      // This is a User Agent. The user has specified an Expires time. Start a timer
-      // which will check if the tx is terminated by that time.
-      if (getDefaultDialog() != null && isInviteTransaction() && expiresTime != -1
-          && expiresTimerTask == null) {
-        expiresTimerTask = new ExpiresTimerTask();
-        // josemrecio - https://java.net/jira/browse/JSIP-467
-        sipStack.getTimer().schedule(expiresTimerTask, Long.valueOf(expiresTime) * 1000L);
-
-      }
-      try {
-        sendMessage(sipRequest);
-
-      } catch (IOException ex) {
-        // setState(TransactionState._TERMINATED);
-        // if (expiresTimerTask != null) {
-        // sipStack.getTimer().cancel(expiresTimerTask);
-        // }
-        // throw new SipException(ex.getMessage() == null ? "IO Error sending request" :
-        // ex.getMessage(),
-        // ex);
-        raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
-
-      }
-    }
-
-    @Override
-    public String getId() {
-      return id;
-    }
-
-    @Override
-    public long getStartTime() {
-      return startTime;
-    }    
   }
 }

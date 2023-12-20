@@ -359,6 +359,13 @@ public class SIPDialog implements DialogExt {
         public void execute() {
             try {
                 send(ackRequest);
+                /**
+                 * Notifying the application layer of the message sent out in the same thread
+                 */
+                if(lastTransaction.getSipProvider().getSipListener() instanceof SipListenerExt) {
+                    ((SipListenerExt) lastTransaction.getSipProvider().getSipListener()).processMessageSent(
+                        ackRequest, lastTransaction);
+                }
             } catch (Exception ex) {                                
                 raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, messageChannel.getHost(), messageChannel.getPort(), hop.getHost(), hop.getPort(), hop
                         .getTransport());
@@ -441,7 +448,7 @@ public class SIPDialog implements DialogExt {
             	}
             	
                 ctx.terminate();
-                Thread.currentThread().interrupt();
+                // Thread.currentThread().interrupt();
             } catch (ObjectInUseException e) {
                 logger.logError("unexpected error", e);
             }
@@ -467,14 +474,14 @@ public class SIPDialog implements DialogExt {
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 	logger.logDebug("SIPDialog::reInviteSender: dialog = " + ctx.getDialog()  + " lastTransaction = " + lastTransaction + " lastTransactionState " + lastTransaction.getState());
                 }
-                if (SIPDialog.this.lastTransaction != null &&
-                			SIPDialog.this.lastTransaction instanceof SIPServerTransaction && 
-                			SIPDialog.this.lastTransaction.isInviteTransaction() &&
-                		    SIPDialog.this.lastTransaction.getState() != TransactionState.TERMINATED)
-                {
-                	((SIPServerTransaction)SIPDialog.this.lastTransaction).waitForTermination();
-                	Thread.sleep(50);
-                }
+                // if (SIPDialog.this.lastTransaction != null &&
+                // 			SIPDialog.this.lastTransaction instanceof SIPServerTransaction && 
+                // 			SIPDialog.this.lastTransaction.isInviteTransaction() &&
+                // 		    SIPDialog.this.lastTransaction.getState() != TransactionState.TERMINATED)
+                // {
+                // 	((SIPServerTransaction)SIPDialog.this.lastTransaction).waitForTermination();
+                // 	Thread.sleep(50);
+                // }
                 
                
 
@@ -950,7 +957,7 @@ public class SIPDialog implements DialogExt {
      * @param protocol
      *            -- protocol (udp/tcp/tls)
      */
-    private void raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason reason, String host, int port, String peerHost, int peerPort, String protocol) {
+    protected void raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason reason, String host, int port, String peerHost, int peerPort, String protocol) {
         // Error occured in retransmitting response.
         // Deliver the error event to the listener
         // Kill the dialog.
@@ -2165,7 +2172,7 @@ public class SIPDialog implements DialogExt {
      *            is the local cseq number.
      * 
      */
-    private void setLocalSequenceNumber(long lCseq) {
+    protected void setLocalSequenceNumber(long lCseq) {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug(
                     "setLocalSequenceNumber: original  "
@@ -4427,231 +4434,4 @@ public class SIPDialog implements DialogExt {
     public Dialog getOriginalDialog() {
       return originalDialog;
     } 
-    
-    public class DialogOutgoingMessageProcessingTask implements SIPTask {
-        private StackLogger logger = CommonLogger.getLogger(DialogOutgoingMessageProcessingTask.class);
-        private String id;
-        private long startTime;
-        private SIPRequest dialogRequest;
-        private SIPDialog sipDialog;
-        private SIPClientTransaction clientTransaction;
-
-        public DialogOutgoingMessageProcessingTask(
-                SIPDialog sipDialog, 
-                SIPClientTransaction clientTransaction, 
-                SIPRequest sipRequest) {
-            startTime = System.currentTimeMillis();
-            this.id = sipRequest.getCallId().getCallId();
-            this.dialogRequest = sipRequest;
-            this.sipDialog = sipDialog;
-            this.clientTransaction = clientTransaction;
-        }
-
-        @Override
-        public void execute() {
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("Executing task with id: " + id);
-            }
-            try {
-                // Set the dialog back pointer.
-                clientTransaction.setDialog(sipDialog, dialogId);
-
-                addTransaction(clientTransaction);
-                // Enable the retransmission filter for the transaction
-
-                clientTransaction.setTransactionMapped(true);
-
-                From from = (From) dialogRequest.getFrom();
-                To to = (To) dialogRequest.getTo();
-
-                // Caller already did the tag assignment -- check to see if the
-                // tag assignment is OK.
-                if (getLocalTag() != null && from.getTag() != null
-                        && !from.getTag().equals(getLocalTag()))
-                    throw new SipException("From tag mismatch expecting  "
-                            + getLocalTag());
-
-                if (getRemoteTag() != null && to.getTag() != null
-                        && !to.getTag().equals(getRemoteTag())) {
-                    if (logger.isLoggingEnabled())
-                        logger.logWarning(
-                                "SIPDialog::sendRequest:To header tag mismatch expecting "
-                                        + getRemoteTag());
-                }
-                /*
-                * The application is sending a NOTIFY before sending the response of
-                * the dialog.
-                */
-                if (getLocalTag() == null
-                        && dialogRequest.getMethod().equals(Request.NOTIFY)) {
-                    if (!getMethod().equals(Request.SUBSCRIBE))
-                        throw new SipException(
-                                "Trying to send NOTIFY without SUBSCRIBE Dialog!");
-                    setLocalTag(from.getTag());
-
-                }
-
-                try {
-                    if (getLocalTag() != null)
-                        from.setTag(getLocalTag());
-                    if (getRemoteTag() != null)
-                        to.setTag(getRemoteTag());
-
-                } catch (ParseException ex) {
-                    InternalErrorHandler.handleException(ex);
-                }
-
-                Hop hop = ((SIPClientTransaction) clientTransaction).getNextHop();
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    logger.logDebug(
-                            "SIPDialog::sendRequest:Using hop = " + hop.getHost() + " : " + hop.getPort());
-                }
-
-                try {
-                    // FIX ME: firstTransactionPort can be different with the updated sip-provider
-                    // after failover.
-                    // Using directly the port from new updated Sip-provider.
-                    MessageChannel messageChannel = sipStack.createRawMessageChannel(
-                            getSipProvider().getListeningPoint(hop.getTransport())
-                                    .getIPAddress(),
-                            getSipProvider().getListeningPoint(hop.getTransport()).getPort(), hop);
-
-                    MessageChannel oldChannel = ((SIPClientTransaction) clientTransaction)
-                            .getMessageChannel();
-
-                    // Remove this from the connection cache if it is in the
-                    // connection
-                    // cache and is not yet active.
-                    oldChannel.uncache();
-
-                    // Not configured to cache client connections.
-                    if (!sipStack.cacheClientConnections) {
-                        oldChannel.useCount--;
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                            logger.logDebug(
-                                    "SIPDialog::sendRequest:oldChannel: useCount " + oldChannel.useCount);
-
-                    }
-
-                    if (messageChannel == null) {
-                        /*
-                        * At this point the procedures of 8.1.2 and 12.2.1.1 of RFC3261
-                        * have been tried but the resulting next hop cannot be resolved
-                        * (recall that the exception thrown is caught and ignored in
-                        * SIPStack.createMessageChannel() so we end up here with a null
-                        * messageChannel instead of the exception handler below). All
-                        * else failing, try the outbound proxy in accordance with
-                        * 8.1.2, in particular: This ensures that outbound proxies that
-                        * do not add Record-Route header field values will drop out of
-                        * the path of subsequent requests. It allows endpoints that
-                        * cannot resolve the first Route URI to delegate that task to
-                        * an outbound proxy.
-                        * 
-                        * if one considers the 'first Route URI' of a request
-                        * constructed according to 12.2.1.1 to be the request URI when
-                        * the route set is empty.
-                        */
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                            logger.logDebug(
-                                    "Null message channel using outbound proxy !");
-                        Hop outboundProxy = sipStack.getRouter(dialogRequest)
-                                .getOutboundProxy();
-                        if (outboundProxy == null)
-                            throw new SipException("No route found! hop=" + hop);
-                        messageChannel = sipStack.createRawMessageChannel(
-                                getSipProvider().getListeningPoint(
-                                        outboundProxy.getTransport())
-                                .getIPAddress(),
-                                firstTransactionPort, outboundProxy);
-                        if (messageChannel != null)
-                            ((SIPClientTransaction) clientTransaction)
-                                    .setEncapsulatedChannel(messageChannel);
-                    } else {
-                        ((SIPClientTransaction) clientTransaction)
-                                .setEncapsulatedChannel(messageChannel);
-
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                            logger.logDebug(
-                                    "SIPDialog::sendRequest:using message channel " + messageChannel);
-
-                        }
-
-                    }
-
-                    if (messageChannel != null)
-                        messageChannel.useCount++;
-
-                    // See if we need to release the previously mapped channel.
-                    if ((!sipStack.cacheClientConnections) && oldChannel != null
-                            && oldChannel.useCount <= 0)
-                        oldChannel.close();
-                } catch (Exception ex) {
-                    if (logger.isLoggingEnabled())
-                        logger.logException(ex);
-                    throw new SipException("Could not create message channel", ex);
-                }
-
-                try {
-                    // Increment before setting!!
-                    long cseqNumber = dialogRequest.getCSeq() == null ? getLocalSeqNumber()
-                            : dialogRequest.getCSeq().getSeqNumber();
-                    if (cseqNumber > getLocalSeqNumber()) {
-                        setLocalSequenceNumber(cseqNumber);
-                    } else {
-                        setLocalSequenceNumber(getLocalSeqNumber() + 1);
-                    }
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                        logger.logDebug(
-                                "SIPDialog::sendRequest:setting Seq Number to " + getLocalSeqNumber());
-
-                    }
-                    dialogRequest.getCSeq().setSeqNumber(getLocalSeqNumber());
-                } catch (InvalidArgumentException ex) {
-                    logger.logFatalError(ex.getMessage());
-                }
-
-                
-                ((SIPClientTransaction) clientTransaction)
-                        .sendMessage(dialogRequest);
-                /*
-                * Note that if the BYE is rejected then the Dialog should bo back
-                * to the ESTABLISHED state so we only set state after successful
-                * send.
-                */
-                if (dialogRequest.getMethod().equals(Request.BYE)) {
-                    byeSent = true;
-                    /*
-                    * Dialog goes into TERMINATED state as soon as BYE is sent.
-                    * ISSUE 182.
-                    */
-                    if (isTerminatedOnBye()) {
-                        setState(DialogState._TERMINATED);
-                    }
-                }
-                
-            } catch(SipException e) {                            
-                raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, clientTransaction.getHost(), clientTransaction.getPort(),
-                    getSipProvider().getListeningPoint(
-                        clientTransaction.getTransport()).getIPAddress(), 
-                        firstTransactionPort, 
-                        clientTransaction.getTransport());
-            } catch(IOException e) {
-                raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, clientTransaction.getHost(), clientTransaction.getPort(),
-                    getSipProvider().getListeningPoint(
-                        clientTransaction.getTransport()).getIPAddress(), 
-                        firstTransactionPort, 
-                        clientTransaction.getTransport());
-            }
-        }
-
-        @Override
-        public String getId() {
-            return id;
-        }
-
-        @Override
-        public long getStartTime() {
-            return startTime;
-        }        
-    }
 }

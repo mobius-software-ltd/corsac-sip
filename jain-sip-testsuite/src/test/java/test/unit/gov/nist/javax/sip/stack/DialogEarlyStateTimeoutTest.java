@@ -5,7 +5,9 @@ import gov.nist.javax.sip.ServerTransactionExt;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.SipProviderExt;
 import gov.nist.javax.sip.SipStackExt;
+import gov.nist.javax.sip.TransactionExt;
 import gov.nist.javax.sip.header.HeaderFactoryExt;
+import gov.nist.javax.sip.message.MessageExt;
 import gov.nist.javax.sip.message.MessageFactoryExt;
 import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
@@ -312,6 +314,11 @@ public class DialogEarlyStateTimeoutTest extends TestCase {
                 TestCase.fail("unexpected exception");
             }
 
+        }
+
+        @Override
+        public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+            
         }
 
     }

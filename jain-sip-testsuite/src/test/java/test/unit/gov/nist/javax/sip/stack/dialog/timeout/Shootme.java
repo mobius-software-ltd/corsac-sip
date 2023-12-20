@@ -47,6 +47,8 @@ import org.apache.logging.log4j.core.config.Configuration;
 import gov.nist.javax.sip.DialogTimeoutEvent;
 import gov.nist.javax.sip.DialogTimeoutEvent.Reason;
 import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.message.MessageExt;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 
@@ -381,4 +383,9 @@ public class Shootme implements SipListenerExt {
             }            
         }
 	}
+
+    @Override
+    public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+        logger.info("message Sent " + messageSentEvent + " transaction " + transaction);
+    }
 }

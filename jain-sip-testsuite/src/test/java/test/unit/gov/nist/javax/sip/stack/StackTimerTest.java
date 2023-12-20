@@ -4,7 +4,6 @@ package test.unit.gov.nist.javax.sip.stack;
 import java.text.ParseException;
 import java.util.Properties;
 import java.util.Random;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,7 +17,6 @@ import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.SipFactory;
-import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
 import javax.sip.TimeoutEvent;
@@ -40,7 +38,13 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 
+import gov.nist.javax.sip.DialogTimeoutEvent;
+import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.SipStackExt;
+import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.message.MessageExt;
+import gov.nist.javax.sip.message.RequestExt;
+import gov.nist.javax.sip.message.ResponseExt;
 import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
@@ -161,7 +165,7 @@ public class StackTimerTest extends TestCase {
 
     }
 
-    public class Server implements SipListener {
+    public class Server implements SipListenerExt {
         protected SipStack sipStack;
 
         private static final String myAddress = "127.0.0.1";
@@ -176,7 +180,11 @@ public class StackTimerTest extends TestCase {
 
         private boolean okToBye = false;
 
+        private boolean byeCallbackCalled;
+
         private Dialog dialog;
+
+        private boolean okInviteCallbackCalled;
 
         
         public Server() {
@@ -358,17 +366,54 @@ public class StackTimerTest extends TestCase {
 
         }
 
+        @Override
+        public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
+        }
+
+
+
+        @Override
+        public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+            System.out.println("message Sent " + messageSentEvent + " transaction " + transaction);
+            if(messageSentEvent instanceof RequestExt) {
+                RequestExt requestEventExt = (RequestExt) messageSentEvent;
+                if(requestEventExt.getMethod().equals(Request.BYE)) {
+                    System.out.println("BYE callback received");
+                    byeCallbackCalled = true;
+                }                
+            } else {
+                ResponseExt responseEventExt = (ResponseExt) messageSentEvent;
+                if(responseEventExt.getStatusCode() == 200) {
+                    System.out.println("200 OK INVITE callback received");
+                    okInviteCallbackCalled = true;
+                }                
+            }
+        }
+
+
+
+        public void checkState() {
+            if (!byeCallbackCalled || !okToBye || !okInviteCallbackCalled) {
+                fail("FAILED byeCallbackCalled[" + byeCallbackCalled + 
+                    "] okToBye[" + okToBye + 
+                    "] okInviteCallbackCalled[" + okInviteCallbackCalled + "]");
+            }
+        }
+
     }
 
-    public class Client implements SipListener {
+    public class Client implements SipListenerExt {
 
         private SipFactory sipFactory;
         private SipStack sipStack;
         private SipProvider provider;
         private boolean o_sentInvite, o_received180, o_sentCancel, o_receiver200Cancel,
                 o_inviteTxTerm, o_dialogTerinated;
-        private boolean byeReceived;
+        private boolean byeReceived;        
         private Dialog dialog;
+        private boolean ackCallbackCalled;
+        private boolean inviteCallbackCalled;
+        private boolean okByeCallbackCalled;
 
         public Client() {
             try {
@@ -417,10 +462,13 @@ public class StackTimerTest extends TestCase {
         }        
         
         public void checkState() {
-            if (!o_sentInvite || !byeReceived || !o_inviteTxTerm || !o_dialogTerinated) {
+            if (!o_sentInvite || !byeReceived || !o_inviteTxTerm || !o_dialogTerinated || !ackCallbackCalled || !inviteCallbackCalled || !okByeCallbackCalled) {
                 fail("FAILED o_sentInvite[" + o_sentInvite + "] byeReceived[" + byeReceived
                         + "] o_inviteTxTerm[" + o_inviteTxTerm
-                        + "] o_dialogTerinated[" + o_dialogTerinated + "]  ");
+                        + "] o_dialogTerinated[" + o_dialogTerinated + "] " + 
+                        "ackCallbackCalled[" + ackCallbackCalled + 
+                        "] inviteCallbackCalled[" + inviteCallbackCalled + "]" +
+                        "okByeCallbackCalled[" + okByeCallbackCalled + "]");
 
             }
         }
@@ -550,12 +598,40 @@ public class StackTimerTest extends TestCase {
 
         }
 
+        @Override
+        public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
+        }
+
+        @Override
+        public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+            System.out.println("message Sent " + messageSentEvent + " transaction " + transaction);
+            System.out.println("message Sent " + messageSentEvent + " transaction " + transaction);
+            if(messageSentEvent instanceof RequestExt) {
+                RequestExt requestEventExt = (RequestExt) messageSentEvent;
+                if(requestEventExt.getMethod().equals(Request.ACK)) {
+                    System.out.println("ACK callback received");
+                    ackCallbackCalled = true;
+                }
+                if(requestEventExt.getMethod().equals(Request.INVITE)) {
+                    System.out.println("INVITE callback received");
+                    inviteCallbackCalled = true;
+                }
+            } else {
+                ResponseExt responseEventExt = (ResponseExt) messageSentEvent;
+                if(responseEventExt.getStatusCode() == 200) {
+                    System.out.println("200 OK BYE callback received");
+                    okByeCallbackCalled = true;
+                }                
+            }
+        }
+
     }
 
     public void testSendInvite() throws InterruptedException, Exception {
         this.client.sendLocalInvite();
         AssertUntil.assertUntil(client.getAssertion(), 10000);
         this.client.checkState();
+        this.server.checkState();
         Assert.assertEquals(true, this.server.okToBye);
     }
 

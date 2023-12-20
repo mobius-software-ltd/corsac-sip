@@ -55,16 +55,15 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.IOExceptionEventExt;
+import gov.nist.javax.sip.IOExceptionEventExt.Reason;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
-import gov.nist.javax.sip.IOExceptionEventExt.Reason;
 import gov.nist.javax.sip.address.AddressFactoryImpl;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.SIPClientTransactionImpl.ExpiresTimerTask;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 /*

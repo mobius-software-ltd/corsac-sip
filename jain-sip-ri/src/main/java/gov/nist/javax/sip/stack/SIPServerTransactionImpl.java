@@ -30,8 +30,6 @@ import java.net.InetAddress;
 import java.text.ParseException;
 
 import javax.sip.Dialog;
-import javax.sip.DialogState;
-import javax.sip.DialogTerminatedEvent;
 import javax.sip.ObjectInUseException;
 import javax.sip.SipException;
 import javax.sip.Timeout;
@@ -39,26 +37,20 @@ import javax.sip.TimeoutEvent;
 import javax.sip.TransactionState;
 import javax.sip.address.Hop;
 import javax.sip.header.ContactHeader;
-import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.ExpiresHeader;
-import javax.sip.header.RSeqHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.HostPort;
-import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
-import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.ParameterNames;
-import gov.nist.javax.sip.header.RSeq;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -181,7 +173,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     private static final String TIMER_J_NAME = "TimerJ";
 
     private static StackLogger logger = CommonLogger.getLogger(SIPServerTransaction.class);
-    private int rseqNumber = -1;
+    protected int rseqNumber = -1;
 
     // private LinkedList pendingRequests;
 
@@ -198,17 +190,17 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     // private SIPResponse pendingReliableResponse;
     // wondering if the pendingReliableResponseAsBytes could be put into the
     // lastResponseAsBytes
-    private byte[] pendingReliableResponseAsBytes;
+    protected byte[] pendingReliableResponseAsBytes;
     private String pendingReliableResponseMethod;
-    private long pendingReliableCSeqNumber;
-    private long pendingReliableRSeqNumber;
+    protected long pendingReliableCSeqNumber;
+    protected long pendingReliableRSeqNumber;
 
     // The pending reliable Response Timer
-    private ProvisionalResponseTask provisionalResponseTask;
+    protected ProvisionalResponseTask provisionalResponseTask;
 
-    private boolean retransmissionAlertEnabled;
+    protected boolean retransmissionAlertEnabled;
 
-    private RetransmissionAlertTimerTask retransmissionAlertTimerTask;
+    protected RetransmissionAlertTimerTask retransmissionAlertTimerTask;
 
     protected boolean isAckSeen;
 
@@ -233,129 +225,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     private int lastResponseStatusCode;
 
     private HostPort originalRequestSentBy;
-    private String originalRequestFromTag;
-
-    /**
-     * This timer task is used for alerting the application to send retransmission
-     * alerts.
-     *
-     *
-     */
-    class RetransmissionAlertTimerTask extends SIPStackTimerTask {
-
-        String dialogId;
-
-        int ticks;
-
-        int ticksLeft;
-
-        public RetransmissionAlertTimerTask(String dialogId) {
-            super(RetransmissionAlertTimerTask.class.getSimpleName());
-
-            this.ticks = SIPTransactionImpl.T1;
-            this.ticksLeft = this.ticks;
-            // Fix from http://java.net/jira/browse/JSIP-443
-            // by mitchell.c.ackerman
-            this.dialogId = dialogId;
-        }
-
-        public void runTask() {
-            SIPServerTransactionImpl serverTransaction = SIPServerTransactionImpl.this;
-            ticksLeft--;
-            if (ticksLeft == -1) {
-                serverTransaction.fireRetransmissionTimer();
-                this.ticksLeft = 2 * ticks;
-            }
-
-        }
-
-        @Override
-        public String getId() {
-            Request request = getRequest();
-            if (request != null && request instanceof SIPRequest) {
-                return ((SIPRequest) request).getCallIdHeader().getCallId();
-            } else {
-                return originalRequestCallId;
-            }
-        }
-
-    }
-
-    class ProvisionalResponseTask extends SIPStackTimerTask {
-        private StackLogger logger = CommonLogger.getLogger(ProvisionalResponseTask.class);
-        int ticks;
-
-        int ticksLeft;
-
-        public ProvisionalResponseTask() {
-            super(ProvisionalResponseTask.class.getSimpleName());
-            this.ticks = SIPTransactionImpl.T1;
-            this.ticksLeft = this.ticks;
-        }
-
-        public void runTask() {
-            SIPServerTransactionImpl serverTransaction = SIPServerTransactionImpl.this;
-            /*
-             * The reliable provisional response is passed to the transaction layer
-             * periodically
-             * with an interval that starts at T1 seconds and doubles for each
-             * retransmission (T1
-             * is defined in Section 17 of RFC 3261). Once passed to the server transaction,
-             * it is
-             * added to an internal list of unacknowledged reliable provisional responses.
-             * The
-             * transaction layer will forward each retransmission passed from the UAS core.
-             *
-             * This differs from retransmissions of 2xx responses, whose intervals cap at T2
-             * seconds. This is because retransmissions of ACK are triggered on receipt of a
-             * 2xx,
-             * but retransmissions of PRACK take place independently of reception of 1xx.
-             */
-            // If the transaction has terminated,
-            if (serverTransaction.isTerminated()) {
-                if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    logger.logDebug("canceling ProvisionalResponseTask as tx is terminated");
-                }
-                sipStack.getTimer().cancel(this);
-
-            } else {
-                if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    logger.logDebug("ProvisionalResponseTask ticksLeft " + ticksLeft);
-                }
-                ticksLeft--;
-                if (ticksLeft == -1) {
-                    serverTransaction.fireReliableResponseRetransmissionTimer();
-                    this.ticksLeft = 2 * ticks;
-                    this.ticks = this.ticksLeft;
-                    // timer H MUST be set to fire in 64*T1 seconds for all transports. Timer H
-                    // determines when the server
-                    // transaction abandons retransmitting the response
-                    if (this.ticksLeft >= SIPTransactionImpl.TIMER_H) {
-                        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                            logger.logDebug("canceling ProvisionalResponseTask and firing timeout timer");
-                        }
-                        sipStack.getTimer().cancel(this);
-                        setState(TransactionState._TERMINATED);
-                        fireTimeoutTimer();
-                    }
-                }
-
-            }
-
-        }
-
-        @Override
-        public String getId() {
-            Request request = getRequest();
-            if (request != null && request instanceof SIPRequest) {
-                return ((SIPRequest) request).getCallIdHeader().getCallId();
-            } else {
-                return originalRequestCallId;
-            }
-        }
-
-    }
-
+    protected String originalRequestFromTag;
     /**
      * This timer task is for INVITE server transactions. It will send a trying in
      * 200 ms. if the
@@ -1309,7 +1179,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
     }
 
-    private void fireReliableResponseRetransmissionTimer() {
+    protected void fireReliableResponseRetransmissionTimer() {
         try {
             resendLastResponseAsBytes();
         } catch (IOException e) {
@@ -1469,7 +1339,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
 
         ServerTransactionOutgoingMessageTask outgoingMessageProcessingTask = 
-            new ServerTransactionOutgoingMessageTask(sipResponse, (SIPDialog) getDialog());
+            new ServerTransactionOutgoingMessageTask(this, sipResponse, (SIPDialog) getDialog());
         sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
     }
 
@@ -1688,7 +1558,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
 
         ServerTransactionOutgoingProvisionalResponseTask outgoingMessageProcessingTask = 
-            new ServerTransactionOutgoingProvisionalResponseTask((SIPResponse) relResponse);
+            new ServerTransactionOutgoingProvisionalResponseTask(this, (SIPResponse) relResponse);
         sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);        
     }
 
@@ -2047,268 +1917,16 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         return pendingReliableRSeqNumber;
     }
 
-    /**
-     * @see gov.nist.javax.sip.stack.SIPServerTransaction#waitForTermination()
-     */
-    @Override
-    public void waitForTermination() {
+    // /**
+    //  * @see gov.nist.javax.sip.stack.SIPServerTransaction#waitForTermination()
+    //  */
+    // @Override
+    // public void waitForTermination() {
 
-        // try {
-        //     this.terminationSemaphore.acquire();
-        // } catch (InterruptedException e) {
+    //     // try {
+    //     //     this.terminationSemaphore.acquire();
+    //     // } catch (InterruptedException e) {
 
-        // }
-    }
-
-    public class ServerTransactionOutgoingMessageTask implements SIPTask {
-        private StackLogger logger = CommonLogger.getLogger(ServerTransactionOutgoingMessageTask.class);
-        private String id;
-        private long startTime;
-        private SIPResponse sipResponse;
-        private SIPDialog sipDialog;
-
-        public ServerTransactionOutgoingMessageTask(SIPResponse sipResponse, SIPDialog sipDialog) {
-            startTime = System.currentTimeMillis();
-            this.id = sipResponse.getCallId().getCallId();
-            this.sipResponse = sipResponse;
-            this.sipDialog = sipDialog;
-        }
-
-        @Override
-        public void execute() {
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("Executing task with id: " + id);
-            }
-            final int statusCode = sipResponse.getStatusCode();
-            final String responseMethod = sipResponse.getCSeq().getMethod();
-            // Fix up the response if the dialog has already been established.
-            try {
-                /*
-                 * The UAS MAY send a final response to the initial request before
-                 * having received PRACKs for all unacknowledged reliable provisional responses,
-                 * unless the final response is 2xx and any of the unacknowledged reliable
-                 * provisional
-                 * responses contained a session description. In that case, it MUST NOT send a
-                 * final
-                 * response until those provisional responses are acknowledged.
-                 */
-                final ContentTypeHeader contentTypeHeader = sipResponse.getContentTypeHeader();
-                if (pendingReliableResponseAsBytes != null
-                        && sipDialog != null
-                        && getInternalState() != TransactionState._TERMINATED
-                        && statusCode / 100 == 2
-                        && contentTypeHeader != null
-                        && contentTypeHeader.getContentType()
-                                .equalsIgnoreCase(CONTENT_TYPE_APPLICATION)
-                        && contentTypeHeader.getContentSubType()
-                                .equalsIgnoreCase(CONTENT_SUBTYPE_SDP)) {
-                    // if (!interlockProvisionalResponses) {
-                    //     throw new SipException("cannot send response -- unacked provisional");
-                    // } else {
-                    //     try {
-                    //         boolean acquired = provisionalResponseSem.tryAcquire(1, TimeUnit.SECONDS);
-                    //         if (!acquired) {
-                    //             throw new SipException("cannot send response -- unacked provisional");
-                    //         }
-                    //     } catch (InterruptedException ex) {
-                    //         logger.logError("Interrupted acuqiring PRACK sem");
-                    //         throw new SipException("Cannot aquire PRACK sem");
-                    //     }
-
-                    // }
-                } else {
-                    // Sending the final response cancels the
-                    // pending response task.
-                    if (pendingReliableResponseAsBytes != null && sipResponse.isFinalResponse()) {
-                        sipStack.getTimer().cancel(provisionalResponseTask);
-                        provisionalResponseTask = null;
-                    }
-                }
-
-                // Dialog checks. These make sure that the response
-                // being sent makes sense.
-                if (sipDialog != null) {
-                    if (statusCode / 100 == 2
-                            && SIPTransactionStack.isDialogCreatingMethod(responseMethod)) {
-                        if (sipDialog.getLocalTag() == null && sipResponse.getToTag() == null) {
-                            // Trying to send final response and user forgot to set
-                            // to
-                            // tag on the response -- be nice and assign the tag for
-                            // the user.
-                            sipResponse.getTo().setTag(Utils.getInstance().generateTag());
-                        } else if (sipDialog.getLocalTag() != null && sipResponse.getToTag() == null) {
-                            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                                logger.logDebug("assigning toTag : serverTransaction = " + this + " dialog "
-                                        + sipDialog + " tag = " + sipDialog.getLocalTag());
-                            }
-                            sipResponse.setToTag(dialog.getLocalTag());
-                        } else if (sipDialog.getLocalTag() != null && sipResponse.getToTag() != null
-                                && !sipDialog.getLocalTag().equals(sipResponse.getToTag())) {
-                            throw new SipException("Tag mismatch dialogTag is "
-                                    + sipDialog.getLocalTag() + " responseTag is "
-                                    + sipResponse.getToTag());
-                        }
-                    }
-
-                    if (!sipResponse.getCallId().getCallId().equals(sipDialog.getCallId().getCallId())) {
-                        throw new SipException("Dialog mismatch!");
-                    }
-                }
-
-                // Backward compatibility slippery slope....
-                // Only set the from tag in the response when the
-                // incoming request has a from tag.
-                String fromTag = originalRequestFromTag;
-                if (getRequest() != null) {
-                    fromTag = ((SIPRequest) getRequest()).getFromTag();
-                }
-                if (fromTag != null && sipResponse.getFromTag() != null
-                        && !sipResponse.getFromTag().equals(fromTag)) {
-                    throw new SipException("From tag of request does not match response from tag");
-                } else if (fromTag != null) {
-                    sipResponse.getFrom().setTag(fromTag);
-                } else {
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        logger.logDebug("WARNING -- Null From tag in request!!");
-                }
-                // See if the dialog needs to be inserted into the dialog table
-                // or if the state of the dialog needs to be changed.
-                if (sipDialog != null && statusCode != 100) {
-                    sipDialog.setResponseTags(sipResponse);
-                    DialogState oldState = sipDialog.getState();
-                    sipDialog.setLastResponse(SIPServerTransactionImpl.this, sipResponse);
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        logger.logDebug("dialog oldstate: " + oldState + ", current state: " + dialog.getState());
-                    if (oldState == null && sipDialog.getState() == DialogState.TERMINATED) {
-                        DialogTerminatedEvent event = new DialogTerminatedEvent(sipDialog
-                                .getSipProvider(), sipDialog);
-
-                        // Provide notification to the listener that the dialog has
-                        // ended.
-                        sipDialog.getSipProvider().handleEvent(event, SIPServerTransactionImpl.this);
-
-                    }
-
-                } else if (sipDialog == null && isInviteTransaction()
-                        && retransmissionAlertEnabled
-                        && retransmissionAlertTimerTask == null
-                        && sipResponse.getStatusCode() / 100 == 2) {
-                    String dialogId = sipResponse.getDialogId(true);
-
-                    retransmissionAlertTimerTask = new RetransmissionAlertTimerTask(dialogId);
-                    sipStack.retransmissionAlertTransactions.put(dialogId, SIPServerTransactionImpl.this);
-                    sipStack.getTimer().scheduleWithFixedDelay(retransmissionAlertTimerTask, 0,
-                            SIPTransactionStack.BASE_TIMER_INTERVAL);
-                    // retransmissionAlertTimerTask.runTask();
-                }
-
-                // Send message after possibly inserting the Dialog
-                // into the dialog table to avoid a possible race condition.
-
-                sendMessage(sipResponse);
-
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        logger.logDebug("checking if we need to start retrans timer dialog " + sipDialog + " response " + sipResponse);
-                if (sipDialog != null) {
-                    sipDialog.startRetransmitTimer(SIPServerTransactionImpl.this, sipResponse);
-                }
-
-            } catch (IOException ex) {
-                if (logger.isLoggingEnabled())
-                    logger.logException(ex);
-                setState(TransactionState._TERMINATED);
-                raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
-                // throw new SipException(ex.getMessage(), ex);
-            } catch (java.text.ParseException ex) {
-                if (logger.isLoggingEnabled())
-                    logger.logException(ex);
-                setState(TransactionState._TERMINATED);
-                raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
-                // throw new SipException(ex1.getMessage(), ex1);
-            } catch (SipException ex) {
-                if (logger.isLoggingEnabled())
-                    logger.logException(ex);
-                // setState(TransactionState._TERMINATED);
-                raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
-                // throw new SipException(ex1.getMessage(), ex1);
-            }            
-        }
-
-        @Override
-        public String getId() {
-            return id;
-        }
-
-        @Override
-        public long getStartTime() {
-            return startTime;
-        }
-    }
-
-    public class ServerTransactionOutgoingProvisionalResponseTask implements SIPTask {
-        // private StackLogger logger = CommonLogger.getLogger(ServerTransactionOutgoingProvisionalResponseTask.class);
-        private String id;
-        private long startTime;
-        
-        SIPResponse relResponse;
-
-        public ServerTransactionOutgoingProvisionalResponseTask(SIPResponse sipResponse) {
-            startTime = System.currentTimeMillis();
-            this.id = sipResponse.getCallId().getCallId();
-            this.relResponse = sipResponse;
-        }
-
-        @Override
-        public void execute() {
-            try {            
-                /*
-                * In addition, it MUST contain a Require header field containing the option tag
-                * 100rel,
-                * and MUST include an RSeq header field.
-                */
-                RSeq rseq = (RSeq) relResponse.getHeader(RSeqHeader.NAME);
-                if (relResponse.getHeader(RSeqHeader.NAME) == null) {
-                    rseq = new RSeq();
-                    relResponse.setHeader(rseq);
-                }
-
-                if (rseqNumber < 0) {
-                    rseqNumber = (int) (Math.random() * 1000);
-                }
-                rseqNumber++;
-                rseq.setSeqNumber(rseqNumber);
-                pendingReliableRSeqNumber = rseq.getSeqNumber();
-                // start the timer task which will retransmit the reliable response
-                // until the PRACK is received. Cannot send a second provisional.
-                lastResponse = (SIPResponse) relResponse;
-                // if (this.getDialog() != null && interlockProvisionalResponses) {
-                //     boolean acquired = this.provisionalResponseSem.tryAcquire(1, TimeUnit.SECONDS);
-                //     if (!acquired) {
-                //         throw new SipException("Unacknowledged reliable response");
-                //     }
-                // }
-                // moved the task scheduling before the sending of the message to overcome
-                // Issue 265 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=265
-                provisionalResponseTask = new ProvisionalResponseTask();                
-                sipStack.getTimer().scheduleWithFixedDelay(provisionalResponseTask, 0,
-                        SIPTransactionStack.BASE_TIMER_INTERVAL);
-                // provisionalResponseTask.runTask();
-                sendMessage((SIPMessage) relResponse);
-                
-            } catch (Exception ex) {
-                InternalErrorHandler.handleException(ex);
-                raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);                
-            }
-        }
-
-        @Override
-        public String getId() {
-            return id;
-        }
-
-        @Override
-        public long getStartTime() {
-            return startTime;
-        }
-    }
+    //     // }
+    // }
 }

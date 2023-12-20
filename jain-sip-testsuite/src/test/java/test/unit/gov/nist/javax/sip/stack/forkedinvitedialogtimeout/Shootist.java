@@ -3,6 +3,8 @@ package test.unit.gov.nist.javax.sip.stack.forkedinvitedialogtimeout;
 import gov.nist.javax.sip.DialogTimeoutEvent;
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.message.MessageExt;
 import gov.nist.javax.sip.message.ResponseExt;
 
 import java.util.ArrayList;
@@ -574,5 +576,10 @@ public class Shootist implements SipListenerExt {
                     this.forkedEarlyDialogs.contains(timeoutEvent.getDialog()));
        
         }
+    }
+
+    @Override
+    public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+        logger.info("message Sent " + messageSentEvent + " transaction " + transaction);
     }
 }
