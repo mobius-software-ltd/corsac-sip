@@ -180,8 +180,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
                      if (nettyStreamMessageProcessor.sslClientContext != null) {
                          p.addLast(nettyStreamMessageProcessor.sslClientContext.newHandler(
 							ch.alloc(), 
-							nettyStreamMessageProcessor.getIpAddress().getHostAddress(),
-							nettyStreamMessageProcessor.getPort()));
+							((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress(),
+							((InetSocketAddress) channel.remoteAddress()).getPort()));
                      }
                      p.addLast(
                              new HttpClientCodec(),
