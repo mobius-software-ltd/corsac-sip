@@ -33,7 +33,9 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
-        
+        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+            logger.logDebug("channelRead0: " + frame);
+        }
         // Send the uppercase string back.
         
         NettyMessageParser nettyMessageParser = new NettyMessageParser(                

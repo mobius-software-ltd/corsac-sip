@@ -84,8 +84,8 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
+import io.netty.handler.codec.http.websocketx.WebSocketDecoderConfig;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
-import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
@@ -152,10 +152,25 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			} else if (getTransport().equalsIgnoreCase(ListeningPointExt.WSS) || getTransport().equalsIgnoreCase(ListeningPointExt.WS)) {
 				String uri = getTransport().toLowerCase() + "://" + channel.remoteAddress() + "/websocket";
 				logger.logInfo("websocket URI: " + uri);
+				
+				WebSocketDecoderConfig decoderConfig =
+					WebSocketDecoderConfig.newBuilder()
+						.expectMaskedFrames(false)
+						.allowMaskMismatch(true)
+						.allowExtensions(true)
+						.build();
+
 				final WebSocketClientHandler handler =
                     new WebSocketClientHandler(
                             WebSocketClientHandshakerFactory.newHandshaker(
-                                    new URI(uri), WebSocketVersion.V13, SUBPROTOCOL, true, new DefaultHttpHeaders()));
+                                    new URI(uri), 
+									WebSocketVersion.V13, 
+									SUBPROTOCOL, 
+									true, 
+									new DefaultHttpHeaders(),
+									decoderConfig.maxFramePayloadLength(),
+									true,
+									decoderConfig.allowMaskMismatch()));
 									
 				bootstrap.handler(new LoggingHandler(LogLevel.DEBUG))
 					.handler(new ChannelInitializer<SocketChannel>() {
@@ -170,8 +185,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
                      }
                      p.addLast(
                              new HttpClientCodec(),
-                             new HttpObjectAggregator(8192),
-							 WebSocketClientCompressionHandler.INSTANCE,
+                             new HttpObjectAggregator(65536),
+							//  WebSocketClientCompressionHandler.INSTANCE,
                              handler);
                  }
              });
@@ -222,10 +237,25 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			} else if (getTransport().equalsIgnoreCase(ListeningPointExt.WSS) || getTransport().equalsIgnoreCase(ListeningPointExt.WS)) {
 				String uri = getTransport().toLowerCase() + "://" + inetAddress.getHostAddress() + ":" + port + "/websocket";
 				logger.logInfo("websocket URI: " + uri);
+
+				WebSocketDecoderConfig decoderConfig =
+					WebSocketDecoderConfig.newBuilder()
+						.expectMaskedFrames(false)
+						.allowMaskMismatch(true)
+						.allowExtensions(true)
+						.build();
+
 				final WebSocketClientHandler handler =
                     new WebSocketClientHandler(
                             WebSocketClientHandshakerFactory.newHandshaker(
-                                    new URI(uri), WebSocketVersion.V13, SUBPROTOCOL, true, new DefaultHttpHeaders()));
+                                    new URI(uri), 
+									WebSocketVersion.V13, 
+									SUBPROTOCOL, 
+									true, 
+									new DefaultHttpHeaders(),
+									decoderConfig.maxFramePayloadLength(),
+									true,
+									decoderConfig.allowMaskMismatch()));
 									
 				bootstrap.handler(new LoggingHandler(LogLevel.DEBUG))
 					.handler(new ChannelInitializer<SocketChannel>() {
@@ -240,8 +270,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
                      }
                      p.addLast(
                              new HttpClientCodec(),
-                             new HttpObjectAggregator(8192),
-							 WebSocketClientCompressionHandler.INSTANCE,
+                             new HttpObjectAggregator(65536),
+							//  WebSocketClientCompressionHandler.INSTANCE,
                              handler);
                  }
              });

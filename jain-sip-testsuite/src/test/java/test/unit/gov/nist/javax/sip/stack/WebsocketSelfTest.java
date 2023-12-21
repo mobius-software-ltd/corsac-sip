@@ -1,9 +1,5 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.DialogExt;
-import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
-import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
-
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -48,9 +44,11 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
-import test.unit.gov.nist.javax.sip.stack.tls.TlsTest;
+import gov.nist.javax.sip.DialogExt;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
+import test.unit.gov.nist.javax.sip.stack.tls.TlsTest;
 
 /**
  * Testing complete websocket scenario browser to server HTTP-Upgrade->INVITE->ACK->MESSAGE->BYE
