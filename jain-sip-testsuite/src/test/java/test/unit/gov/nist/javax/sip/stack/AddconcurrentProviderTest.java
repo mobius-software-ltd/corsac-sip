@@ -12,8 +12,8 @@ import javax.sip.ListeningPoint;
 import javax.sip.SipFactory;
 import javax.sip.SipStack;
 
-import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.NetworkPortAssigner;

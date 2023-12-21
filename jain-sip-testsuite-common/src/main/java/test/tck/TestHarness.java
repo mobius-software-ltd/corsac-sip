@@ -2,8 +2,8 @@ package test.tck;
 
 
 import gov.nist.javax.sip.address.AddressFactoryImpl;
-import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
 
 import java.io.FileInputStream;
 import java.io.PrintWriter;

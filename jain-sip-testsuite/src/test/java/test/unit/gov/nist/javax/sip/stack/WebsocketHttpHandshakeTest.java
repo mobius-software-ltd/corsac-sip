@@ -1,6 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.stack.WebSocketHttpHandshake;
+import gov.nist.javax.sip.stack.transports.processors.nio.WebSocketHttpHandshake;
 import junit.framework.TestCase;
 /**
  *

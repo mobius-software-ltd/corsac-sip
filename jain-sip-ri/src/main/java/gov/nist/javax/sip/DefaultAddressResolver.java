@@ -29,7 +29,7 @@ import javax.sip.address.Hop;
 
 import gov.nist.core.net.AddressResolver;
 import gov.nist.javax.sip.stack.HopImpl;
-import gov.nist.javax.sip.stack.MessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 
 /**
  * This is the default implementation of the AddressResolver. The AddressResolver is a NIST-SIP specific

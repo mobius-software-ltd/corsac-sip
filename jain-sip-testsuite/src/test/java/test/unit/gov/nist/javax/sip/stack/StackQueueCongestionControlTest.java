@@ -45,8 +45,8 @@ import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import gov.nist.javax.sip.DialogExt;
-import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;

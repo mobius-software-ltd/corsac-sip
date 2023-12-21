@@ -28,7 +28,7 @@ import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.MessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 public class SipProviderOutgoingResponseTask implements SIPTask {
         private StackLogger logger = CommonLogger.getLogger(SipProviderOutgoingResponseTask.class);

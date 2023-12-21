@@ -29,6 +29,7 @@
 package gov.nist.javax.sip.stack;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /**
  * An interface for generating new requests and responses. This is implemented

@@ -27,7 +27,6 @@ package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -88,6 +87,18 @@ import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.MessageParserFactory;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.timers.SipTimer;
+import gov.nist.javax.sip.stack.transports.processors.ClientAuthType;
+import gov.nist.javax.sip.stack.transports.processors.ConnectionOrientedMessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.RawMessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioTcpMessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioTlsMessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.oio.TCPMessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.oio.TLSMessageProcessor;
 
 /*
  * Jeff Keyser : architectural suggestions and contributions. Pierre De Rop and Thomas Froment :
@@ -204,7 +215,7 @@ public abstract class SIPTransactionStack implements
     /*
      * We support UDP on this stack.
      */
-    boolean udpFlag;
+    protected boolean udpFlag;    
 
     /*
      * Internal router. Use this for all sip: request routing.
@@ -219,12 +230,7 @@ public abstract class SIPTransactionStack implements
     /*
      * Flag used for testing TI, bypasses filtering of ACK to non-2xx
      */
-    private boolean non2XXAckPassedToListener;
-
-    /*
-     * Class that handles caching of TCP/TLS connections.
-     */
-    protected IOHandler ioHandler;
+    private boolean non2XXAckPassedToListener;    
 
     /*
      * Flag that indicates that the stack is active.
@@ -264,7 +270,8 @@ public abstract class SIPTransactionStack implements
      * Number of pre-allocated threads for processing udp messages. -1 means no
      * preallocated threads ( dynamically allocated threads).
      */
-    protected int threadPoolSize;
+    protected int threadPoolSize;    
+
     /*
      * Time between checks for executing tasks, defaulting to 10 ms.
      */
@@ -310,7 +317,7 @@ public abstract class SIPTransactionStack implements
      * for after delivery of first byte of message.
      */
     protected int readTimeout;
-    
+        
     /*
      * Conn timeout for TCP outgoign sockets -- maximum time in millis the stack
      * will wait to open a connection.
@@ -321,7 +328,6 @@ public abstract class SIPTransactionStack implements
      * The socket factory. Can be overriden by applications that want direct
      * access to the underlying socket.
      */
-
     protected NetworkLayer networkLayer;
 
     /*
@@ -447,7 +453,7 @@ public abstract class SIPTransactionStack implements
      * access to the underlying socket.
      */
 
-    protected SecurityManagerProvider securityManagerProvider;
+    protected SecurityManagerProvider securityManagerProvider;    
 
     /**
      *  Keepalive support and cleanup for client-initiated connections as per RFC 5626.
@@ -463,7 +469,6 @@ public abstract class SIPTransactionStack implements
 
     protected boolean computeContentLengthFromMessage = false;
 
-    
     public MessageProcessorExecutor getMessageProcessorExecutor() {
         return messageProcessorExecutor;
     }
@@ -565,8 +570,6 @@ public abstract class SIPTransactionStack implements
         // Array of message processors.
         // jeand : using concurrent data structure to avoid excessive blocking
         messageProcessors = new ConcurrentHashMap<String, MessageProcessor>();
-        // Handle IO for this process.
-        this.ioHandler = new IOHandler(this);
 
         // The read time out is infinite.
         this.readTimeout = -1;
@@ -614,7 +617,6 @@ public abstract class SIPTransactionStack implements
         // Array of message processors.
         messageProcessors = new ConcurrentHashMap<String, MessageProcessor>();
         // Handle IO for this process.
-        this.ioHandler = new IOHandler(this);
         pendingTransactions = new ConcurrentHashMap<String, SIPServerTransaction>();
         clientTransactionTable = new ConcurrentHashMap<String, SIPClientTransaction>();
         serverTransactionTable = new ConcurrentHashMap<String, SIPServerTransaction>();
@@ -649,23 +651,23 @@ public abstract class SIPTransactionStack implements
      *
      * @throws IOException if binding the socket fails
      */
-    public SocketAddress getLocalAddressForTcpDst(InetAddress dst, int dstPort,
-            InetAddress localAddress, int localPort) throws IOException {
-        if (getMessageProcessorFactory() instanceof NioMessageProcessorFactory) {
-            // First find the TLS message processor
-            MessageProcessor[] processors = getMessageProcessors();
-            for (MessageProcessor processor : processors){
-                if ("TCP".equals(processor.getTransport())) {
-                    NioTcpMessageChannel msgChannel =
-                            (NioTcpMessageChannel) processor.createMessageChannel(dst, dstPort);
-                    return msgChannel.socketChannel.socket().getLocalSocketAddress();
-                }
-            }
-            return null;
-        }
-        return this.ioHandler.getLocalAddressForTcpDst(
-                        dst, dstPort, localAddress, localPort);
-    }
+    // public SocketAddress getLocalAddressForTcpDst(InetAddress dst, int dstPort,
+    //         InetAddress localAddress, int localPort) throws IOException {
+    //     if (getMessageProcessorFactory() instanceof NioMessageProcessorFactory) {
+    //         // First find the TLS message processor
+    //         MessageProcessor[] processors = getMessageProcessors();
+    //         for (MessageProcessor processor : processors){
+    //             if ("TCP".equals(processor.getTransport())) {
+    //                 NioTcpMessageChannel msgChannel =
+    //                         (NioTcpMessageChannel) processor.createMessageChannel(dst, dstPort);
+    //                 return msgChannel.socketChannel.socket().getLocalSocketAddress();
+    //             }
+    //         }
+    //         return null;
+    //     }
+    //     return this.ioHandler.getLocalAddressForTcpDst(
+    //                     dst, dstPort, localAddress, localPort);
+    // }
 
     /**
       * Creates and binds, if necessary, a TCP SSL socket connected to the
@@ -684,30 +686,30 @@ public abstract class SIPTransactionStack implements
       *
       * @throws IOException if binding the socket fails
       */
-     public SocketAddress getLocalAddressForTlsDst( InetAddress dst,
-             int dstPort, InetAddress localAddress) throws IOException {
+    //  public SocketAddress getLocalAddressForTlsDst( InetAddress dst,
+    //          int dstPort, InetAddress localAddress) throws IOException {
 
-        // First find the TLS message processor
-        MessageProcessor[] processors = getMessageProcessors();
-        for (MessageProcessor processor : processors){
-            if(processor instanceof TLSMessageProcessor){
-                // Here we don't create the channel but if the channel is already
-                // existing will be returned
-                TLSMessageChannel msgChannel =
-                    (TLSMessageChannel) processor.createMessageChannel(dst, dstPort);
+    //     // First find the TLS message processor
+    //     MessageProcessor[] processors = getMessageProcessors();
+    //     for (MessageProcessor processor : processors){
+    //         if(processor instanceof TLSMessageProcessor){
+    //             // Here we don't create the channel but if the channel is already
+    //             // existing will be returned
+    //             TLSMessageChannel msgChannel =
+    //                 (TLSMessageChannel) processor.createMessageChannel(dst, dstPort);
 
-                return this.ioHandler.getLocalAddressForTlsDst(
-                    dst, dstPort, localAddress, msgChannel);
-            } else if(processor instanceof NioTlsMessageProcessor) {
-                NioTlsMessageChannel msgChannel =
-                    (NioTlsMessageChannel) processor.createMessageChannel(dst, dstPort);
-                return msgChannel.socketChannel.socket().getLocalSocketAddress();
-            }
-        }
+    //             return this.ioHandler.getLocalAddressForTlsDst(
+    //                 dst, dstPort, localAddress, msgChannel);
+    //         } else if(processor instanceof NioTlsMessageProcessor) {
+    //             NioTlsMessageChannel msgChannel =
+    //                 (NioTlsMessageChannel) processor.createMessageChannel(dst, dstPort);
+    //             return msgChannel.socketChannel.socket().getLocalSocketAddress();
+    //         }
+    //     }
 
-        return null;
+    //     return null;
 
-     }
+    //  }
 
     /**
      * For debugging -- allows you to disable logging or enable logging
@@ -2228,11 +2230,25 @@ public abstract class SIPTransactionStack implements
     }
     
     public void closeAllSockets() {
-    	this.ioHandler.closeAll();
+        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("Closing message processors, IOHandlers and message channels");
+        }
     	for(MessageProcessor p : messageProcessors.values()) {
-    		if(p instanceof NioTcpMessageProcessor) {
+    		if(p instanceof TCPMessageProcessor) {
+                TCPMessageProcessor tcp = (TCPMessageProcessor)p;
+                tcp.getIOHandler().closeAll();
+            }
+            if(p instanceof TLSMessageProcessor) {
+                TLSMessageProcessor tcp = (TLSMessageProcessor)p;
+                tcp.getIOHandler().closeAll();
+            }
+            if(p instanceof NioTcpMessageProcessor) {
     			NioTcpMessageProcessor niop = (NioTcpMessageProcessor)p;
-    			niop.nioHandler.closeAll();
+    			niop.getNioHandler().closeAll();
+    		}
+            if(p instanceof NioTlsMessageProcessor) {
+    			NioTlsMessageProcessor niop = (NioTlsMessageProcessor)p;
+    			niop.getNioHandler().closeAll();
     		}
             if(p instanceof NettyStreamMessageProcessor) {
                 NettyStreamMessageProcessor nettyStreamMessageProcessor = (NettyStreamMessageProcessor)p;
@@ -2353,6 +2369,14 @@ public abstract class SIPTransactionStack implements
      */
     public void setMaxConnections(int nconnections) {
         this.maxConnections = nconnections;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public int getMaxConnections() {
+        return maxConnections;
     }
 
     /**
@@ -3329,7 +3353,7 @@ public abstract class SIPTransactionStack implements
         this.reliableConnectionKeepAliveTimeout = reliableConnectionKeepAliveTimeout;
     }
 
-    protected MessageProcessor findMessageProcessor(String address, int port, String transport) {    
+    public MessageProcessor findMessageProcessor(String address, int port, String transport) {    
         String key = address.concat(":").concat("" + port).concat("/").concat(transport).toLowerCase();
         return messageProcessors.get(key);        
     }
@@ -3339,12 +3363,12 @@ public abstract class SIPTransactionStack implements
      * @param channel channel to use to route the message internally
      * @param messageToSend message to send
      */
-    protected void selfRouteMessage(RawMessageChannel channel, SIPMessage messageToSend) {
+    public void selfRouteMessage(RawMessageChannel channel, SIPMessage messageToSend) {
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
             logger.logDebug("Self routing message " + channel.getTransport());
         }
         IncomingMessageProcessingTask processMessageTask = new IncomingMessageProcessingTask(channel, (SIPMessage) messageToSend.clone());
-        getMessageProcessorExecutor().addTaskLast(processMessageTask);        
+        messageProcessorExecutor.addTaskLast(processMessageTask);        
     }
 
     /**
@@ -3505,4 +3529,35 @@ public abstract class SIPTransactionStack implements
 	public void setReleaseReferencesStrategy(ReleaseReferencesStrategy releaseReferencesStrategy) {
 		this.releaseReferencesStrategy = releaseReferencesStrategy;
 	}
+
+    /*
+     * 
+     */
+    public int getThreadPoolSize() {
+        return threadPoolSize;
+    }
+
+    public int getConnectionTimeout() {
+        return connTimeout;
+    }
+
+    public int getReadTimeout() {
+        return readTimeout;
+    }
+
+    public boolean isUdpFlag() {
+        return udpFlag;
+    }
+
+    public void setUdpFlag(boolean udpFlag) {
+        this.udpFlag = udpFlag;
+    }
+
+    public boolean isComputeContentLengthFromMessage() {
+        return computeContentLengthFromMessage;
+    }
+
+    public SecurityManagerProvider getSecurityManagerProvider() {
+        return securityManagerProvider;
+    }
 }

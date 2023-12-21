@@ -3,10 +3,10 @@ package test.unit.gov.nist.javax.sip.stack;
 import gov.nist.javax.sip.DialogExt;
 import gov.nist.javax.sip.stack.CallAnalysisInterceptor;
 import gov.nist.javax.sip.stack.CallAnalyzer;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import gov.nist.javax.sip.stack.CallAnalyzer.MetricAnalysisConfiguration;
 import gov.nist.javax.sip.stack.CallAnalyzer.MetricReference;
-import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;

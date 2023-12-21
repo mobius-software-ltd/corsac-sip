@@ -41,9 +41,9 @@ import gov.nist.javax.sip.ThreadAffinityTask;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.stack.ConnectionOrientedMessageChannel;
-import gov.nist.javax.sip.stack.QueuedMessageDispatchBase;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.transports.processors.ConnectionOrientedMessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.nio.QueuedMessageDispatchBase;
 
 /**
  * This is a FSM that can parse a single stream of messages with they bodies and 

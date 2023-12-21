@@ -43,10 +43,10 @@ import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.stack.ConnectionOrientedMessageChannel;
-import gov.nist.javax.sip.stack.MessageChannel;
-import gov.nist.javax.sip.stack.MessageProcessor;
-import gov.nist.javax.sip.stack.NettyStreamMessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.ConnectionOrientedMessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageChannel;
 
 /**
  * Implementation of the ListeningPoint interface

@@ -2,8 +2,8 @@ package test.unit.gov.nist.javax.sip.stack;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.stack.MessageChannel;
 import gov.nist.javax.sip.stack.SIPMessageValve;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 import java.io.IOException;
 

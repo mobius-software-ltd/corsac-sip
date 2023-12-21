@@ -71,6 +71,7 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
  * Jeff Keyser -- initial. Daniel J. Martinez Manzano --Added support for TLS message channel.
@@ -488,7 +489,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
   /**
    * @see gov.nist.javax.sip.stack.SIPClientTransaction#processResponse(gov.nist.javax.sip.message.SIPResponse,
-   *      gov.nist.javax.sip.stack.MessageChannel,
+   *      gov.nist.javax.sip.stack.transports.processors.MessageChannel,
    *      gov.nist.javax.sip.stack.SIPDialog)
    */
   @Override
@@ -1497,7 +1498,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    */
   /**
    * @see gov.nist.javax.sip.stack.SIPClientTransaction#processResponse(gov.nist.javax.sip.message.SIPResponse,
-   *      gov.nist.javax.sip.stack.MessageChannel)
+   *      gov.nist.javax.sip.stack.transports.processors.MessageChannel)
    */
   @Override
   public void processResponse(SIPResponse sipResponse, MessageChannel incomingChannel) {
@@ -1901,7 +1902,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     // return responses.
     if ((!sipStack.cacheClientConnections) && isReliable()) {
 
-      int newUseCount = --getMessageChannel().useCount;
+      int newUseCount = getMessageChannel().decreaseUseCount();
       if (newUseCount <= 0) {
         // Let the connection linger for a while and then close
         // it.
@@ -1918,7 +1919,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       // connection. This keeps the connection open permanently
       // until the client disconnects.
       if (logger.isLoggingEnabled() && isReliable()) {
-        int useCount = getMessageChannel().useCount;
+        int useCount = getMessageChannel().getUseCount();
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
           logger.logDebug("Client Use Count = " + useCount);
       }

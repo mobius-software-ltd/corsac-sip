@@ -45,13 +45,14 @@ import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.DialogResponseInterface;
-import gov.nist.javax.sip.stack.MessageChannel;
 import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPDialog;
 import gov.nist.javax.sip.stack.SIPServerTransaction;
 import gov.nist.javax.sip.stack.SIPTransaction;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.ServerRequestInterface;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
+
 import java.io.IOException;
 
 import javax.sip.ClientTransaction;

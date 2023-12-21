@@ -38,6 +38,7 @@ import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.header.From;
 import gov.nist.javax.sip.header.To;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 public class DialogOutgoingMessageProcessingTask implements SIPTask {
     private StackLogger logger = CommonLogger.getLogger(DialogOutgoingMessageProcessingTask.class);
@@ -140,10 +141,10 @@ public class DialogOutgoingMessageProcessingTask implements SIPTask {
 
                 // Not configured to cache client connections.
                 if (!sipStack.cacheClientConnections) {
-                    oldChannel.useCount--;
+                    oldChannel.decreaseUseCount();
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                         logger.logDebug(
-                                "SIPDialog::sendRequest:oldChannel: useCount " + oldChannel.useCount);
+                                "SIPDialog::sendRequest:oldChannel: useCount " + oldChannel.getUseCount());
 
                 }
 
@@ -193,11 +194,11 @@ public class DialogOutgoingMessageProcessingTask implements SIPTask {
                 }
 
                 if (messageChannel != null)
-                    messageChannel.useCount++;
+                    messageChannel.increaseUseCount();
 
                 // See if we need to release the previously mapped channel.
                 if ((!sipStack.cacheClientConnections) && oldChannel != null
-                        && oldChannel.useCount <= 0)
+                        && oldChannel.getUseCount() <= 0)
                     oldChannel.close();
             } catch (Exception ex) {
                 if (logger.isLoggingEnabled())

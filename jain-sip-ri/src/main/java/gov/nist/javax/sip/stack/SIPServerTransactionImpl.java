@@ -57,6 +57,7 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
  * Bug fixes / enhancements:Emil Ivov, Antonis Karydas, Daniel J. Martinez Manzano, Daniel, Hagai
@@ -632,7 +633,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
     /**
      * @see gov.nist.javax.sip.stack.SIPServerTransaction#processRequest(gov.nist.javax.sip.message.SIPRequest,
-     *      gov.nist.javax.sip.stack.MessageChannel)
+     *      gov.nist.javax.sip.stack.transports.processors.MessageChannel)
      */
     @Override
     public void processRequest(SIPRequest transactionRequest, MessageChannel sourceChannel) {
@@ -1814,14 +1815,14 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
         // Uncache the server tx
         if ((!sipStack.cacheServerConnections) && isReliable()
-                && --getMessageChannel().useCount <= 0) {
+                && getMessageChannel().decreaseUseCount() <= 0) {
             // Close the encapsulated socket if stack is configured
             close();
         } else {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)
                     && (!sipStack.cacheServerConnections)
                     && isReliable()) {
-                int useCount = getMessageChannel().useCount;
+                int useCount = getMessageChannel().getUseCount();
                 logger.logDebug("Use Count = " + useCount);
             }
         }

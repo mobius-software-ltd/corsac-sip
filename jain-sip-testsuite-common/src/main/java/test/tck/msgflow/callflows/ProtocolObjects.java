@@ -17,9 +17,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import gov.nist.javax.sip.SipProviderImpl;
-import gov.nist.javax.sip.stack.NIOMode;
-import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
 
 /**
  * @author M. Ranganathan

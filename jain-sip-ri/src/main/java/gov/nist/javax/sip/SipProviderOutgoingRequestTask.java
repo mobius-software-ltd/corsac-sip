@@ -32,7 +32,7 @@ import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.stack.MessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 public class SipProviderOutgoingRequestTask implements SIPTask {
         private StackLogger logger = CommonLogger.getLogger(SipProviderOutgoingRequestTask.class);

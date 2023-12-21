@@ -70,7 +70,6 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.HopImpl;
-import gov.nist.javax.sip.stack.MessageChannel;
 import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPDialog;
 import gov.nist.javax.sip.stack.SIPDialogErrorEvent;
@@ -80,6 +79,7 @@ import gov.nist.javax.sip.stack.SIPTransaction;
 import gov.nist.javax.sip.stack.SIPTransactionErrorEvent;
 import gov.nist.javax.sip.stack.SIPTransactionEventListener;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
  * Contributions (bug fixes) made by: Daniel J. Martinez Manzano, Hagai Sela.

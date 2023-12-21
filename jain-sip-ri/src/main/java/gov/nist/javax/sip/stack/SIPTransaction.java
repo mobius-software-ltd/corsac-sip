@@ -33,6 +33,8 @@ import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 
 import java.io.IOException;
 import java.net.InetAddress;

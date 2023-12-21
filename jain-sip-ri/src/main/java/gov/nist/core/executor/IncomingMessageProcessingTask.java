@@ -21,8 +21,8 @@ package gov.nist.core.executor;
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.stack.RawMessageChannel;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.transports.processors.RawMessageChannel;
 
 public class IncomingMessageProcessingTask implements SIPTask {
     private static StackLogger logger = CommonLogger.getLogger(IncomingMessageProcessingTask.class);

@@ -14,9 +14,9 @@ import com.sun.nio.sctp.SctpChannel;
 import com.sun.nio.sctp.SctpServerChannel;
 
 import gov.nist.core.HostPort;
-import gov.nist.javax.sip.stack.MessageChannel;
-import gov.nist.javax.sip.stack.MessageProcessor;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 
 /**
  * SCTP Message Processor

@@ -2,7 +2,8 @@ package test.unit.gov.nist.javax.sip.stack;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
-import gov.nist.javax.sip.stack.KeyedSemaphore;
+import gov.nist.javax.sip.stack.transports.processors.KeyedSemaphore;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;

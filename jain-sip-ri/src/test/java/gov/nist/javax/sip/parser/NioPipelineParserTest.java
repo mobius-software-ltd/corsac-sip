@@ -8,9 +8,9 @@ import javax.sip.SipFactory;
 import javax.sip.SipStack;
 
 import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
 import junit.framework.Assert;
 
 public class NioPipelineParserTest extends junit.framework.TestCase {

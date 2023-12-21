@@ -29,7 +29,7 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.stack.ClientAuthType;
+import gov.nist.javax.sip.stack.transports.processors.ClientAuthType;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

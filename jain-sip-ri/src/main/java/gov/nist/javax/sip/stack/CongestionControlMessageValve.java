@@ -32,6 +32,7 @@ import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 import javax.sip.SipStack;
 import javax.sip.message.Request;

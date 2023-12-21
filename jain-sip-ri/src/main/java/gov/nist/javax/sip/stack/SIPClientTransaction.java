@@ -14,6 +14,7 @@ import gov.nist.javax.sip.header.Event;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 public interface SIPClientTransaction extends ClientTransactionExt, SIPTransaction, TransactionResponseInterface {
 

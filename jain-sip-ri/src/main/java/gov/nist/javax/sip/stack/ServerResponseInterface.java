@@ -28,6 +28,7 @@
 *******************************************************************************/
 package gov.nist.javax.sip.stack;
 import gov.nist.javax.sip.message.*;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
  *  Salvador Rey Calatayud suggested adding a parameter to the processRequest/processResponse

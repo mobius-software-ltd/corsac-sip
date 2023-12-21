@@ -118,6 +118,7 @@ import gov.nist.javax.sip.parser.CallIDParser;
 import gov.nist.javax.sip.parser.ContactParser;
 import gov.nist.javax.sip.parser.RecordRouteParser;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
  * Acknowledgements:

@@ -65,6 +65,12 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.RawMessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioTlsMessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.oio.TLSMessageChannel;
 
 /*
  * Modifications for TLS Support added by Daniel J. Martinez Manzano
@@ -361,13 +367,13 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         encapsulatedChannel = newEncapsulatedChannel;
 
         if (this.isReliable()) {
-                encapsulatedChannel.useCount++;
+                encapsulatedChannel.increaseUseCount();
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                     logger
                             .logDebug("use count for encapsulated channel"
                                     + this
                                     + " "
-                                    + encapsulatedChannel.useCount );
+                                    + encapsulatedChannel.getUseCount() );
         }
 
         this.currentState = -1;
@@ -1177,7 +1183,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     }
 
     /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#setEncapsulatedChannel(gov.nist.javax.sip.stack.MessageChannel)
+     * @see gov.nist.javax.sip.stack.SIPTransaction#setEncapsulatedChannel(gov.nist.javax.sip.stack.transports.processors.MessageChannel)
      */
     @Override
     public void setEncapsulatedChannel(MessageChannel messageChannel) {

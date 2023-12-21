@@ -75,19 +75,20 @@ import gov.nist.javax.sip.parser.MessageParserFactory;
 import gov.nist.javax.sip.parser.StringMsgParser;
 import gov.nist.javax.sip.parser.StringMsgParserFactory;
 import gov.nist.javax.sip.stack.ByteBufferFactory;
-import gov.nist.javax.sip.stack.ClientAuthType;
 import gov.nist.javax.sip.stack.DefaultMessageLogFactory;
 import gov.nist.javax.sip.stack.DefaultRouter;
-import gov.nist.javax.sip.stack.MessageProcessor;
-import gov.nist.javax.sip.stack.MessageProcessorFactory;
-import gov.nist.javax.sip.stack.NIOMode;
-import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.SIPEventInterceptor;
 import gov.nist.javax.sip.stack.SIPMessageValve;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.timers.MobiusSipTimer;
 import gov.nist.javax.sip.stack.timers.SipTimer;
 import gov.nist.javax.sip.stack.timers.StackTimer;
+import gov.nist.javax.sip.stack.transports.processors.ClientAuthType;
+import gov.nist.javax.sip.stack.transports.processors.DefaultTlsSecurityPolicy;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
 
 /**
  * Implementation of SipStack.
@@ -1040,7 +1041,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		// Allow application to hook in a TLS Security Policy implementation
 		String tlsPolicyPath = configurationProperties.getProperty("gov.nist.javax.sip.TLS_SECURITY_POLICY");
 		if (tlsPolicyPath == null) {
-			tlsPolicyPath = "gov.nist.javax.sip.stack.DefaultTlsSecurityPolicy";
+			tlsPolicyPath = DefaultTlsSecurityPolicy.class.getCanonicalName();
 			logger.logWarning("using default tls security policy");
 		}
 		try {

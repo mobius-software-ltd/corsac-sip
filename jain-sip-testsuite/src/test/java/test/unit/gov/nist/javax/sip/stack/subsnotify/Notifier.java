@@ -3,8 +3,8 @@ package test.unit.gov.nist.javax.sip.stack.subsnotify;
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.message.MessageExt;
 import gov.nist.javax.sip.message.ResponseExt;
-import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
 
 import javax.sip.*;
 import javax.sip.address.*;

@@ -1,7 +1,7 @@
 package gov.nist.javax.sip.parser;
 
 import gov.nist.javax.sip.SipStackImpl;
-import gov.nist.javax.sip.stack.BlockingQueueDispatchAuditor;
+import gov.nist.javax.sip.stack.transports.processors.nio.BlockingQueueDispatchAuditor;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;

@@ -1,8 +1,5 @@
 package gov.nist.javax.sip;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.SocketAddress;
 import java.util.Collection;
 
 import javax.sip.Dialog;
@@ -121,53 +118,6 @@ public interface SipStackExt extends SipStack {
      *
      */
     public void setEnabledCipherSuites(String[] newCipherSuites);
-
-    /**
-     * Creates and binds, if necessary, a TCP socket connected to the specified
-     * destination address and port and then returns its local address.
-     *
-     * @param dst the destination address that the socket would need to connect
-     * to.
-     * @param dstPort the port number that the connection would be established
-     * with.
-     * @param localAddress the address that we would like to bind on
-     * (null for the "any" address).
-     * @param localPort the port that we'd like our socket to bind to (0 for a
-     * random port).
-     *
-     * @return the local SocketAddress that this handler would use when
-     * connecting to the specified destination address and port.
-     *
-     * @throws IOException if we fail binding the socket
-     *
-     * @since 2.0
-     */
-    public SocketAddress getLocalAddressForTcpDst(InetAddress dst, int dstPort,
-                    InetAddress localAddress, int localPort)
-        throws IOException;
-
-    /**
-     * Creates and binds, if necessary, a TLS socket connected to the specified
-     * destination address and port and then returns its local address.
-     *
-     * @param dst the destination address that the socket would need to connect
-     * to.
-     * @param dstPort the port number that the connection would be established
-     * with.
-     * @param localAddress the address that we would like to bind on
-     * (null for the "any" address).
-     *
-     * @return the local SocketAddress that this handler would use when
-     * connecting to the specified destination address and port.
-     *
-     * @throws IOException if we fail binding the socket
-     *
-     * @since 2.0
-     */
-    public SocketAddress getLocalAddressForTlsDst(InetAddress dst, int dstPort,
-                    InetAddress localAddress)
-        throws IOException;
-
 
     /**
      * Returns the stack timer to schedule timer tasks 

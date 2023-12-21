@@ -27,12 +27,12 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.ParseExceptionListener;
 import gov.nist.javax.sip.parser.StringMsgParser;
-import gov.nist.javax.sip.stack.MessageChannel;
-import gov.nist.javax.sip.stack.RawMessageChannel;
 import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.ServerRequestInterface;
 import gov.nist.javax.sip.stack.ServerResponseInterface;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.RawMessageChannel;
 
 /**
  * SCTP message channel
@@ -122,7 +122,7 @@ final class SCTPMessageChannel extends MessageChannel
     }
 
     @Override
-    protected InetAddress getPeerInetAddress() {
+    public InetAddress getPeerInetAddress() {
         return peerAddress.getAddress();
     }
 
@@ -142,7 +142,7 @@ final class SCTPMessageChannel extends MessageChannel
     }
 
     @Override
-    protected String getPeerProtocol() {
+    public String getPeerProtocol() {
         return "sctp";    // else something really is weird ;)
     }
 
@@ -183,7 +183,7 @@ final class SCTPMessageChannel extends MessageChannel
     }
 
     @Override
-    protected void sendMessage(byte[] message, InetAddress receiverAddress,
+    public void sendMessage(byte[] message, InetAddress receiverAddress,
             int receiverPort, boolean reconnectFlag) throws IOException {
 
         assert( receiverAddress.equals( peerAddress.getAddress() ) );
@@ -406,7 +406,7 @@ final class SCTPMessageChannel extends MessageChannel
     }
 
     @Override
-    protected void uncache() {
+    public void uncache() {
         processor.removeChannel( this );
     }
 

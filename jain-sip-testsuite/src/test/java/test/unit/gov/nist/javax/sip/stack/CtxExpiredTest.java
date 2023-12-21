@@ -8,8 +8,8 @@ import gov.nist.javax.sip.SipProviderExt;
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.header.HeaderFactoryExt;
 import gov.nist.javax.sip.message.MessageFactoryExt;
-import gov.nist.javax.sip.stack.NettyMessageProcessorFactory;
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;

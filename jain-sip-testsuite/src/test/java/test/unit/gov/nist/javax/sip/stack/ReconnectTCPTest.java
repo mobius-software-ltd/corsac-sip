@@ -22,8 +22,6 @@
  */
 package test.unit.gov.nist.javax.sip.stack;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Timer;
@@ -63,8 +61,8 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 
-import gov.nist.javax.sip.stack.IOHandler;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.transports.processors.oio.OIOMessageProcessorFactory;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.ScenarioHarness;
@@ -167,15 +165,17 @@ public class ReconnectTCPTest extends ScenarioHarness implements SipListener {
 				@Override
 				public void run() {
 					try {
-						Constructor<IOHandler> ioHandlerCtr = IOHandler.class.getDeclaredConstructor(SIPTransactionStack.class);
-						ioHandlerCtr.setAccessible(true);
-						Object[] ctrValues = new Object[] {Shootme.this.protocolObjects.sipStack};
-						IOHandler ioHandler = (IOHandler) ioHandlerCtr.newInstance(ctrValues);
+                        if(Shootme.this.protocolObjects.messageFactory instanceof OIOMessageProcessorFactory)
+                            ((SIPTransactionStack)Shootme.this.protocolObjects.sipStack).closeAllSockets();
+						// Constructor<IOHandler> ioHandlerCtr = IOHandler.class.getDeclaredConstructor(SIPTransactionStack.class);
+						// ioHandlerCtr.setAccessible(true);
+						// Object[] ctrValues = new Object[] {Shootme.this.protocolObjects.sipStack};
+						// IOHandler ioHandler = (IOHandler) ioHandlerCtr.newInstance(ctrValues);
 						
-						Field ioHandlerField = SIPTransactionStack.class.getDeclaredField("ioHandler");
-						ioHandlerField.setAccessible(true);						
-						ioHandler = (IOHandler) ioHandlerField.get(Shootme.this.protocolObjects.sipStack);
-						ioHandler.closeAll();
+						// Field ioHandlerField = SIPTransactionStack.class.getDeclaredField("ioHandler");
+						// ioHandlerField.setAccessible(true);						
+						// ioHandler = (IOHandler) ioHandlerField.get(Shootme.this.protocolObjects.sipStack);
+						// ioHandler.closeAll();
 						
 						Request request = requestEvent.getRequest();
 	                    Response response = protocolObjects.messageFactory.createResponse(180, request);

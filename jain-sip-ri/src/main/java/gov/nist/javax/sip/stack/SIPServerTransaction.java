@@ -11,6 +11,7 @@ import javax.sip.message.Response;
 import gov.nist.javax.sip.ServerTransactionExt;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 public interface SIPServerTransaction extends SIPTransaction, ServerTransactionExt, ServerRequestInterface {
 

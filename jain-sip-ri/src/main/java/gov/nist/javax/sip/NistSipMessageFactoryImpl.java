@@ -33,6 +33,7 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.stack.*;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import gov.nist.javax.sip.message.*;
 import javax.sip.*;
 
