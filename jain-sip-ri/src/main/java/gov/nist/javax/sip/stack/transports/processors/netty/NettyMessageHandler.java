@@ -27,6 +27,7 @@ import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.core.executor.IncomingMessageProcessingTask;
+import gov.nist.javax.sip.ListeningPointExt;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
@@ -51,8 +52,11 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
     public NettyMessageHandler(NettyMessageProcessor nettyMessageProcessor) {
         this.messageProcessor = nettyMessageProcessor;
         this.sipStack = messageProcessor.getSIPStack();
-        this.reliableTransport = messageProcessor.getTransport().equalsIgnoreCase(ListeningPoint.TCP)
-                || messageProcessor.getTransport().equalsIgnoreCase(ListeningPoint.TLS);
+        String transport = messageProcessor.getTransport();
+        this.reliableTransport = transport.equalsIgnoreCase(ListeningPoint.TCP) ||
+                transport.equalsIgnoreCase(ListeningPoint.TLS) ||
+                transport.equalsIgnoreCase(ListeningPointExt.WS) ||
+                transport.equalsIgnoreCase(ListeningPointExt.WSS);
     }   
 
     @Override
@@ -79,19 +83,10 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         RawMessageChannel rawMessageChannel = (RawMessageChannel)nettyMessageChannel;
         IncomingMessageProcessingTask incomingMessageProcessingTask = 
             new IncomingMessageProcessingTask(rawMessageChannel, sipMessage);
-        sipStack.getMessageProcessorExecutor().addTaskLast(incomingMessageProcessingTask);
-        // } catch (ParseException e) {
-        // // https://java.net/jira/browse/JSIP-499 move the ParseException here so the
-        // finally block
-        // // is called, the semaphore released and map cleaned up if need be
-        // if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-        // logger.logDebug("Problem parsing message " + msg.toString() + " " +
-        // e.getMessage());
-        // }
-               
+        sipStack.getMessageProcessorExecutor().addTaskLast(incomingMessageProcessingTask);        
     }
 
-    private void processCRLFs(ChannelHandlerContext ctx, SIPMessage sipMessage,
+    public static void processCRLFs(ChannelHandlerContext ctx, SIPMessage sipMessage,
             MessageChannel nettyMessageChannel) {
         NettyStreamMessageChannel nettyStreamMessageChannel = ((NettyStreamMessageChannel)nettyMessageChannel);
         if (sipMessage.getSize() == 4) {

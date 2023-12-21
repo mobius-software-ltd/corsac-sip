@@ -1,6 +1,5 @@
 package gov.nist.javax.sip.stack.transports.processors.netty;
 
-import gov.nist.javax.sip.stack.SIPTransactionStack;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -11,16 +10,20 @@ import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketSe
 import io.netty.handler.ssl.SslContext;
 
 public class NettyWebsocketsChannelInitializer extends ChannelInitializer<SocketChannel> {
-    private static final String WEBSOCKET_PATH = "/websocket";
-    private NettyMessageProcessor nettyMessageProcessor;
-    private SIPTransactionStack sipStack;
+    private static final String SUBPROTOCOL = null;
+    
+    private NettyStreamMessageProcessor nettyMessageProcessor;
+    // private SIPTransactionStack sipStack;
     private final SslContext sslCtx;
+    private final String websocketPath;
 
     public NettyWebsocketsChannelInitializer(
-            NettyMessageProcessor nettyMessageProcessor, 
+            NettyStreamMessageProcessor nettyMessageProcessor, 
             SslContext sslCtx) {
         this.nettyMessageProcessor = nettyMessageProcessor; 
-        sipStack = nettyMessageProcessor.getSIPStack();
+        // sipStack = nettyMessageProcessor.getSIPStack();
+        // websocketPath = nettyMessageProcessor.getTransport() + "://" + nettyMessageProcessor.getIpAddress().getHostAddress() + "/websocket";
+        websocketPath = "/websocket";
         this.sslCtx = sslCtx;
     }
 
@@ -34,7 +37,7 @@ public class NettyWebsocketsChannelInitializer extends ChannelInitializer<Socket
         pipeline.addLast(new HttpObjectAggregator(65536));
         // pipeline.addLast(new WebSocketIndexPageHandler(WEBSOCKET_PATH));
         pipeline.addLast(new WebSocketServerCompressionHandler());
-        pipeline.addLast(new WebSocketServerProtocolHandler(WEBSOCKET_PATH, null, true));
-        // pipeline.addLast(new WebSocketFrameHandler());
+        pipeline.addLast(new WebSocketServerProtocolHandler(websocketPath, SUBPROTOCOL, true));
+        pipeline.addLast(new WebSocketFrameHandler(nettyMessageProcessor));
     }
 }

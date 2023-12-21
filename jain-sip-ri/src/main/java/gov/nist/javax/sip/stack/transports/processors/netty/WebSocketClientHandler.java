@@ -1,0 +1,96 @@
+package gov.nist.javax.sip.stack.transports.processors.netty;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.StackLogger;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
+import io.netty.util.CharsetUtil;
+
+public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
+    private static StackLogger logger = CommonLogger
+			.getLogger(WebSocketClientHandler.class);
+    private final WebSocketClientHandshaker handshaker;
+    private ChannelPromise handshakeFuture;
+
+    public WebSocketClientHandler(WebSocketClientHandshaker handshaker) {
+        this.handshaker = handshaker;
+    }
+
+    public ChannelFuture handshakeFuture() {
+        return handshakeFuture;
+    }
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) {
+        handshakeFuture = ctx.newPromise();
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        handshaker.handshake(ctx.channel());
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        logger.logInfo("WebSocket Client disconnected!");
+    }
+
+    @Override
+    public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+        Channel ch = ctx.channel();
+        if (!handshaker.isHandshakeComplete()) {
+            try {
+                handshaker.finishHandshake(ch, (FullHttpResponse) msg);
+                logger.logInfo("WebSocket Client connected!");
+                handshakeFuture.setSuccess();
+            } catch (WebSocketHandshakeException e) {
+                logger.logError("WebSocket Client failed to connect");
+                handshakeFuture.setFailure(e);
+            }
+            return;
+        }
+
+        if (msg instanceof FullHttpResponse) {
+            FullHttpResponse response = (FullHttpResponse) msg;
+            throw new IllegalStateException(
+                    "Unexpected FullHttpResponse (getStatus=" + response.getStatus() +
+                            ", content=" + response.content().toString(CharsetUtil.UTF_8) + ')');
+        }
+
+        WebSocketFrame frame = (WebSocketFrame) msg;
+        // As per RFC 7118 Section 4.2: we need to support both binary and text frames
+        if (frame instanceof TextWebSocketFrame) {
+            TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
+            logger.logInfo("WebSocket Client received text message: " + textFrame.text());
+        } else if (frame instanceof BinaryWebSocketFrame) {
+            BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
+            logger.logInfo("WebSocket Client received bniary message " + binaryFrame.content().toString(CharsetUtil.UTF_8));
+        } else if (frame instanceof PongWebSocketFrame) {
+            logger.logInfo("WebSocket Client received pong");
+        } else if (frame instanceof CloseWebSocketFrame) {
+            logger.logInfo("WebSocket Client received closing");
+            ch.close();
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        logger.logError("WebSocket Client exception caught " + cause);
+        cause.printStackTrace();
+        if (!handshakeFuture.isDone()) {
+            handshakeFuture.setFailure(cause);
+        }
+        ctx.close();
+    }
+}

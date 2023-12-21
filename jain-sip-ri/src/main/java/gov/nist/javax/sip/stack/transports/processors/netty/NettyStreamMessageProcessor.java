@@ -82,28 +82,29 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
      */
     protected NettyStreamMessageProcessor(InetAddress ipAddress,
             SIPTransactionStack sipStack, int port, String transport) throws IOException {
-                super(ipAddress, port, transport, sipStack);                
-                this.messageChannels = new ConcurrentHashMap <String, NettyStreamMessageChannel>();                
-                this.bossGroup = new NioEventLoopGroup(1); 
-                this.workerGroup = new NioEventLoopGroup(sipStack.getThreadPoolSize());
-                if(transport.equals(ListeningPoint.TLS)) {
-                    SecurityManagerProvider securityManagerProvider = sipStack.getSecurityManagerProvider();
-                    if(sipStack.getClientAuth() == ClientAuthType.DisabledAll) {
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                            logger.logDebug(
-                                    "ClientAuth " + sipStack.getClientAuth()  +  " bypassing all cert validations");
-                        }                        
-                        this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]).trustManager(trustAllCerts[0]).build();
-                        this.sslClientContext = SslContextBuilder.forClient().keyManager(securityManagerProvider.getKeyManagers(true)[0]).trustManager(trustAllCerts[0]).build();                        
-                    } else {
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                            logger.logDebug(
-                                    "ClientAuth " + sipStack.getClientAuth());
-                        }
-                        this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]).trustManager(securityManagerProvider.getTrustManagers(false)[0]).build();
-                        this.sslClientContext = SslContextBuilder.forClient().keyManager(securityManagerProvider.getKeyManagers(true)[0]).trustManager(securityManagerProvider.getTrustManagers(true)[0]).build();                                                
-                    }
+
+        super(ipAddress, port, transport, sipStack);                
+        this.messageChannels = new ConcurrentHashMap <String, NettyStreamMessageChannel>();                
+        this.bossGroup = new NioEventLoopGroup(1); 
+        this.workerGroup = new NioEventLoopGroup(sipStack.getThreadPoolSize());
+        if(transport.equals(ListeningPoint.TLS)) {
+            SecurityManagerProvider securityManagerProvider = sipStack.getSecurityManagerProvider();
+            if(sipStack.getClientAuth() == ClientAuthType.DisabledAll) {
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug(
+                            "ClientAuth " + sipStack.getClientAuth()  +  " bypassing all cert validations");
+                }                        
+                this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]).trustManager(trustAllCerts[0]).build();
+                this.sslClientContext = SslContextBuilder.forClient().keyManager(securityManagerProvider.getKeyManagers(true)[0]).trustManager(trustAllCerts[0]).build();                        
+            } else {
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug(
+                            "ClientAuth " + sipStack.getClientAuth());
                 }
+                this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]).trustManager(securityManagerProvider.getTrustManagers(false)[0]).build();
+                this.sslClientContext = SslContextBuilder.forClient().keyManager(securityManagerProvider.getKeyManagers(true)[0]).trustManager(securityManagerProvider.getTrustManagers(true)[0]).build();                                                
+            }
+        }
     }
 
     /**
@@ -212,12 +213,16 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
             // However, please note that this is a tedious process, we do not need to do that for now.
             // TODO: May be revisited later for performance/optimizations reasons            
             ServerBootstrap server = new ServerBootstrap(); ; 
-            server.group(bossGroup, workerGroup)
+            server = server.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class) 
-             .handler(new LoggingHandler(LogLevel.INFO))
-             .childHandler(new NettyStreamChannelInitializer(this, sslServerContext))
+             .handler(new LoggingHandler(LogLevel.DEBUG));
+            if(transport.equals(ListeningPoint.TLS) || transport.equals(ListeningPoint.TCP)) {
+                server = server.childHandler(new NettyStreamChannelInitializer(this, sslServerContext));
+            } else {
+                server = server.childHandler(new NettyWebsocketsChannelInitializer(this, sslServerContext));
+            }
              // TODO Add Option based on sip stack config
-             .option(ChannelOption.SO_BACKLOG, 128) // for the NioServerSocketChannel that accepts incoming connections.
+             server.option(ChannelOption.SO_BACKLOG, 128) // for the NioServerSocketChannel that accepts incoming connections.
              .childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
             
             // Bind and start to accept incoming connections.

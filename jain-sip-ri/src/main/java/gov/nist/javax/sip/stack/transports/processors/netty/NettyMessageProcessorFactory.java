@@ -28,8 +28,6 @@ import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessorFactory;
-import gov.nist.javax.sip.stack.transports.processors.nio.NioTlsWebSocketMessageProcessor;
-import gov.nist.javax.sip.stack.transports.processors.nio.NioWebSocketMessageProcessor;
 
 /**
  * Netty Based Message Processor Factory extending the default
@@ -87,13 +85,13 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                 } else if (transport.equalsIgnoreCase(ListeningPointExt.WS)) {
                         if ("true".equals(((SipStackImpl) sipStack).getConfigurationProperties()
                                         .getProperty("gov.nist.javax.sip.USE_TLS_GATEWAY"))) {
-                                MessageProcessor mp = new NioTlsWebSocketMessageProcessor(
-                                                ipAddress, sipStack, port);
+                                MessageProcessor mp = new NettyStreamMessageProcessor(
+                                                ipAddress, sipStack, port, ListeningPointExt.WSS);
                                 // mp.setTransport = "WS";
                                 return mp;
                         } else {
-                                MessageProcessor mp = new NioWebSocketMessageProcessor(
-                                                ipAddress, sipStack, port);
+                                MessageProcessor mp = new NettyStreamMessageProcessor(
+                                                ipAddress, sipStack, port, ListeningPointExt.WS);
                                 // mp.transport = "WS";
                                 return mp;
                         }
@@ -102,13 +100,13 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
 
                         if ("true".equals(((SipStackImpl) sipStack).getConfigurationProperties()
                                         .getProperty("gov.nist.javax.sip.USE_TLS_GATEWAY"))) {
-                                MessageProcessor mp = new NioWebSocketMessageProcessor(
-                                                ipAddress, sipStack, port);
+                                MessageProcessor mp = new NettyStreamMessageProcessor(
+                                                ipAddress, sipStack, port, ListeningPointExt.WSS);
                                 // mp.transport = "WSS";
                                 return mp;
                         } else {
-                                MessageProcessor mp = new NioTlsWebSocketMessageProcessor(
-                                                ipAddress, sipStack, port);
+                                MessageProcessor mp = new NettyStreamMessageProcessor(
+                                                ipAddress, sipStack, port, ListeningPointExt.WS);
                                 // mp.transport = "WSS";
                                 return mp;
                         }
