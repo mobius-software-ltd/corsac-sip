@@ -6,25 +6,22 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameDecoder;
+import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
 import io.netty.handler.codec.http.websocketx.WebSocketDecoderConfig;
-import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.ssl.SslContext;
 
 public class NettyWebsocketsChannelInitializer extends ChannelInitializer<SocketChannel> {
-    private static final String SUBPROTOCOL = null;
+    // private static final String SUBPROTOCOL = null;
     
     private NettyStreamMessageProcessor nettyMessageProcessor;
-    // private SIPTransactionStack sipStack;
     private final SslContext sslCtx;
-    private final String websocketPath;
+    // private final String websocketPath;
 
     public NettyWebsocketsChannelInitializer(
             NettyStreamMessageProcessor nettyMessageProcessor, 
             SslContext sslCtx) {
         this.nettyMessageProcessor = nettyMessageProcessor; 
-        // sipStack = nettyMessageProcessor.getSIPStack();
-        // websocketPath = nettyMessageProcessor.getTransport() + "://" + nettyMessageProcessor.getIpAddress().getHostAddress() + "/websocket";
-        websocketPath = "/websocket";
+        // websocketPath = "/websocket";
         this.sslCtx = sslCtx;
     }
 
@@ -41,15 +38,11 @@ public class NettyWebsocketsChannelInitializer extends ChannelInitializer<Socket
 						.allowExtensions(true)
 						.build();
         pipeline.addLast(new WebSocket13FrameDecoder(decoderConfig));
+        // pipeline.addLast(new WebSocket13FrameEncoder(false));
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(65536));
-        // pipeline.addLast("ws-server-encoder", new WebSocket13FrameEncoder(false));
-        
-        // pipeline.addLast(new WebSocketIndexPageHandler(WEBSOCKET_PATH));
         // pipeline.addLast(new WebSocketServerCompressionHandler());
-        // Encoder
-        // pipeline.addLast("bytesEncoder", new ByteArrayEncoder());                
-        pipeline.addLast(new WebSocketServerProtocolHandler(websocketPath, SUBPROTOCOL, true));
+        // pipeline.addLast(new WebSocketServerProtocolHandler(websocketPath, SUBPROTOCOL, true));
         pipeline.addLast(new WebSocketFrameHandler(nettyMessageProcessor));        
     }
 }
