@@ -79,7 +79,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocket13FrameDecoder;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
 import io.netty.handler.codec.http.websocketx.WebSocketDecoderConfig;
 import io.netty.handler.logging.LogLevel;
@@ -184,7 +183,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress(),
 							((InetSocketAddress) channel.remoteAddress()).getPort()));
                      }
-					 p.addLast(new WebSocket13FrameDecoder(decoderConfig));
+					 p.addLast(new NettyWebSocketFrameDecoder(nettyStreamMessageProcessor, decoderConfig));
 					 // Encoder
 					 p.addLast(new WebSocket13FrameEncoder(false));
                     //  p.addLast(
@@ -192,7 +191,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
                     //          new HttpObjectAggregator(65536),
 					// 		//  WebSocketClientCompressionHandler.INSTANCE,
                     //          handler);
-					p.addLast(new WebSocketFrameHandler(nettyStreamMessageProcessor));
+					p.addLast(new NettyMessageHandler(nettyStreamMessageProcessor));
                  }
              });
 			}
@@ -277,7 +276,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							inetAddress.getHostAddress(),
 							port));
                      }
-					 p.addLast(new WebSocket13FrameDecoder(decoderConfig));
+					 p.addLast(new NettyWebSocketFrameDecoder(nettyStreamMessageProcessor, decoderConfig));
 					// Encoder
 					 p.addLast(new WebSocket13FrameEncoder(false));
                     //  p.addLast(
@@ -285,7 +284,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
                     //          new HttpObjectAggregator(65536),
 					// 		//  WebSocketClientCompressionHandler.INSTANCE,
                     //          handler);		
-					 p.addLast(new WebSocketFrameHandler(nettyStreamMessageProcessor));
+					 p.addLast(new NettyMessageHandler(nettyStreamMessageProcessor));
 					 
                  }
              });
