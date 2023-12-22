@@ -79,7 +79,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocket13FrameDecoder;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
+import io.netty.handler.codec.http.websocketx.WebSocketDecoderConfig;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
@@ -151,12 +153,12 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				String uri = getTransport().toLowerCase() + "://" + channel.remoteAddress() + "/websocket";
 				logger.logInfo("websocket URI: " + uri);
 				
-				// WebSocketDecoderConfig decoderConfig =
-				// 	WebSocketDecoderConfig.newBuilder()
-				// 		.expectMaskedFrames(false)
-				// 		.allowMaskMismatch(true)
-				// 		.allowExtensions(true)
-				// 		.build();
+				WebSocketDecoderConfig decoderConfig =
+					WebSocketDecoderConfig.newBuilder()
+						.expectMaskedFrames(false)
+						.allowMaskMismatch(true)
+						.allowExtensions(true)
+						.build();
 
 				// final WebSocketClientHandler handler =
                 //     new WebSocketClientHandler(
@@ -181,6 +183,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress(),
 							((InetSocketAddress) channel.remoteAddress()).getPort()));
                      }
+					 p.addLast(new WebSocket13FrameDecoder(decoderConfig));
 					 // Encoder
 					 p.addLast(new WebSocket13FrameEncoder(false));
                     //  p.addLast(
@@ -188,6 +191,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
                     //          new HttpObjectAggregator(65536),
 					// 		//  WebSocketClientCompressionHandler.INSTANCE,
                     //          handler);
+					p.addLast(new WebSocketFrameHandler(nettyStreamMessageProcessor));
                  }
              });
 			}
@@ -241,12 +245,12 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				String uri = getTransport().toLowerCase() + "://" + inetAddress.getHostAddress() + ":" + port + "/websocket";
 				logger.logInfo("websocket URI: " + uri);
 
-				// WebSocketDecoderConfig decoderConfig =
-				// 	WebSocketDecoderConfig.newBuilder()
-				// 		.expectMaskedFrames(false)
-				// 		.allowMaskMismatch(true)
-				// 		.allowExtensions(true)
-				// 		.build();
+				WebSocketDecoderConfig decoderConfig =
+					WebSocketDecoderConfig.newBuilder()
+						.expectMaskedFrames(false)
+						.allowMaskMismatch(true)
+						.allowExtensions(true)
+						.build();
 
 				// final WebSocketClientHandler handler =
                 //     new WebSocketClientHandler(
@@ -271,13 +275,15 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							inetAddress.getHostAddress(),
 							port));
                      }
+					 p.addLast(new WebSocket13FrameDecoder(decoderConfig));
 					// Encoder
 					 p.addLast(new WebSocket13FrameEncoder(false));
                     //  p.addLast(
                     //          new HttpClientCodec(),
                     //          new HttpObjectAggregator(65536),
 					// 		//  WebSocketClientCompressionHandler.INSTANCE,
-                    //          handler);					 
+                    //          handler);		
+					 p.addLast(new WebSocketFrameHandler(nettyStreamMessageProcessor));
 					 
                  }
              });
@@ -474,7 +480,9 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 						} else {
 							current.triggerConnectFailure();                                           
 						}							
-					} 
+					} else {
+						logger.logDebug(channel.pipeline().toString());
+					}
 					// else {
 					// 	finalFuture.channel().close();
 					// }							
