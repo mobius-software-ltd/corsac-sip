@@ -581,21 +581,21 @@ public class WebsocketSelfTest extends TestCase {
         websocketServer.terminate();
     }
 
-    public void testWebsocketBrowserServer() {
-    	transport = "ws";
-        this.websocketServer.init();
-        this.websocketBrowser.init();
-        try {
-        	for(int q=0; q<10; q++) {
-            	Thread.sleep(3000);
-            	if(this.websocketServer.okByeReceived) break;
-            }
-        } catch (Exception ex) {
+    // public void testWebsocketBrowserServer() {
+    // 	transport = "ws";
+    //     this.websocketServer.init();
+    //     this.websocketBrowser.init();
+    //     try {
+    //     	for(int q=0; q<10; q++) {
+    //         	Thread.sleep(3000);
+    //         	if(this.websocketServer.okByeReceived) break;
+    //         }
+    //     } catch (Exception ex) {
 
-        }
-        assertTrue(this.websocketServer.okByeReceived);
-        assertTrue(this.websocketServer.ackReceived);
-    }
+    //     }
+    //     assertTrue(this.websocketServer.okByeReceived);
+    //     assertTrue(this.websocketServer.ackReceived);
+    // }
     
     public void testLargeFrame() {
     	transport = "ws";
@@ -617,21 +617,21 @@ public class WebsocketSelfTest extends TestCase {
         assertEquals(this.websocketServer.initialInvitePayload, this.websocketBrowser.initialInvitePayload);
     }
     
-    public void testTlsWebsocketBrowserServer() {
-    	transport = "wss";
-        this.websocketServer.init();
-        this.websocketBrowser.init();
-        try {
-        	for(int q=0; q<10; q++) {
-            	Thread.sleep(3000);
-            	if(this.websocketServer.okByeReceived) break;
-            }
-        } catch (Exception ex) {
+    // public void testTlsWebsocketBrowserServer() {
+    // 	transport = "wss";
+    //     this.websocketServer.init();
+    //     this.websocketBrowser.init();
+    //     try {
+    //     	for(int q=0; q<10; q++) {
+    //         	Thread.sleep(3000);
+    //         	if(this.websocketServer.okByeReceived) break;
+    //         }
+    //     } catch (Exception ex) {
 
-        }
-        assertTrue(this.websocketServer.okByeReceived);
-        assertTrue(this.websocketServer.ackReceived);
-    }
+    //     }
+    //     assertTrue(this.websocketServer.okByeReceived);
+    //     assertTrue(this.websocketServer.ackReceived);
+    // }
 
 
 

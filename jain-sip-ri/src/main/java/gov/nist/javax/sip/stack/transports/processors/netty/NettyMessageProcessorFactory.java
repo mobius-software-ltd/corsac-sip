@@ -96,7 +96,7 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                                 return mp;
                         }
 
-                } else if (transport.equalsIgnoreCase("WSS")) {
+                } else if (transport.equalsIgnoreCase(ListeningPointExt.WSS)) {
 
                         if ("true".equals(((SipStackImpl) sipStack).getConfigurationProperties()
                                         .getProperty("gov.nist.javax.sip.USE_TLS_GATEWAY"))) {
@@ -106,7 +106,7 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                                 return mp;
                         } else {
                                 MessageProcessor mp = new NettyStreamMessageProcessor(
-                                                ipAddress, sipStack, port, ListeningPointExt.WS);
+                                                ipAddress, sipStack, port, ListeningPointExt.WSS);
                                 // mp.transport = "WSS";
                                 return mp;
                         }
