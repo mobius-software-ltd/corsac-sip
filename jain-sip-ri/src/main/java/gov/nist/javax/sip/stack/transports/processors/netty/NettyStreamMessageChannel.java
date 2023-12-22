@@ -158,6 +158,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 						.expectMaskedFrames(false)
 						.allowMaskMismatch(true)
 						.allowExtensions(true)
+						.maxFramePayloadLength(1048576)
 						.build();
 
 				// final WebSocketClientHandler handler =
@@ -250,6 +251,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 						.expectMaskedFrames(false)
 						.allowMaskMismatch(true)
 						.allowExtensions(true)
+						.maxFramePayloadLength(1048576)
 						.build();
 
 				// final WebSocketClientHandler handler =

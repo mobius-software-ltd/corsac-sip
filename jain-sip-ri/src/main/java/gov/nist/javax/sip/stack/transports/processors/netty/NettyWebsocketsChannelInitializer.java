@@ -34,6 +34,7 @@ public class NettyWebsocketsChannelInitializer extends ChannelInitializer<Socket
 						.expectMaskedFrames(false)
 						.allowMaskMismatch(true)
 						.allowExtensions(true)
+                        .maxFramePayloadLength(1048576)
 						.build();
         pipeline.addLast(new WebSocket13FrameDecoder(decoderConfig));
         pipeline.addLast(new WebSocket13FrameEncoder(false));
