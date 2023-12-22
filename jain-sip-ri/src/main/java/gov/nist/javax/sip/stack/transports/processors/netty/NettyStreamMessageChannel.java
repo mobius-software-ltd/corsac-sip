@@ -189,9 +189,9 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress(),
 							((InetSocketAddress) channel.remoteAddress()).getPort()));
                      }
-                     // Encoder
+					 // Encoder
 					 p.addLast("ws-client-encoder", new WebSocket13FrameEncoder(false));
-					 p.addLast(
+                     p.addLast(
                              new HttpClientCodec(),
                              new HttpObjectAggregator(65536),
 							//  WebSocketClientCompressionHandler.INSTANCE,
@@ -279,12 +279,14 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							inetAddress.getHostAddress(),
 							port));
                      }
-					 p.addLast("ws-client-encoder", new WebSocket13FrameEncoder(false));
+					// Encoder
+					 p.addLast(new WebSocket13FrameEncoder(false));
                      p.addLast(
                              new HttpClientCodec(),
                              new HttpObjectAggregator(65536),
 							//  WebSocketClientCompressionHandler.INSTANCE,
-                             handler);
+                             handler);					 
+					 
                  }
              });
 			}
@@ -463,6 +465,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				future = channel.writeAndFlush(message);
 			} else {
 				future = channel.writeAndFlush(new TextWebSocketFrame(message));
+				// channel.pipeline().replace(HttpRequestEncoder.class, "ws-encoder", new WebSocket13FrameEncoder(false));
 			}
 			final ChannelFuture finalFuture = future;
 			final NettyStreamMessageChannel current = this;
