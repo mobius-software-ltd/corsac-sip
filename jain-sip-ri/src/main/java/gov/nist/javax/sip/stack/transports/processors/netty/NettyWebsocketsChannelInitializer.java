@@ -5,6 +5,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.ssl.SslContext;
 
@@ -34,8 +35,18 @@ public class NettyWebsocketsChannelInitializer extends ChannelInitializer<Socket
         }
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(65536));
+        pipeline.addLast("ws-server-encoder", new WebSocket13FrameEncoder(false));
+        // WebSocketDecoderConfig decoderConfig =
+		// 			WebSocketDecoderConfig.newBuilder()
+		// 				.expectMaskedFrames(false)
+		// 				.allowMaskMismatch(true)
+		// 				.allowExtensions(true)
+		// 				.build();
+        // pipeline.addLast("ws-server-decoder", new WebSocket13FrameDecoder(decoderConfig));
         // pipeline.addLast(new WebSocketIndexPageHandler(WEBSOCKET_PATH));
         // pipeline.addLast(new WebSocketServerCompressionHandler());
+        // Encoder
+        // pipeline.addLast("bytesEncoder", new ByteArrayEncoder());
         pipeline.addLast(new WebSocketServerProtocolHandler(websocketPath, SUBPROTOCOL, true));
         pipeline.addLast(new WebSocketFrameHandler(nettyMessageProcessor));
     }

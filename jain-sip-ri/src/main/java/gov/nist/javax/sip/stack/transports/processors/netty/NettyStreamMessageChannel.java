@@ -83,6 +83,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketDecoderConfig;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
@@ -132,6 +134,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	// Added for https://java.net/jira/browse/JSIP-483
 	protected HandshakeCompletedListenerImpl handshakeCompletedListener;
 	protected boolean handshakeCompleted = false;
+	private boolean isWebsocket;
 
 	protected NettyStreamMessageChannel(NettyStreamMessageProcessor nettyStreamMessageProcessor,
 			Channel channel) {
@@ -139,17 +142,20 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			this.channel = channel;
 			this.messageProcessor = nettyStreamMessageProcessor;
 			this.sipStack = nettyStreamMessageProcessor.getSIPStack();
+			isWebsocket = ListeningPointExt.WS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport()) ||
+				ListeningPointExt.WSS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport());
+
 			bootstrap = new Bootstrap();
 			EventLoopGroup group = new NioEventLoopGroup();
 			bootstrap = bootstrap.group(group)
 				.channel(NioSocketChannel.class);
-			if(getTransport().equalsIgnoreCase(ListeningPoint.TLS) || getTransport().equalsIgnoreCase(ListeningPoint.TCP)) {
+			if(!isWebsocket) {
 				nettyChannelInitializer = new NettyStreamChannelInitializer(nettyStreamMessageProcessor,
 								nettyStreamMessageProcessor.sslClientContext);
 				bootstrap.handler(nettyChannelInitializer)
 					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.sipStack.getConnectionTimeout())
 					.option(ChannelOption.SO_KEEPALIVE, true);			
-			} else if (getTransport().equalsIgnoreCase(ListeningPointExt.WSS) || getTransport().equalsIgnoreCase(ListeningPointExt.WS)) {
+			} else if (isWebsocket) {
 				String uri = getTransport().toLowerCase() + "://" + channel.remoteAddress() + "/websocket";
 				logger.logInfo("websocket URI: " + uri);
 				
@@ -183,7 +189,9 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress(),
 							((InetSocketAddress) channel.remoteAddress()).getPort()));
                      }
-                     p.addLast(
+                     // Encoder
+					 p.addLast("ws-client-encoder", new WebSocket13FrameEncoder(false));
+					 p.addLast(
                              new HttpClientCodec(),
                              new HttpObjectAggregator(65536),
 							//  WebSocketClientCompressionHandler.INSTANCE,
@@ -224,17 +232,20 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		try {
 			this.sipStack = sipStack;
 			messageProcessor = nettyStreamMessageProcessor;
+			isWebsocket = ListeningPointExt.WS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport()) ||
+				ListeningPointExt.WSS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport());
+
 			bootstrap = new Bootstrap();
 			bootstrap.group(nettyStreamMessageProcessor.workerGroup)
 					.channel(NioSocketChannel.class);
-			if(getTransport().equalsIgnoreCase(ListeningPoint.TLS) || getTransport().equalsIgnoreCase(ListeningPoint.TCP)) {
+			if(!isWebsocket) {
 				nettyChannelInitializer = new NettyStreamChannelInitializer(nettyStreamMessageProcessor,
 							nettyStreamMessageProcessor.sslClientContext);
 			
 				bootstrap = bootstrap.handler(nettyChannelInitializer)
 					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.sipStack.getConnectionTimeout())
 					.option(ChannelOption.SO_KEEPALIVE, true);			
-			} else if (getTransport().equalsIgnoreCase(ListeningPointExt.WSS) || getTransport().equalsIgnoreCase(ListeningPointExt.WS)) {
+			} else if (isWebsocket) {
 				String uri = getTransport().toLowerCase() + "://" + inetAddress.getHostAddress() + ":" + port + "/websocket";
 				logger.logInfo("websocket URI: " + uri);
 
@@ -268,6 +279,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							inetAddress.getHostAddress(),
 							port));
                      }
+					 p.addLast("ws-client-encoder", new WebSocket13FrameEncoder(false));
                      p.addLast(
                              new HttpClientCodec(),
                              new HttpObjectAggregator(65536),
@@ -446,13 +458,20 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		// 		throw new IOException(e);
 		// 	}
 		// } else {			
-			ChannelFuture future = channel.writeAndFlush(message);
+			ChannelFuture future = null;
+			if (!isWebsocket) {
+				future = channel.writeAndFlush(message);
+			} else {
+				future = channel.writeAndFlush(new TextWebSocketFrame(message));
+			}
+			final ChannelFuture finalFuture = future;
 			final NettyStreamMessageChannel current = this;
 			future.addListener(new ChannelFutureListener() {
 				@Override
 				public void operationComplete(ChannelFuture completeFuture) {
-					assert future == completeFuture;
-					if (!future.isSuccess()) {
+					assert finalFuture == completeFuture;
+					if (!finalFuture.isSuccess()) {
+						finalFuture.cause().printStackTrace();
 						if(sipStack.getMessageProcessorExecutor() != null) {
 							sipStack.getMessageProcessorExecutor().addTaskLast(
 								new NettyConnectionFailureThread(current) 
