@@ -105,6 +105,15 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
                 logger.logDebug("No SIPMessage decoded ! ");
             }
-        }    
+        } else {
+            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+                logger.logDebug("done reading ! ");
+            }
+        }   
     }
+
+    public void exceptionCaught(ChannelHandlerContext channelhandlercontext, Throwable throwable) throws Exception { 
+        throwable.printStackTrace();
+    }
+
 }

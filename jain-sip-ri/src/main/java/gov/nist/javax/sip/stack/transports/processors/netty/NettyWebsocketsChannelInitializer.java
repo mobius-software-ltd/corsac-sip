@@ -6,6 +6,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameDecoder;
+import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
 import io.netty.handler.codec.http.websocketx.WebSocketDecoderConfig;
 import io.netty.handler.ssl.SslContext;
 
@@ -37,7 +38,7 @@ public class NettyWebsocketsChannelInitializer extends ChannelInitializer<Socket
 						.allowExtensions(true)
 						.build();
         pipeline.addLast(new WebSocket13FrameDecoder(decoderConfig));
-        // pipeline.addLast(new WebSocket13FrameEncoder(false));
+        pipeline.addLast(new WebSocket13FrameEncoder(false));
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(65536));
         // pipeline.addLast(new WebSocketServerCompressionHandler());
