@@ -61,10 +61,10 @@ public class NettyConnectionListener implements ChannelFutureListener {
         if (!channelFuture.isSuccess()) {																 
             if(sipStack != null && sipStack.getMessageProcessorExecutor() != null) {
                 sipStack.getMessageProcessorExecutor().addTaskLast(
-                    new NettyConnectionFailureThread(messageChannel) 
+                    new NettyConnectionFailureThread(messageChannel, channelFuture) 
                 );
             } else {
-                messageChannel.triggerConnectFailure();                                           
+                messageChannel.triggerConnectFailure(channelFuture);                                           
             }
             return;
         } else {

@@ -46,6 +46,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.SctpChannelOption;
+import io.netty.channel.sctp.nio.NioSctpServerChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -122,7 +123,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
      * @throws IOException 
      * @throws InterruptedException
      */
-    private MessageChannel createMessageChannel(String key, InetAddress targetHost, int port)  throws IOException {
+    private MessageChannel createMessageChannel(String key, InetAddress targetHost, int port) {
         NettyStreamMessageChannel retval = messageChannels.get(key);        
         //once locked, we need to check condition again
         if( retval == null ) {
@@ -204,8 +205,8 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
 	return retval;
     }
 
-    NettyStreamMessageChannel constructMessageChannel (InetAddress targetHost, int port) throws IOException {
-        return new NettyStreamMessageChannel(targetHost, port, sipStack, this);        
+    NettyStreamMessageChannel constructMessageChannel (InetAddress targetHost, int port) {
+        return new NettyStreamMessageChannel(targetHost, port, this);        
     }
 
     @Override
@@ -213,13 +214,18 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
         try {
             ServerBootstrap server = new ServerBootstrap(); ; 
             server = server.group(bossGroup, workerGroup)
-             .channel(NioServerSocketChannel.class) 
-             .handler(new LoggingHandler(LogLevel.DEBUG));
+                .handler(new LoggingHandler(LogLevel.DEBUG));
             if(transport.equals(ListeningPoint.TLS) || transport.equals(ListeningPoint.TCP)) {
-                server = server.childHandler(new NettyStreamChannelInitializer(this, sslServerContext));
+                server = server.channel(NioServerSocketChannel.class); 
+                server = server.childHandler(new NettyStreamChannelInitializer(this, sslServerContext));                
+                server = server.childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
             } else if(transport.equals(ListeningPointExt.WS) || transport.equals(ListeningPointExt.WSS)) {
+                server = server.channel(NioServerSocketChannel.class); 
                 server = server.childHandler(new NettyWebsocketsChannelInitializer(this, sslServerContext));
+                server = server.option(ChannelOption.SO_BACKLOG, 128); // for the NioServerSocketChannel that accepts incoming connections.
+                server = server.childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
             } else if(transport.equals(ListeningPoint.SCTP)) {
+                server = server.channel(NioSctpServerChannel.class); 
                 server = server.childHandler(new NettySctpChannelInitializer(this));
                 server.childOption(SctpChannelOption.SCTP_NODELAY, sipStack.getSctpNodelay());
                 server.childOption(SctpChannelOption.SCTP_DISABLE_FRAGMENTS, sipStack.getSctpDisableFragments());
@@ -228,10 +234,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
                 server.childOption(SctpChannelOption.SO_SNDBUF, sipStack.getSctpSoSndbuf());
                 server.childOption(SctpChannelOption.SO_RCVBUF, sipStack.getSctpSoRcvbuf());
                 server.childOption(SctpChannelOption.SO_LINGER, sipStack.getSctpSoLinger());
-            }
-             // TODO Add Option based on sip stack config
-             server.option(ChannelOption.SO_BACKLOG, 128) // for the NioServerSocketChannel that accepts incoming connections.
-             .childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
+            }                         
             
             // Bind and start to accept incoming connections.
             channel = server.bind(port).await().channel();                   

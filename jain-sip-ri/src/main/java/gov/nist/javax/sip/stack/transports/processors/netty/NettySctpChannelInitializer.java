@@ -21,15 +21,16 @@ package gov.nist.javax.sip.stack.transports.processors.netty;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.sctp.nio.NioSctpChannel;
 import io.netty.handler.codec.bytes.ByteArrayEncoder;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 
 /**
  *  Netty Stream Based Transport Protocol Initializer for SIP Message
  * 
  * @author Jean Deruelle
  */
-public class NettySctpChannelInitializer extends ChannelInitializer<SocketChannel> {
+public class NettySctpChannelInitializer extends ChannelInitializer<NioSctpChannel> {
 
     private NettyMessageProcessor nettyMessageProcessor;
     private SIPTransactionStack sipStack;
@@ -41,12 +42,17 @@ public class NettySctpChannelInitializer extends ChannelInitializer<SocketChanne
     }
 
     @Override
-    public void initChannel(SocketChannel ch) throws Exception {        
+    public void initChannel(NioSctpChannel ch) throws Exception {        
         ChannelPipeline pipeline = ch.pipeline();
-                
+               
+        // Add support for socket timeout
+        if (sipStack.nioSocketMaxIdleTime > 0) {
+            pipeline.addLast("readTimeoutHandler", new ReadTimeoutHandler((int) sipStack.nioSocketMaxIdleTime / 1000));
+        }
+        
         // Decoders
         pipeline.addLast("NettySIPMessageDecoder",
-                        new NettyStreamMessageDecoder(sipStack));
+                        new NettySctpMessageDecoder(sipStack));
 
         // Encoder
         pipeline.addLast("bytesEncoder", new ByteArrayEncoder());

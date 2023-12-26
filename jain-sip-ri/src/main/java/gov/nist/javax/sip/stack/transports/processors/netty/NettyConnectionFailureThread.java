@@ -19,6 +19,7 @@
 package gov.nist.javax.sip.stack.transports.processors.netty;
 
 import gov.nist.core.executor.SIPTask;
+import io.netty.channel.ChannelFuture;
 
 /**
  * Thread that triggers the connection failure event on the message channel 
@@ -27,16 +28,18 @@ import gov.nist.core.executor.SIPTask;
  */
 public class NettyConnectionFailureThread implements SIPTask {
 	NettyStreamMessageChannel messageChannel;
+	ChannelFuture channelFuture;
 	long startTime;
 
-	public NettyConnectionFailureThread(NettyStreamMessageChannel messageChannel) {
+	public NettyConnectionFailureThread(NettyStreamMessageChannel messageChannel, ChannelFuture channelFuture) {
 		this.messageChannel = messageChannel;
+		this.channelFuture = channelFuture;
 		startTime = System.currentTimeMillis();
 	}
 
 	@Override
 	public void execute() {
-		messageChannel.triggerConnectFailure();
+		messageChannel.triggerConnectFailure(channelFuture);
 	}
 
 	@Override
