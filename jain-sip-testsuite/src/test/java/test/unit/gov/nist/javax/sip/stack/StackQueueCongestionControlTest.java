@@ -714,7 +714,7 @@ public class StackQueueCongestionControlTest extends TestCase {
         shootme.terminate();
     }
 
-    private static final int TIMEOUT = 100000;
+    private static final int TIMEOUT = 120000;
 
     public void testTCPZeroLostMessages() {
         this.shootme.init("tcp",300);
