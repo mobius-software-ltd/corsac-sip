@@ -62,7 +62,6 @@ import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.core.ThreadAuditor;
-import gov.nist.core.executor.IncomingMessageProcessingTask;
 import gov.nist.core.executor.MessageProcessorExecutor;
 import gov.nist.core.net.AddressResolver;
 import gov.nist.core.net.DefaultNetworkLayer;
@@ -93,6 +92,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessorFactory;
 import gov.nist.javax.sip.stack.transports.processors.RawMessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.netty.IncomingMessageProcessingTask;
 import gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
 import gov.nist.javax.sip.stack.transports.processors.nio.NioTcpMessageProcessor;
@@ -466,6 +466,42 @@ public abstract class SIPTransactionStack implements
     private long sslHandshakeTimeout = -1;
     
     private boolean sslRenegotiationEnabled = false;
+
+    // SctpStandardSocketOptions
+
+    // SCTP option: Enables or disables message fragmentation.
+    // If enabled no SCTP message fragmentation will be performed.
+    // Instead if a message being sent exceeds the current PMTU size,
+    // the message will NOT be sent and an error will be indicated to the user.
+    protected Boolean sctpDisableFragments = null;
+    // SCTP option: Fragmented interleave controls how the presentation of messages occur for the message receiver.
+    // There are three levels of fragment interleave defined
+    // level 0 - Prevents the interleaving of any messages
+    // level 1 - Allows interleaving of messages that are from different associations
+    // level 2 - Allows complete interleaving of messages.
+    protected Integer sctpFragmentInterleave = null;
+    // SCTP option: The maximum number of streams requested by the local endpoint during association initialization
+    // For an SctpServerChannel this option determines the maximum number of inbound/outbound streams
+    // accepted sockets will negotiate with their connecting peer.
+    // protected Integer sctpInitMaxStreams = null;
+    // SCTP option: Enables or disables a Nagle-like algorithm.
+    // The value of this socket option is a Boolean that represents whether the option is enabled or disabled.
+    // SCTP uses an algorithm like The Nagle Algorithm to coalesce short segments and improve network efficiency.
+    protected Boolean sctpNoDelay = true;
+    // SCTP option: The size of the socket send buffer.
+    protected Integer sctpSoSndbuf = null;
+    // SCTP option: The size of the socket receive buffer.
+    protected Integer sctpSoRcvbuf = null;
+    // SCTP option: Linger on close if data is present.
+    // The value of this socket option is an Integer that controls the action taken when unsent data is queued on the socket
+    // and a method to close the socket is invoked.
+    // If the value of the socket option is zero or greater, then it represents a timeout value, in seconds, known as the linger interval.
+    // The linger interval is the timeout for the close method to block while the operating system attempts to transmit the unsent data
+    // or it decides that it is unable to transmit the data.
+    // If the value of the socket option is less than zero then the option is disabled.
+    // In that case the close method does not wait until unsent data is transmitted;
+    // if possible the operating system will transmit any unsent data before the connection is closed. 
+    protected Integer sctpSoLinger = null;
 
     protected boolean computeContentLengthFromMessage = false;
 
@@ -3559,5 +3595,33 @@ public abstract class SIPTransactionStack implements
 
     public SecurityManagerProvider getSecurityManagerProvider() {
         return securityManagerProvider;
+    }
+
+    public Boolean getSctpDisableFragments() {
+        return sctpDisableFragments;
+    }
+
+    public Integer getSctpFragmentInterleave() {
+        return sctpFragmentInterleave;
+    }
+
+    // public Integer getSctpInitMaxStreams() {
+    //     return sctpInitMaxStreams;
+    // }
+    
+    public Boolean getSctpNodelay() {
+        return sctpNoDelay;
+    }
+
+    public Integer getSctpSoSndbuf() {
+        return sctpSoSndbuf;
+    }
+
+    public Integer getSctpSoRcvbuf() {
+        return sctpSoRcvbuf;
+    }
+
+    public Integer getSctpSoLinger() {
+        return sctpSoLinger;
     }
 }

@@ -26,7 +26,6 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.IncomingMessageProcessingTask;
 import gov.nist.javax.sip.ListeningPointExt;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
@@ -56,7 +55,8 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         this.reliableTransport = transport.equalsIgnoreCase(ListeningPoint.TCP) ||
                 transport.equalsIgnoreCase(ListeningPoint.TLS) ||
                 transport.equalsIgnoreCase(ListeningPointExt.WS) ||
-                transport.equalsIgnoreCase(ListeningPointExt.WSS);
+                transport.equalsIgnoreCase(ListeningPointExt.WSS) ||
+                transport.equalsIgnoreCase(ListeningPoint.SCTP);
     }   
 
     @Override

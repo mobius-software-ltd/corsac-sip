@@ -1606,6 +1606,58 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 
 		setSslRenegotiationEnabled(sslRenegotiationEnabled);
 
+		String sctpReceiveBufferSize = configurationProperties.getProperty(
+				"gov.nist.javax.sip.SCTP_RECEIVE_BUFFER_SIZE", null);
+		if(sctpReceiveBufferSize != null) {
+			int recveiveBufferSizeInteger = new Integer(sctpReceiveBufferSize).intValue();
+			sctpSoRcvbuf = recveiveBufferSizeInteger;
+		}
+
+		String sctpSendBufferSize = configurationProperties.getProperty(
+				"gov.nist.javax.sip.SCTP_SEND_BUFFER_SIZE", null);
+		if(sctpSendBufferSize != null) {
+			int sendBufferSizeInteger = new Integer(sctpSendBufferSize).intValue();
+			sctpSoSndbuf = sendBufferSizeInteger;
+		}
+
+		String sctpSoLingerString = configurationProperties.getProperty(
+				"gov.nist.javax.sip.SCTP_SO_LINGER", null);
+		if(sctpSoLingerString != null) {
+			int sctpSoLingerInteger = new Integer(sctpSoLingerString).intValue();
+			sctpSoLinger = sctpSoLingerInteger;
+		}
+
+		String sctpFragmentInterleaveString = configurationProperties.getProperty(
+				"gov.nist.javax.sip.SCTP_FRAGMENT_INTERLEAVE", null);
+		if(sctpFragmentInterleaveString != null) {
+			int sctpFragmentInterleaveInteger = new Integer(sctpFragmentInterleaveString).intValue();
+			sctpFragmentInterleave = sctpFragmentInterleaveInteger;
+		}
+
+		// String sctpInitMaxOutStreamsString = configurationProperties.getProperty(
+		// 		"gov.nist.javax.sip.SCTP_INIT_MAX_OUT_STREAMS", null);
+		// String sctpInitMaxInStreamsString = configurationProperties.getProperty(
+		// 		"gov.nist.javax.sip.SCTP_INIT_MAX_IN_STREAMS", null);
+		// if(sctpInitMaxOutStreamsString != null && sctpInitMaxInStreamsString != null) {
+		// 	int sctpInitMaxOutStreamsInteger = new Integer(sctpInitMaxOutStreamsString).intValue();
+		// 	int sctpInitMaxInStreamsInteger = new Integer(sctpInitMaxInStreamsString).intValue();
+		// 	sctpInitMaxStreams = SctpStandardSocketOptions.InitMaxStreams.create(sctpInitMaxOutStreamsInteger,
+        //             sctpInitMaxInStreamsInteger);			 
+		// }
+
+		String sctpNoDelayString = configurationProperties.getProperty(
+				"gov.nist.javax.sip.SCTP_NO_DELAY", null);
+		if(sctpNoDelayString != null) {
+			Boolean sctpNoDelayBoolean = new Boolean(sctpNoDelayString).booleanValue();
+			sctpNoDelay = sctpNoDelayBoolean;
+		}
+
+		String sctpDisableFragmentsString = configurationProperties.getProperty(
+				"gov.nist.javax.sip.SCTP_DISABLE_FRAGMENTS", null);
+		if(sctpDisableFragmentsString != null) {
+			Boolean sctpDisableFragmentsBoolean = new Boolean(sctpDisableFragmentsString).booleanValue();
+			sctpDisableFragments = sctpDisableFragmentsBoolean;
+		}
 	}
 
 	/*
@@ -1630,12 +1682,12 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		if (port <= 0)
 			throw new InvalidArgumentException("bad port");
 
-		if (!transport.equalsIgnoreCase("UDP")
-				&& !transport.equalsIgnoreCase("TLS")
-				&& !transport.equalsIgnoreCase("TCP")
-				&& !transport.equalsIgnoreCase("SCTP")
-				&& !transport.equalsIgnoreCase("WS")
-				&& !transport.equalsIgnoreCase("WSS"))
+		if (!transport.equalsIgnoreCase(ListeningPoint.UDP)
+				&& !transport.equalsIgnoreCase(ListeningPoint.TLS)
+				&& !transport.equalsIgnoreCase(ListeningPoint.TCP)
+				&& !transport.equalsIgnoreCase(ListeningPoint.SCTP)
+				&& !transport.equalsIgnoreCase(ListeningPointExt.WS)
+				&& !transport.equalsIgnoreCase(ListeningPointExt.WSS))
 			throw new TransportNotSupportedException("bad transport "
 					+ transport);
 

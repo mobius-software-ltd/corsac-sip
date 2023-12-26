@@ -35,6 +35,7 @@ import gov.nist.core.HostPort;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.core.net.SecurityManagerProvider;
+import gov.nist.javax.sip.ListeningPointExt;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.transports.processors.ClientAuthType;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
@@ -44,6 +45,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.sctp.SctpChannelOption;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -209,24 +211,30 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
     @Override
     public void start() throws IOException {
         try {
-            // helper class that sets up a server. We can set up the server using a Channel directly. 
-            // However, please note that this is a tedious process, we do not need to do that for now.
-            // TODO: May be revisited later for performance/optimizations reasons            
             ServerBootstrap server = new ServerBootstrap(); ; 
             server = server.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class) 
              .handler(new LoggingHandler(LogLevel.DEBUG));
             if(transport.equals(ListeningPoint.TLS) || transport.equals(ListeningPoint.TCP)) {
                 server = server.childHandler(new NettyStreamChannelInitializer(this, sslServerContext));
-            } else {
+            } else if(transport.equals(ListeningPointExt.WS) || transport.equals(ListeningPointExt.WSS)) {
                 server = server.childHandler(new NettyWebsocketsChannelInitializer(this, sslServerContext));
+            } else if(transport.equals(ListeningPoint.SCTP)) {
+                server = server.childHandler(new NettySctpChannelInitializer(this));
+                server.childOption(SctpChannelOption.SCTP_NODELAY, sipStack.getSctpNodelay());
+                server.childOption(SctpChannelOption.SCTP_DISABLE_FRAGMENTS, sipStack.getSctpDisableFragments());
+                server.childOption(SctpChannelOption.SCTP_FRAGMENT_INTERLEAVE, sipStack.getSctpFragmentInterleave());
+                // server.childOption(SctpChannelOption.SCTP_INIT_MAXSTREAMS, sipStack.getSctpInitMaxStreams());
+                server.childOption(SctpChannelOption.SO_SNDBUF, sipStack.getSctpSoSndbuf());
+                server.childOption(SctpChannelOption.SO_RCVBUF, sipStack.getSctpSoRcvbuf());
+                server.childOption(SctpChannelOption.SO_LINGER, sipStack.getSctpSoLinger());
             }
              // TODO Add Option based on sip stack config
              server.option(ChannelOption.SO_BACKLOG, 128) // for the NioServerSocketChannel that accepts incoming connections.
              .childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
             
             // Bind and start to accept incoming connections.
-            channel = server.bind(port).await().channel();
+            channel = server.bind(port).await().channel();                   
             
             // Create a new thread to run the server
             new Thread(() -> {

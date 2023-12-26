@@ -17,9 +17,6 @@
 *
 *
  */
-/**
- *
- */
 package test.tck.msgflow.callflows.sctp;
 
 import java.util.EventObject;

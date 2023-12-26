@@ -37,6 +37,8 @@ import gov.nist.javax.sip.stack.transports.processors.MessageProcessorFactory;
  */
 public class NettyMessageProcessorFactory implements MessageProcessorFactory {
 
+        private static final String USE_TLS_GATEWAY_OPTION = "gov.nist.javax.sip.USE_TLS_GATEWAY";
+
         @Override
         public MessageProcessor createMessageProcessor(
                         SIPTransactionStack sipStack, InetAddress ipAddress, int port,
@@ -62,29 +64,13 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                         // this.tlsFlag = true;
                         return tlsMessageProcessor;
                 } else if (transport.equalsIgnoreCase(ListeningPoint.SCTP)) {
-
-                        // Need Java 7 for this, so these classes are packaged in a separate
-                        // jar
-                        // Try to load it indirectly, if fails report an error
-                        try {
-                                Class<?> mpc = ClassLoader.getSystemClassLoader().loadClass(
-                                                "gov.nist.javax.sip.stack.sctp.SCTPMessageProcessor");
-                                MessageProcessor mp = (MessageProcessor) mpc.newInstance();
-                                mp.initialize(ipAddress, port, sipStack);
-                                return mp;
-                        } catch (ClassNotFoundException e) {
-                                throw new IllegalArgumentException(
-                                                "SCTP not supported (needs Java 7 and SCTP jar in classpath)");
-                        } catch (InstantiationException ie) {
-                                throw new IllegalArgumentException("Error initializing SCTP",
-                                                ie);
-                        } catch (IllegalAccessException ie) {
-                                throw new IllegalArgumentException("Error initializing SCTP",
-                                                ie);
-                        }
+                        NettyStreamMessageProcessor sctpMessageProcessor = new NettyStreamMessageProcessor(
+                                        ipAddress, sipStack, port, ListeningPoint.SCTP);
+                        // this.tlsFlag = true;
+                        return sctpMessageProcessor;
                 } else if (transport.equalsIgnoreCase(ListeningPointExt.WS)) {
                         if ("true".equals(((SipStackImpl) sipStack).getConfigurationProperties()
-                                        .getProperty("gov.nist.javax.sip.USE_TLS_GATEWAY"))) {
+                                        .getProperty(USE_TLS_GATEWAY_OPTION))) {
                                 MessageProcessor mp = new NettyStreamMessageProcessor(
                                                 ipAddress, sipStack, port, ListeningPointExt.WSS);
                                 // mp.setTransport = "WS";
@@ -99,7 +85,7 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                 } else if (transport.equalsIgnoreCase(ListeningPointExt.WSS)) {
 
                         if ("true".equals(((SipStackImpl) sipStack).getConfigurationProperties()
-                                        .getProperty("gov.nist.javax.sip.USE_TLS_GATEWAY"))) {
+                                        .getProperty(USE_TLS_GATEWAY_OPTION))) {
                                 MessageProcessor mp = new NettyStreamMessageProcessor(
                                                 ipAddress, sipStack, port, ListeningPointExt.WSS);
                                 // mp.transport = "WSS";
