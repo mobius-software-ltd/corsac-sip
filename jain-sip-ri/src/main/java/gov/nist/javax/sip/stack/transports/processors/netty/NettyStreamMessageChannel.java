@@ -193,6 +193,12 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			bootstrap = bootstrap.handler(nettyChannelInitializer)
 				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.sipStack.getConnectionTimeout());				
 		} else if (isWebsocket) {
+			nettyChannelInitializer = new NettyStreamChannelInitializer(nettyStreamMessageProcessor,
+						nettyStreamMessageProcessor.sslClientContext);
+
+			bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup)
+				.channel(NioSocketChannel.class);
+
 			String uri = getTransport().toLowerCase() + "://" + inetAddress.getHostAddress() + ":" + port + "/websocket";
 			logger.logInfo("websocket URI: " + uri);
 
