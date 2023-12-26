@@ -846,7 +846,7 @@ public class StackQueueCongestionControlTest extends TestCase {
 
     }
     public void testTCPHugeLoss() throws InterruptedException {
-        this.shootme.init("tcp",300);
+        this.shootme.init("tcp",100);
         this.shootist.init("10", "10", 20, "tcp");
         AssertUntil.assertUntil(new TestAssertion() {
             @Override
