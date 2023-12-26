@@ -44,9 +44,13 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.SctpChannelOption;
 import io.netty.channel.sctp.nio.NioSctpServerChannel;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -54,20 +58,20 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 
 /**
- * Netty Based Datagram Message Processor to handle creation of 
+ * Netty Based Datagram Message Processor to handle creation of
  * UDP Connection less Server and Datagram Message Channels
  * 
  * @author Jean Deruelle
  */
 public class NettyStreamMessageProcessor extends MessageProcessor implements NettyMessageProcessor {
-	
-	private static StackLogger logger = CommonLogger.getLogger(NettyStreamMessageProcessor.class);
+
+    private static StackLogger logger = CommonLogger.getLogger(NettyStreamMessageProcessor.class);
 
     protected final Map<String, NettyStreamMessageChannel> messageChannels;
-    
-    // multithreaded event loop that handles incoming connection and I/O operations    
-    EventLoopGroup bossGroup; 
-    // multithreaded event loop that handles I/O operation and handles the traffic 
+
+    // multithreaded event loop that handles incoming connection and I/O operations
+    EventLoopGroup bossGroup;
+    // multithreaded event loop that handles I/O operation and handles the traffic
     // of the accepted connection once the boss accepts the connection
     // and registers the accepted connection to the worker
     EventLoopGroup workerGroup;
@@ -86,26 +90,32 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
     protected NettyStreamMessageProcessor(InetAddress ipAddress,
             SIPTransactionStack sipStack, int port, String transport) throws IOException {
 
-        super(ipAddress, port, transport, sipStack);                
-        this.messageChannels = new ConcurrentHashMap <String, NettyStreamMessageChannel>();                
-        this.bossGroup = new NioEventLoopGroup(1); 
-        this.workerGroup = new NioEventLoopGroup(sipStack.getThreadPoolSize());
-        if(transport.equals(ListeningPoint.TLS)) {
+        super(ipAddress, port, transport, sipStack);
+        this.messageChannels = new ConcurrentHashMap<String, NettyStreamMessageChannel>();
+        this.bossGroup = newNioOrEpollEventLoopGroup(1);
+        this.workerGroup = newNioOrEpollEventLoopGroup(sipStack.getThreadPoolSize());
+        if (transport.equals(ListeningPoint.TLS)) {
             SecurityManagerProvider securityManagerProvider = sipStack.getSecurityManagerProvider();
-            if(sipStack.getClientAuth() == ClientAuthType.DisabledAll) {
+            if (sipStack.getClientAuth() == ClientAuthType.DisabledAll) {
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                     logger.logDebug(
-                            "ClientAuth " + sipStack.getClientAuth()  +  " bypassing all cert validations");
-                }                        
-                this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]).trustManager(trustAllCerts[0]).build();
-                this.sslClientContext = SslContextBuilder.forClient().keyManager(securityManagerProvider.getKeyManagers(true)[0]).trustManager(trustAllCerts[0]).build();                        
+                            "ClientAuth " + sipStack.getClientAuth() + " bypassing all cert validations");
+                }
+                this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0])
+                        .trustManager(trustAllCerts[0]).build();
+                this.sslClientContext = SslContextBuilder.forClient()
+                        .keyManager(securityManagerProvider.getKeyManagers(true)[0]).trustManager(trustAllCerts[0])
+                        .build();
             } else {
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                     logger.logDebug(
                             "ClientAuth " + sipStack.getClientAuth());
                 }
-                this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]).trustManager(securityManagerProvider.getTrustManagers(false)[0]).build();
-                this.sslClientContext = SslContextBuilder.forClient().keyManager(securityManagerProvider.getKeyManagers(true)[0]).trustManager(securityManagerProvider.getTrustManagers(true)[0]).build();                                                
+                this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0])
+                        .trustManager(securityManagerProvider.getTrustManagers(false)[0]).build();
+                this.sslClientContext = SslContextBuilder.forClient()
+                        .keyManager(securityManagerProvider.getKeyManagers(true)[0])
+                        .trustManager(securityManagerProvider.getTrustManagers(true)[0]).build();
             }
         }
     }
@@ -115,136 +125,143 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
      * 
      * We don't use putIfAbset from CHM since creating a channel instance itself
      * is quite heavy. See https://github.com/RestComm/jain-sip/issues/80.
-     *      
+     * 
      * @param key
      * @param targetHost
      * @param port
      * @return
-     * @throws IOException 
+     * @throws IOException
      * @throws InterruptedException
      */
     private MessageChannel createMessageChannel(String key, InetAddress targetHost, int port) {
-        NettyStreamMessageChannel retval = messageChannels.get(key);        
-        //once locked, we need to check condition again
-        if( retval == null ) {
-                retval = constructMessageChannel(targetHost,
-                                port);
-                this.messageChannels.put(key, retval);
-                // retval.isCached = true;
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                        logger.logDebug("key " + key);
-                        logger.logDebug("Creating " + retval);
-                }                
-        }  		
-        return retval;      
-    }   
+        NettyStreamMessageChannel retval = messageChannels.get(key);
+        // once locked, we need to check condition again
+        if (retval == null) {
+            retval = constructMessageChannel(targetHost,
+                    port);
+            this.messageChannels.put(key, retval);
+            // retval.isCached = true;
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("key " + key);
+                logger.logDebug("Creating " + retval);
+            }
+        }
+        return retval;
+    }
 
     @Override
     public MessageChannel createMessageChannel(HostPort targetHostPort) throws IOException {
-    	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-    		logger.logDebug("NettyStreamMessageProcessor::createMessageChannel: " + targetHostPort);
-    	}
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("NettyStreamMessageProcessor::createMessageChannel: " + targetHostPort);
+        }
         MessageChannel retval = null;
-    	try {
-    		String key = MessageChannel.getKey(targetHostPort, transport);
-		    retval = messageChannels.get(key);
-                //here we use double-checked locking trying to reduce contention	
-    		if (retval == null) {
-                    retval = createMessageChannel(key, 
-                            targetHostPort.getInetAddress(), targetHostPort.getPort());  			
-		}    		
-    	} finally {
-    		if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-    			logger.logDebug("NettyStreamMessageProcessor::createMessageChannel - exit " + retval);
-    		}
-    	}
-        return retval;
-    }
-    
-    public MessageChannel createMessageChannel(Channel channel) {
-        
-        InetSocketAddress socketAddress = ((InetSocketAddress)channel.remoteAddress());
-    	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-    		logger.logDebug("NettyStreamMessageProcessor::createMessageChannel: " + socketAddress.getAddress().getHostAddress()+":"+socketAddress.getPort());
-    	}
-        NettyStreamMessageChannel retval = null;
-    	try {
-            HostPort targetHostPort  = new HostPort();
-            targetHostPort.setHost(new Host(socketAddress.getAddress().getHostAddress()));  
-            targetHostPort.setPort(socketAddress.getPort());
-    		String key = MessageChannel.getKey(targetHostPort, transport);
-            retval = messageChannels.get(key);        
-            //once locked, we need to check condition again
-            if( retval == null ) {
-                    retval = new NettyStreamMessageChannel(this, channel);        
-                    this.messageChannels.put(key, retval);
-                    // retval.isCached = true;
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                            logger.logDebug("key " + key);
-                            logger.logDebug("Creating " + retval);
-                    }                
-            }  						   		
-    	} finally {
-    		if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-    			logger.logDebug("MessageChannel::createMessageChannel - exit " + retval);
-    		}
-    	}
+        try {
+            String key = MessageChannel.getKey(targetHostPort, transport);
+            retval = messageChannels.get(key);
+            // here we use double-checked locking trying to reduce contention
+            if (retval == null) {
+                retval = createMessageChannel(key,
+                        targetHostPort.getInetAddress(), targetHostPort.getPort());
+            }
+        } finally {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("NettyStreamMessageProcessor::createMessageChannel - exit " + retval);
+            }
+        }
         return retval;
     }
 
+    public MessageChannel createMessageChannel(Channel channel) {
+
+        InetSocketAddress socketAddress = ((InetSocketAddress) channel.remoteAddress());
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("NettyStreamMessageProcessor::createMessageChannel: "
+                    + socketAddress.getAddress().getHostAddress() + ":" + socketAddress.getPort());
+        }
+        NettyStreamMessageChannel retval = null;
+        try {
+            HostPort targetHostPort = new HostPort();
+            targetHostPort.setHost(new Host(socketAddress.getAddress().getHostAddress()));
+            targetHostPort.setPort(socketAddress.getPort());
+            String key = MessageChannel.getKey(targetHostPort, transport);
+            retval = messageChannels.get(key);
+            // once locked, we need to check condition again
+            if (retval == null) {
+                retval = new NettyStreamMessageChannel(this, channel);
+                this.messageChannels.put(key, retval);
+                // retval.isCached = true;
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug("key " + key);
+                    logger.logDebug("Creating " + retval);
+                }
+            }
+        } finally {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("MessageChannel::createMessageChannel - exit " + retval);
+            }
+        }
+        return retval;
+    }
 
     @Override
     public MessageChannel createMessageChannel(InetAddress targetHost, int port) throws IOException {
         String key = MessageChannel.getKey(targetHost, port, transport);
         MessageChannel retval = messageChannels.get(key);
         // MessageChannel retval = null;
-            //here we use double-checked locking trying to reduce contention	
+        // here we use double-checked locking trying to reduce contention
         if (retval == null) {
-                retval = createMessageChannel(key, targetHost, port);
+            retval = createMessageChannel(key, targetHost, port);
         }
-	return retval;
+        return retval;
     }
 
-    NettyStreamMessageChannel constructMessageChannel (InetAddress targetHost, int port) {
-        return new NettyStreamMessageChannel(targetHost, port, this);        
+    NettyStreamMessageChannel constructMessageChannel(InetAddress targetHost, int port) {
+        return new NettyStreamMessageChannel(targetHost, port, this);
     }
 
     @Override
     public void start() throws IOException {
         try {
-            ServerBootstrap server = new ServerBootstrap(); ; 
+            ServerBootstrap server = new ServerBootstrap();
+            ;
             server = server.group(bossGroup, workerGroup)
-                .handler(new LoggingHandler(LogLevel.DEBUG));
-            if(transport.equals(ListeningPoint.TLS) || transport.equals(ListeningPoint.TCP)) {
-                server = server.channel(NioServerSocketChannel.class); 
-                server = server.childHandler(new NettyStreamChannelInitializer(this, sslServerContext));                
-                server = server.childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
-            } else if(transport.equals(ListeningPointExt.WS) || transport.equals(ListeningPointExt.WSS)) {
-                server = server.channel(NioServerSocketChannel.class); 
+                    .handler(new LoggingHandler(LogLevel.DEBUG));
+            if (transport.equals(ListeningPoint.TLS) || transport.equals(ListeningPoint.TCP)) {
+                server = server.channel(nioOrEpollServerSocketChannel());
+                server = server.childHandler(new NettyStreamChannelInitializer(this, sslServerContext));
+                server = server.childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the
+                                                                               // parent ServerChannel, which is
+                                                                               // NioSocketChannel in this case
+            } else if (transport.equals(ListeningPointExt.WS) || transport.equals(ListeningPointExt.WSS)) {
+                server = server.channel(nioOrEpollServerSocketChannel());
                 server = server.childHandler(new NettyWebsocketsChannelInitializer(this, sslServerContext));
-                server = server.option(ChannelOption.SO_BACKLOG, 128); // for the NioServerSocketChannel that accepts incoming connections.
-                server = server.childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the parent ServerChannel, which is NioSocketChannel in this case
-            } else if(transport.equals(ListeningPoint.SCTP)) {
-                server = server.channel(NioSctpServerChannel.class); 
+                server = server.option(ChannelOption.SO_BACKLOG, 128); // for the NioServerSocketChannel that accepts
+                                                                       // incoming connections.
+                server = server.childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the
+                                                                               // parent ServerChannel, which is
+                                                                               // NioSocketChannel in this case
+            } else if (transport.equals(ListeningPoint.SCTP)) {
+                server = server.channel(NioSctpServerChannel.class);
                 server = server.childHandler(new NettySctpChannelInitializer(this));
                 server.childOption(SctpChannelOption.SCTP_NODELAY, sipStack.getSctpNodelay());
                 server.childOption(SctpChannelOption.SCTP_DISABLE_FRAGMENTS, sipStack.getSctpDisableFragments());
                 server.childOption(SctpChannelOption.SCTP_FRAGMENT_INTERLEAVE, sipStack.getSctpFragmentInterleave());
-                // server.childOption(SctpChannelOption.SCTP_INIT_MAXSTREAMS, sipStack.getSctpInitMaxStreams());
+                // server.childOption(SctpChannelOption.SCTP_INIT_MAXSTREAMS,
+                // sipStack.getSctpInitMaxStreams());
                 server.childOption(SctpChannelOption.SO_SNDBUF, sipStack.getSctpSoSndbuf());
                 server.childOption(SctpChannelOption.SO_RCVBUF, sipStack.getSctpSoRcvbuf());
                 server.childOption(SctpChannelOption.SO_LINGER, sipStack.getSctpSoLinger());
-            }                         
-            
+            }
+
             // Bind and start to accept incoming connections.
-            channel = server.bind(port).await().channel();                   
-            
+            channel = server.bind(port).await().channel();
+
             // Create a new thread to run the server
             new Thread(() -> {
                 try {
                     // Wait until the server socket is closed.
                     // In this example, this does not happen, but you can do that to gracefully
-                    // shut down your server.                    
+                    // shut down your server.
                     channel.closeFuture().sync();
                 } catch (InterruptedException e) {
                     logger.logException(e);
@@ -290,8 +307,8 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
      */
     public boolean isSecure() {
         return false;
-    }    
-    
+    }
+
     /**
      * TCP can handle an unlimited number of bytes.
      */
@@ -307,8 +324,8 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
     public void close() {
         // closing the channels
         for (Object messageChannel : messageChannels.values()) {
-			((MessageChannel)messageChannel).close();
-          }
+            ((MessageChannel) messageChannel).close();
+        }
         // channel.close();
     }
 
@@ -316,32 +333,36 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
 
         String key = messageChannel.getKey();
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug(Thread.currentThread() + " removing " + key + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+            logger.logDebug(Thread.currentThread() + " removing " + key + " for processor " + getIpAddress() + ":"
+                    + getPort() + "/" + getTransport());
         }
 
         /** May have been removed already */
         if (messageChannels.get(key) == messageChannel)
             this.messageChannels.remove(key);
-        
+
         // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-        //     logger.logDebug(Thread.currentThread() + " Removing incoming channel " + key + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+        // logger.logDebug(Thread.currentThread() + " Removing incoming channel " + key
+        // + " for processor " + getIpAddress()+ ":" + getPort() + "/" +
+        // getTransport());
         // incomingMessageChannels.remove(key);
     }
-	
+
     protected void cacheMessageChannel(NettyStreamMessageChannel messageChannel) {
         String key = messageChannel.getKey();
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Caching " + key + " value " + messageChannel);
-        // NettyStreamMessageChannel previousChannel = 
-            messageChannels.putIfAbsent(key, messageChannel);
-        // FIXME: should we close the channel here ? This is making the testsuite fail with Netty
+        // NettyStreamMessageChannel previousChannel =
+        messageChannels.putIfAbsent(key, messageChannel);
+        // FIXME: should we close the channel here ? This is making the testsuite fail
+        // with Netty
         // if (previousChannel != null) {
-            // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            //     logger.logDebug("Closing " + key);
-            // previousChannel.close();
-        // }                
+        // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+        // logger.logDebug("Closing " + key);
+        // previousChannel.close();
+        // }
     }
-    
+
     public boolean closeReliableConnection(String peerAddress, int peerPort) throws IllegalArgumentException {
 
         validatePortInRange(peerPort);
@@ -357,80 +378,105 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
         if (foundMessageChannel != null) {
             foundMessageChannel.close();
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                logger.logDebug(Thread.currentThread() + " Removing channel " + messageChannelKey + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
+                logger.logDebug(Thread.currentThread() + " Removing channel " + messageChannelKey + " for processor "
+                        + getIpAddress() + ":" + getPort() + "/" + getTransport());
             // incomingMessageChannels.remove(messageChannelKey);
             return true;
         }
-        
+
         // foundMessageChannel = incomingMessageChannels.get(messageChannelKey);
 
         // if (foundMessageChannel != null) {
-        //     foundMessageChannel.close();
-        //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-        //         logger.logDebug(Thread.currentThread() + " Removing incoming channel " + messageChannelKey + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
-        //     incomingMessageChannels.remove(messageChannelKey);
-        //     messageChannels.remove(messageChannelKey);
-        //     return true;
+        // foundMessageChannel.close();
+        // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+        // logger.logDebug(Thread.currentThread() + " Removing incoming channel " +
+        // messageChannelKey + " for processor " + getIpAddress()+ ":" + getPort() + "/"
+        // + getTransport());
+        // incomingMessageChannels.remove(messageChannelKey);
+        // messageChannels.remove(messageChannelKey);
+        // return true;
         // }
-        
+
         return false;
     }
-    
+
     public boolean setKeepAliveTimeout(String peerAddress, int peerPort, long keepAliveTimeout) {
 
         validatePortInRange(peerPort);
 
-        HostPort hostPort  = new HostPort();
+        HostPort hostPort = new HostPort();
         hostPort.setHost(new Host(peerAddress));
         hostPort.setPort(peerPort);
 
         String messageChannelKey = MessageChannel.getKey(hostPort, "TCP");
-                
+
         NettyStreamMessageChannel foundMessageChannel = messageChannels.get(messageChannelKey);
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug(Thread.currentThread() + " checking channel with key " + messageChannelKey + " : " + foundMessageChannel + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
-        
+            logger.logDebug(Thread.currentThread() + " checking channel with key " + messageChannelKey + " : "
+                    + foundMessageChannel + " for processor " + getIpAddress() + ":" + getPort() + "/"
+                    + getTransport());
+
         if (foundMessageChannel != null) {
             foundMessageChannel.setKeepAliveTimeout(keepAliveTimeout);
             return true;
         }
-        
+
         // foundMessageChannel = incomingMessageChannels.get(messageChannelKey);
-        
+
         // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-        //     logger.logDebug(Thread.currentThread() + " checking incoming channel with key " + messageChannelKey + " : " + foundMessageChannel + " for processor " + getIpAddress()+ ":" + getPort() + "/" + getTransport());
-        
+        // logger.logDebug(Thread.currentThread() + " checking incoming channel with key
+        // " + messageChannelKey + " : " + foundMessageChannel + " for processor " +
+        // getIpAddress()+ ":" + getPort() + "/" + getTransport());
+
         // if (foundMessageChannel != null) {
-        //     foundMessageChannel.setKeepAliveTimeout(keepAliveTimeout);
-        //     return true;
+        // foundMessageChannel.setKeepAliveTimeout(keepAliveTimeout);
+        // return true;
         // }
 
         return false;
-    }       
+    }
 
     protected void validatePortInRange(int port) throws IllegalArgumentException {
-        if (port < 1 || port > 65535){
+        if (port < 1 || port > 65535) {
             throw new IllegalArgumentException("Peer port should be greater than 0 and less 65535, port = " + port);
         }
     }
 
     // Create a trust manager that does not validate certificate chains
-    TrustManager[] trustAllCerts = new TrustManager[] { 
-      new X509TrustManager() {
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() { 
-          return new X509Certificate[0]; 
+    TrustManager[] trustAllCerts = new TrustManager[] {
+            new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                        logger.logDebug(
+                                "checkClientTrusted : Not validating certs " + certs + " authType " + authType);
+                    }
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                        logger.logDebug(
+                                "checkServerTrusted : Not validating certs " + certs + " authType " + authType);
+                    }
+                }
+            } };
+
+    public Class<? extends ServerSocketChannel> nioOrEpollServerSocketChannel() {
+        if (Epoll.isAvailable() && !ListeningPoint.SCTP.equalsIgnoreCase(getTransport())) {
+            return EpollServerSocketChannel.class;
+        } else {
+            return NioServerSocketChannel.class;
         }
-        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-        	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug(
-                        "checkClientTrusted : Not validating certs " + certs + " authType " + authType);
-            }
+    }
+
+    public EventLoopGroup newNioOrEpollEventLoopGroup(int threads) {
+        if (Epoll.isAvailable() && !ListeningPoint.SCTP.equalsIgnoreCase(getTransport())) {
+            return new EpollEventLoopGroup(threads);
+        } else {
+            return new NioEventLoopGroup(threads);
         }
-        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-        	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug(
-                        "checkServerTrusted : Not validating certs " + certs + " authType " + authType);
-            }
-        }
-    }};
+    }
 }

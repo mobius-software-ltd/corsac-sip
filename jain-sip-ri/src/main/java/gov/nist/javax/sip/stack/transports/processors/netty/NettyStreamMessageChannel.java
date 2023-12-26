@@ -74,6 +74,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.sctp.SctpChannelOption;
 import io.netty.channel.sctp.SctpMessage;
 import io.netty.channel.sctp.nio.NioSctpChannel;
@@ -86,7 +88,8 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 /**
- * Netty Stream Based Transport Protocol (TCP, TLS, WSS, WS, SCTP...) Message Channel to handle SIP Messages
+ * Netty Stream Based Transport Protocol (TCP, TLS, WSS, WS, SCTP...) Message
+ * Channel to handle SIP Messages
  * 
  * @author Jean Deruelle
  */
@@ -122,7 +125,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 	private boolean isCached;
 
-	private SIPStackTimerTask pingKeepAliveTimeoutTask;	
+	private SIPStackTimerTask pingKeepAliveTimeoutTask;
 	private long keepAliveTimeout;
 
 	// Added for https://java.net/jira/browse/JSIP-483
@@ -134,76 +137,77 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	protected NettyStreamMessageChannel(NettyStreamMessageProcessor nettyStreamMessageProcessor,
 			Channel channel) {
 		this(
-			((InetSocketAddress) channel.remoteAddress()).getAddress(), 
-			((InetSocketAddress) channel.remoteAddress()).getPort(), 
-			nettyStreamMessageProcessor);
-		this.channel = channel;			
+				((InetSocketAddress) channel.remoteAddress()).getAddress(),
+				((InetSocketAddress) channel.remoteAddress()).getPort(),
+				nettyStreamMessageProcessor);
+		this.channel = channel;
 		this.messageProcessor = nettyStreamMessageProcessor;
 		this.sipStack = nettyStreamMessageProcessor.getSIPStack();
 		isWebsocket = ListeningPointExt.WS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport()) ||
-			ListeningPointExt.WSS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport());
-						
+				ListeningPointExt.WSS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport());
+
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 			logger.logDebug("Done creating NettyStreamMessageChannel " + this + " socketChannel = " + channel);
 		}
 	}
 
 	public NettyStreamMessageChannel(
-			InetAddress inetAddress, 
+			InetAddress inetAddress,
 			int port,
 			NettyStreamMessageProcessor nettyStreamMessageProcessor) {
 
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 			logger.logDebug("NettyStreamMessageChannel: "
-					+ inetAddress.getHostAddress() + ":" + port);
+					+ inetAddress.getHostAddress() + ":" + port + "/" + nettyStreamMessageProcessor.getTransport());
 		}
-		
+
 		messageProcessor = nettyStreamMessageProcessor;
 		this.sipStack = messageProcessor.getSIPStack();
-		
+
 		isWebsocket = ListeningPointExt.WS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport()) ||
-			ListeningPointExt.WSS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport());
+				ListeningPointExt.WSS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport());
 		isSctp = ListeningPoint.SCTP.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport());
 
 		bootstrap = new Bootstrap();
-		if(!isWebsocket) {
-			
+		if (!isWebsocket) {
+
 			if (isSctp) {
 				nettyChannelInitializer = new NettySctpChannelInitializer(nettyStreamMessageProcessor);
 
 				bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup)
-					.channel(NioSctpChannel.class);
+						.channel(NioSctpChannel.class);
 
 				bootstrap.option(SctpChannelOption.SCTP_NODELAY, sipStack.getSctpNodelay());
-                bootstrap.option(SctpChannelOption.SCTP_DISABLE_FRAGMENTS, sipStack.getSctpDisableFragments());
-                bootstrap.option(SctpChannelOption.SCTP_FRAGMENT_INTERLEAVE, sipStack.getSctpFragmentInterleave());
-                // bootstrap.option(SctpChannelOption.SCTP_INIT_MAXSTREAMS, sipStack.getSctpInitMaxStreams());
-                bootstrap.option(SctpChannelOption.SO_SNDBUF, sipStack.getSctpSoSndbuf());
-                bootstrap.option(SctpChannelOption.SO_RCVBUF, sipStack.getSctpSoRcvbuf());
-                bootstrap.option(SctpChannelOption.SO_LINGER, sipStack.getSctpSoLinger());
+				bootstrap.option(SctpChannelOption.SCTP_DISABLE_FRAGMENTS, sipStack.getSctpDisableFragments());
+				bootstrap.option(SctpChannelOption.SCTP_FRAGMENT_INTERLEAVE, sipStack.getSctpFragmentInterleave());
+				// bootstrap.option(SctpChannelOption.SCTP_INIT_MAXSTREAMS,
+				// sipStack.getSctpInitMaxStreams());
+				bootstrap.option(SctpChannelOption.SO_SNDBUF, sipStack.getSctpSoSndbuf());
+				bootstrap.option(SctpChannelOption.SO_RCVBUF, sipStack.getSctpSoRcvbuf());
+				bootstrap.option(SctpChannelOption.SO_LINGER, sipStack.getSctpSoLinger());
 			} else {
 				nettyChannelInitializer = new NettyStreamChannelInitializer(nettyStreamMessageProcessor,
 						nettyStreamMessageProcessor.sslClientContext);
 
 				bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup)
-					.channel(NioSocketChannel.class);
-				bootstrap = bootstrap.option(ChannelOption.SO_KEEPALIVE, true);			
+						.channel(nioOrEpollSocketChannel());
+				bootstrap = bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
 			}
 
 			bootstrap = bootstrap.handler(nettyChannelInitializer)
-				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.sipStack.getConnectionTimeout());				
+					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.sipStack.getConnectionTimeout());
 		} else if (isWebsocket) {
 			nettyChannelInitializer = new NettyStreamChannelInitializer(nettyStreamMessageProcessor,
-						nettyStreamMessageProcessor.sslClientContext);
+					nettyStreamMessageProcessor.sslClientContext);
 
 			bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup)
-				.channel(NioSocketChannel.class);
+					.channel(nioOrEpollSocketChannel());
 
-			String uri = getTransport().toLowerCase() + "://" + inetAddress.getHostAddress() + ":" + port + "/websocket";
+			String uri = getTransport().toLowerCase() + "://" + inetAddress.getHostAddress() + ":" + port
+					+ "/websocket";
 			logger.logInfo("websocket URI: " + uri);
 
-			WebSocketDecoderConfig decoderConfig =
-				WebSocketDecoderConfig.newBuilder()
+			WebSocketDecoderConfig decoderConfig = WebSocketDecoderConfig.newBuilder()
 					.expectMaskedFrames(false)
 					.allowMaskMismatch(true)
 					.allowExtensions(true)
@@ -211,61 +215,61 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					.build();
 
 			// final WebSocketClientHandler handler =
-			//     new WebSocketClientHandler(
-			//             WebSocketClientHandshakerFactory.newHandshaker(
-			//                     new URI(uri), 
-			// 					WebSocketVersion.V13, 
-			// 					SUBPROTOCOL, 
-			// 					true, 
-			// 					new DefaultHttpHeaders(),
-			// 					decoderConfig.maxFramePayloadLength(),
-			// 					true,
-			// 					decoderConfig.allowMaskMismatch()));
-								
+			// new WebSocketClientHandler(
+			// WebSocketClientHandshakerFactory.newHandshaker(
+			// new URI(uri),
+			// WebSocketVersion.V13,
+			// SUBPROTOCOL,
+			// true,
+			// new DefaultHttpHeaders(),
+			// decoderConfig.maxFramePayloadLength(),
+			// true,
+			// decoderConfig.allowMaskMismatch()));
+
 			bootstrap.handler(new LoggingHandler(LogLevel.DEBUG))
-				.handler(new ChannelInitializer<SocketChannel>() {
-				@Override
-				protected void initChannel(SocketChannel ch) {
-					ChannelPipeline p = ch.pipeline();
-					if (nettyStreamMessageProcessor.sslClientContext != null) {
-						p.addLast(nettyStreamMessageProcessor.sslClientContext.newHandler(
-						ch.alloc(), 
-						inetAddress.getHostAddress(),
-						port));
-					}
-					p.addLast(new NettyWebSocketFrameDecoder(nettyStreamMessageProcessor, decoderConfig));
-				// Encoder
-					p.addLast(new WebSocket13FrameEncoder(false));
-				//  p.addLast(
-				//          new HttpClientCodec(),
-				//          new HttpObjectAggregator(65536),
-				// 		//  WebSocketClientCompressionHandler.INSTANCE,
-				//          handler);		
-					p.addLast(new NettyMessageHandler(nettyStreamMessageProcessor));
-					
-				}
-			});
+					.handler(new ChannelInitializer<SocketChannel>() {
+						@Override
+						protected void initChannel(SocketChannel ch) {
+							ChannelPipeline p = ch.pipeline();
+							if (nettyStreamMessageProcessor.sslClientContext != null) {
+								p.addLast(nettyStreamMessageProcessor.sslClientContext.newHandler(
+										ch.alloc(),
+										inetAddress.getHostAddress(),
+										port));
+							}
+							p.addLast(new NettyWebSocketFrameDecoder(nettyStreamMessageProcessor, decoderConfig));
+							// Encoder
+							p.addLast(new WebSocket13FrameEncoder(false));
+							// p.addLast(
+							// new HttpClientCodec(),
+							// new HttpObjectAggregator(65536),
+							// // WebSocketClientCompressionHandler.INSTANCE,
+							// handler);
+							p.addLast(new NettyMessageHandler(nettyStreamMessageProcessor));
+
+						}
+					});
 		}
 		nettyConnectionListener = new NettyConnectionListener(this);
 
 		this.peerAddress = inetAddress;
 		this.peerPort = port;
-		this.peerProtocol = nettyStreamMessageProcessor.getTransport();			
+		this.peerProtocol = nettyStreamMessageProcessor.getTransport();
 
 		myAddress = nettyStreamMessageProcessor.getIpAddress().getHostAddress();
 		myPort = nettyStreamMessageProcessor.getPort();
-	
-		keepAliveTimeout = sipStack.getReliableConnectionKeepAliveTimeout();				
-		if(nettyStreamMessageProcessor.sslClientContext != null && getHandshakeCompletedListener() == null) {
+
+		keepAliveTimeout = sipStack.getReliableConnectionKeepAliveTimeout();
+		if (nettyStreamMessageProcessor.sslClientContext != null && getHandshakeCompletedListener() == null) {
 			HandshakeCompletedListenerImpl listner = new HandshakeCompletedListenerImpl(this);
 			setHandshakeCompletedListener(listner);
-		}	
+		}
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 			logger.logDebug("NettyStreamMessageChannel: Done creating NettyStreamMessageChannel "
 					+ this + " socketChannel = " + channel);
 		}
 	}
-	
+
 	protected void close(boolean removeSocket, boolean stopKeepAliveTask) {
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 			logger.logDebug("Closing NettyStreamMessageChannel "
@@ -280,7 +284,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				logger.logDebug("Removing NettyStreamMessageChannel "
 						+ this + " socketChannel = " + channel);
 			}
-			((NettyStreamMessageProcessor)messageProcessor).remove(this);
+			((NettyStreamMessageProcessor) messageProcessor).remove(this);
 		}
 		if (stopKeepAliveTask) {
 			cancelPingKeepAliveTimeoutTaskIfStarted();
@@ -378,74 +382,75 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		}
 
 		ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
-		if (channel == null || !channel.isActive()) {														
-			// Take a cached socket to the destination, 
+		if (channel == null || !channel.isActive()) {
+			// Take a cached socket to the destination,
 			// if none create a new one and cache it
-			if(channel!=null) {
+			if (channel != null) {
 				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-					logger.logDebug("Channel not active " + this.myAddress + ":" + this.myPort + ", trying to reconnect "
-							+ this.peerAddress + ":" + this.peerPort  + " for this channel "
-							+ channel + " key " + getKey());
+					logger.logDebug(
+							"Channel not active " + this.myAddress + ":" + this.myPort + ", trying to reconnect "
+									+ this.peerAddress + ":" + this.peerPort + " for this channel "
+									+ channel + " key " + getKey());
 				}
-				channel.close();			
+				channel.close();
 			}
 			nettyConnectionListener.addPendingMessage(byteBuf);
-			ChannelFuture channelFuture = bootstrap.connect(this.peerAddress, this.peerPort);									
+			ChannelFuture channelFuture = bootstrap.connect(this.peerAddress, this.peerPort);
 			channelFuture.addListener(nettyConnectionListener);
 		} else {
 			writeMessage(byteBuf);
-		}					 
+		}
 	}
 
 	protected void writeMessage(ByteBuf message) throws IOException {
-		// Commenting Blocking mode as it creates deadlock 
+		// Commenting Blocking mode as it creates deadlock
 		// when sync() is called from the listener from channelhandler
 		// You MUST NOT call ChannelFuture.sync() in your ChannelHandler.
 		// if(sipStack.nioMode.equals(NIOMode.BLOCKING)) {
-		// 	try {
-		// 		ChannelFuture future = channel.writeAndFlush(message).sync();
-		// 		if (future.isSuccess() == false) {
-		// 			throw new IOException("Failed to send message " + message.toString());
-		// 		}	
-		// 	} catch (InterruptedException e) {
-		// 		logger.logError("Failed to reconnect ", e);					
-		// 		throw new IOException(e);
-		// 	}
-		// } else {			
-			ChannelFuture future = null;
-			if (!isWebsocket) {
-				if(isSctp) {
-					future = channel.writeAndFlush(new SctpMessage(0, 0, message));
-				} else {
-					future = channel.writeAndFlush(message);
-				}
+		// try {
+		// ChannelFuture future = channel.writeAndFlush(message).sync();
+		// if (future.isSuccess() == false) {
+		// throw new IOException("Failed to send message " + message.toString());
+		// }
+		// } catch (InterruptedException e) {
+		// logger.logError("Failed to reconnect ", e);
+		// throw new IOException(e);
+		// }
+		// } else {
+		ChannelFuture future = null;
+		if (!isWebsocket) {
+			if (isSctp) {
+				future = channel.writeAndFlush(new SctpMessage(0, 0, message));
 			} else {
-				future = channel.writeAndFlush(new TextWebSocketFrame(message));
-				// channel.pipeline().replace(HttpRequestEncoder.class, "ws-encoder", new WebSocket13FrameEncoder(false));
+				future = channel.writeAndFlush(message);
 			}
-			final ChannelFuture finalFuture = future;
-			final NettyStreamMessageChannel current = this;
-			future.addListener(new ChannelFutureListener() {
-				@Override
-				public void operationComplete(ChannelFuture completeFuture) {
-					assert finalFuture == completeFuture;
-					if (!finalFuture.isSuccess()) {
-						finalFuture.cause().printStackTrace();
-						if(sipStack.getMessageProcessorExecutor() != null) {
-							sipStack.getMessageProcessorExecutor().addTaskLast(
-								new NettyConnectionFailureThread(current, finalFuture) 
-							);
-						} else {
-							current.triggerConnectFailure(finalFuture);                                           
-						}							
+		} else {
+			future = channel.writeAndFlush(new TextWebSocketFrame(message));
+			// channel.pipeline().replace(HttpRequestEncoder.class, "ws-encoder", new
+			// WebSocket13FrameEncoder(false));
+		}
+		final ChannelFuture finalFuture = future;
+		final NettyStreamMessageChannel current = this;
+		future.addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture completeFuture) {
+				assert finalFuture == completeFuture;
+				if (!finalFuture.isSuccess()) {
+					finalFuture.cause().printStackTrace();
+					if (sipStack.getMessageProcessorExecutor() != null) {
+						sipStack.getMessageProcessorExecutor().addTaskLast(
+								new NettyConnectionFailureThread(current, finalFuture));
 					} else {
-						logger.logDebug(channel.pipeline().toString());
+						current.triggerConnectFailure(finalFuture);
 					}
-					// else {
-					// 	finalFuture.channel().close();
-					// }							
+				} else {
+					logger.logDebug(channel.pipeline().toString());
 				}
-			});				
+				// else {
+				// finalFuture.channel().close();
+				// }
+			}
+		});
 		// }
 	}
 
@@ -525,7 +530,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	/**
 	 * TCP Is not a secure protocol.
 	 */
-	public boolean isSecure() {		
+	public boolean isSecure() {
 		return getTransport().equalsIgnoreCase(ListeningPoint.TLS);
 	}
 
@@ -539,7 +544,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	 */
 	public void close() {
 		close(true, true);
-	}	
+	}
 
 	@Override
 	public SIPTransactionStack getSIPStack() {
@@ -570,9 +575,9 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			}
 			return;
 		}
-		
-		if(channel != null && channel.remoteAddress() != null) {
-			InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();	
+
+		if (channel != null && channel.remoteAddress() != null) {
+			InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
 			sipMessage.setRemoteAddress(remoteAddress.getAddress());
 			sipMessage.setRemotePort(remoteAddress.getPort());
 			// Issue 3: https://telestax.atlassian.net/browse/JSIP-3
@@ -582,7 +587,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			}
 			sipMessage.setPeerPacketSourceAddress(remoteAddress.getAddress());
 			sipMessage.setPeerPacketSourcePort(remoteAddress.getPort());
-			
+
 		} else {
 			sipMessage.setRemoteAddress(peerAddress);
 			sipMessage.setRemotePort(peerPort);
@@ -594,8 +599,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			sipMessage.setPeerPacketSourceAddress(peerAddress);
 			sipMessage.setPeerPacketSourcePort(peerPort);
 		}
-		
-		
+
 		sipMessage.setLocalPort(this.getPort());
 		sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
 
@@ -763,18 +767,18 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 			if (sipServerRequest != null) {
 				// try {
-					sipServerRequest.processRequest(sipRequest, this);
+				sipServerRequest.processRequest(sipRequest, this);
 				// } finally {
-				// 	if (sipServerRequest instanceof SIPTransaction) {
-				// 		SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
-				// 		if (!sipServerTx.passToListener())
-				// 			((SIPTransaction) sipServerRequest)
-				// 					.releaseSem();
-				// 	}
+				// if (sipServerRequest instanceof SIPTransaction) {
+				// SIPServerTransaction sipServerTx = (SIPServerTransaction) sipServerRequest;
+				// if (!sipServerTx.passToListener())
+				// ((SIPTransaction) sipServerRequest)
+				// .releaseSem();
+				// }
 				// }
 			} else {
 				if (sipStack.sipMessageValves.size() == 0) { // Allow message valves to nullify
-															 // messages without error
+																// messages without error
 					SIPResponse response = sipRequest
 							.createResponse(Response.SERVICE_UNAVAILABLE);
 
@@ -828,26 +832,26 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					.newSIPServerResponse(sipResponse, this);
 			if (sipServerResponse != null) {
 				// try {
-					if (sipServerResponse instanceof SIPClientTransaction
-							&& !((SIPClientTransaction) sipServerResponse)
-									.checkFromTag(sipResponse)) {
-						if (logger.isLoggingEnabled())
-							logger.logError(
-									"Dropping response message with invalid tag >>> "
-											+ sipResponse);
-						return;
-					}
+				if (sipServerResponse instanceof SIPClientTransaction
+						&& !((SIPClientTransaction) sipServerResponse)
+								.checkFromTag(sipResponse)) {
+					if (logger.isLoggingEnabled())
+						logger.logError(
+								"Dropping response message with invalid tag >>> "
+										+ sipResponse);
+					return;
+				}
 
-					sipServerResponse.processResponse(sipResponse, this);
+				sipServerResponse.processResponse(sipResponse, this);
 				// } finally {
-				// 	if (sipServerResponse instanceof SIPTransaction
-				// 			&& !((SIPTransaction) sipServerResponse)
-				// 					.passToListener()) {
-				// 		// Note that the semaphore is released in event
-				// 		// scanner if the
-				// 		// request is actually processed by the Listener.
-				// 		((SIPTransaction) sipServerResponse).releaseSem();
-				// 	}
+				// if (sipServerResponse instanceof SIPTransaction
+				// && !((SIPTransaction) sipServerResponse)
+				// .passToListener()) {
+				// // Note that the semaphore is released in event
+				// // scanner if the
+				// // request is actually processed by the Listener.
+				// ((SIPTransaction) sipServerResponse).releaseSem();
+				// }
 				// }
 			} else {
 				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
@@ -865,12 +869,13 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 					+ sipMessage.getCSeq().getMethod());
 		}
 
-		//check for self routing
-		MessageProcessor messageProcessor = getSIPStack().findMessageProcessor(getPeerAddress(), getPeerPort(), getPeerProtocol());
-		if(messageProcessor != null) {
+		// check for self routing
+		MessageProcessor messageProcessor = getSIPStack().findMessageProcessor(getPeerAddress(), getPeerPort(),
+				getPeerProtocol());
+		if (messageProcessor != null) {
 			getSIPStack().selfRouteMessage(this, sipMessage);
-			return;            
-		}		
+			return;
+		}
 
 		byte[] msg = sipMessage.encodeAsBytes(this.getTransport());
 
@@ -976,21 +981,21 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				// if (isRunning) {
 				rescheduleKeepAliveTimeout(keepAliveTimeout);
 				// }
-			}			
+			}
 		}
 	}
 
 	public void cancelPingKeepAliveTimeoutTaskIfStarted() {
-		if (pingKeepAliveTimeoutTask != null) {			 
+		if (pingKeepAliveTimeoutTask != null) {
 			// && pingKeepAliveTimeoutTask.getSipTimerTask() != null
-			
+
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 				logger.logDebug("~~~ cancelPingKeepAliveTimeoutTaskIfStarted for MessageChannel(key=" + getKey()
 						+ "), clientAddress=" + peerAddress
 						+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
 			}
 			sipStack.getTimer().cancel(pingKeepAliveTimeoutTask);
-			
+
 		}
 	}
 
@@ -1008,7 +1013,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 							+ ", clientPort=" + peerPort + ", timeout=" + keepAliveTimeout + ")");
 		}
 
-		this.keepAliveTimeout = keepAliveTimeout;		
+		this.keepAliveTimeout = keepAliveTimeout;
 		boolean isKeepAliveTimeoutTaskScheduled = pingKeepAliveTimeoutTask != null;
 		if (isKeepAliveTimeoutTaskScheduled && keepAliveTimeout > 0) {
 			rescheduleKeepAliveTimeout(keepAliveTimeout);
@@ -1068,7 +1073,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				logger.logDebug(methodLog.toString());
 			}
 			sipStack.getTimer().schedule(pingKeepAliveTimeoutTask, keepAliveTimeout);
-		}		
+		}
 	}
 
 	class KeepAliveTimeoutTimerTask extends SIPStackTimerTask {
@@ -1117,19 +1122,19 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		}
 	}
 
-	// Methods below Added for https://java.net/jira/browse/JSIP-483 
+	// Methods below Added for https://java.net/jira/browse/JSIP-483
 	public void setHandshakeCompletedListener(
-            HandshakeCompletedListener handshakeCompletedListenerImpl) {
-        this.handshakeCompletedListener = (HandshakeCompletedListenerImpl) handshakeCompletedListenerImpl;
-    }
+			HandshakeCompletedListener handshakeCompletedListenerImpl) {
+		this.handshakeCompletedListener = (HandshakeCompletedListenerImpl) handshakeCompletedListenerImpl;
+	}
 
-    /**
-     * @return the handshakeCompletedListener
-     */
-    public HandshakeCompletedListenerImpl getHandshakeCompletedListener() {
-        return (HandshakeCompletedListenerImpl) handshakeCompletedListener;
-    }  
-    
+	/**
+	 * @return the handshakeCompletedListener
+	 */
+	public HandshakeCompletedListenerImpl getHandshakeCompletedListener() {
+		return (HandshakeCompletedListenerImpl) handshakeCompletedListener;
+	}
+
 	/**
 	 * @return the handshakeCompleted
 	 */
@@ -1146,22 +1151,22 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 	public void triggerConnectFailure(ChannelFuture channelFuture) {
 		SIPTransaction transaction = getEncapsulatedClientTransaction();
-        //alert of IOException to pending Data TXs        
-		if(transaction != null) {			
+		// alert of IOException to pending Data TXs
+		if (transaction != null) {
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-				logger.logDebug("triggerConnectFailure transaction:" + transaction);   
-				channelFuture.cause().printStackTrace(); 
+				logger.logDebug("triggerConnectFailure transaction:" + transaction);
+				channelFuture.cause().printStackTrace();
 			}
 			if (transaction != null) {
 				if (transaction instanceof SIPClientTransaction) {
-					//8.1.3.1 Transaction Layer Errors
+					// 8.1.3.1 Transaction Layer Errors
 					if (transaction.getRequest() != null &&
-							!transaction.getRequest().getMethod().equalsIgnoreCase("ACK"))
-					{
+							!transaction.getRequest().getMethod().equalsIgnoreCase("ACK")) {
 						SIPRequest req = (SIPRequest) transaction.getRequest();
-						SIPResponse unavRes = req.createResponse(Response.SERVICE_UNAVAILABLE, "Transport error sending request.");
+						SIPResponse unavRes = req.createResponse(Response.SERVICE_UNAVAILABLE,
+								"Transport error sending request.");
 						try {
-								this.processMessage(unavRes);
+							this.processMessage(unavRes);
 						} catch (Exception e) {
 							if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 								logger.logDebug("failed to report transport error", e);
@@ -1169,14 +1174,22 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 						}
 					}
 				} else {
-					//17.2.4 Handling Transport Errors
+					// 17.2.4 Handling Transport Errors
 					transaction.raiseIOExceptionEvent(Reason.ConnectionFailure);
 				}
 			}
 		}
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-			logger.logDebug("triggerConnectFailure close");    
+			logger.logDebug("triggerConnectFailure close");
 		}
-        close(true, false);
+		close(true, false);
+	}
+
+	public Class<? extends SocketChannel> nioOrEpollSocketChannel() {
+		if (Epoll.isAvailable() && !isSctp) {
+			return EpollSocketChannel.class;
+		} else {
+			return NioSocketChannel.class;
+		}
 	}
 }
