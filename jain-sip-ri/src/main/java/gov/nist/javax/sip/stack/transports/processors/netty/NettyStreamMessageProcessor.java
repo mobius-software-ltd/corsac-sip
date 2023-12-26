@@ -54,8 +54,10 @@ import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.OpenSsl;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
 
 /**
  * Netty Based Datagram Message Processor to handle creation of
@@ -101,21 +103,36 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
                     logger.logDebug(
                             "ClientAuth " + sipStack.getClientAuth() + " bypassing all cert validations");
                 }
-                this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0])
-                        .trustManager(trustAllCerts[0]).build();
-                this.sslClientContext = SslContextBuilder.forClient()
-                        .keyManager(securityManagerProvider.getKeyManagers(true)[0]).trustManager(trustAllCerts[0])
-                        .build();
+                SslContextBuilder sslServerContextBuilder = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]);
+                if(OpenSsl.isAvailable()) {
+                    sslServerContextBuilder = sslServerContextBuilder.sslProvider(SslProvider.OPENSSL).protocols("TLSv1.3");
+                }
+                this.sslServerContext = sslServerContextBuilder.trustManager(trustAllCerts[0]).build();
+
+                SslContextBuilder sslClientContextBuilder = SslContextBuilder.forClient().
+                        keyManager(securityManagerProvider.getKeyManagers(true)[0]);
+                if(OpenSsl.isAvailable()) {
+                    sslClientContextBuilder = sslClientContextBuilder.sslProvider(SslProvider.OPENSSL).protocols("TLSv1.3");
+                }
+                this.sslClientContext = sslClientContextBuilder.trustManager(trustAllCerts[0]).build();
             } else {
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                     logger.logDebug(
                             "ClientAuth " + sipStack.getClientAuth());
                 }
-                this.sslServerContext = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0])
-                        .trustManager(securityManagerProvider.getTrustManagers(false)[0]).build();
-                this.sslClientContext = SslContextBuilder.forClient()
-                        .keyManager(securityManagerProvider.getKeyManagers(true)[0])
-                        .trustManager(securityManagerProvider.getTrustManagers(true)[0]).build();
+                SslContextBuilder sslServerContextBuilder = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]);
+                if(OpenSsl.isAvailable()) {
+                    sslServerContextBuilder = sslServerContextBuilder.sslProvider(SslProvider.OPENSSL).protocols("TLSv1.3");
+                }
+                this.sslServerContext = sslServerContextBuilder.trustManager(securityManagerProvider.getTrustManagers(false)[0]).build();
+
+                SslContextBuilder sslClientContextBuilder = SslContextBuilder.forClient().
+                        keyManager(securityManagerProvider.getKeyManagers(true)[0]);
+                if(OpenSsl.isAvailable()) {
+                    sslClientContextBuilder = sslClientContextBuilder.sslProvider(SslProvider.OPENSSL).protocols("TLSv1.3");
+                }
+                this.sslClientContext = sslClientContextBuilder
+                    .trustManager(securityManagerProvider.getTrustManagers(true)[0]).build();               
             }
         }
     }
