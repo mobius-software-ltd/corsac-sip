@@ -235,8 +235,8 @@ public class Shootme implements SipListener {
             Shootme listener = this;
 
             ListeningPoint listeningPoint = sipStack.createListeningPoint(properties.getProperty(
-				SIP_BIND_ADDRESS, "127.0.0.1"), Integer.valueOf(properties
-				.getProperty(SIP_PORT_BIND, "5060")), properties.getProperty(
+				SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+				.getProperty(SIP_PORT_BIND, "" + myPort)), properties.getProperty(
 				TRANSPORTS_BIND, "udp"));
 		    sipProvider = sipStack.createSipProvider( listeningPoint);
             sipProvider.addSipListener(listener);
