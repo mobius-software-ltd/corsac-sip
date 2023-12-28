@@ -38,6 +38,9 @@ import gov.nist.javax.sip.message.RequestExt;
  * @author Vladimir Ralev
  */
 public class Shootme implements SipListener {
+    private static final String SIP_BIND_ADDRESS = "javax.sip.IP_ADDRESS";
+	private static final String SIP_PORT_BIND = "javax.sip.PORT";
+	private static final String TRANSPORTS_BIND = "javax.sip.TRANSPORT";
 
     private static AddressFactory addressFactory;
 
@@ -231,15 +234,14 @@ public class Shootme implements SipListener {
             headerFactory = sipFactory.createHeaderFactory();
             addressFactory = sipFactory.createAddressFactory();
             messageFactory = sipFactory.createMessageFactory();
-            ListeningPoint lpTcp = sipStack.createListeningPoint("127.0.0.1",
-                    myPort, TRANSPORT_TCP);
-            ListeningPoint lpUdp = sipStack.createListeningPoint("127.0.0.1",
-                    myPort, TRANSPORT_UDP);
-
+            
             Shootme listener = this;
 
-            sipProvider = sipStack.createSipProvider(lpTcp);
-            sipProvider.addListeningPoint(lpUdp);
+            ListeningPoint listeningPoint = sipStack.createListeningPoint(properties.getProperty(
+				SIP_BIND_ADDRESS, "127.0.0.1"), Integer.valueOf(properties
+				.getProperty(SIP_PORT_BIND, "5060")), properties.getProperty(
+				TRANSPORTS_BIND, "udp"));
+		    sipProvider = sipStack.createSipProvider( listeningPoint);
             sipProvider.addSipListener(listener);
 
         } catch (Exception ex) {
