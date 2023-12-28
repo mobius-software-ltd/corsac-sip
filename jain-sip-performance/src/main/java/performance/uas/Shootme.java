@@ -59,10 +59,7 @@ public class Shootme implements SipListener {
     private static final String myAddress = "127.0.0.1";
 
     private static final int myPort = 5080;
-    
-    private static String TRANSPORT_TCP = "tcp";
-    private static String TRANSPORT_UDP = "udp";
-
+        
     protected static final String usageString = "java "
             + Shootme.class.getCanonicalName() + " \n"
             + ">>>> is your class path set to the root?";
