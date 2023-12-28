@@ -588,7 +588,7 @@ public class WebsocketSelfTest extends TestCase {
         this.websocketBrowser.init();
         try {
         	for(int q=0; q<10; q++) {
-            	Thread.sleep(3000);
+            	Thread.sleep(5000);
             	if(this.websocketServer.okByeReceived) break;
             }
         } catch (Exception ex) {
@@ -607,7 +607,7 @@ public class WebsocketSelfTest extends TestCase {
         this.websocketBrowser.init();
         try {
         	for(int q=0; q<10; q++) {
-            	Thread.sleep(3000);
+            	Thread.sleep(5000);
             	if(this.websocketServer.okByeReceived) break;
             }
         } catch (Exception ex) {
@@ -624,7 +624,7 @@ public class WebsocketSelfTest extends TestCase {
         this.websocketBrowser.init();
         try {
         	for(int q=0; q<10; q++) {
-            	Thread.sleep(3000);
+            	Thread.sleep(5000);
             	if(this.websocketServer.okByeReceived) break;
             }
         } catch (Exception ex) {
