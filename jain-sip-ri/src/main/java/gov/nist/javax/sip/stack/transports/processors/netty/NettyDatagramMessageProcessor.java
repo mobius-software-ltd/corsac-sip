@@ -36,9 +36,13 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
 
 /**
  * Netty Based Datagram Message Processor to handle creation of 
@@ -52,7 +56,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
     protected final List<Channel> serverChannels;
     
     // multithreaded event loop that handles incoming connection and I/O operations
-    EpollEventLoopGroup epollEventLoopGroup;    
+    EventLoopGroup eventLoopGroup;    
     
     /**
     * Constructor.
@@ -64,7 +68,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
         super(ipAddress, port, ListeningPoint.UDP, sipStack);
 
         int threadPoolSize = sipStack.getThreadPoolSize();
-        epollEventLoopGroup = new EpollEventLoopGroup(threadPoolSize);
+        eventLoopGroup = newNioOrEpollEventLoopGroup(threadPoolSize);
         serverChannels = new ArrayList<>(threadPoolSize);
     }
     
@@ -104,8 +108,8 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
         connectionlessBootstrap.option(EpollChannelOption.IP_RECVORIGDSTADDR, true);
         connectionlessBootstrap.option(EpollChannelOption.IP_FREEBIND, true);
         connectionlessBootstrap.handler(new NettyDatagramChannelInitializer(this));
-        connectionlessBootstrap.channel(EpollDatagramChannel.class);        
-        connectionlessBootstrap.group(epollEventLoopGroup);
+        connectionlessBootstrap.channel(nioOrEpollServerDatagramChannel());
+        connectionlessBootstrap.group(eventLoopGroup);
         
         ChannelFuture future;
         int threadPoolSize = sipStack.getThreadPoolSize();
@@ -139,7 +143,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
             }
         }
         serverChannels.clear();
-        epollEventLoopGroup.shutdownGracefully();
+        eventLoopGroup.shutdownGracefully();
     }
     
     /**
@@ -168,6 +172,23 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
     */
     public boolean inUse() {
         return !serverChannels.isEmpty();
-    }   
+    }  
+    
+    public Class<? extends DatagramChannel> nioOrEpollServerDatagramChannel() {
+        if (Epoll.isAvailable()) {
+            return EpollDatagramChannel.class;
+        } else {
+            logger.logWarning("EPoll is not enabled or supported on this platform, using NIO.");
+            return DatagramChannel.class;
+        }
+    }
+
+    public EventLoopGroup newNioOrEpollEventLoopGroup(int threads) {
+        if (Epoll.isAvailable()) {
+            return new EpollEventLoopGroup(threads);
+        } else {
+            return new NioEventLoopGroup(threads);
+        }
+    }
 }
     

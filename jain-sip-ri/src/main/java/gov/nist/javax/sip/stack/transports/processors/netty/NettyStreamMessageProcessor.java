@@ -106,6 +106,8 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
                 SslContextBuilder sslServerContextBuilder = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]);
                 if(OpenSsl.isAvailable()) {
                     sslServerContextBuilder = sslServerContextBuilder.sslProvider(SslProvider.OPENSSL).protocols("TLSv1.3");
+                } else {
+                    logger.logWarning("TC Native OpenSSL is not enabled or supported on this platform, using regular one");
                 }
                 this.sslServerContext = sslServerContextBuilder.trustManager(trustAllCerts[0]).build();
 
@@ -123,6 +125,8 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
                 SslContextBuilder sslServerContextBuilder = SslContextBuilder.forServer(securityManagerProvider.getKeyManagers(false)[0]);
                 if(OpenSsl.isAvailable()) {
                     sslServerContextBuilder = sslServerContextBuilder.sslProvider(SslProvider.OPENSSL).protocols("TLSv1.3");
+                } else {
+                    logger.logWarning("TC Native OpenSSL is not enabled or supported on this platform, using regular one");
                 }
                 this.sslServerContext = sslServerContextBuilder.trustManager(securityManagerProvider.getTrustManagers(false)[0]).build();
 
@@ -485,6 +489,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
         if (Epoll.isAvailable() && !ListeningPoint.SCTP.equalsIgnoreCase(getTransport())) {
             return EpollServerSocketChannel.class;
         } else {
+            logger.logWarning("EPoll is not enabled or supported on this platform, using NIO.");
             return NioServerSocketChannel.class;
         }
     }
