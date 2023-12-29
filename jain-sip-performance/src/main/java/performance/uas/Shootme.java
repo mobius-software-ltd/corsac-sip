@@ -214,6 +214,15 @@ public class Shootme implements SipListener {
                 throw new RuntimeException("SIP_STACK_PROPERTIES_PATH environment variable not set");
             }
             properties.load(new FileInputStream(new File(filePath)));
+            if(System.getProperty("javax.sip.IP_ADDRESS") != null) {
+            	properties.setProperty("javax.sip.IP_ADDRESS", System.getProperty("javax.sip.IP_ADDRESS"));
+            }
+            if(System.getProperty("javax.sip.TRANSPORT") != null) {
+            	properties.setProperty("javax.sip.TRANSPORT", System.getProperty("javax.sip.TRANSPORT"));
+            }
+            if(System.getProperty("javax.sip.PORT") != null) {
+            	properties.setProperty("javax.sip.PORT", System.getProperty("javax.sip.PORT"));
+            }
             // Create SipStack object
             sipStack = sipFactory.createSipStack(properties);
         } catch (Exception e) {
