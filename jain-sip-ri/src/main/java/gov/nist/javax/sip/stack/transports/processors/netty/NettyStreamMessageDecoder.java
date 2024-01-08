@@ -54,6 +54,7 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
         }
                   
         do {
+        	sipMessage=null;
             if(nettyMessageParser.parseBytes(in).isParsingComplete()) {
                 try {  
                     sipMessage = nettyMessageParser.consumeSIPMessage();
@@ -70,7 +71,7 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
                             "Parsing issue !  " + in.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);
                     }
                 }    
-            } 
+            }
         } while (sipMessage != null && in.readableBytes() > 0);                    
         if(sipMessage == null) {
             if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
