@@ -29,6 +29,7 @@ import java.util.EventObject;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sip.DialogState;
@@ -54,6 +55,7 @@ import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPDialog;
 import gov.nist.javax.sip.stack.SIPServerTransaction;
 import gov.nist.javax.sip.stack.SIPTransaction;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
 
 /* bug fixes SIPQuest communications and Shu-Lin Chen. */
 
@@ -70,7 +72,7 @@ public class EventScanner implements Runnable {
 	
 	private static StackLogger logger = CommonLogger.getLogger(EventScanner.class);
 
-    private boolean isStopped;
+    private AtomicBoolean isStopped;
 
     private BlockingQueue<EventWrapper> pendingEvents;
     
@@ -84,6 +86,7 @@ public class EventScanner implements Runnable {
 
     public EventScanner(SipStackImpl sipStackImpl) {
         this.sipStack = sipStackImpl;
+        isStopped = new AtomicBoolean(true);
     	refCount = new AtomicInteger(0);
         this.pendingEvents = new LinkedBlockingQueue<EventWrapper>();        
     }
@@ -99,7 +102,8 @@ public class EventScanner implements Runnable {
     }
 
     public void start() {
-        if(!sipStack.isReEntrantListener()) {
+        isStopped.set(false);
+        if(!sipStack.isReEntrantListener() && !(sipStack.getMessageProcessorFactory() instanceof NettyMessageProcessorFactory)) {
             Thread myThread = new Thread(this);
             // This needs to be set to false else the
             // main thread mysteriously exits.
@@ -116,7 +120,7 @@ public class EventScanner implements Runnable {
 
     public void stop() {
             if (refCount.decrementAndGet() == 0) {
-            	isStopped = true;
+            	isStopped.set(true);
             }
     }
 
@@ -126,8 +130,12 @@ public class EventScanner implements Runnable {
      *
      */
     public void forceStop() {
-            this.isStopped = true;
+            isStopped.set(true);
             this.refCount.set(0);
+    }
+
+    public boolean isStarted() {
+        return !isStopped.get();
     }
 
     public void deliverEvent(EventWrapper eventWrapper) {
@@ -495,7 +503,7 @@ public class EventScanner implements Runnable {
                 // There's nothing in the list, check to make sure we
                 // haven't
                 // been stopped. If we have, then let the thread die.
-                if (this.isStopped) {
+                if (this.isStopped.get()) {
                     if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
                         logger.logDebug(
                                 "Stopped event scanner!!");
@@ -533,7 +541,7 @@ public class EventScanner implements Runnable {
             } // end While
         } finally {
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
-                if (!this.isStopped) {
+                if (!this.isStopped.get()) {
                     logger.logFatalError("Event scanner exited abnormally");
                 }
             }

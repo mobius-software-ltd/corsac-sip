@@ -18,8 +18,8 @@ import javax.sip.message.Response;
 
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.stack.MessageChannel;
 import gov.nist.javax.sip.stack.SIPMessageValve;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 
 public class SipMessageValve implements SIPMessageValve {

@@ -45,7 +45,7 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
-import gov.nist.javax.sip.stack.NioMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
 
 /**
  * This class is a B2BUA using Websocket transport. You can use any two Websocket SIP phones
@@ -271,7 +271,7 @@ public class B2BUA implements SipListener {
 				"shootmedebug.txt");
 		properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
 				"shootmelog.txt");
-		properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NioMessageProcessorFactory.class.getName());
+		properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", NettyMessageProcessorFactory.class.getName());
 
 		try {
 			// Create SipStack object

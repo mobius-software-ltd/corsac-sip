@@ -701,7 +701,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 				this);
 		super.setMessageFactory(msgFactory);
 		this.eventScanner = new EventScanner(this);
-		eventScanner.start();
+		// eventScanner.start();
 		this.listeningPoints = new ConcurrentHashMap<String, ListeningPointImpl>();
 		this.sipProviders = new CopyOnWriteArrayList<SipProviderImpl>();
 		try {
@@ -1915,10 +1915,12 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	public void start() throws ProviderDoesNotExistException, SipException {			
 		// Start a new event scanner if one does not exist.
 		if (this.eventScanner == null) {
-			this.eventScanner = new EventScanner(this);
-			eventScanner.start();
+			this.eventScanner = new EventScanner(this);			
 		}
 
+		if(!this.eventScanner.isStarted()) {
+			eventScanner.start();
+		}
 	}
 
 	/**
