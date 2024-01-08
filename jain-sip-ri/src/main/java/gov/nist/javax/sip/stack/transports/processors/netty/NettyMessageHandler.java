@@ -119,8 +119,8 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
             logger.logError("Read Timeout Received on channel " + ctx.channel() + ", closing channel", (Exception)cause.getCause());
             ctx.channel().close();            
          } else {
-            logger.logError("Exception on channel " + ctx.channel() + ", closing channel handle context", (Exception)cause.getCause());
-            ctx.close();
+            logger.logError("Exception " + cause.getClass().getName() + " on channel " + ctx.channel() + ", closing channel handle context", (Exception)cause.getCause());
+            ctx.channel().close();
          }    
     }
 }
