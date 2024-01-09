@@ -392,6 +392,12 @@ public abstract class SIPTransactionStack implements
     // Send UDP buffer size
     protected int sendUdpBufferSize;
 
+    // Receive TCP buffer size
+    protected int tcpSoRcvbuf;
+
+    // Send TCP buffer size
+    protected int tcpSoSndbuf;
+
     private int stackCongestionControlTimeout = 0;
 
     protected boolean isBackToBackUserAgent = false;
@@ -3119,6 +3125,14 @@ public abstract class SIPTransactionStack implements
         return sendUdpBufferSize;
     }
 
+    public int getTcpSoRcvbuf() {
+        return tcpSoRcvbuf;
+    }
+
+    public int getTcpSoSndbuf() {
+        return tcpSoSndbuf;
+    }
+    
     /**
      * Size of the send UDP buffer. This property affects performance under
      * load. Bigger buffer is better under load.

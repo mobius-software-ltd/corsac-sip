@@ -250,7 +250,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
             if (transport.equals(ListeningPoint.TLS) || transport.equals(ListeningPoint.TCP)) {
                 server = server.channel(nioOrEpollServerSocketChannel());
                 server = server.childHandler(new NettyStreamChannelInitializer(this, sslServerContext));
-                server = server.option(ChannelOption.SO_RCVBUF, sipStack.getReceiveUdpBufferSize());				
+                server = server.option(ChannelOption.SO_RCVBUF, sipStack.getTcpSoRcvbuf());				
                 server = server.childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the
                                                                                // parent ServerChannel, which is
                                                                                // NioSocketChannel in this case

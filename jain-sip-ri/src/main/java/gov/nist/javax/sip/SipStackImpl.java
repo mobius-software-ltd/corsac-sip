@@ -1459,6 +1459,21 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 						.toString());
 		bufferSizeInteger = new Integer(bufferSize).intValue();
 		super.setSendUdpBufferSize(bufferSizeInteger);
+
+		String tcpReceiveBufferSize = configurationProperties.getProperty(
+				"gov.nist.javax.sip.TCP_RECEIVE_BUFFER_SIZE", null);
+		if(tcpReceiveBufferSize != null) {
+			int recveiveBufferSizeInteger = new Integer(tcpReceiveBufferSize).intValue();
+			tcpSoRcvbuf = recveiveBufferSizeInteger;
+		}
+
+		String tcpSendBufferSize = configurationProperties.getProperty(
+				"gov.nist.javax.sip.TCP_SEND_BUFFER_SIZE", null);
+		if(tcpSendBufferSize != null) {
+			int sendBufferSizeInteger = new Integer(tcpSendBufferSize).intValue();
+			tcpSoSndbuf = sendBufferSizeInteger;
+		}
+
 		// Contribution for https://github.com/Mobicents/jain-sip/issues/40
 		super.setConnectionLingerTimer(Integer.parseInt(configurationProperties.getProperty(
 				"gov.nist.javax.sip.LINGER_TIMER", "8")));
