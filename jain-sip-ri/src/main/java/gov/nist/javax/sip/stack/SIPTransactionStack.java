@@ -1,27 +1,20 @@
 /*
- * Conditions Of Use
+ * Mobius Software LTD
+ * Copyright 2023, Mobius Software LTD and individual contributors
+ * by the @authors tag.
  *
- * This software was developed by employees of the National Institute of
- * Standards and Technology (NIST), an agency of the Federal Government.
- * Pursuant to title 15 Untied States Code Section 105, works of NIST
- * employees are not subject to copyright protection in the United States
- * and are considered to be in the public domain.  As a result, a formal
- * license is not needed to use the software.
+ * This program is free software: you can redistribute it and/or modify
+ * under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This software is provided by NIST as a service and is expressly
- * provided "AS IS."  NIST MAKES NO WARRANTY OF ANY KIND, EXPRESS, IMPLIED
- * OR STATUTORY, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTY OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT
- * AND DATA ACCURACY.  NIST does not warrant or make any representations
- * regarding the use of the software or the results thereof, including but
- * not limited to the correctness, accuracy, reliability or usefulness of
- * the software.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * Permission to use this software is contingent upon your acceptance
- * of the terms of this agreement
- *
- * .
- *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 package gov.nist.javax.sip.stack;
 
@@ -3132,7 +3125,7 @@ public abstract class SIPTransactionStack implements
     public int getTcpSoSndbuf() {
         return tcpSoSndbuf;
     }
-    
+
     /**
      * Size of the send UDP buffer. This property affects performance under
      * load. Bigger buffer is better under load.
