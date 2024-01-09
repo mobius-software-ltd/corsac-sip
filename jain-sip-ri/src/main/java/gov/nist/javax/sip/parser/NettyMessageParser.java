@@ -22,6 +22,9 @@ package gov.nist.javax.sip.parser;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 
+import gov.nist.core.CommonLogger;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.RequestLine;
@@ -55,7 +58,7 @@ public class NettyMessageParser {
 		READING_EMPTY_LINE,
 		READING_MESSAGE_BODY_CONTENTS,
 		READING_PARTIAL_MESSAGE_BODY_CONTENTS,
-		PARSING_COMPLETE		
+		PARSING_COMPLETE, READING_PARTIAL_INIT		
 	}
 
 	private	ParsingState parsingState;    
@@ -77,14 +80,17 @@ public class NettyMessageParser {
 		int readableBytes = byteBuf.readableBytes();		
 
 		// if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-		// 	logger.logDebug("Readable Bytes: " + readableBytes + ", Parsing State:" + parsingState);
+		// 	logger.logDebug("Readable Bytes: " + readableBytes + ", decoded bytes " + byteBuf.toString(io.netty.util.CharsetUtil.UTF_8) + ", Parsing State:" + parsingState);
 		// }
-
+		
 		while (readableBytes > 0 				
 				&& !isParsingComplete()) {
 					
 			switch (parsingState) {
 				case INIT:
+					readSIPMessageHeader(byteBuf, readableBytes);
+					break;
+				case READING_PARTIAL_INIT:
 					readSIPMessageHeader(byteBuf, readableBytes);
 					break;
 				case CRLF:
@@ -203,7 +209,16 @@ public class NettyMessageParser {
 				// 	logger.logDebug("Read Partial line:" + line);
 				// }
 				return;
-			}					
+			}	
+			if(readableBytes > 0 && parsingState == ParsingState.INIT) {
+				// case of split message in the middle of the first line
+				parsingState = ParsingState.READING_PARTIAL_INIT;				
+				// if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+				// 	String line = byteBuf.toString(readerIndex, readableBytes, Charset.forName(ENCODING));				
+				// 	logger.logDebug("Read Partial line:" + line);
+				// }
+				return;
+			}									
 		}	
 		//checking for max message size
 		if(maxMessageSize > 0 && byteBuf.readerIndex() > maxMessageSize) {
@@ -278,6 +293,9 @@ public class NettyMessageParser {
 		if(parsingState == ParsingState.READING_PARTIAL_MESSAGE_BODY_CONTENTS) {
 			parsingState = ParsingState.READING_MESSAGE_BODY_CONTENTS;
 		}
+		if(parsingState == ParsingState.READING_PARTIAL_INIT) {
+			parsingState = ParsingState.INIT;
+		}
 			
 		if((parsingState != ParsingState.PARSING_COMPLETE && parsingState != ParsingState.DOUBLE_CRLF)) {
 			return null;
@@ -304,6 +322,7 @@ public class NettyMessageParser {
 	public boolean isParsingComplete() {
 		return parsingState == ParsingState.PARSING_COMPLETE 
 				|| parsingState == ParsingState.DOUBLE_CRLF
+				|| parsingState == ParsingState.READING_PARTIAL_INIT
 				|| parsingState == ParsingState.READING_PARTIAL_HEADER_LINE
 				|| parsingState == ParsingState.READING_PARTIAL_MESSAGE_BODY_CONTENTS;
 	}

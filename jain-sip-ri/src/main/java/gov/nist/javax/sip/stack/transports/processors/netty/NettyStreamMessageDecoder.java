@@ -54,7 +54,7 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
         }
                   
         do {
-        	sipMessage=null;
+        	sipMessage = null;
             if(nettyMessageParser.parseBytes(in).isParsingComplete()) {
                 try {  
                     sipMessage = nettyMessageParser.consumeSIPMessage();
@@ -72,6 +72,9 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
                     // in.clear();
                 }    
             }
+            // if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
+			// 	logger.logDebug("Readable Bytes: " + in.readableBytes() + ", SIP message:" + sipMessage);
+			// }	
         } while (sipMessage != null && in.readableBytes() > 0);                    
         if(sipMessage == null) {
             if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   

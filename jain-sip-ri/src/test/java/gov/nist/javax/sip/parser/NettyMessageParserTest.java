@@ -201,6 +201,20 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
             + "Max-Forwards: 70\r\n"
             + "Content-Length: 0\r\n"
             + "\r\n"; 
+
+    private static final String MULTIPLE_ACK_REQUESTS_SPLIT_THIRD_PART =               
+            "ACK sip:127.0.0.1:5070 SIP/2.0"; 
+
+    private static final String MULTIPLE_ACK_REQUESTS_SPLIT_FOURTH_PART =               
+            "\r\n"
+            + "Call-ID: dcf2dbba51cbf75e8f2489862cde78a1@127.0.0.1\r\n"
+            + "CSeq: 5 ACK\r\n"
+            + "Via: SIP/2.0/TCP 127.0.0.1:56032;branch=z9hG4bK-3232-1d60ecf75c3a9f105ea186c105e07363\r\n"
+            + "From: \"The Master Blaster\" <sip:BigGuy@here.com>;tag=12345\r\n"
+            + "To: \"The Little Blister\" <sip:LittleGuy@there.com>;tag=4321\r\n"
+            + "Max-Forwards: 70\r\n"
+            + "Content-Length: 0\r\n"
+            + "\r\n"; 
         
     private static final String MULTIPLE_RESPONSES_PARSE_EXCEPTION = "SIP/2.0 180 Ringing\r\n"
             + "CSeq: 1 INVITE\r\n"
@@ -329,6 +343,45 @@ public class NettyMessageParserTest extends junit.framework.TestCase {
         assertNotNull(msg);
         Assert.assertEquals(4, msg.getCSeq().getSeqNumber());
         assertNull(msg.getContent());         
+    }
+
+    public void testMultipleACKRequestsSplitInit() throws Exception {
+        NettyMessageParser parser = new NettyMessageParser(SipStackImpl.MAX_DATAGRAM_SIZE, false);
+        ByteBuf byteBuf = Unpooled.wrappedBuffer(MULTIPLE_ACK_REQUESTS_SPLIT_FIRST_PART.getBytes());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        SIPMessage msg = parser.consumeSIPMessage();               
+        assertNotNull(msg);
+        assertNull(msg.getContent());
+        Assert.assertEquals(1, msg.getCSeq().getSeqNumber());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();               
+        assertNotNull(msg);
+        assertNull(msg.getContent());
+        Assert.assertEquals(2, msg.getCSeq().getSeqNumber());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();               
+        assertNull(msg);    
+        byteBuf = Unpooled.wrappedBuffer(MULTIPLE_ACK_REQUESTS_SPLIT_SECOND_PART.getBytes());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();               
+        assertNotNull(msg);
+        Assert.assertEquals(3, msg.getCSeq().getSeqNumber());
+        assertNull(msg.getContent());        
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();               
+        assertNotNull(msg);
+        Assert.assertEquals(4, msg.getCSeq().getSeqNumber());
+        assertNull(msg.getContent());         
+        byteBuf = Unpooled.wrappedBuffer(MULTIPLE_ACK_REQUESTS_SPLIT_THIRD_PART.getBytes());
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());                
+        msg = parser.consumeSIPMessage();  
+        assertNull(msg);          
+        byteBuf = Unpooled.wrappedBuffer(byteBuf, Unpooled.wrappedBuffer(MULTIPLE_ACK_REQUESTS_SPLIT_FOURTH_PART.getBytes()));           
+        Assert.assertTrue(parser.parseBytes(byteBuf).isParsingComplete());        
+        msg = parser.consumeSIPMessage();               
+        assertNotNull(msg);
+        Assert.assertEquals(5, msg.getCSeq().getSeqNumber());
+        assertNull(msg.getContent());        
     }
 
     public void testMultipleResponses() throws Exception {
