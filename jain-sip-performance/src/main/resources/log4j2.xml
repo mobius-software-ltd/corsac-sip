@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+  <Properties>
+    <Property name="filename">logs/performance.log</Property>
+  </Properties>
+  <Appenders>  
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36}.%M():%L - %msg%n"/>
+    </Console>
+    <File name="File" fileName="${filename}">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36}.%M():%L - %msg%n"/>
+    </File>
+  </Appenders>
+  <Loggers>
+    <Logger name="gov.nist.javax.sip.stack.transports.processors.netty" level="WARN" additivity="false"/>
+    <Logger name="gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageDecoder" level="WARN" additivity="false"/>
+    <Logger name="gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageParser" level="WARN" additivity="false"/>
+        
+    <Root level="WARN">
+      <AppenderRef ref="File"/>
+    </Root>
+  </Loggers>
+</Configuration>
