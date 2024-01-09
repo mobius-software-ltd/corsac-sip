@@ -40,7 +40,6 @@ import gov.nist.javax.sip.message.RequestExt;
 public class Shootme implements SipListener {
     private static final String SIP_BIND_ADDRESS = "javax.sip.IP_ADDRESS";
 	private static final String SIP_PORT_BIND = "javax.sip.PORT";
-	private static final String TRANSPORTS_BIND = "javax.sip.TRANSPORT";
 
     private static AddressFactory addressFactory;
 
@@ -243,12 +242,19 @@ public class Shootme implements SipListener {
             
             Shootme listener = this;
 
-            ListeningPoint listeningPoint = sipStack.createListeningPoint(properties.getProperty(
-				SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
-				.getProperty(SIP_PORT_BIND, "" + myPort)), properties.getProperty(
-				TRANSPORTS_BIND, "udp"));
-		    sipProvider = sipStack.createSipProvider( listeningPoint);
+            ListeningPoint udpListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+                SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+                .getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.UDP);
+            ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+                SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+                .getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TCP);
+            ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+                SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+                .getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TLS);
+            sipProvider = sipStack.createSipProvider( udpListeningPoint);
             sipProvider.addSipListener(listener);
+            sipProvider.addListeningPoint(tcpListeningPoint);
+            sipProvider.addListeningPoint(tlsListeningPoint);		
 
         } catch (Exception ex) {
             ex.printStackTrace();

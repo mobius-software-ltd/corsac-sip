@@ -22,9 +22,6 @@ package gov.nist.javax.sip.parser;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.LogWriter;
-import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.RequestLine;

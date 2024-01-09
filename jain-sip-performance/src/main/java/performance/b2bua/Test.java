@@ -29,15 +29,17 @@ public class Test implements SipListener {
  
 	private static final String SIP_BIND_ADDRESS = "javax.sip.IP_ADDRESS";
 	private static final String SIP_PORT_BIND = "javax.sip.PORT";
-	private static final String TRANSPORTS_BIND = "javax.sip.TRANSPORT";
 	
 	private SipFactory sipFactory;
 	private SipStack sipStack;
-	private ListeningPoint listeningPoint;
 	private SipProvider provider;
 	private HeaderFactory headerFactory;
 	private MessageFactory messageFactory;
 		
+	private static final String myAddress = "127.0.0.1";
+
+    private static final int myPort = 5060;
+
 	public Test() throws NumberFormatException, SipException, TooManyListenersException, InvalidArgumentException, ParseException {
 		initStack();
 	}
@@ -75,12 +77,19 @@ public class Test implements SipListener {
             System.exit(2);
         }		
 		this.sipStack.start();
-		this.listeningPoint = this.sipStack.createListeningPoint(properties.getProperty(
-				SIP_BIND_ADDRESS, "127.0.0.1"), Integer.valueOf(properties
-				.getProperty(SIP_PORT_BIND, "5060")), properties.getProperty(
-				TRANSPORTS_BIND, "udp"));
-		this.provider = this.sipStack.createSipProvider(this.listeningPoint);
-		this.provider.addSipListener(this);
+		ListeningPoint udpListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+			SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+			.getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.UDP);
+		ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+			SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+			.getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TCP);
+		ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+			SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+			.getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TLS);
+		provider = sipStack.createSipProvider( udpListeningPoint);
+		provider.addSipListener(this);
+		provider.addListeningPoint(tcpListeningPoint);
+		provider.addListeningPoint(tlsListeningPoint);		
 		this.headerFactory = sipFactory.createHeaderFactory();
 		this.messageFactory = sipFactory.createMessageFactory();
 	}

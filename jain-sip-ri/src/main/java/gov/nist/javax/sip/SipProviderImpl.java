@@ -1021,7 +1021,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         lp.sipProvider = this;
 
         ListeningPoint oldListeningPoint = this.listeningPoints.putIfAbsent(transport, lp);
-        if (oldListeningPoint != listeningPoint)
+        if (oldListeningPoint != null && oldListeningPoint != listeningPoint)
             throw new ObjectInUseException(
                     "Listening point already assigned for transport!");
 
