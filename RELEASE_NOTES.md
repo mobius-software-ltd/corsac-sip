@@ -9,6 +9,27 @@ The folowing tags are used to categorize and state the scope of a change
 
 # JSIP-RI Release Notes
 
+## X.Y.Z version 2024-01-XX
+
+### Release Unit/Integration Tests
+http://X.X.X.X:8080/job/mobius-jsip-pipeline/job/mobius-8.0-netty/187/testReport/
+
+### Performance Tests
+https://docs.google.com/document/d/1bDfkcpPcQ0vQFVqCXaSV41wWxgTj5J5hENLg3oXgaoA/edit?usp=sharing
+
+### New features
+* Netty Framework Based Transport Layer
+* Async and Non-Blocking Implementation serializing messages to application layer on Call ID
+* Timers based on Mobius Timers Library
+
+### Breaking Changes
+
+* N/A
+
+### Bug fixes
+
+* N/A
+
 ## 7.1.1 version 2019-06-26
 
 ### Release Unit/Integration Tests
