@@ -191,6 +191,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 				bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup)
 						.channel(nioOrEpollSocketChannel());
+				bootstrap = bootstrap.option(ChannelOption.SO_RCVBUF, sipStack.getReceiveUdpBufferSize());
+				bootstrap = bootstrap.option(ChannelOption.SO_SNDBUF, sipStack.getSendUdpBufferSize());
 				bootstrap = bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
 			}
 
