@@ -239,16 +239,23 @@ node("slave-xlarge") {
                     echo "concurrent calls:$CONCURRENT_CALLS"                
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $UAS_TEST_DURATION+seconds -u)"
-                '''
-                echo "POST_PERF_ADDITIONAL_SLEEP_TIME ${POST_PERF_ADDITIONAL_SLEEP_TIME}"
+                '''                
                 duration="${UAS_TEST_DURATION}" as Integer
-                additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}" as Integer
-                echo "additional_duration ${additional_duration}"
-                sleep_time=duration + additional_duration
+                call_length="${UAS_CALL_LENGTH}" as Integer                
+                echo "duration ${duration}"                
+                echo "call_length ${call_length}"
+                sleep_time=duration + call_length 
                 echo "sleep_time ${sleep_time}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
+                sh '''
+                    pkill -SIGUSR1 sipp || true
+                '''
+                additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}" as Integer                
+                echo "additional_duration ${additional_duration}"
+                sleep(time:"${additional_duration}",unit:"SECONDS") 
                 echo "TEST ENDED"        
                 sh '''
+                    pgrep sipp || true
                     killall sipp || true
                     export PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
                     export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/jSIP-Performance-UAS.xsl
@@ -315,15 +322,22 @@ node("slave-xlarge") {
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:5060 -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
                 '''
-                echo "POST_PERF_ADDITIONAL_SLEEP_TIME ${POST_PERF_ADDITIONAL_SLEEP_TIME}"
-                duration="${B2BUA_TEST_DURATION}" as Integer
-                additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}" as Integer
-                echo "additional_duration ${additional_duration}"
-                sleep_time=duration + additional_duration
+                duration="${UAS_TEST_DURATION}" as Integer
+                call_length="${UAS_CALL_LENGTH}" as Integer                
+                echo "duration ${duration}"                
+                echo "call_length ${call_length}"
+                sleep_time=duration + call_length 
                 echo "sleep_time ${sleep_time}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
+                sh '''
+                    pkill -SIGUSR1 sipp || true
+                '''
+                additional_duration="${POST_PERF_ADDITIONAL_SLEEP_TIME}" as Integer                
+                echo "additional_duration ${additional_duration}"
+                sleep(time:"${additional_duration}",unit:"SECONDS") 
                 echo "TEST ENDED"        
                 sh '''
+                    pgrep sipp || true
                     killall sipp || true
                     export PERFCORDER_SIPP_CSV="$WORKSPACE/uas_DIALOG*.csv"
                     export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/jSIP-Performance-B2BUA.xsl
