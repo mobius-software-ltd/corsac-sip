@@ -73,7 +73,7 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
                         out.add(sipMessage);                                 
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();            
+                    // e.printStackTrace();            
                     if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
                         logger.logError(
                             "Parsing issue !  " + content.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);

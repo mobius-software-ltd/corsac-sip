@@ -438,7 +438,10 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			public void operationComplete(ChannelFuture completeFuture) {
 				assert finalFuture == completeFuture;
 				if (!finalFuture.isSuccess()) {
-					finalFuture.cause().printStackTrace();
+					if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+						logger.logDebug(
+							"Message not sent successfully " + finalFuture.cause().getMessage(), (Exception) finalFuture.cause());						
+					}					
 					if (sipStack.getMessageProcessorExecutor() != null) {
 						sipStack.getMessageProcessorExecutor().addTaskLast(
 								new NettyConnectionFailureThread(current, finalFuture));
@@ -1159,7 +1162,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		if (transaction != null) {
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 				logger.logDebug("triggerConnectFailure transaction:" + transaction);
-				channelFuture.cause().printStackTrace();
+				// channelFuture.cause().printStackTrace();
 			}
 			if (transaction != null) {
 				if (transaction instanceof SIPClientTransaction) {

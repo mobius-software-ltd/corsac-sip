@@ -61,7 +61,7 @@ public class MobiusSipTimerTask implements SIPTimer {
                 }
             } catch (Exception e) {
                 logger.logError("SIP stack timer task failed due to exception:", e);
-                e.printStackTrace();
+                // e.printStackTrace();
             }
             if (period.get() > 0) {
                 timestamp.set(timestamp.get() + period.get());

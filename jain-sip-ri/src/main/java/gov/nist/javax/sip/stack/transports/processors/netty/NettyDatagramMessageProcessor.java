@@ -28,6 +28,7 @@ import javax.sip.ListeningPoint;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.HostPort;
+import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
@@ -139,7 +140,10 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
             try {
                 channel.closeFuture().await(1000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                // e.printStackTrace();
+                if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
+                    logger.logError("Wed got interrupted " + e.getMessage(), e);
+                }
             }
         }
         serverChannels.clear();

@@ -65,8 +65,8 @@ public class NettySctpMessageDecoder extends SctpMessageToMessageDecoder {
                         }         
                         out.add(sipMessage);            
                     }
-                    } catch (Exception e) {
-                    e.printStackTrace();            
+                } catch (Exception e) {
+                    // e.printStackTrace();            
                     if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
                         logger.logError(
                             "Parsing issue !  " + in.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);

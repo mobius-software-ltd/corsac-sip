@@ -98,7 +98,7 @@ public class NettyWebSocketFrameDecoder extends WebSocket13FrameDecoder {
                         out.add(sipMessage);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // e.printStackTrace();
                     if (logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {
                         logger.logError(
                                 "Parsing issue !  " + in.toString(io.netty.util.CharsetUtil.UTF_8) + " "
