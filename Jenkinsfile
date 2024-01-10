@@ -244,7 +244,7 @@ node("slave-xlarge") {
                 call_length="${UAS_CALL_LENGTH}" as Integer                
                 echo "duration ${duration}"                
                 echo "call_length ${call_length}"
-                sleep_time=duration + call_length 
+                sleep_time=duration + call_length + 10
                 echo "sleep_time ${sleep_time}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
                 sh '''
@@ -326,7 +326,7 @@ node("slave-xlarge") {
                 call_length="${UAS_CALL_LENGTH}" as Integer                
                 echo "duration ${duration}"                
                 echo "call_length ${call_length}"
-                sleep_time=duration + call_length 
+                sleep_time=duration + call_length + 10
                 echo "sleep_time ${sleep_time}"
                 sleep(time:"${sleep_time}",unit:"SECONDS") 
                 sh '''
