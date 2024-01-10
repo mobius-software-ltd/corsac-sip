@@ -446,7 +446,9 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 						current.triggerConnectFailure(finalFuture);
 					}
 				} else {
-					logger.logDebug(channel.pipeline().toString());
+					if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+						logger.logDebug("Message sent successfully " + channel.pipeline().toString());						
+					}
 				}
 				// else {
 				// finalFuture.channel().close();
