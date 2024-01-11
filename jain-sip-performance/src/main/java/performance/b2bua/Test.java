@@ -83,13 +83,13 @@ public class Test implements SipListener {
 		ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(properties.getProperty(
 			SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
 			.getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TCP);
-		ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
-			SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
-			.getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TLS);
+		// ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+		// 	SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+		// 	.getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TLS);
 		provider = sipStack.createSipProvider( udpListeningPoint);
 		provider.addSipListener(this);
 		provider.addListeningPoint(tcpListeningPoint);
-		provider.addListeningPoint(tlsListeningPoint);		
+		// provider.addListeningPoint(tlsListeningPoint);		
 		this.headerFactory = sipFactory.createHeaderFactory();
 		this.messageFactory = sipFactory.createMessageFactory();
 	}

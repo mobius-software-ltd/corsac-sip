@@ -248,13 +248,13 @@ public class Shootme implements SipListener {
             ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(properties.getProperty(
                 SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
                 .getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TCP);
-            ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
-                SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
-                .getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TLS);
+            // ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+            //     SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+            //     .getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TLS);
             sipProvider = sipStack.createSipProvider( udpListeningPoint);
             sipProvider.addSipListener(listener);
             sipProvider.addListeningPoint(tcpListeningPoint);
-            sipProvider.addListeningPoint(tlsListeningPoint);		
+            // sipProvider.addListeningPoint(tlsListeningPoint);		
 
         } catch (Exception ex) {
             ex.printStackTrace();
