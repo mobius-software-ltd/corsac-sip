@@ -209,6 +209,8 @@ node("slave-xlarge") {
                 if("${params.SIPP_TRANSPORT_MODE}" == "l1" || "${params.SIPP_TRANSPORT_MODE}" == "ln") {                          
                     server_port=5081
                 }
+                echo "server_port ${server_port}"
+
                 sh 'mkdir -p $WORKSPACE/perf-results-dir-uas'                  
                 echo 'JAVA OPTS: ' + "${JAVA_OPTS}"   
                 echo 'PERF_JAIN_SIP_RI_VERSION: ' + "${PERF_JAIN_SIP_RI_VERSION}" 
@@ -249,7 +251,7 @@ node("slave-xlarge") {
                     echo "wait time:$WAIT_TIME"
                     echo "test duration:$UAS_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$server_port -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:${server_port} -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $UAS_TEST_DURATION+seconds -u)"
                 '''                
                 duration="${UAS_TEST_DURATION}" as Integer
@@ -289,6 +291,7 @@ node("slave-xlarge") {
             if("${params.SIPP_TRANSPORT_MODE}" == "l1" || "${params.SIPP_TRANSPORT_MODE}" == "ln") {                          
                 server_port=5061
             }
+            echo "server_port ${server_port}"
             stage("B2BUA Performance Tests") {
                 
                 //sh 'killall Shootme'
@@ -335,7 +338,7 @@ node("slave-xlarge") {
                     echo "test duration:$B2BUA_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -sf $SIPP_Performance_UAS -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error -bg || true
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$server_port -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:${server_port} -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
                 '''
                 duration="${UAS_TEST_DURATION}" as Integer
