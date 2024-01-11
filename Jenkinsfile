@@ -171,14 +171,16 @@ node("slave-xlarge") {
         echo "SNAPSHOT detected, skipped Tag stage"
     }
 
-    if("${params.RUN_PERF_TESTS}" == "true") {
+    if("${params.RUN_PERF_TESTS}" == "true") {        
         echo "RUN_PERF_TESTS is true, running Performance Tests stage"
+
         stage("Init Performance Tests") {
             echo "Installing TLS"
             sh 'sudo apt-get -y install libncurses5'
             sh 'wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb'
             sh 'sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb'
-            
+            sh 'openssl req -newkey rsa:2048 -x509 -keyout cakey.pem -out cacert.pem -days 3650 -nodes -subj "/C=UA/L=Kiev/O=Mobius Software LTD/CN=www.mobius-software.com"'
+
             echo "Building Perfcorder"
             sh 'git clone -b master https://github.com/RestComm/PerfCorder.git sipp-report-tool'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
@@ -197,11 +199,16 @@ node("slave-xlarge") {
             sh 'ulimit -n 120000'
         }
         if("${params.RUN_UAS_PERF_TESTS}" == "true") {
-            echo "RUN_UAS_PERF_TESTS is true, running UAS Performance Tests stage"
+            echo "RUN_UAS_PERF_TESTS is true, running UAS Performance Tests stage"            
+
             stage("UAS Performance Tests") {
                 
                 //sh 'killall Shootme'
                 echo "Starting UAS Process"       
+                server_port=5080
+                if("${params.SIPP_TRANSPORT_MODE}" == "l1" || "${params.SIPP_TRANSPORT_MODE}" == "ln") {                          
+                    server_port=5081
+                }
                 sh 'mkdir -p $WORKSPACE/perf-results-dir-uas'                  
                 echo 'JAVA OPTS: ' + "${JAVA_OPTS}"   
                 echo 'PERF_JAIN_SIP_RI_VERSION: ' + "${PERF_JAIN_SIP_RI_VERSION}" 
@@ -242,7 +249,7 @@ node("slave-xlarge") {
                     echo "wait time:$WAIT_TIME"
                     echo "test duration:$UAS_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:5080 -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$server_port -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $UAS_TEST_DURATION+seconds -u)"
                 '''                
                 duration="${UAS_TEST_DURATION}" as Integer
@@ -278,6 +285,10 @@ node("slave-xlarge") {
 
         if("${params.RUN_B2BUA_PERF_TESTS}" == "true") {
             echo "RUN_B2BUA_PERF_TESTS is true, running B2BUA Performance Tests stage"
+            server_port=5060
+            if("${params.SIPP_TRANSPORT_MODE}" == "l1" || "${params.SIPP_TRANSPORT_MODE}" == "ln") {                          
+                server_port=5061
+            }
             stage("B2BUA Performance Tests") {
                 
                 //sh 'killall Shootme'
@@ -324,7 +335,7 @@ node("slave-xlarge") {
                     echo "test duration:$B2BUA_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -sf $SIPP_Performance_UAS -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error -bg || true
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:5060 -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$server_port -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
                 '''
                 duration="${UAS_TEST_DURATION}" as Integer
