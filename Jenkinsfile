@@ -211,7 +211,7 @@ node("slave-xlarge") {
                     sh '''
                         export CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-"${PERF_JAIN_SIP_RI_VERSION}".jar:jain-sip-performance/src/test/resources/jain-sip-ri-backups/log4j-"${PERF_LOG4J_VERSION}".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
                         echo "CLASSPATH: " + \"${CLASSPATH}\"
-                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
+                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack-legacy.properties performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
                     '''
                 }
                 sleep(time:5,unit:"SECONDS") 
@@ -291,7 +291,7 @@ node("slave-xlarge") {
                     sh '''
                         CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-"${PERF_JAIN_SIP_RI_VERSION}".jar:jain-sip-performance/src/test/resources/jain-sip-ri-backups/log4j-"${PERF_LOG4J_VERSION}".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
                         echo "CLASSPATH: " + \"${CLASSPATH}\"
-                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/sip-stack.properties performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&
+                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/sip-stack-legacy.properties performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&
                     '''
                 }        
                 sleep(time:5,unit:"SECONDS") 
