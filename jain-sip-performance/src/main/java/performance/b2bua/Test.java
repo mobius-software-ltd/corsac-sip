@@ -25,6 +25,8 @@ import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 
+import performance.uas.Shootme;
+
 public class Test implements SipListener {
  
 	private static final String SIP_BIND_ADDRESS = "javax.sip.IP_ADDRESS";
@@ -46,6 +48,12 @@ public class Test implements SipListener {
 	
 	private void initStack() throws SipException, TooManyListenersException,
 			NumberFormatException, InvalidArgumentException, ParseException {
+
+		System.setProperty( "javax.net.ssl.keyStore",  this.getClass().getResource("/performance/testkeys").getPath() );
+        System.setProperty( "javax.net.ssl.trustStore", this.getClass().getResource("/performance/testkeys").getPath() );
+        System.setProperty( "javax.net.ssl.keyStorePassword", "passphrase" );
+        System.setProperty( "javax.net.ssl.keyStoreType", "jks" );
+
 		this.sipFactory = SipFactory.getInstance();
 		this.sipFactory.setPathName("gov.nist");
 		Properties properties = new Properties();
@@ -83,13 +91,13 @@ public class Test implements SipListener {
 		ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(properties.getProperty(
 			SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
 			.getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TCP);
-		// ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
-		// 	SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
-		// 	.getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TLS);
+		ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+			SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+			.getProperty(SIP_PORT_BIND, "" + (myPort + 1))), ListeningPoint.TLS);
 		provider = sipStack.createSipProvider( udpListeningPoint);
 		provider.addSipListener(this);
 		provider.addListeningPoint(tcpListeningPoint);
-		// provider.addListeningPoint(tlsListeningPoint);		
+		provider.addListeningPoint(tlsListeningPoint);		
 		this.headerFactory = sipFactory.createHeaderFactory();
 		this.messageFactory = sipFactory.createMessageFactory();
 	}

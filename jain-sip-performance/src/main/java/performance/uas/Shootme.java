@@ -198,13 +198,10 @@ public class Shootme implements SipListener {
     	//System.out.println(request);
     }
 
-    public void init() {        
+    public void init() {                
         sipStack = null;
         sipFactory = SipFactory.getInstance();
-        /*System.setProperty( "javax.net.ssl.keyStore",  "/Users/vladimirralev/keystore.ImportKey" );
-        System.setProperty( "javax.net.ssl.trustStore", "/Users/vladimirralev/keystore.ImportKey" );
-        System.setProperty( "javax.net.ssl.keyStorePassword", "importkey" );
-        System.setProperty( "javax.net.ssl.keyStoreType", "jks" );*/
+
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
         try {
@@ -248,13 +245,13 @@ public class Shootme implements SipListener {
             ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(properties.getProperty(
                 SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
                 .getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TCP);
-            // ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
-            //     SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
-            //     .getProperty(SIP_PORT_BIND, "" + myPort)), ListeningPoint.TLS);
+            ListeningPoint tlsListeningPoint = sipStack.createListeningPoint(properties.getProperty(
+                SIP_BIND_ADDRESS, myAddress), Integer.valueOf(properties
+                .getProperty(SIP_PORT_BIND, "" + (myPort + 1))), ListeningPoint.TLS);
             sipProvider = sipStack.createSipProvider( udpListeningPoint);
             sipProvider.addSipListener(listener);
             sipProvider.addListeningPoint(tcpListeningPoint);
-            // sipProvider.addListeningPoint(tlsListeningPoint);		
+            sipProvider.addListeningPoint(tlsListeningPoint);		
 
         } catch (Exception ex) {
             ex.printStackTrace();
