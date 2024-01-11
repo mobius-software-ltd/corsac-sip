@@ -150,7 +150,7 @@ node("slave-xlarge") {
     if("${params.RUN_TESTSUITE}" == "true") {
         echo "RUN_TESTSUITE is true, running TCK & Testsuite stage"
         echo "Installing SCTP"
-        sh 'sudo apt update & sudo apt-get -y install libsctp1'
+        sh 'sudo apt update & sudo apt-get -y install libsctp1'        
 
         stage("TCK & Testsuite") {
             runTestsuite("${ENABLE_NETTY}", "${FORK_COUNT}", "${TESTS_TO_RUN}", "parallel-testing")
@@ -174,6 +174,11 @@ node("slave-xlarge") {
     if("${params.RUN_PERF_TESTS}" == "true") {
         echo "RUN_PERF_TESTS is true, running Performance Tests stage"
         stage("Init Performance Tests") {
+            echo "Installing TLS"
+            sh 'sudo apt-get -y install libncurses5'
+            sh 'wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb'
+            sh 'sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb'
+            
             echo "Building Perfcorder"
             sh 'git clone -b master https://github.com/RestComm/PerfCorder.git sipp-report-tool'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
