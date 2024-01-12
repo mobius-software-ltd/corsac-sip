@@ -8,7 +8,7 @@
    <![CDATA[
 
      INVITE sip:bob[call_number]@[remote_ip]:5090 SIP/2.0
-     Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+     Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
      From: alice[call_number] <sip:alice[call_number]@[local_ip]:[local_port]>;tag=[call_number]
      To: bob[call_number] <sip:bob[call_number]@[remote_ip]:5090>
      Call-ID: [call_id]
@@ -57,7 +57,7 @@
    <![CDATA[
 
      BYE sip:bob[call_number]@[remote_ip]:5090 SIP/2.0
-     Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+     Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
      From: alice[call_number] <sip:alice[call_number]@[local_ip]:[local_port]>;tag=[call_number]
      To: bob[call_number] <sip:bob[call_number]@[remote_ip]:5090>[peer_tag_param]
      Call-ID: [call_id]
