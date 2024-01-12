@@ -241,10 +241,12 @@ node("slave-xlarge") {
                     CONCURRENT_CALLS=$((${UAS_CALL_RATE} * ${UAS_CALL_LENGTH} * 2 ))
                     TARGET_PORT=5080
                     if [ "${SIPP_TRANSPORT_MODE}" = "l1" ]; then 
-                        TARGET_PORT=5081
-                    fi
+                        TARGET_PORT=5061
+                        mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
+                    fi                    
                     if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
                         TARGET_PORT=5081
+                        mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
                     echo "calls:$CALLS"
                     echo "call rate:${UAS_CALL_RATE}"
@@ -331,9 +333,11 @@ node("slave-xlarge") {
                     TARGET_PORT=5060
                     if [ "${SIPP_TRANSPORT_MODE}" = "l1" ]; then 
                         TARGET_PORT=5061
+                        mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi                    
                     if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
                         TARGET_PORT=5081
+                        mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
                     echo "calls:$TARGET_PORT"
                     echo "calls:$CALLS"
