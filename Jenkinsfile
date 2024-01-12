@@ -88,14 +88,14 @@ node("slave-xlarge") {
             string(name: 'RUN_B2BUA_PERF_TESTS', defaultValue: "true", description: 'Whether the B2BUA performance tests should run or not', trim: true),
             string(name: 'SIPP_TRANSPORT_MODE', defaultValue: "u1", description: 'transport used at SIPP for performance tests', trim: true),
             string(name: 'UAS_TEST_DURATION', defaultValue: "1800", description: 'UAS performance test duration', trim: true),
-            string(name: 'UAS_CALL_RATE', defaultValue: "400", description: 'UAS calls per second rate', trim: true),
+            string(name: 'UAS_CALL_RATE', defaultValue: "1000", description: 'UAS calls per second rate', trim: true),
             string(name: 'UAS_CALL_LENGTH', defaultValue: "60", description: 'UAS call length', trim: true),
             string(name: 'B2BUA_TEST_DURATION', defaultValue: "1800", description: 'B2BUA performance test duration', trim: true),
-            string(name: 'B2BUA_CALL_RATE', defaultValue: "400", description: 'B2BUA calls per second rate', trim: true),
+            string(name: 'B2BUA_CALL_RATE', defaultValue: "500", description: 'B2BUA calls per second rate', trim: true),
             string(name: 'B2BUA_CALL_LENGTH', defaultValue: "60", description: 'B2BUA call length', trim: true),
             string(name: 'POST_PERF_ADDITIONAL_SLEEP_TIME', defaultValue: "300", description: 'Additional Sleep time after performance test to ensure proper cleanup', trim: true),
             string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true),
-            string(name: 'PERF_JAIN_SIP_RI_VERSION', defaultValue: "current", description: 'Version of JAIN SIP RI to use for running perf tests (example: 7.0.5.287)', trim: true),
+            choice(name: 'PERF_JAIN_SIP_RI_VERSION', choices: ["current", "7.0.5.287"], description: 'Version of JAIN SIP RI to use for running perf tests (example: 7.0.5.287)', trim: true),
             string(name: 'PERF_LOG4J_VERSION', defaultValue: "1.2.17", description: 'Version of LOG4J to go with the specific version of JAIN SIP RI to use for running perf tests', trim: true)            
         ])
     ])
