@@ -86,7 +86,7 @@ node("slave-xlarge") {
             string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true),
             string(name: 'RUN_UAS_PERF_TESTS', defaultValue: "true", description: 'Whether the UAS performance tests should run or not', trim: true),
             string(name: 'RUN_B2BUA_PERF_TESTS', defaultValue: "true", description: 'Whether the B2BUA performance tests should run or not', trim: true),
-            string(name: 'SIPP_TRANSPORT_MODE', defaultValue: "u1", description: 'transport used at SIPP for performance tests', trim: true),
+            string(name: 'SIPP_TRANSPORT_MODE', choices: ["u1", "t1", "l1", "un", "tn", "ln"], description: 'transport used at SIPP for performance tests', trim: true),
             string(name: 'UAS_TEST_DURATION', defaultValue: "1800", description: 'UAS performance test duration', trim: true),
             string(name: 'UAS_CALL_RATE', defaultValue: "1000", description: 'UAS calls per second rate', trim: true),
             string(name: 'UAS_CALL_LENGTH', defaultValue: "60", description: 'UAS call length', trim: true),
