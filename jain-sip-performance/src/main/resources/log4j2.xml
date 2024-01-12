@@ -12,6 +12,7 @@
     </File>
   </Appenders>
   <Loggers>
+    <Logger name="gov.nist" level="ERROR" additivity="false"/>
     <Logger name="gov.nist.javax.sip.stack.transports.processors.netty" level="ERROR" additivity="false"/>
     <Logger name="gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageDecoder" level="ERROR" additivity="false"/>
     <Logger name="gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageParser" level="ERROR" additivity="false"/>
