@@ -243,6 +243,9 @@ node("slave-xlarge") {
                     if [ "${SIPP_TRANSPORT_MODE}" = "l1" ]; then 
                         TARGET_PORT=5081
                     fi
+                    if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
+                        TARGET_PORT=5081
+                    fi
                     echo "calls:$CALLS"
                     echo "call rate:${UAS_CALL_RATE}"
                     echo "call length:${UAS_CALL_LENGTH}"
@@ -329,6 +332,9 @@ node("slave-xlarge") {
                     if [ "${SIPP_TRANSPORT_MODE}" = "l1" ]; then 
                         TARGET_PORT=5061
                     fi                    
+                    if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
+                        TARGET_PORT=5081
+                    fi
                     echo "calls:$TARGET_PORT"
                     echo "calls:$CALLS"
                     echo "call rate:${B2BUA_CALL_RATE}"
