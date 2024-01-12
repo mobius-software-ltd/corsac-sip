@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
+<Configuration status="ERROR">
   <Properties>
     <Property name="filename">logs/performance.log</Property>
   </Properties>
@@ -12,11 +12,11 @@
     </File>
   </Appenders>
   <Loggers>
-    <Logger name="gov.nist.javax.sip.stack.transports.processors.netty" level="WARN" additivity="false"/>
-    <Logger name="gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageDecoder" level="WARN" additivity="false"/>
-    <Logger name="gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageParser" level="WARN" additivity="false"/>
+    <Logger name="gov.nist.javax.sip.stack.transports.processors.netty" level="ERROR" additivity="false"/>
+    <Logger name="gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageDecoder" level="ERROR" additivity="false"/>
+    <Logger name="gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageParser" level="ERROR" additivity="false"/>
         
-    <Root level="WARN">
+    <Root level="ERROR">
       <AppenderRef ref="File"/>
     </Root>
   </Loggers>
