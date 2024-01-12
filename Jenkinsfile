@@ -227,8 +227,7 @@ node("slave-xlarge") {
                     PROCESS_PID=$(jps | awk \'/Shootme/{print $1}\')
                     echo "Shootme Process PID $PROCESS_PID"
 
-                    #export TERM=vt100                
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
+                    #export TERM=vt100                                    
 
                     echo "starting data collection"
                     RESULTS_DIR=$WORKSPACE/perf-results-dir-uas
@@ -248,6 +247,7 @@ node("slave-xlarge") {
                         TARGET_PORT=5081
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$CALLS"
                     echo "call rate:${UAS_CALL_RATE}"
                     echo "call length:${UAS_CALL_LENGTH}"
@@ -317,8 +317,7 @@ node("slave-xlarge") {
                     PROCESS_PID=$(jps | awk \'/Test/{print $1}\')
                     echo "B2BUA Process PID $PROCESS_PID"
 
-                    #export TERM=vt100                
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
+                    #export TERM=vt100                                    
 
                     echo "starting data collection"
                     RESULTS_DIR=$WORKSPACE/perf-results-dir-b2bua
@@ -339,6 +338,7 @@ node("slave-xlarge") {
                         TARGET_PORT=5081
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"
                     echo "calls:$CALLS"
                     echo "call rate:${B2BUA_CALL_RATE}"
