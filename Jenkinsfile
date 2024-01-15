@@ -248,7 +248,13 @@ node("slave-xlarge") {
                         TARGET_PORT=5081
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
-                    if [ "${SIPP_TRANSPORT_MODE}" = "un" || "${SIPP_TRANSPORT_MODE}" = "tn" || "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
+                    if [ "${SIPP_TRANSPORT_MODE}" = "un" ]; then 
+                        MAX_SOCKETS="-max_socket 1000"
+                    fi
+                    if [ "${SIPP_TRANSPORT_MODE}" = "tn" ]; then 
+                        MAX_SOCKETS="-max_socket 1000"
+                    fi
+                    if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
                         MAX_SOCKETS="-max_socket 1000"
                     fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
@@ -345,7 +351,13 @@ node("slave-xlarge") {
                         TARGET_PORT=5061
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
-                    if [ "${SIPP_TRANSPORT_MODE}" = "un" || "${SIPP_TRANSPORT_MODE}" = "tn" || "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
+                    if [ "${SIPP_TRANSPORT_MODE}" = "un" ]; then 
+                        MAX_SOCKETS="-max_socket 1000"
+                    fi
+                    if [ "${SIPP_TRANSPORT_MODE}" = "tn" ]; then 
+                        MAX_SOCKETS="-max_socket 1000"
+                    fi
+                    if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
                         MAX_SOCKETS="-max_socket 1000"
                     fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
