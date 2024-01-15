@@ -239,6 +239,7 @@ node("slave-xlarge") {
                     CALLS=$(( ${UAS_CALL_RATE} * ${UAS_TEST_DURATION} ))                                
                     CONCURRENT_CALLS=$((${UAS_CALL_RATE} * ${UAS_CALL_LENGTH} * 2 ))
                     TARGET_PORT=5080
+                    MAX_SOCKETS=
                     if [ "${SIPP_TRANSPORT_MODE}" = "l1" ]; then 
                         TARGET_PORT=5081
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
@@ -247,14 +248,19 @@ node("slave-xlarge") {
                         TARGET_PORT=5081
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
+                    if [ "${SIPP_TRANSPORT_MODE}" = "un" || "${SIPP_TRANSPORT_MODE}" = "tn" || "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
+                        MAX_SOCKETS="-max_socket 1000"
+                    fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
+                    echo "calls:$TARGET_PORT"
+                    echo "calls:$MAX_SOCKETS"
                     echo "calls:$CALLS"
                     echo "call rate:${UAS_CALL_RATE}"
                     echo "call length:${UAS_CALL_LENGTH}"
                     echo "wait time:$WAIT_TIME"
                     echo "test duration:$UAS_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$TARGET_PORT -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$TARGET_PORT -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $UAS_TEST_DURATION+seconds -u)"
                 '''                
                 duration="${UAS_TEST_DURATION}" as Integer
@@ -330,6 +336,7 @@ node("slave-xlarge") {
                     CALLS=$(( ${B2BUA_CALL_RATE} * ${B2BUA_TEST_DURATION} ))                                
                     CONCURRENT_CALLS=$((${B2BUA_CALL_RATE} * ${B2BUA_CALL_LENGTH} * 2 ))
                     TARGET_PORT=5060
+                    MAX_SOCKETS=
                     if [ "${SIPP_TRANSPORT_MODE}" = "l1" ]; then 
                         TARGET_PORT=5061
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
@@ -338,16 +345,20 @@ node("slave-xlarge") {
                         TARGET_PORT=5061
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
+                    if [ "${SIPP_TRANSPORT_MODE}" = "un" || "${SIPP_TRANSPORT_MODE}" = "tn" || "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
+                        MAX_SOCKETS="-max_socket 1000"
+                    fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"
+                    echo "calls:$MAX_SOCKETS"
                     echo "calls:$CALLS"
                     echo "call rate:${B2BUA_CALL_RATE}"
                     echo "call length:${B2BUA_CALL_LENGTH}"
                     echo "wait time:$WAIT_TIME"
                     echo "test duration:$B2BUA_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -sf $SIPP_Performance_UAS -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error -bg || true
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$TARGET_PORT -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -sf $SIPP_Performance_UAS -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
+                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$TARGET_PORT -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -l $CONCURRENT_CALLS -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
                 '''
                 duration="${UAS_TEST_DURATION}" as Integer
