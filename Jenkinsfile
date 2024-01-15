@@ -249,13 +249,13 @@ node("slave-xlarge") {
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "un" ]; then 
-                        MAX_SOCKETS="-max_socket 1000"
+                        MAX_SOCKETS="-max_socket 64"
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "tn" ]; then 
-                        MAX_SOCKETS="-max_socket 1000"
+                        MAX_SOCKETS="-max_socket 64"
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
-                        MAX_SOCKETS="-max_socket 1000"
+                        MAX_SOCKETS="-max_socket 64"
                     fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"
@@ -352,13 +352,13 @@ node("slave-xlarge") {
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "un" ]; then 
-                        MAX_SOCKETS="-max_socket 1000"
+                        MAX_SOCKETS="-max_socket 64"
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "tn" ]; then 
-                        MAX_SOCKETS="-max_socket 1000"
+                        MAX_SOCKETS="-max_socket 64"
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
-                        MAX_SOCKETS="-max_socket 1000"
+                        MAX_SOCKETS="-max_socket 64"
                     fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"

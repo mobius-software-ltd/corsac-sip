@@ -108,7 +108,9 @@ public class NioPipelineParser {
     		time = System.currentTimeMillis();
     	}
         public void run() {   
-            logger.logInfo("serving msg on call id " + callId);
+			if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+            	logger.logDebug("serving msg on call id " + callId);
+			}
             SIPMessage parsedSIPMessage = null;
             try {
 
