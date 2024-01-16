@@ -18,45 +18,60 @@
  */
 package gov.nist.core.executor;
 
-import com.mobius.software.common.dal.timers.CountableQueue;
-import com.mobius.software.common.dal.timers.PeriodicQueuedTasks;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import com.mobius.software.common.dal.timers.Task;
-import com.mobius.software.common.dal.timers.Timer;
-import com.mobius.software.common.dal.timers.WorkerPool;
 
 import gov.nist.core.CommonLogger;
+import gov.nist.core.NamingThreadFactory;
 import gov.nist.core.StackLogger;
 
 
-public class MessageProcessorExecutor implements StackExecutor {
-	private static StackLogger logger = CommonLogger.getLogger(MessageProcessorExecutor.class);
-	private WorkerPool workerPool;
+public class ThreadPoolStackExecutor implements StackExecutor {
+	private static StackLogger logger = CommonLogger.getLogger(ThreadPoolStackExecutor.class);	
 	private int workersNumber;
+	private CopyOnWriteArrayList<LinkedBlockingQueue<Task>> queues;
+	private CopyOnWriteArrayList<ScheduledThreadPoolExecutor> threadPoolExecutors;
 
 	public void start(int workersNumber, long taskInterval) {
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-			logger.logDebug("Starting MessageProcessorExecutor with workersNumber: " + workersNumber + " and taskInterval: " + taskInterval);
+			logger.logDebug("Starting ThreadPoolStackExecutor with workersNumber: " + workersNumber + " and taskInterval: " + taskInterval);
 		}
 		this.workersNumber = workersNumber;	
-		workerPool = new WorkerPool(taskInterval);
-		workerPool.start(workersNumber);
+		threadPoolExecutors = new CopyOnWriteArrayList<>();
+		queues = new CopyOnWriteArrayList<>();
+		for(int i = 0; i < workersNumber; i++) {
+			LinkedBlockingQueue<Task> queue = new LinkedBlockingQueue<>();
+			queues.add(queue);
+			ScheduledThreadPoolExecutor threadPoolExecutor = new ScheduledThreadPoolExecutor(1, new NamingThreadFactory("thread_pool_stack_executor_" + i));
+			threadPoolExecutors.add(threadPoolExecutor);
+			threadPoolExecutor.scheduleWithFixedDelay(new Dispatch(queue), taskInterval, taskInterval, TimeUnit.MILLISECONDS);
+		}
 	}
 
 	public void stop() {
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-			logger.logDebug("Stopping MessageProcessorExecutor");
+			logger.logDebug("Stopping ThreadPoolStackExecutor");
 		}
-		workerPool.stop();
-		workerPool = null;
+		for (ScheduledThreadPoolExecutor scheduledThreadPoolExecutor : threadPoolExecutors) {
+			scheduledThreadPoolExecutor.shutdown();	
+		}		
+		threadPoolExecutors.clear();;
+		queues.clear();
+		queues = null;
 	}
 
 	public void addTaskFirst(SIPTask task) {
-		CountableQueue<Task> queue = getQueue(task.getId());
+		LinkedBlockingQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 				logger.logDebug("Adding Task First : "  + task + " " + task.getId() + ", Queue Size: "  + queue.size());
 			}
-			queue.offerFirst(task);
+			queue.add(task);
+			
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {				
 				logger.logDebug("Queue Size: "  + queue.size());
 			}
@@ -64,31 +79,45 @@ public class MessageProcessorExecutor implements StackExecutor {
 	}
 
 	public void addTaskLast(SIPTask task) {
-		CountableQueue<Task> queue = getQueue(task.getId());
+		LinkedBlockingQueue<Task> queue = getQueue(task.getId());
 		if (queue != null) {
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 				logger.logDebug("Adding Task Last : "  + task + " " + task.getId() + ", Queue Size: "  + queue.size());
 			}
-			queue.offerLast(task);
+			queue.offer(task);
+
 			if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {				
 				logger.logDebug("Queue Size: "  + queue.size());
 			}
 		}
 	}
 
-	private CountableQueue<Task> getQueue(String id) {
+	private LinkedBlockingQueue<Task> getQueue(String id) {
 		int index = findQueueIndex(id);
 		// if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 		// 	logger.logDebug("Queue index: " + index + " for id: " + id);
 		// }
-		return workerPool.getLocalQueue(index);		
+		return queues.get(index);		
 	}
 
 	public int findQueueIndex(String id) {
 		return Math.abs(id.hashCode()) % workersNumber;
-	}
-
-	public PeriodicQueuedTasks<Timer> getPeriodicQueue() {
-		return workerPool.getPeriodicQueue();
 	}	
+
+	public class Dispatch implements Runnable {    	
+    	LinkedBlockingQueue<Task> queue;
+    	
+		public Dispatch(LinkedBlockingQueue<Task> queue) {
+    		this.queue = queue;
+    	}
+
+        @Override
+        public void run() {   
+			Task task = queue.poll();
+			while (task != null) {				
+				task.execute();
+				task = queue.poll();
+			}            			                    
+        }	       
+    };
 }

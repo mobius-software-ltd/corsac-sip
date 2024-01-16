@@ -42,7 +42,7 @@ public class MobiusSipTimerTask implements SIPTimer {
         this.timestamp = new AtomicLong(System.currentTimeMillis() + timeout);
         this.period = new AtomicLong(-1);
         this.id = task.getId();
-        this.messageProcessorExecutor = timer.sipStackImpl.getMessageProcessorExecutor();
+        this.messageProcessorExecutor = (MessageProcessorExecutor) timer.sipStackImpl.getMessageProcessorExecutor();
     }
 
     public MobiusSipTimerTask(MobiusSipTimer timer, SIPTimerTask task, long timeout, long period) {

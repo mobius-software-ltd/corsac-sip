@@ -56,6 +56,7 @@ import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.core.ThreadAuditor;
 import gov.nist.core.executor.MessageProcessorExecutor;
+import gov.nist.core.executor.StackExecutor;
 import gov.nist.core.net.AddressResolver;
 import gov.nist.core.net.DefaultNetworkLayer;
 import gov.nist.core.net.NetworkLayer;
@@ -155,7 +156,7 @@ public abstract class SIPTransactionStack implements
     // Global timer. Use this for all timer tasks.
     protected SipTimer timer;
     // Global Message Processor Executor. Use this for all tasks except timers.
-    protected MessageProcessorExecutor messageProcessorExecutor = null;    
+    protected StackExecutor messageProcessorExecutor = null;    
 
     // List of pending server transactions
     private ConcurrentHashMap<String, SIPServerTransaction> pendingTransactions;
@@ -504,7 +505,7 @@ public abstract class SIPTransactionStack implements
 
     protected boolean computeContentLengthFromMessage = false;
 
-    public MessageProcessorExecutor getMessageProcessorExecutor() {
+    public StackExecutor getMessageProcessorExecutor() {
         return messageProcessorExecutor;
     }
 

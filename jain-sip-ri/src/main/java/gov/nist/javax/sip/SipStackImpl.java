@@ -55,6 +55,7 @@ import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.core.ThreadAuditor;
 import gov.nist.core.executor.MessageProcessorExecutor;
+import gov.nist.core.executor.StackExecutor;
 import gov.nist.core.net.AddressResolver;
 import gov.nist.core.net.DefaultSecurityManagerProvider;
 import gov.nist.core.net.NetworkLayer;
@@ -1129,12 +1130,20 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 						"thread pool size - bad value " + ex.getMessage());
 			}
 		}
-				
-		messageProcessorExecutor = new MessageProcessorExecutor();
-		if(this.threadPoolSize <= 0) {
-			messageProcessorExecutor.start(MAX_WORKERS, taskInterval);
-		} else {
-			messageProcessorExecutor.start(this.threadPoolSize, taskInterval);
+		
+		String stackExecutorString = configurationProperties
+				.getProperty("gov.nist.javax.sip.STACK_EXECUTOR", MessageProcessorExecutor.class.getName());
+		try {
+			messageProcessorExecutor = (StackExecutor) Class.forName(stackExecutorString).newInstance();			
+			if(this.threadPoolSize <= 0) {
+				messageProcessorExecutor.start(MAX_WORKERS, taskInterval);
+			} else {
+				messageProcessorExecutor.start(this.threadPoolSize, taskInterval);
+			}
+		} catch (Exception e) {
+			logger
+				.logError(
+						"Bad configuration value for gov.nist.javax.sip.STACK_EXECUTOR", e);
 		}
 
 		int congetstionControlTimeout = Integer

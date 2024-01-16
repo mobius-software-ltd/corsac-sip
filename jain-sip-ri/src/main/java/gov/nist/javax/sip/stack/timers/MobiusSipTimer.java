@@ -25,6 +25,7 @@ import com.mobius.software.common.dal.timers.Timer;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
+import gov.nist.core.executor.MessageProcessorExecutor;
 import gov.nist.javax.sip.SipStackImpl;
 
 /**
@@ -46,7 +47,7 @@ public class MobiusSipTimer implements SipTimer {
 	 */
 	public void start(SipStackImpl sipStack) {
 		sipStackImpl= sipStack;		
-		periodicQueue = sipStack.getMessageProcessorExecutor().getPeriodicQueue();
+		periodicQueue = ((MessageProcessorExecutor)sipStack.getMessageProcessorExecutor()).getPeriodicQueue();
 		started.set(true);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
 			logger.logInfo("the sip stack timer " + this.getClass().getName() + " has been started");
