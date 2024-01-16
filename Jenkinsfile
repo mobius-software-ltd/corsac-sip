@@ -260,6 +260,7 @@ node("slave-xlarge") {
                     fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"
+                    echo "sipp max socket:${SIPP_MAX_SOCKET}"
                     echo "calls:$MAX_SOCKETS"
                     echo "calls:$CALLS"
                     echo "call rate:${UAS_CALL_RATE}"
@@ -363,6 +364,7 @@ node("slave-xlarge") {
                     fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"
+                    echo "sipp max socket:${SIPP_MAX_SOCKET}"
                     echo "calls:$MAX_SOCKETS"
                     echo "calls:$CALLS"
                     echo "call rate:${B2BUA_CALL_RATE}"
