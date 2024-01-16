@@ -87,6 +87,7 @@ node("slave-xlarge") {
             string(name: 'RUN_UAS_PERF_TESTS', defaultValue: "true", description: 'Whether the UAS performance tests should run or not', trim: true),
             string(name: 'RUN_B2BUA_PERF_TESTS', defaultValue: "true", description: 'Whether the B2BUA performance tests should run or not', trim: true),
             choice(name: 'SIPP_TRANSPORT_MODE', choices: ["u1", "t1", "l1", "un", "tn", "ln"], description: 'transport used at SIPP for performance tests', trim: true),
+            string(name: 'SIPP_MAX_SOCKET', defaultValue: "64", description: 'SIPP max socket value for multi socket transports', trim: true),
             string(name: 'UAS_TEST_DURATION', defaultValue: "1800", description: 'UAS performance test duration', trim: true),
             string(name: 'UAS_CALL_RATE', defaultValue: "1000", description: 'UAS calls per second rate', trim: true),
             string(name: 'UAS_CALL_LENGTH', defaultValue: "60", description: 'UAS call length', trim: true),
@@ -94,7 +95,7 @@ node("slave-xlarge") {
             string(name: 'B2BUA_CALL_RATE', defaultValue: "500", description: 'B2BUA calls per second rate', trim: true),
             string(name: 'B2BUA_CALL_LENGTH', defaultValue: "60", description: 'B2BUA call length', trim: true),
             string(name: 'POST_PERF_ADDITIONAL_SLEEP_TIME', defaultValue: "300", description: 'Additional Sleep time after performance test to ensure proper cleanup', trim: true),
-            string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true),
+            string(name: 'JAVA_OPTS', defaultValue: "-Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication", description: 'JVM Options used for the SIP Stack', trim: true),            
             choice(name: 'PERF_JAIN_SIP_RI_VERSION', choices: ["current", "7.0.5.287"], description: 'Version of JAIN SIP RI to use for running perf tests (example: 7.0.5.287)', trim: true),
             string(name: 'PERF_LOG4J_VERSION', defaultValue: "1.2.17", description: 'Version of LOG4J to go with the specific version of JAIN SIP RI to use for running perf tests', trim: true)            
         ])
@@ -249,13 +250,13 @@ node("slave-xlarge") {
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "un" ]; then 
-                        MAX_SOCKETS="-max_socket 64"
+                        MAX_SOCKETS="-max_socket ${SIPP_MAX_SOCKET}"
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "tn" ]; then 
-                        MAX_SOCKETS="-max_socket 64"
+                        MAX_SOCKETS="-max_socket ${SIPP_MAX_SOCKET}"
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
-                        MAX_SOCKETS="-max_socket 64"
+                        MAX_SOCKETS="-max_socket ${SIPP_MAX_SOCKET}"
                     fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"
@@ -352,13 +353,13 @@ node("slave-xlarge") {
                         mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "un" ]; then 
-                        MAX_SOCKETS="-max_socket 64"
+                        MAX_SOCKETS="-max_socket ${SIPP_MAX_SOCKET}"
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "tn" ]; then 
-                        MAX_SOCKETS="-max_socket 64"
+                        MAX_SOCKETS="-max_socket ${SIPP_MAX_SOCKET}"
                     fi
                     if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
-                        MAX_SOCKETS="-max_socket 64"
+                        MAX_SOCKETS="-max_socket ${SIPP_MAX_SOCKET}"
                     fi
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"
