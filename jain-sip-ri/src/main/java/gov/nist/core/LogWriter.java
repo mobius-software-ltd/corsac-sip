@@ -27,7 +27,9 @@
 
 package gov.nist.core;
 
-import java.io.*;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Properties;
 
 import org.apache.logging.log4j.Level;
@@ -209,7 +211,7 @@ public class LogWriter implements StackLogger {
      * (non-Javadoc)
      * @see gov.nist.core.StackLogger#logDebug(java.lang.String, java.lang.Exception)
      */
-    public void logDebug(String message, Exception ex) {
+    public void logDebug(String message, Throwable t) {
     	if (needsLogging) {
             String newMessage = this.enhanceMessage(message);
             if ( this.lineCount == 0) {
@@ -217,7 +219,7 @@ public class LogWriter implements StackLogger {
                 getLogger().debug("Config Propeties = " + this.configurationProperties);
             }
             countLines(newMessage);
-            getLogger().debug(newMessage, ex);
+            getLogger().debug(newMessage, t);
         }
     }
     
@@ -418,11 +420,11 @@ public class LogWriter implements StackLogger {
      * Log an error message.
      *
      * @param message
-     * @param ex
+     * @param t
      */
-    public void logError(String message, Exception ex) {
+    public void logError(String message, Throwable t) {
         Logger logger = this.getLogger();
-        logger.error(message, ex);
+        logger.error(message, t);
 
     }
 

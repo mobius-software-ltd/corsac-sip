@@ -84,8 +84,8 @@ public class StackLoggerImpl implements StackLogger {
 
     }
     
-    public void logDebug(String string, Exception ex) {
-        logger.debug(string, ex);
+    public void logDebug(String string, Throwable throwable) {
+        logger.debug(string, throwable);
 
      }
 
@@ -93,8 +93,8 @@ public class StackLoggerImpl implements StackLogger {
         logger.error(string);
     }
 
-    public void logError(String string, Exception exception) {
-      logger.error(string,exception);
+    public void logError(String string, Throwable throwable) {
+      logger.error(string, throwable);
 
     }
 

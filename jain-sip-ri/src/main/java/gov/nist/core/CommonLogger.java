@@ -82,9 +82,9 @@ public class CommonLogger implements StackLogger{
 		logger().logDebug(message);
 	}
 	
-	public void logDebug(String message, Exception ex) {
+	public void logDebug(String message, Throwable t) {
 		
-		logger().logDebug(message, ex);
+		logger().logDebug(message, t);
 	}
 	
 	public void logError(String message) {
@@ -92,9 +92,9 @@ public class CommonLogger implements StackLogger{
 		logger().logError(message);
 	}
 	
-	public void logError(String message, Exception ex) {
+	public void logError(String message, Throwable t) {
 		
-		logger().logError(message, ex);
+		logger().logError(message, t);
 	}
 	
 	public void logException(Throwable ex) {

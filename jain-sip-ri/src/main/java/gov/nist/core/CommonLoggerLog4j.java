@@ -119,8 +119,8 @@ public class CommonLoggerLog4j implements StackLogger {
      * (non-Javadoc)
      * @see gov.nist.core.StackLogger#logDebug(java.lang.String, java.lang.Exception)
      */
-    public void logDebug(String message, Exception ex) {
-        logger.debug(message, ex);
+    public void logDebug(String message, Throwable t) {
+        logger.debug(message, t);
     }
     
     /**
@@ -195,11 +195,11 @@ public class CommonLoggerLog4j implements StackLogger {
      * Log an error message.
      *
      * @param message
-     * @param ex
+     * @param t
      */
-    public void logError(String message, Exception ex) {
+    public void logError(String message, Throwable t) {
         Logger logger = this.getLogger();
-        logger.error(message, ex);
+        logger.error(message, t);
 
     }
 

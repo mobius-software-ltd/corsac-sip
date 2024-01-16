@@ -332,13 +332,13 @@ public class UDPMessageChannel extends MessageChannel implements
             // Process the packet. Catch and log any exception we may throw.
             try {
                 processIncomingDataPacket(packet);
-            } catch (Exception e) {
+            } catch (Throwable t) {
 
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                     logger.logDebug(
-                                    "Error while processing incoming UDP packet" + Arrays.toString(packet.getData()), e);
+                                    "Error while processing incoming UDP packet" + Arrays.toString(packet.getData()), t);
                 } else {
-                    logger.logError("Error while processing incoming UDP packet with length(" + packet.getLength() + ") peerAddress = " + peerAddress.getHostAddress()+ "/" + packet.getPort(), e);
+                    logger.logError("Error while processing incoming UDP packet with length(" + packet.getLength() + ") peerAddress = " + peerAddress.getHostAddress()+ "/" + packet.getPort(), t);
                 }
             }
 

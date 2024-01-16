@@ -49,9 +49,9 @@ public interface StackLogger extends LogLevels {
      *
      * @param message
      *            message to log into the log file.
-     * @param ex 
+     * @param t 
      */
-    public void logDebug(String message, Exception ex);
+    public void logDebug(String message, Throwable t);
     /**
      * Log a message into the log file.
      *
@@ -88,9 +88,9 @@ public interface StackLogger extends LogLevels {
      * Log an error message.
      *
      * @param message
-     * @param ex
+     * @param t
      */
-    public void logError(String message, Exception ex);
+    public void logError(String message, Throwable t);
     /**
      * Log a warning mesasge.
      *
