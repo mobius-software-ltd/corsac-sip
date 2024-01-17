@@ -374,8 +374,8 @@ node("slave-xlarge") {
                     $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$TARGET_PORT -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
                 '''
-                duration="${UAS_TEST_DURATION}" as Integer
-                call_length="${UAS_CALL_LENGTH}" as Integer                
+                duration="${B2BUA_TEST_DURATION}" as Integer
+                call_length="${B2BUA_CALL_LENGTH}" as Integer                
                 echo "duration ${duration}"                
                 echo "call_length ${call_length}"
                 sleep_time=duration + call_length + 10
