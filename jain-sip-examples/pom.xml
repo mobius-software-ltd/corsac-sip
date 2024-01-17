@@ -11,8 +11,6 @@
     <artifactId>jain-sip-examples</artifactId>
     <packaging>jar</packaging>
 
-
-
     <dependencies>
         <dependency>
             <groupId>javax.sip</groupId>
