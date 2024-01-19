@@ -16,7 +16,7 @@
     <packaging>pom</packaging>
 
     <name>corsac-sip</name>
-    <description>JAIN SIP Parent pom</description>
+    <description>CORSAC SIP Parent pom</description>
     <url>https://github.com/mobius-software-ltd/corsac-sip</url>
 
     <developers>
@@ -343,9 +343,9 @@
     </build>
 
     <scm>
-		<connection>scm:git:https://github.com/mobius-software-ltd/jain-sip.git</connection>
-		<developerConnection>scm:git:git@github.com:mobius-software-ltd/jain-sip.git</developerConnection>
-		<url>https://github.com/mobius-software-ltd/jain-sip</url>
-	    <tag>jain-sip-10.0.0-1</tag>
+		<connection>scm:git:https://github.com/mobius-software-ltd/corsac-sip.git</connection>
+		<developerConnection>scm:git:git@github.com:mobius-software-ltd/corsac-sip.git</developerConnection>
+		<url>https://github.com/mobius-software-ltd/corsac-sip</url>
+	    <tag>HEAD</tag>
     </scm>    
 </project>
