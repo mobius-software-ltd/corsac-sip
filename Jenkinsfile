@@ -2,12 +2,12 @@ def runTestsuite(enableNetty, forkCount=1, testToRun, profile="defaultProfile") 
     if (testToRun == "all") {    
         echo "Running the entire testsuite"
         withMaven(maven: 'maven-3.6.3',traceability: true) {
-            sh "mvn -B -f jain-sip-testsuite/pom.xml  clean install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" "
+            sh "mvn -B -f sip-testsuite/pom.xml  clean install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" "
         }
     } else {
         echo "Running the testsuite for $testToRun"
         withMaven(maven: 'maven-3.6.3',traceability: true) {
-            sh "mvn -B -f jain-sip-testsuite/pom.xml  clean install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" -Dtest=\"$testToRun\""
+            sh "mvn -B -f sip-testsuite/pom.xml  clean install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -DenableNetty=\"$enableNetty\" -DforkCount=\"$forkCount\" -Dtest=\"$testToRun\""
         }
     }
 }
@@ -190,12 +190,12 @@ node("slave-xlarge") {
             sh'sudo add-apt-repository -y universe'
             sh 'sudo apt update & sudo apt-get -y install dstat zip'            
             echo 'Building Performance Tests'
-            //sh 'jain-sip-performance/src/test/resources/buildPerfcorder.sh'
-            //sh 'jain-sip-performance/src/test/resources/tuneOS.sh'
+            //sh 'sip-performance/src/test/resources/buildPerfcorder.sh'
+            //sh 'sip-performance/src/test/resources/tuneOS.sh'
             withMaven(maven: 'maven-3.6.3',traceability: true) {
-                sh "mvn -DskipTests=true -B -f jain-sip-performance/pom.xml clean install"
+                sh "mvn -DskipTests=true -B -f sip-performance/pom.xml clean install"
             }
-            sh '$WORKSPACE/jain-sip-performance/src/test/resources/download-and-compile-sipp.sh'
+            sh '$WORKSPACE/sip-performance/src/test/resources/download-and-compile-sipp.sh'
             sh 'sudo sysctl -w net.core.rmem_max=26214400'  
             sh 'ulimit -n 120000'
         }
@@ -212,15 +212,15 @@ node("slave-xlarge") {
                 echo 'PERF_LOG4J_VERSION: ' + "${params.PERF_LOG4J_VERSION}"     
                 if("${params.PERF_JAIN_SIP_RI_VERSION}" == "current") {                          
                     sh '''
-                        export CLASSPATH="jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/*"
+                        export CLASSPATH="sip-ri/target/*:sip-api/target/*:sip-performance/target/*"
                         echo "CLASSPATH: " + \"${CLASSPATH}\"
-                        java ${JAVA_OPTS} -cp ${CLASSPATH} -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack.properties -Djavax.net.ssl.trustStore=$WORKSPACE/jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStore=$WORKSPACE/jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStorePassword=passphrase -Djavax.net.ssl.keyStoreType=jks performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
+                        java ${JAVA_OPTS} -cp ${CLASSPATH} -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/sip-performance/src/test/resources/performance/uas/sip-stack.properties -Djavax.net.ssl.trustStore=$WORKSPACE/sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStore=$WORKSPACE/sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStorePassword=passphrase -Djavax.net.ssl.keyStoreType=jks performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
                     '''
                 } else {
                     sh '''
-                        export CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-"${PERF_JAIN_SIP_RI_VERSION}".jar:jain-sip-performance/src/test/resources/jain-sip-ri-backups/log4j-"${PERF_LOG4J_VERSION}".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
+                        export CLASSPATH="sip-performance/src/test/resources/sip-ri-backups/sip-ri-"${PERF_JAIN_SIP_RI_VERSION}".jar:sip-performance/src/test/resources/sip-ri-backups/log4j-"${PERF_LOG4J_VERSION}".jar:sip-api/target/*:sip-performance/target/*"
                         echo "CLASSPATH: " + \"${CLASSPATH}\"
-                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/sip-stack-legacy.properties -Djavax.net.ssl.trustStore=$WORKSPACE/jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStore=$WORKSPACE/jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStorePassword=passphrase -Djavax.net.ssl.keyStoreType=jks performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
+                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/sip-performance/src/test/resources/performance/uas/sip-stack-legacy.properties -Djavax.net.ssl.trustStore=$WORKSPACE/sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStore=$WORKSPACE/sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStorePassword=passphrase -Djavax.net.ssl.keyStoreType=jks performance.uas.Shootme > $WORKSPACE/perf-results-dir-uas/uas-stdout-log.txt&
                     '''
                 }
                 sleep(time:5,unit:"SECONDS") 
@@ -232,11 +232,11 @@ node("slave-xlarge") {
 
                     echo "starting data collection"
                     RESULTS_DIR=$WORKSPACE/perf-results-dir-uas
-                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/class_histo.join
+                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/sip-performance/src/test/resources/class_histo.join
                     COLLECTION_INTERVAL_SECS=15
-                    $WORKSPACE/jain-sip-performance/src/test/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
+                    $WORKSPACE/sip-performance/src/test/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
                     echo "starting test"                                
-                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/performance-uac.xml
+                    SIPP_Performance_UAC=$WORKSPACE/sip-performance/src/test/resources/performance/uas/performance-uac.xml
                     CALLS=$(( ${UAS_CALL_RATE} * ${UAS_TEST_DURATION} ))                                
                     CONCURRENT_CALLS=$((${UAS_CALL_RATE} * ${UAS_CALL_LENGTH} * 2 ))
                     TARGET_PORT=5080
@@ -256,8 +256,8 @@ node("slave-xlarge") {
                     if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
                         MAX_SOCKETS="-max_socket ${SIPP_MAX_SOCKET}"
                     fi
-                    mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
+                    mv $WORKSPACE/sip-performance/src/test/resources/sipp-tls $WORKSPACE/sip-performance/src/test/resources/sipp
+                    $WORKSPACE/sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"
                     echo "sipp max socket:${SIPP_MAX_SOCKET}"
                     echo "calls:$MAX_SOCKETS"
@@ -267,7 +267,7 @@ node("slave-xlarge") {
                     echo "wait time:$WAIT_TIME"
                     echo "test duration:$UAS_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$TARGET_PORT -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
+                    $WORKSPACE/sip-performance/src/test/resources/sipp 127.0.0.1:$TARGET_PORT -s receiver -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -m $CALLS -r ${UAS_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $UAS_TEST_DURATION+seconds -u)"
                 '''                
                 duration="${UAS_TEST_DURATION}" as Integer
@@ -288,9 +288,9 @@ node("slave-xlarge") {
                     pgrep sipp || true
                     killall sipp || true
                     export PERFCORDER_SIPP_CSV="$WORKSPACE/performance-uac*.csv"
-                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/jSIP-Performance-UAS.xsl
+                    export GOALS_FILE=$WORKSPACE/sip-performance/src/test/resources/performance/uas/jSIP-Performance-UAS.xsl
                     export RESULTS_DIR=$WORKSPACE/perf-results-dir-uas
-                    $WORKSPACE/jain-sip-performance/src/test/resources/stopPerfcorder.sh
+                    $WORKSPACE/sip-performance/src/test/resources/stopPerfcorder.sh
                 '''            
             }
 
@@ -314,15 +314,15 @@ node("slave-xlarge") {
                 echo 'PERF_LOG4J_VERSION: ' + "${params.PERF_LOG4J_VERSION}"   
                 if("${params.PERF_JAIN_SIP_RI_VERSION}" == "current") {                                          
                     sh '''
-                        CLASSPATH="jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/*"
+                        CLASSPATH="sip-ri/target/*:sip-api/target/*:sip-performance/target/*"
                         echo "CLASSPATH: " + \"${CLASSPATH}\"
-                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/sip-stack.properties -Djavax.net.ssl.trustStore=$WORKSPACE/jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStore=$WORKSPACE/jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStorePassword=passphrase -Djavax.net.ssl.keyStoreType=jks performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&
+                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/sip-performance/src/test/resources/performance/b2bua/sip-stack.properties -Djavax.net.ssl.trustStore=$WORKSPACE/sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStore=$WORKSPACE/sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStorePassword=passphrase -Djavax.net.ssl.keyStoreType=jks performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&
                     '''
                 } else {
                     sh '''
-                        CLASSPATH="jain-sip-performance/src/test/resources/jain-sip-ri-backups/jain-sip-ri-"${PERF_JAIN_SIP_RI_VERSION}".jar:jain-sip-performance/src/test/resources/jain-sip-ri-backups/log4j-"${PERF_LOG4J_VERSION}".jar:jain-sip-api/target/*:jain-sip-performance/target/*"
+                        CLASSPATH="sip-performance/src/test/resources/sip-ri-backups/sip-ri-"${PERF_JAIN_SIP_RI_VERSION}".jar:sip-performance/src/test/resources/sip-ri-backups/log4j-"${PERF_LOG4J_VERSION}".jar:sip-api/target/*:sip-performance/target/*"
                         echo "CLASSPATH: " + \"${CLASSPATH}\"
-                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/sip-stack-legacy.properties -Djavax.net.ssl.trustStore=$WORKSPACE/jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStore=$WORKSPACE/jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStorePassword=passphrase -Djavax.net.ssl.keyStoreType=jks performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&
+                        java ${JAVA_OPTS} -cp $CLASSPATH -DSIP_STACK_PROPERTIES_PATH=$WORKSPACE/sip-performance/src/test/resources/performance/b2bua/sip-stack-legacy.properties -Djavax.net.ssl.trustStore=$WORKSPACE/sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStore=$WORKSPACE/sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStorePassword=passphrase -Djavax.net.ssl.keyStoreType=jks performance.b2bua.Test > $WORKSPACE/perf-results-dir-b2bua/b2bua-stdout-log.txt&
                     '''
                 }        
                 sleep(time:5,unit:"SECONDS") 
@@ -334,12 +334,12 @@ node("slave-xlarge") {
 
                     echo "starting data collection"
                     RESULTS_DIR=$WORKSPACE/perf-results-dir-b2bua
-                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/jain-sip-performance/src/test/resources/class_histo.join
+                    CLASS_HISTO_JOIN_PATH=$WORKSPACE/sip-performance/src/test/resources/class_histo.join
                     COLLECTION_INTERVAL_SECS=15
-                    $WORKSPACE/jain-sip-performance/src/test/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
+                    $WORKSPACE/sip-performance/src/test/resources/startPerfcorder.sh -f $COLLECTION_INTERVAL_SECS -j $CLASS_HISTO_JOIN_PATH $PROCESS_PID
                     echo "starting B2BUA test"                                
-                    SIPP_Performance_UAS=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/uas_DIALOG.xml
-                    SIPP_Performance_UAC=$WORKSPACE/jain-sip-performance/src/test/resources/performance/b2bua/uac_DIALOG.xml
+                    SIPP_Performance_UAS=$WORKSPACE/sip-performance/src/test/resources/performance/b2bua/uas_DIALOG.xml
+                    SIPP_Performance_UAC=$WORKSPACE/sip-performance/src/test/resources/performance/b2bua/uac_DIALOG.xml
                     CALLS=$(( ${B2BUA_CALL_RATE} * ${B2BUA_TEST_DURATION} ))                                
                     CONCURRENT_CALLS=$((${B2BUA_CALL_RATE} * ${B2BUA_CALL_LENGTH} * 2 ))
                     TARGET_PORT=5060
@@ -359,8 +359,8 @@ node("slave-xlarge") {
                     if [ "${SIPP_TRANSPORT_MODE}" = "ln" ]; then 
                         MAX_SOCKETS="-max_socket ${SIPP_MAX_SOCKET}"
                     fi
-                    mv $WORKSPACE/jain-sip-performance/src/test/resources/sipp-tls $WORKSPACE/jain-sip-performance/src/test/resources/sipp
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -v || true
+                    mv $WORKSPACE/sip-performance/src/test/resources/sipp-tls $WORKSPACE/sip-performance/src/test/resources/sipp
+                    $WORKSPACE/sip-performance/src/test/resources/sipp -v || true
                     echo "calls:$TARGET_PORT"
                     echo "sipp max socket:${SIPP_MAX_SOCKET}"
                     echo "calls:$MAX_SOCKETS"
@@ -370,8 +370,8 @@ node("slave-xlarge") {
                     echo "wait time:$WAIT_TIME"
                     echo "test duration:$B2BUA_TEST_DURATION"
                     echo "concurrent calls:$CONCURRENT_CALLS"                
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp -sf $SIPP_Performance_UAS -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
-                    $WORKSPACE/jain-sip-performance/src/test/resources/sipp 127.0.0.1:$TARGET_PORT -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
+                    $WORKSPACE/sip-performance/src/test/resources/sipp -sf $SIPP_Performance_UAS -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
+                    $WORKSPACE/sip-performance/src/test/resources/sipp 127.0.0.1:$TARGET_PORT -s sender -sf $SIPP_Performance_UAC -t ${SIPP_TRANSPORT_MODE} -nd -i 127.0.0.1 -p 5050 -m $CALLS -r ${B2BUA_CALL_RATE} -fd 1 -trace_stat -trace_screen -timeout_error $MAX_SOCKETS -bg || true
                     echo "Actual date: \$(date -u) | Sleep ends at: \$(date -d $B2BUA_TEST_DURATION+seconds -u)"
                 '''
                 duration="${B2BUA_TEST_DURATION}" as Integer
@@ -392,9 +392,9 @@ node("slave-xlarge") {
                     pgrep sipp || true
                     killall sipp || true
                     export PERFCORDER_SIPP_CSV="$WORKSPACE/uas_DIALOG*.csv"
-                    export GOALS_FILE=$WORKSPACE/jain-sip-performance/src/test/resources/performance/uas/jSIP-Performance-B2BUA.xsl
+                    export GOALS_FILE=$WORKSPACE/sip-performance/src/test/resources/performance/uas/jSIP-Performance-B2BUA.xsl
                     export RESULTS_DIR=$WORKSPACE/perf-results-dir-b2bua
-                    $WORKSPACE/jain-sip-performance/src/test/resources/stopPerfcorder.sh
+                    $WORKSPACE/sip-performance/src/test/resources/stopPerfcorder.sh
                 '''            
             }
 
