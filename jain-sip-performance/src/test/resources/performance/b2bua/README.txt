@@ -1,8 +1,0 @@
-run B2BUA server: java -Xms6144m -Xmx6144m -XX:MetaspaceSize=512M -XX:MaxMetaspaceSize=1024M -XX:+UseG1GC -XX:+UseStringDeduplication -cp jain-sip-ri/target/*:jain-sip-api/target/*:jain-sip-performance/target/* -DSIP_STACK_PROPERTIES_PATH=./jain-sip-performance/src/test/resources/performance/b2bua/sip-stack.properties -Djavax.net.ssl.trustStore=./jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStore=./jain-sip-performance/src/test/resources/performance/testkeys -Djavax.net.ssl.keyStorePassword=passphrase -Djavax.net.ssl.keyStoreType=jks performance.b2bua.Test
-* TCP t1
-    ** run sipp UAS: ./jain-sip-performance/src/test/resources/sipp -sf ./jain-sip-performance/src/test/resources/performance/b2bua/uas_DIALOG.xml -t t1 -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error
-    ** run sipp UAC: ./jain-sip-performance/src/test/resources/sipp 127.0.0.1:5060 -s sender -sf ./jain-sip-performance/src/test/resources/performance/b2bua/uac_DIALOG.xml -t t1 -nd -i 127.0.0.1 -p 5050 -m 720000 -r 1 -fd 1 -trace_stat -trace_screen -timeout_error
-
-* TLS tn
-    ** run sipp UAS: ./jain-sip-performance/src/test/resources/sipp -sf ./jain-sip-performance/src/test/resources/performance/b2bua/uas_DIALOG.xml -t ln -nd -i 127.0.0.1 -p 5090 -trace_stat -trace_screen -timeout_error -max_socket 64
-    ** run sipp UAC: ./jain-sip-performance/src/test/resources/sipp 127.0.0.1:5061 -s sender -sf ./jain-sip-performance/src/test/resources/performance/b2bua/uac_DIALOG.xml -t ln -nd -i 127.0.0.1 -p 5050 -m 720000 -r 2000 -fd 1 -trace_stat -trace_screen -timeout_error -max_socket 64

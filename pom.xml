@@ -9,15 +9,15 @@
 		<version>1.0.9</version>
 	</parent>
 	
-    <groupId>javax.sip</groupId>
-    <artifactId>jain-sip</artifactId>
+    <groupId>com.mobius-software.protocols.sip</groupId>
+    <artifactId>corsac-sip</artifactId>
     <version>10.0.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
-    <name>jain-sip</name>
+    <name>corsac-sip</name>
     <description>JAIN SIP Parent pom</description>
-    <url>https://github.com/mobius-software-ltd/jain-sip</url>
+    <url>https://github.com/mobius-software-ltd/corsac-sip</url>
 
     <developers>
         <developer>
@@ -74,9 +74,9 @@
     </licenses>
 
     <modules>
-        <module>jain-sip-api</module>
-        <module>jain-sip-testsuite-common</module>
-        <module>jain-sip-ri</module>
+        <module>sip-api</module>
+        <module>sip-testsuite-common</module>
+        <module>sip-ri</module>
     </modules>
 
     <properties>
@@ -110,13 +110,13 @@
         <profile>
             <id>performance</id>
             <modules>
-                <module>jain-sip-performance</module>
+                <module>sip-performance</module>
             </modules>
         </profile>          
         <profile>
             <id>examples</id>
             <modules>
-                <module>jain-sip-examples</module>
+                <module>sip-examples</module>
             </modules>
         </profile>
         <profile>
@@ -146,13 +146,13 @@
         <profile>
             <id>int-testing</id>
             <modules>
-                <module>jain-sip-testsuite</module>
+                <module>sip-testsuite</module>
             </modules>
         </profile>                                             
         <profile>
             <id>sctp</id>
             <modules>
-                <module>jain-sip-sctp</module>
+                <module>sip-sctp</module>
             </modules>
         </profile>
         <profile>
