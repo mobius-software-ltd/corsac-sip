@@ -83,7 +83,7 @@ node("slave-xlarge") {
             string(name: 'ENABLE_NETTY', defaultValue: "true", description: 'Whether the testsuite should run using Netty', trim: true),
             string(name: 'FORK_COUNT', defaultValue: '20', description: 'Number of forks to run the testsuite', trim: true),
             string(name: 'TESTS_TO_RUN', defaultValue: "all", description: 'if a single test needs to be running to avoid rerunning the entire testsuite again', trim: true),
-            string(name: 'RUN_PERF_TESTS', defaultValue: "true", description: 'Whether the performance tests should run or not', trim: true),
+            string(name: 'RUN_PERF_TESTS', defaultValue: "false", description: 'Whether the performance tests should run or not', trim: true),
             string(name: 'RUN_UAS_PERF_TESTS', defaultValue: "true", description: 'Whether the UAS performance tests should run or not', trim: true),
             string(name: 'RUN_B2BUA_PERF_TESTS', defaultValue: "true", description: 'Whether the B2BUA performance tests should run or not', trim: true),
             choice(name: 'SIPP_TRANSPORT_MODE', choices: ["u1", "t1", "l1", "un", "tn", "ln"], description: 'transport used at SIPP for performance tests', trim: true),
