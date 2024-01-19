@@ -171,7 +171,7 @@ public class BackToBackUserAgent implements SipListenerExt {
         try {
             Response response = responseEvent.getResponse();
             Dialog dialog = responseEvent.getDialog();
-            logger.info("B2BUA - response: " + response + " received for dialog: " + dialog);
+            logger.info("B2BUA - response: " + response + " received for dialog: " + dialog);           
             this.lastResponseTable.put(dialog, response);
              ServerTransaction serverTransaction = (ServerTransaction)responseEvent.getClientTransaction().getApplicationData();
             Request stRequest = serverTransaction.getRequest();

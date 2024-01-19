@@ -4,9 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.restcomm</groupId>
-		<artifactId>restcomm-parent</artifactId>
-		<version>8.0.0-30</version>
+		<groupId>com.mobius-software</groupId>
+		<artifactId>mobius-public-parent</artifactId>
+		<version>1.0.9</version>
 	</parent>
 	
     <groupId>javax.sip</groupId>
@@ -17,7 +17,7 @@
 
     <name>jain-sip</name>
     <description>JAIN SIP Parent pom</description>
-    <url>http://code.google.com/p/jain-sip/</url>
+    <url>https://github.com/mobius-software-ltd/jain-sip</url>
 
     <developers>
         <developer>
@@ -67,11 +67,28 @@
     </developers>
     <licenses>
         <license>
-            <name>Public Domain</name>
-            <url>http://www.gnu.org/licenses/license-list.html#PublicDomain</url>
+            <name>AGPL</name>
+            <url>https://www.gnu.org/licenses/agpl-3.0.html</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <modules>
+        <module>jain-sip-api</module>
+        <module>jain-sip-testsuite-common</module>
+        <module>jain-sip-ri</module>
+    </modules>
+
+    <properties>
+        <log4j2.version>2.19.0</log4j2.version>
+		<junit.version>4.8.2</junit.version>
+        <version.netty>4.1.63.Final</version.netty>
+        <version.mobius-timers>1.0.0-29</version.mobius-timers>
+        <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+        <!-- IDEs has a problem when we use late binding with @ in the surefire arg line.
+        Therefore we set this empty property here-->
+        <jacocoArgLine />       
+    </properties>
 
     <dependencies>
         <dependency>
@@ -84,23 +101,10 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>                    
     </dependencies>
-    <modules>
-        <module>jain-sip-api</module>
-        <module>jain-sip-testsuite-common</module>
-        <module>jain-sip-ri</module>
-    </modules>
-
-    <properties>
-        <version.netty>4.1.63.Final</version.netty>
-        <version.mobius-timers>1.0.0-29</version.mobius-timers>
-        <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
-        <!-- IDEs has a problem when we use late binding with @ in the surefire arg line.
-        Therefore we set this empty property here-->
-        <jacocoArgLine />       
-    </properties>
 
     <profiles>
         <profile>
@@ -205,32 +209,66 @@
 				</plugins>
 			</build>		
 		</profile>
+        <profile>
+			<id>no-gpg</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.1.2</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>none</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
     </profiles>
 
-    <!-- repositories -->
     <repositories>
 		<repository>
-			<id>mobius-telestax-private-releases-repository</id>
-			<name>Mobius Releases Repository For Telestax</name>
-			<url>http://nexus.mobius-software.com:8081/repository/telestax-local</url>
+			<id>mobius-public-repository-group</id>
+			<name>Mobius Public Maven Repository Group</name>
+			<url>https://oss.sonatype.org/content/groups/public/</url>
+			<layout>default</layout>
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>never</updatePolicy>
 			</releases>
 			<snapshots>
-				<enabled>false</enabled>
+				<enabled>true</enabled>
 				<updatePolicy>never</updatePolicy>
-			</snapshots>                            
-		</repository>   
-	</repositories>	
+			</snapshots>
+		</repository>
+	</repositories>
 	
-	<distributionManagement>
+	<!--distributionManagement>
 	   <repository>
 	      <id>mobius-telestax-private-releases-repository</id>
 	      <name>Mobius Releases Repository For Telestax</name>
           <url>http://nexus.mobius-software.com:8081/repository/telestax-local</url>
 	    </repository> 
-	</distributionManagement>  
+	</distributionManagement-->  
 
     <build>	
         <plugins>
@@ -304,10 +342,9 @@
     </build>
 
     <scm>
-	    <connection>scm:git:ssh://git@git.mobius-software.com:/opt/data/git/jsip.git</connection>
-        <developerConnection>scm:git:ssh://git@git.mobius-software.com:/opt/data/git/jsip.git</developerConnection>
-        <tag>HEAD</tag>
-  	</scm>
-  	
-  	
+		<connection>scm:git:https://github.com/mobius-software-ltd/jain-sip.git</connection>
+		<developerConnection>scm:git:git@github.com:mobius-software-ltd/jain-sip.git</developerConnection>
+		<url>https://github.com/mobius-software-ltd/jain-sip</url>
+	    <tag>HEAD</tag>
+    </scm>    
 </project>

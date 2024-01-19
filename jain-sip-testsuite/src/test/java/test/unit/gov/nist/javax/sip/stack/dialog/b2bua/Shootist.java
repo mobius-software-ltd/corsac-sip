@@ -218,6 +218,7 @@ public class Shootist implements SipListener {
                     TestCase.assertNotNull( ackRequest.getHeader( MaxForwardsHeader.NAME ) );
 
                     if ( dialog == this.ackedDialog ) {
+                        // Thread.sleep(3000);
                         dialog.sendAck(ackRequest);
                         return;
                     }

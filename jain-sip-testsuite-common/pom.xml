@@ -18,6 +18,7 @@
                 <version>3.2.2</version>
 				<configuration>
 					<argLine>-Xms512m -Xmx1024m</argLine>
+                    <skipTests>false</skipTests>					
 				</configuration>
             </plugin>
         </plugins>	
@@ -38,6 +39,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
         </dependency>
     </dependencies>
 </project>

@@ -178,10 +178,10 @@ public class Shootme   implements SipListener {
             Address address = addressFactory.createAddress("Shootme <sip:"
                     + myAddress + ":" + myPort + ">");
 
-            // Add a random sleep to stagger the two OK's for the benifit of implementations
+            // Add a random sleep to stagger the two OK's for the benefit of implementations
             // that may not be too good about handling re-entrancy.
             int timeToSleep = (int) ( Math.random() * 1000);
-
+            System.out.println("UAC Time to sleep " + timeToSleep);
             Thread.sleep(timeToSleep);
 
             st.sendResponse(response);
@@ -336,7 +336,7 @@ public class Shootme   implements SipListener {
         this.delay = delay;
         this.sendRinging = sendRinging;
 
-        ProtocolObjects sipObjects = new ProtocolObjects("shootme","gov.nist","udp",true,false, false);
+        ProtocolObjects sipObjects = new ProtocolObjects("shootme-"+myPort,"gov.nist","udp",true,false, false);
         addressFactory = sipObjects.addressFactory;
         messageFactory = sipObjects.messageFactory;
         headerFactory = sipObjects.headerFactory;
