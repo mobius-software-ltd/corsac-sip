@@ -35,10 +35,14 @@ import javax.sip.message.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.javax.sip.DialogExt;
 import gov.nist.javax.sip.DialogTimeoutEvent;
 import gov.nist.javax.sip.ListeningPointExt;
+import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.SipProviderExt;
+import gov.nist.javax.sip.SipStackExt;
+import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.TransactionExt;
 import gov.nist.javax.sip.message.MessageExt;
 import gov.nist.javax.sip.message.ResponseExt;
@@ -192,16 +196,24 @@ public class BackToBackUserAgent implements SipListenerExt {
 
     public void processResponse(ResponseEvent responseEvent) {
         try {
-            Response response = responseEvent.getResponse();
-            Dialog dialog = responseEvent.getDialog();
+            ResponseEventExt responseEventExt = (gov.nist.javax.sip.ResponseEventExt) responseEvent;
+            ResponseExt response = (ResponseExt) responseEventExt.getResponse();
+            DialogExt dialog = (DialogExt) responseEvent.getDialog();
             logger.info("B2BUA - response: " + response + " received for dialog: " + dialog);
-            if(response.getStatusCode() == Response.TRYING) {
-                logger.info("Dropping Trying responses");
+            logger.info("B2BUA - response isForked: " + responseEventExt.isForkedResponse() + 
+                ", isRetransmission " + responseEventExt.isRetransmission() +
+                ", clientTx" + responseEventExt.getClientTransaction() +
+                ", originalTx" + responseEventExt.getOriginalTransaction());
+            if(response.getStatusCode() == Response.TRYING || responseEventExt.isRetransmission()) {
+                logger.info("Dropping Trying responses and Retransmissions");
                 return;
-            }
+            }            
             this.lastResponseTable.put(dialog, response);
-            ServerTransaction serverTransaction = (ServerTransaction) responseEvent.getClientTransaction()
-                    .getApplicationData();
+            ClientTransaction clientTx = responseEvent.getClientTransaction();
+            if(clientTx == null) {
+                clientTx = responseEventExt.getOriginalTransaction();
+            }
+            ServerTransaction serverTransaction = (ServerTransaction) clientTx.getApplicationData();
             Request stRequest = serverTransaction.getRequest();
             Response newResponse = this.messageFactory.createResponse(response.getStatusCode(), stRequest);
             SipProvider provider = (SipProvider) responseEvent.getSource();
@@ -210,14 +222,16 @@ public class BackToBackUserAgent implements SipListenerExt {
             ContactHeader peerContactHeader = ((ListeningPointExt) peerListeningPoint).createContactHeader();
             newResponse.setHeader(peerContactHeader);
             ((ResponseExt)newResponse).getToHeader().setTag(((ResponseExt)response).getToHeader().getTag());            
-            Dialog uasDialog = null;
+            DialogExt uasDialog = null;
             if(((ResponseExt)newResponse).getCSeqHeader().getMethod() == Request.INVITE) {                
-                uasDialog = peerProvider.getNewDialog(serverTransaction);
+                uasDialog = (DialogExt) peerProvider.getNewDialog(serverTransaction);
                 this.addDialog(dialog, uasDialog);
             } else {
-                uasDialog = this.getPeerDialog(dialog);
+                uasDialog = (DialogExt) this.getPeerDialog(dialog);
             }                   
-            logger.info("B2BUA - newResponse: " + newResponse + " sent for UAC Dialog " + dialog + " and UAS dialog: " + uasDialog);
+            logger.info("B2BUA - newResponse: " + newResponse + 
+                " sent for UAC Dialog " + dialog + " isForked " + dialog.isForked() +
+                " and UAS dialog: " + uasDialog  + " isForked " + uasDialog.isForked() );
             serverTransaction.sendResponse(newResponse);            
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -244,6 +258,7 @@ public class BackToBackUserAgent implements SipListenerExt {
         try {
             messageFactory = protocolObjects.messageFactory;
             SipStack sipStack = protocolObjects.sipStack;
+            ((SipStackImpl)sipStack).setMaxForkTime(32);
             ListeningPoint lp1 = sipStack.createListeningPoint("127.0.0.1", port1, "udp");
             ListeningPoint lp2 = sipStack.createListeningPoint("127.0.0.1", port2, "udp");
             SipProvider sp1 = sipStack.createSipProvider(lp1);
