@@ -73,7 +73,8 @@ public class Shootme   implements SipListener {
 
     private SipStack sipStack;
 
-    private int delay;
+    private int ringingDelay;
+    private int okDelay;
 
     private boolean sendRinging;
 
@@ -140,8 +141,10 @@ public class Shootme   implements SipListener {
             ServerTransaction serverTransaction) {
         logger.info("shootme: got an ACK! ");
         logger.info("Dialog = " + requestEvent.getDialog());
-        logger.info("Dialog State = " + requestEvent.getDialog().getState());
-
+        if( requestEvent.getDialog() != null ) {
+            logger.info("Dialog State = " + requestEvent.getDialog().getState());    
+        }
+        
         this.ackSeen = true;
         TestCase.assertEquals( DialogState.CONFIRMED , requestEvent.getDialog().getState() );
     }
@@ -195,6 +198,7 @@ public class Shootme   implements SipListener {
             toHeader.setTag(toTag);
             if ( sendRinging ) {
                 ringingResponse.addHeader(contactHeader);
+                Thread.sleep(ringingDelay);
                 st.sendResponse(ringingResponse);
             }
             Dialog dialog =  st.getDialog();
@@ -202,7 +206,7 @@ public class Shootme   implements SipListener {
 
             this.inviteSeen = true;
 
-            timer.schedule(new MyTimerTask(requestEvent,st,toTag), this.delay);
+            timer.schedule(new MyTimerTask(requestEvent,st,toTag), this.okDelay);
         } catch (Exception ex) {
             ex.printStackTrace();
             junit.framework.TestCase.fail("Exit JVM");
@@ -331,9 +335,10 @@ public class Shootme   implements SipListener {
 
     }
 
-    public Shootme( int myPort, boolean sendRinging, int delay ) throws TooManyListenersException {
+    public Shootme( int myPort, boolean sendRinging, int ringingDelay, int okDelay ) throws TooManyListenersException {
         this.myPort = myPort;
-        this.delay = delay;
+        this.ringingDelay = ringingDelay;
+        this.okDelay = okDelay;
         this.sendRinging = sendRinging;
 
         ProtocolObjects sipObjects = new ProtocolObjects("shootme-"+myPort,"gov.nist","udp",true,false, false);

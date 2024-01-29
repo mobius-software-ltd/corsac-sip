@@ -21,8 +21,10 @@ package gov.nist.javax.sip.stack;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.text.ParseException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.Dialog;
+import javax.sip.InvalidArgumentException;
 import javax.sip.ObjectInUseException;
 import javax.sip.SipException;
 import javax.sip.Timeout;
@@ -31,17 +33,21 @@ import javax.sip.TransactionState;
 import javax.sip.address.Hop;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.ExpiresHeader;
+import javax.sip.header.RecordRouteHeader;
+import javax.sip.header.RouteHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.HostPort;
+import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.ParameterNames;
 import gov.nist.javax.sip.header.Via;
@@ -220,6 +226,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
     private HostPort originalRequestSentBy;
     protected String originalRequestFromTag;
+
+    // Table of early dialogs for B2BUA Use case
+    protected ConcurrentHashMap<String, SIPDialog> earlyUASDialogTable;
+    protected ConcurrentHashMap<String, SIPDialog> earlyUACDialogTable;
+
     /**
      * This timer task is for INVITE server transactions. It will send a trying in
      * 200 ms. if the
@@ -857,7 +868,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 lastResponseStatusCode = transactionResponse.getStatusCode();
 
                 this.sendResponse(transactionResponse);
-
+                lastResponse = transactionResponse;
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug(
+                            "messageSent : tx = " + this + " lastResponse = " + lastResponse);
+                }
             } catch (IOException e) {
 
                 this.setState(TransactionState._TERMINATED);
@@ -1337,6 +1352,93 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
     }
 
+    @Override
+    public Dialog sendForkedResponse(Response response) throws SipException, InvalidArgumentException {
+
+        SIPResponse newResponse = (SIPResponse) response.clone();        
+        
+        newResponse.setCSeq(lastResponse.getCSeq());   
+        newResponse.setVia(lastResponse.getViaHeaders());
+        newResponse.setFrom(lastResponse.getFrom());
+        newResponse.setTo(lastResponse.getTo());
+        newResponse.removeHeader(RecordRouteHeader.NAME);
+        newResponse.removeHeader(RouteHeader.NAME);
+        newResponse.setHeader(lastResponse.getHeader(ContactHeader.NAME));
+
+        SIPDialog sipDialog = createForkedUASDialog((SIPResponse) response, newResponse);
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug(" forked response " + newResponse + 
+                " for original response " + response +
+                ", forked dialog " + sipDialog);
+        }
+        ServerTransactionOutgoingMessageTask outgoingMessageProcessingTask = 
+            new ServerTransactionOutgoingMessageTask(this, newResponse, sipDialog);
+        sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
+
+        return sipDialog;
+
+
+    }
+
+    /**
+     * https://github.com/mobius-software-ltd/corsac-sip/issues/1
+     * Create a Forked Dialog for a given a server tx and response 
+     * in the context of B2BUA UAS Forking.
+     *
+     * @param transaction
+     * @param newResponse
+     * @return
+     */
+
+     public SIPDialog createForkedUASDialog(SIPResponse clientResponse, SIPResponse newResponse) {
+        
+        if(earlyUASDialogTable == null) {
+            earlyUASDialogTable = new ConcurrentHashMap<String, SIPDialog>();
+            earlyUACDialogTable = new ConcurrentHashMap<String, SIPDialog>();
+        }
+
+        String earlyUACDialogId = clientResponse.getDialogId(false);
+        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+            logger.logDebug("createForkedUASDialog earlyUACDialogId=" + earlyUACDialogId);
+            logger.logDebug("createForkedUASDialog default Dialog=" + getDialog());
+            if(getDialog() != null) {
+                logger.logDebug("createForkedUASDialog default Dialog Id=" + getDialog().getDialogId());
+            }
+        }
+        SIPDialog retval = null;
+        SIPDialog earlyDialog = earlyUACDialogTable.get(earlyUACDialogId);
+        if (earlyDialog != null) { 
+            // If the dialog is already there then just return it and set the ToTag of the response
+            // to the one of the dialog.
+            retval = earlyDialog;
+            newResponse.setToTag(retval.getLocalTag());
+            String earlyUASDialogId = newResponse.getDialogId(true);            
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("createForkedUASDialog early Dialog found : earlyDialogId="
+                        + earlyUASDialogId + " earlyDialog= " + retval);
+            }            
+        } else {
+            // If the dialog is not there then create a new one and set the ToTag of the response
+            // to the one of the dialog.
+            newResponse.setToTag(Utils.getInstance().generateTag());
+            String earlyUASDialogId = newResponse.getDialogId(true);            
+            retval = new SIPDialog(this);            
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("createForkedUASDialog early Dialog not found : earlyDialogId="
+                        + earlyUASDialogId + " created one " + retval);
+            }            
+            retval.setOriginalDialog(dialog);
+            retval.setLastResponse(this, newResponse);
+            // storing the dialog in the early dialog tables so that we
+            // can match the responses coming from UAC Side and 
+            // mid dialog requests coming from UAS Side
+            earlyUASDialogTable.put(earlyUASDialogId, retval);
+            earlyUACDialogTable.put(earlyUACDialogId, retval);
+        }
+        return retval;
+
+    }
+
     /**
      * Return the book-keeping information that we actually use.
      */
@@ -1484,8 +1586,15 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      */
     @Override
     public void setDialog(SIPDialog sipDialog, String dialogId) {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug("setDialog " + this + " dialog = " + sipDialog);
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logStackTrace();
+            logger.logDebug("setDialog " + this + " new dialog = " + sipDialog + " existing Dialog " + dialog);
+        }
+        if(dialog != null && sipDialog.getOriginalDialog() != null) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug(" existing dialogId: " + dialog.getDialogId() + ", original Dialog " + sipDialog.getOriginalDialog() + " original Dialog Id " + sipDialog.getOriginalDialog().getDialogId());
+            return ;
+        }
         this.dialog = sipDialog;
         this.dialogId = dialogId;
         if (dialogId != null)
@@ -1884,6 +1993,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // provisionalResponseSem = null;
             retransmissionAlertTimerTask = null;
             requestOf = null;
+            earlyUASDialogTable = null;
+            earlyUACDialogTable = null;
         }
     }
 

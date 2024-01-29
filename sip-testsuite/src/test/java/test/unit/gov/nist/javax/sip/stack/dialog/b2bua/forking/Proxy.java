@@ -218,7 +218,7 @@ public class Proxy implements SipListener {
     public Proxy(int myPort, int ntargets, int[] targetPorts) {
         this.port = myPort;
         this.ntargets = ntargets;
-        ProtocolObjects protocolObjects = new ProtocolObjects("proxy", "gov.nist", "udp", false, false, false);
+        ProtocolObjects protocolObjects = new ProtocolObjects("proxy-"+myPort, "gov.nist", "udp", false, false, false);
         addressFactory = protocolObjects.addressFactory;
         headerFactory = protocolObjects.headerFactory;
         this.sipStack = protocolObjects.sipStack;

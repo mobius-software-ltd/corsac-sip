@@ -55,7 +55,7 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
     @Override
     public void execute() {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("Executing task with id: " + id);
+            logger.logDebug("Executing task with id: " + id + " on Dialog " + sipDialog);
         }
         final int statusCode = sipResponse.getStatusCode();
         final String responseMethod = sipResponse.getCSeq().getMethod();
@@ -124,7 +124,8 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
                             && !sipDialog.getLocalTag().equals(sipResponse.getToTag())) {
                         throw new SipException("Tag mismatch dialogTag is "
                                 + sipDialog.getLocalTag() + " responseTag is "
-                                + sipResponse.getToTag());
+                                + sipResponse.getToTag() + " on response " + sipResponse 
+                                + " dialog = " + sipDialog + " serverTx = " + serverTransaction);
                     }
                 }
 

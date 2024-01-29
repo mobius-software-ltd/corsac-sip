@@ -15,7 +15,7 @@ public class BackToBackUserAgentTest extends TestCase {
     private BackToBackUserAgent b2bua;
     private Shootme bob;
     private Shootme carol;
-    private Proxy proxy;
+    
     private static final int TIMEOUT = 8000;
 
     @Override 
@@ -29,10 +29,9 @@ public class BackToBackUserAgentTest extends TestCase {
         this.alice = new Shootist(alicePort,b2bPort);
         this.b2bua  = new BackToBackUserAgent(b2bPort,b2bPort2);        
         b2bua.addTargetPort(proxyPort);        
-        this.proxy = new Proxy(proxyPort,2,new int[]{bobPort,carolPort});
-        // this.proxy = new Proxy(proxyPort,1,new int[]{bobPort});
-        this.bob = new Shootme(bobPort,true,5000);
-        this.carol = new Shootme(carolPort,true,5000);
+        new Proxy(proxyPort,2,new int[]{bobPort,carolPort});        
+        this.bob = new Shootme(bobPort,true,100, 5000);
+        this.carol = new Shootme(carolPort,true,1000, 5000);
         
     }
     

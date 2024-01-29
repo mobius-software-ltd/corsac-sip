@@ -1,8 +1,8 @@
 /**
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Unpublished - rights reserved under the Copyright Laws of the United States.
- * Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
- * Copyright © 2005 BEA Systems, Inc. All rights reserved.
+ * Copyright ï¿½ 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright ï¿½ 2005 BEA Systems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -120,6 +120,23 @@ public interface ServerTransaction extends Transaction {
      * @see Response
      */
     public void sendResponse(Response response) throws SipException, InvalidArgumentException;
+
+    /**
+     * This method is used when forwarding a forked response. 
+     * 
+     * A transparent B2BUA application must use this method to forward forked responses upstream. 
+     * 
+     * This method makes a copy of the response and sends the response on the supplied ServerTransaction, 
+     * and creates a new Early Dialog on which mid-dialog requests will be received.
+     * 
+     * If the response is a final response, all other early dialogs will be terminated.
+     * 
+     * @param response
+     * @return
+     * @throws SipException
+     * @throws InvalidArgumentException
+     */
+    public Dialog sendForkedResponse(Response response) throws SipException, InvalidArgumentException;
 
     /**
      * Enable the timeout retransmit notifications for the ServerTransaction. This method is

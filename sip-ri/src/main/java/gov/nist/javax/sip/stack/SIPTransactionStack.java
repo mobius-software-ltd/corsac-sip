@@ -939,6 +939,7 @@ public abstract class SIPTransactionStack implements
         return retval;
 
     }
+
     /**
      * Create a Dialog given a sip provider and response.
      *
@@ -3175,6 +3176,20 @@ public abstract class SIPTransactionStack implements
                     "Adding forked client transaction : " + clientTransaction + " branch=" + clientTransaction.getBranch() + 
                     " forkId = " + forkId + "  sipDialog = " + clientTransaction.getDefaultDialog() + 
                     " sipDialogId= " + clientTransaction.getDefaultDialog().getDialogId());
+            logger.logDebug(String.format("removeTransaction: Table size : " +
+                    " clientTransactionTable %d " +
+                    " serverTransactionTable %d " +
+                    " mergetTable %d " +
+                    " terminatedServerTransactionsPendingAck %d  " +
+                    " forkedClientTransactionTable %d " +
+                    " pendingTransactions %d " , 
+                    clientTransactionTable.size(),
+                    serverTransactionTable.size(),
+                    mergeTable.size(),
+                    terminatedServerTransactionsPendingAck.size(),
+                    forkedClientTransactionTable.size(),
+                    pendingTransactions.size()
+            ));
     	}
 
         this.forkedClientTransactionTable.put(forkId, clientTransaction);

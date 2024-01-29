@@ -20,7 +20,7 @@ public class BackToBackUserAgentTest extends TestCase {
         this.shootist = new Shootist(shootistPort,b2bPort);
         this.b2bua  = new BackToBackUserAgent(b2bPort,b2bPort2);
         b2bua.setTargetPort(shootmePort);
-        this.shootme = new Shootme(shootmePort,true,100);
+        this.shootme = new Shootme(shootmePort,true,10, 100);
         
     }
     
