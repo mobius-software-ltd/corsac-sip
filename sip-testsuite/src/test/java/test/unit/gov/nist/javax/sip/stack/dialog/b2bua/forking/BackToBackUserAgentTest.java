@@ -1,5 +1,6 @@
 package test.unit.gov.nist.javax.sip.stack.dialog.b2bua.forking;
 
+import gov.nist.javax.sip.SipStackImpl;
 import junit.framework.TestCase;
 import test.tck.msgflow.callflows.AssertUntil;
 import test.tck.msgflow.callflows.NetworkPortAssigner;
@@ -16,7 +17,7 @@ public class BackToBackUserAgentTest extends TestCase {
     private Shootme bob;
     private Shootme carol;
     
-    private static final int TIMEOUT = 8000;
+    private static final int TIMEOUT = 10000;
 
     @Override 
     public void setUp() throws Exception {
@@ -27,6 +28,7 @@ public class BackToBackUserAgentTest extends TestCase {
         int bobPort = NetworkPortAssigner.retrieveNextPort();        
         int carolPort = NetworkPortAssigner.retrieveNextPort();
         this.alice = new Shootist(alicePort,b2bPort);
+        ((SipStackImpl)this.alice.sipStack).setMaxForkTime(32);
         this.b2bua  = new BackToBackUserAgent(b2bPort,b2bPort2);        
         b2bua.addTargetPort(proxyPort);        
         new Proxy(proxyPort,2,new int[]{bobPort,carolPort});        
@@ -35,8 +37,17 @@ public class BackToBackUserAgentTest extends TestCase {
         
     }
     
-    public void testInvite200OKBackToAlice() {
+    public void testAcceptsAll200OKFromAlice() {
+        this.alice.byeDelay = 2000;
+        this.alice.cancelDelay = -1;
         this.alice.sendInvite();
+    }
+
+    public void testCancelAllLegsFromAlice() {
+        this.alice.cancelDelay = 2000;
+        this.alice.sendInvite();
+        this.bob.waitForCancel = true;
+        this.carol.waitForCancel = true;
     }
     
     @Override 

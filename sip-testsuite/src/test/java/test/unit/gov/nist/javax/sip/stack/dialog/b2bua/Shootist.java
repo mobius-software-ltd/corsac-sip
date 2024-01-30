@@ -1,5 +1,7 @@
 package test.unit.gov.nist.javax.sip.stack.dialog.b2bua;
 
+import static org.junit.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Timer;
@@ -39,8 +41,9 @@ import javax.sip.message.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.javax.sip.ResponseEventExt;
 import junit.framework.TestCase;
-
+import test.tck.TestHarness;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
 
@@ -79,7 +82,7 @@ public class Shootist implements SipListener {
 
     private Dialog ackedDialog;
 
-    private SipStack sipStack;
+    public SipStack sipStack;
 
     private HashSet<Dialog> canceledDialog = new HashSet<Dialog>();
 
@@ -99,6 +102,19 @@ public class Shootist implements SipListener {
 
     private boolean inviteOkSeen;
 
+    public long cancelDelay = -1;
+
+    public int byeDelay = 1000;
+
+    private boolean cancelSent;
+
+    protected boolean inviteErrorResponseSeen;    
+
+    class CancelTask extends TimerTask {
+        public void run() {
+            sendCancel();
+        }
+    }
 
     class SendBye extends TimerTask {
 
@@ -186,11 +202,16 @@ public class Shootist implements SipListener {
     }
 
     public synchronized void processResponse(ResponseEvent responseReceivedEvent) {
-        logger.info("Got a response");
+        logger.info("Got a response " + responseReceivedEvent.getResponse());
         Response response = (Response) responseReceivedEvent.getResponse();
         ClientTransaction tid = responseReceivedEvent.getClientTransaction();
         CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 
+        if((!((ResponseEventExt)responseReceivedEvent).isForkedResponse()) && 
+                ((ResponseEventExt)responseReceivedEvent).isRetransmission()) {
+            logger.info("Retransmission detected");
+            return;        
+        }
         logger.info("Response received : Status Code = "
                 + response.getStatusCode() + " " + cseq);
         logger.info("Response = " + response + " class=" + response.getClass() );
@@ -236,7 +257,7 @@ public class Shootist implements SipListener {
                         this.ackedDialog = dialog;
 
                         if ( callerSendsBye ) {
-                            timer.schedule( new SendBye(ackedDialog), 1000  );
+                            timer.schedule( new SendBye(ackedDialog), byeDelay);
                         }
 
 
@@ -256,15 +277,22 @@ public class Shootist implements SipListener {
 
 
                 } else if ( cseq.getMethod().equals(Request.BYE)) {
+                    this.byeResponseSeen = true;
 
-                    if ( dialog == this.ackedDialog) {
-                        this.byeResponseSeen = true;
-                    }
+                    // if ( dialog == this.ackedDialog) {
+                    //     this.byeResponseSeen = true;
+                    // }
                 } else {
                     logger.info("Response method = " + cseq.getMethod());
                 }
             } else if ( response.getStatusCode() == Response.RINGING ) {
-                //TestHarness.assertEquals( DialogState.EARLY, dialog.getState() );
+                TestHarness.assertEquals( DialogState.EARLY, dialog.getState() );
+                if(cancelDelay > 0) {
+                    // Cancel the request after 2 seconds
+                    this.timer.schedule(new CancelTask(), cancelDelay);
+                }                
+            } else if ( response.getStatusCode() == Response.REQUEST_TERMINATED ) {
+                inviteErrorResponseSeen = true;
             }
         } catch (Throwable ex) {
             ex.printStackTrace();
@@ -296,7 +324,11 @@ public class Shootist implements SipListener {
             
             @Override
             public boolean assertCondition() {
-                return byeResponseSeen && inviteOkSeen;
+                if(cancelDelay > 0) {
+                    return inviteErrorResponseSeen && cancelSent;
+                } else {
+                    return byeResponseSeen && inviteOkSeen;
+                }
             }
         };
     }
@@ -311,6 +343,26 @@ public class Shootist implements SipListener {
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
 
         logger.info("Transaction Time out");
+    }
+
+    private void sendCancel() {
+        try {
+            if(!cancelSent) {
+                logger.info("Sending cancel");
+
+                Request cancelRequest = inviteTid.createCancel();
+                ClientTransaction cancelTid = sipProvider
+                        .getNewClientTransaction(cancelRequest);
+                cancelTid.sendRequest();
+                cancelSent = true;
+            } else {
+                logger.info("Cancel already sent");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            logger.error(unexpectedException, ex);
+            fail(unexpectedException);
+        }
     }
 
     public void sendInvite() {

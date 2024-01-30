@@ -228,7 +228,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     protected String originalRequestFromTag;
 
     // Table of early dialogs for B2BUA Use case
-    protected ConcurrentHashMap<String, SIPDialog> earlyUASDialogTable;
+    // protected ConcurrentHashMap<String, SIPDialog> earlyUASDialogTable;
     protected ConcurrentHashMap<String, SIPDialog> earlyUACDialogTable;
 
     /**
@@ -1392,10 +1392,12 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
      public SIPDialog createForkedUASDialog(SIPResponse clientResponse, SIPResponse newResponse) {
         
-        if(earlyUASDialogTable == null) {
-            earlyUASDialogTable = new ConcurrentHashMap<String, SIPDialog>();
+        if(earlyUACDialogTable == null) {            
             earlyUACDialogTable = new ConcurrentHashMap<String, SIPDialog>();
         }
+        // if(earlyUASDialogTable == null) {            
+        //     earlyUASDialogTable = new ConcurrentHashMap<String, SIPDialog>();
+        // }
 
         String earlyUACDialogId = clientResponse.getDialogId(false);
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
@@ -1432,8 +1434,12 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // storing the dialog in the early dialog tables so that we
             // can match the responses coming from UAC Side and 
             // mid dialog requests coming from UAS Side
-            earlyUASDialogTable.put(earlyUASDialogId, retval);
+            // earlyUASDialogTable.put(earlyUASDialogId, retval);
             earlyUACDialogTable.put(earlyUACDialogId, retval);
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                // logger.logDebug("createForkedUASDialog EarlyUASDialogTable : " + earlyUASDialogTable);
+                logger.logDebug("createForkedUASDialog EarlyUACDialogTable : " + earlyUACDialogTable);
+            }  
         }
         return retval;
 
@@ -1993,8 +1999,14 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // provisionalResponseSem = null;
             retransmissionAlertTimerTask = null;
             requestOf = null;
-            earlyUASDialogTable = null;
-            earlyUACDialogTable = null;
+            // if(earlyUASDialogTable != null) {
+            //     earlyUASDialogTable.clear();
+            //     earlyUASDialogTable = null;    
+            // }
+            if(earlyUACDialogTable != null) {
+                earlyUACDialogTable.clear();
+                earlyUACDialogTable = null;
+            }
         }
     }
 

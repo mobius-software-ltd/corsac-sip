@@ -78,6 +78,10 @@ public class Shootme   implements SipListener {
 
     private boolean sendRinging;
 
+    public boolean waitForCancel;
+
+    protected boolean cancelSeen;
+
     private static AddressFactory addressFactory;
 
     private static MessageFactory messageFactory;
@@ -88,22 +92,22 @@ public class Shootme   implements SipListener {
 
     private static Timer timer = new Timer();
 
+    private String toTag;
+
 
     class MyTimerTask extends TimerTask {
         RequestEvent  requestEvent;
-        String toTag;
         ServerTransaction serverTx;
 
-        public MyTimerTask(RequestEvent requestEvent,  ServerTransaction tx, String toTag) {
+        public MyTimerTask(RequestEvent requestEvent,  ServerTransaction tx) {
             logger.info("MyTimerTask ");
             this.requestEvent = requestEvent;
-            this.toTag = toTag;
             this.serverTx = tx;
 
         }
 
         public void run() {
-            sendInviteOK(requestEvent,serverTx,toTag);
+            sendInviteOK(requestEvent,serverTx);
         }
 
     }
@@ -194,7 +198,7 @@ public class Shootme   implements SipListener {
             ContactHeader contactHeader = headerFactory.createContactHeader(address);
             response.addHeader(contactHeader);
             ToHeader toHeader = (ToHeader) ringingResponse.getHeader(ToHeader.NAME);
-            String toTag =  Integer.valueOf(new Random().nextInt()).toString();
+            toTag =  Integer.valueOf(new Random().nextInt()).toString();
             toHeader.setTag(toTag);
             if ( sendRinging ) {
                 ringingResponse.addHeader(contactHeader);
@@ -205,15 +209,16 @@ public class Shootme   implements SipListener {
             dialog.setApplicationData(st);
 
             this.inviteSeen = true;
-
-            timer.schedule(new MyTimerTask(requestEvent,st,toTag), this.okDelay);
+            if(!waitForCancel) {
+                timer.schedule(new MyTimerTask(requestEvent,st), this.okDelay);
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
             junit.framework.TestCase.fail("Exit JVM");
         }
     }
 
-    private void sendInviteOK(RequestEvent requestEvent, ServerTransaction inviteTid, String toTag) {
+    private void sendInviteOK(RequestEvent requestEvent, ServerTransaction inviteTid) {
         try {
             logger.info("sendInviteOK: " + inviteTid);
             if (inviteTid.getState() != TransactionState.COMPLETED) {
@@ -278,12 +283,14 @@ public class Shootme   implements SipListener {
         Request request = requestEvent.getRequest();
         SipProvider sipProvider = (SipProvider)requestEvent.getSource();
         try {
+            cancelSeen = true;
             logger.info("shootme:  got a cancel. " );
             // Because this is not an In-dialog request, you will get a null server Tx id here.
             if (serverTransactionId == null) {
                 serverTransactionId = sipProvider.getNewServerTransaction(request);
             }
             Response response = messageFactory.createResponse(200, request);
+            ((ToHeader)response.getHeader(ToHeader.NAME)).setTag(toTag);
             serverTransactionId.sendResponse(response);
 
             String serverTxId = ((ViaHeader)response.getHeader(ViaHeader.NAME)).getBranch();
@@ -292,6 +299,7 @@ public class Shootme   implements SipListener {
                     serverTx.getState().equals(TransactionState.PROCEEDING))) {
                 Request originalRequest = serverTx.getRequest();
                 Response resp = messageFactory.createResponse(Response.REQUEST_TERMINATED,originalRequest);
+                ((ToHeader)resp.getHeader(ToHeader.NAME)).setTag(toTag);
                 serverTx.sendResponse(resp);
             }
 
@@ -374,7 +382,11 @@ public class Shootme   implements SipListener {
             
             @Override
             public boolean assertCondition() {
-                return inviteSeen && byeSeen;
+                if(!waitForCancel) {
+                    return inviteSeen && byeSeen && ackSeen;
+                } else {
+                    return inviteSeen && cancelSeen;
+                }
             }
         };
     }

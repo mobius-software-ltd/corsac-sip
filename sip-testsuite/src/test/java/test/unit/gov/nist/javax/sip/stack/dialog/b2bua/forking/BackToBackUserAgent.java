@@ -48,32 +48,12 @@ import test.tck.msgflow.callflows.ProtocolObjects;
 
 public class BackToBackUserAgent implements SipListenerExt {
     private static Logger logger = LogManager.getLogger(BackToBackUserAgent.class);
-    // private HashMap<String, Dialog> dialogsWithIds = new HashMap<String, Dialog>();
-    // private HashMap<Dialog, Dialog> dialogs = new HashMap<Dialog, Dialog>();
     private ListeningPoint[] listeningPoints = new ListeningPoint[2];
     private SipProvider[] providers = new SipProvider[2];
     private MessageFactory messageFactory;
     private Hashtable<Dialog, Response> lastResponseTable = new Hashtable<Dialog, Response>();
     private ProtocolObjects protocolObjects;
-
-    // public Dialog getPeerDialog(Dialog dialog) {
-    //     if(dialog == null) {
-    //         return null;
-    //     }
-    //     return this.dialogs.get(dialog);
-    // }
-
-    // public Dialog getPeer(Dialog dialog) {
-    //     Object[] dialogArray = dialogs.toArray();
-    //     if (dialogArray.length < 2)
-    //         return null;
-    //     if (dialogArray[0] == dialog)
-    //         return (Dialog) dialogArray[1];
-    //     else if (dialogArray[1] == dialog)
-    //         return (Dialog) dialogArray[0];
-    //     else
-    //         return null;
-    // }
+    private ClientTransaction clientTransaction;
 
     public SipProvider getPeerProvider(SipProvider provider) {
         if (providers[0] == provider)
@@ -86,38 +66,6 @@ public class BackToBackUserAgent implements SipListenerExt {
         uasDialog.setApplicationData(uacDialog);
         uacDialog.setApplicationData(uasDialog);
     }
-
-    // public void addDialogWithIds(Dialog uacDialog, Dialog uasDialog) {
-    //     System.out.println("Adding UAC Dialog Matching  " + uacDialog.getDialogId() + " with UAS Dialog " + uasDialog + " UAS Dialog Id " + uasDialog.getDialogId());
-    //     if(uacDialog.getDialogId() == null) {
-    //         System.out.println("UAC Dialog Id is null not storing it " + uacDialog);
-    //     } else {
-    //         this.dialogsWithIds.put(uacDialog.getDialogId(), uasDialog);
-    //     }
-    //     System.out.println("Adding UAS Dialog Matching  " + uasDialog.getDialogId() + " with UAC Dialog " + uacDialog + " UAC Dialog Id " + uacDialog.getDialogId());
-    //     if(uasDialog.getDialogId() == null) {
-    //         System.out.println("UAS Dialog Id is null not storing it " + uasDialog);
-    //     } else {
-    //         this.dialogsWithIds.put(uasDialog.getDialogId(), uacDialog);
-    //     }
-    //     System.out.println("Dialogs  " + this.dialogs);
-    // }
-
-    // public void addDialog(Dialog uacDialog, Dialog uasDialog) {
-    //     System.out.println("Adding UAC Dialog Matching  " + uacDialog.getDialogId() + " with UAS Dialog " + uasDialog + " UAS Dialog Id " + uasDialog.getDialogId());
-    //     if(uacDialog.getDialogId() == null) {
-    //         System.out.println("UAC Dialog Id is null not storing it " + uacDialog);
-    //     } else {
-    //         this.dialogs.put(uacDialog, uasDialog);
-    //     }
-    //     System.out.println("Adding UAS Dialog Matching  " + uasDialog.getDialogId() + " with UAC Dialog " + uacDialog + " UAC Dialog Id " + uacDialog.getDialogId());
-    //     if(uasDialog.getDialogId() == null) {
-    //         System.out.println("UAS Dialog Id is null not storing it " + uasDialog);
-    //     } else {
-    //         this.dialogs.put(uasDialog, uacDialog);
-    //     }
-    //     System.out.println("Dialogs  " + this.dialogs);
-    // }
 
     public void forwardRequest(RequestEvent requestEvent,
             ServerTransaction serverTransaction) throws SipException, ParseException, InvalidArgumentException {
@@ -139,8 +87,10 @@ public class BackToBackUserAgent implements SipListenerExt {
             ContactHeader contactHeader = ((ListeningPointExt) ((SipProviderExt) getPeerProvider(provider))
                     .getListeningPoint("udp")).createContactHeader();
             newRequest.setHeader(contactHeader);
-            ClientTransaction clientTransaction = provider.getNewClientTransaction(newRequest);
+            clientTransaction = provider.getNewClientTransaction(newRequest);
             clientTransaction.setApplicationData(serverTransaction);
+            serverTransaction.setApplicationData(clientTransaction);
+            System.out.println("Stored CTX " + clientTransaction + " and STX " + serverTransaction + " into each others' app data");
             // if (request.getMethod().equals(Request.INVITE)) {
             //     this.addDialog(clientTransaction.getDialog());
             // }
@@ -159,8 +109,10 @@ public class BackToBackUserAgent implements SipListenerExt {
                 ContactHeader contactHeader = ((ListeningPointExt) ((SipProviderExt) getPeerProvider(provider))
                         .getListeningPoint("udp")).createContactHeader();
                 newRequest.setHeader(contactHeader);
-                ClientTransaction clientTransaction = provider.getNewClientTransaction(newRequest);
+                clientTransaction = provider.getNewClientTransaction(newRequest);
                 clientTransaction.setApplicationData(serverTransaction);
+                serverTransaction.setApplicationData(clientTransaction);
+                System.out.println("Stored CTX " + clientTransaction + " and STX " + serverTransaction + " into each others' app data");
                 if (request.getMethod().equals(Request.INVITE)) {
                     Dialog uacDialog = clientTransaction.getDialog();
                     if(uacDialog == null) {
@@ -226,7 +178,19 @@ public class BackToBackUserAgent implements SipListenerExt {
                 long seqno = cseqHeader.getSeqNumber();
                 Request ack = peer.createAck(seqno);
                 peer.sendAck(ack);
-            }
+            } else if (request.getMethod().equals(Request.CANCEL)) {
+                ServerTransaction serverTransaction = requestEvent.getServerTransaction();
+                
+                Request cancelRequest = clientTransaction.createCancel();
+                SipProvider sipProvider = (SipProvider) requestEvent.getSource();
+                SipProvider peerProvider = getPeerProvider(sipProvider);
+                ClientTransaction cancelTid = peerProvider
+                        .getNewClientTransaction(cancelRequest);
+                        
+                cancelTid.setApplicationData(serverTransaction);
+                cancelTid.sendRequest();
+                // cancelSent = true;
+            } 
 
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -46,6 +46,9 @@ public class Proxy implements SipListener {
 
     private Hashtable<Integer,ClientTransaction> clientTxTable = new Hashtable<Integer,ClientTransaction>();
 
+    private ServerTransaction inviteServerTransaction;
+    private ServerTransaction cancelServerTransaction;
+
     private static String host = "127.0.0.1";
 
     private int port = 5070;
@@ -67,7 +70,7 @@ public class Proxy implements SipListener {
     private int ntargets;
     
     
-    private void sendTo(ServerTransaction st, Request request, int targetPort) throws Exception {
+    private void sendTo(ServerTransaction serverTransaction, Request request, int targetPort) throws Exception {
         Request newRequest = (Request) request.clone();
         
         SipURI sipUri = addressFactory.createSipURI("UA1", "127.0.0.1");
@@ -77,18 +80,27 @@ public class Proxy implements SipListener {
         RouteHeader rheader = headerFactory.createRouteHeader(address);
 
         newRequest.addFirst(rheader);
-        ViaHeader viaHeader = headerFactory.createViaHeader(host, this.port, transport, null);
+        String branch = null;
+        if (request.getMethod().equals(Request.CANCEL)) {
+            branch = ((ClientTransaction)clientTxTable.get(targetPort)).getBranchId();
+        }
+        ViaHeader viaHeader = headerFactory.createViaHeader(host, this.port, transport, branch);
         newRequest.addFirst(viaHeader);
-        ClientTransaction ct1 = sipProvider.getNewClientTransaction(newRequest);
+
+        ClientTransaction clientTransaction = sipProvider.getNewClientTransaction(newRequest);
+        clientTransaction.setApplicationData(serverTransaction);
+        clientTxTable.put(Integer.valueOf(targetPort), clientTransaction);
+
         sipUri = addressFactory.createSipURI("proxy", "127.0.0.1");
         address = addressFactory.createAddress("proxy", sipUri);
         sipUri.setPort(port);
         sipUri.setLrParam();
         RecordRouteHeader recordRoute = headerFactory.createRecordRouteHeader(address);
         newRequest.addHeader(recordRoute);
-        ct1.setApplicationData(st);
-        this.clientTxTable.put(Integer.valueOf(targetPort), ct1);
-        ct1.sendRequest();
+        
+        logger.info("proxy: Request to forward " + newRequest);
+        
+        clientTransaction.sendRequest();
     }
 
     public void processRequest(RequestEvent requestEvent) {
@@ -96,21 +108,18 @@ public class Proxy implements SipListener {
             Request request = requestEvent.getRequest();
             SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             this.inviteServerTxProvider = sipProvider;
-            if (request.getMethod().equals(Request.INVITE)) {
-                
-                ServerTransaction st = null;
-                if (requestEvent.getServerTransaction() == null) {
+            if (request.getMethod().equals(Request.INVITE) || request.getMethod().equals(Request.CANCEL)) {
+                ServerTransaction st = requestEvent.getServerTransaction();
+                if (st == null) {
                     st = sipProvider.getNewServerTransaction(request);
-
-                }
-                
+                    inviteServerTransaction = st;
+                } else if (request.getMethod().equals(Request.CANCEL)) {    
+                    st = requestEvent.getServerTransaction();
+                    cancelServerTransaction = st;
+                }                
                 for ( int i = 0; i < ntargets; i++ ) {
                     this.sendTo(st,request,targetPorts[i]);
                 }
-
-             
-               
-
             } else {
                 // Remove the topmost route header
                 // The route header will make sure it gets to the right place.
@@ -140,16 +149,21 @@ public class Proxy implements SipListener {
             if (response.getStatusCode() == 100)
                 return;
 
-            if (cseq.getMethod().equals(Request.INVITE)) {
+            if (cseq.getMethod().equals(Request.INVITE) || cseq.getMethod().equals(Request.CANCEL)) {
                 ClientTransaction ct = responseEvent.getClientTransaction();
                 if (ct != null) {
-                    ServerTransaction st = (ServerTransaction) ct.getApplicationData();
-
                     // Strip the topmost via header
                     Response newResponse = (Response) response.clone();
                     newResponse.removeFirst(ViaHeader.NAME);
                     // The server tx goes to the terminated state.
-
+                    ServerTransaction st = (ServerTransaction) ct.getApplicationData();
+                    if(st == null) {
+                        if(cseq.getMethod().equals(Request.INVITE)) {
+                            st = inviteServerTransaction;
+                        } else {
+                            st = cancelServerTransaction;
+                        }
+                    }
                     st.sendResponse(newResponse);
                 } else {
                     // Client tx has already terminated but the UA is
