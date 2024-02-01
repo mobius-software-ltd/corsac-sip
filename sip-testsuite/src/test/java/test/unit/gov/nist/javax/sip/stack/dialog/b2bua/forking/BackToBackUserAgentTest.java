@@ -17,7 +17,7 @@ public class BackToBackUserAgentTest extends TestCase {
     private Shootme bob;
     private Shootme carol;
     
-    private static final int TIMEOUT = 10000;
+    private static final int TIMEOUT = 15000;
 
     @Override 
     public void setUp() throws Exception {
@@ -33,8 +33,7 @@ public class BackToBackUserAgentTest extends TestCase {
         b2bua.addTargetPort(proxyPort);        
         new Proxy(proxyPort,2,new int[]{bobPort,carolPort});        
         this.bob = new Shootme(bobPort,true,100, 5000);
-        this.carol = new Shootme(carolPort,true,1000, 5000);
-        
+        this.carol = new Shootme(carolPort,true,1000, 5000);        
     }
     
     public void testAcceptsAll200OKFromAlice() {
@@ -45,9 +44,20 @@ public class BackToBackUserAgentTest extends TestCase {
 
     public void testCancelAllLegsFromAlice() {
         this.alice.cancelDelay = 2000;
-        this.alice.sendInvite();
         this.bob.waitForCancel = true;
         this.carol.waitForCancel = true;
+        this.alice.sendInvite();        
+    }
+
+    public void testPrackAndUpdateFromAlice() {          
+        this.alice.requireReliableProvisionalResponse = true;
+        this.bob.sendReliableProvisionalResponse = true;
+        this.carol.sendReliableProvisionalResponse = true;
+        this.bob.ringingDelay = 200;
+        this.carol.ringingDelay = 200;       
+        this.bob.okDelay = 2000;
+        this.carol.okDelay = 2000;       
+        this.alice.sendInvite();        
     }
     
     @Override 

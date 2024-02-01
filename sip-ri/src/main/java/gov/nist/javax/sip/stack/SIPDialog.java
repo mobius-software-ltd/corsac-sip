@@ -320,6 +320,18 @@ public class SIPDialog implements DialogExt {
 
     private SIPDialog originalDialog;
 
+    // private SIPResponse pendingReliableResponse;
+    // wondering if the pendingReliableResponseAsBytes could be put into the
+    // lastResponseAsBytes
+    protected int rseqNumber = -1;
+    protected byte[] pendingReliableResponseAsBytes;
+    private String pendingReliableResponseMethod;
+    protected long pendingReliableCSeqNumber;
+    protected long pendingReliableRSeqNumber;
+
+    // The pending reliable Response Timer
+    protected ProvisionalResponseTask provisionalResponseTask;
+
     // //////////////////////////////////////////////////////
     // Inner classes
     // //////////////////////////////////////////////////////
@@ -635,7 +647,7 @@ public class SIPDialog implements DialogExt {
 
                         // resend the last response.
                         if (dialog.toRetransmitFinalResponse(transaction.getTimerT2())) {
-                            transaction.resendLastResponseAsBytes();
+                            transaction.resendLastResponse();
                         }
                     } catch (IOException ex) {
 
@@ -3469,7 +3481,7 @@ public class SIPDialog implements DialogExt {
                                 if (route != null
                                         && rr.getAddress().equals(
                                                 route.getAddress())) {
-                                    routeList.removeFirst();
+                                    routeList.removeFirstItem();
                                 } else
                                     break;
                             }
@@ -3790,13 +3802,12 @@ public class SIPDialog implements DialogExt {
         }
         SIPServerTransaction sipServerTransaction = (SIPServerTransaction) this
                 .getFirstTransactionInt();
-        byte[] sipResponse = sipServerTransaction
-                .getReliableProvisionalResponse();
+        byte[] sipResponse = pendingReliableResponseAsBytes;
 
         if (sipResponse == null) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug(
-                        "Dropping Prack -- ReliableResponse not found");
+                        "Dropping Prack -- ReliableResponse not found in STX " + sipServerTransaction + " for dialog ID " + dialogId + " dialog " + this);
             return false;
         }
 
@@ -3809,32 +3820,47 @@ public class SIPDialog implements DialogExt {
             return false;
         }
 
-        if (!rack.getMethod().equals(
-                sipServerTransaction.getPendingReliableResponseMethod())) {
+        if (!rack.getMethod().equals(pendingReliableResponseMethod)) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug(
                         "Dropping Prack -- CSeq Header does not match PRACK");
             return false;
         }
 
-        if (rack.getCSeqNumberLong() != sipServerTransaction
-                .getPendingReliableCSeqNumber()) {
+        if (rack.getCSeqNumberLong() != pendingReliableCSeqNumber) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug(
                         "Dropping Prack -- CSeq Header does not match PRACK");
             return false;
         }
 
-        if (rack.getRSequenceNumber() != sipServerTransaction
-                .getPendingReliableRSeqNumber()) {
+        if (rack.getRSequenceNumber() != pendingReliableRSeqNumber) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug(
                         "Dropping Prack -- RSeq Header does not match PRACK");
             return false;
         }
 
-        return sipServerTransaction.prackRecieved();
-    }
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug("prackReceived " + prackRequest + " for STX " + this + " reliableResponse " + String.valueOf(pendingReliableResponseAsBytes));
+
+        if (this.pendingReliableResponseAsBytes == null)
+            return false;
+        if (provisionalResponseTask != null) {
+            sipStack.getTimer().cancel(provisionalResponseTask);
+            this.provisionalResponseTask = null;
+        }
+        
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+            logger.logDebug("cleaning reliableResponse " + pendingReliableResponseAsBytes + " for STX " + this + " after PRACK Received");
+
+        this.pendingReliableResponseAsBytes = null;
+        
+        // if (interlockProvisionalResponses && getDialog() != null) {
+        //     this.provisionalResponseSem.release();
+        // }
+        return true;         
+    }     
 
     /*
      * (non-Javadoc)
@@ -3890,7 +3916,7 @@ public class SIPDialog implements DialogExt {
 
         }
 
-        SIPServerTransaction serverTransaction = (SIPServerTransaction) this
+        SIPServerTransactionImpl serverTransaction = (SIPServerTransactionImpl) this
                 .getFirstTransactionInt();
         /*
          * put into the dialog table before sending the response so as to avoid
@@ -3900,10 +3926,32 @@ public class SIPDialog implements DialogExt {
 
         this.setDialogId(sipResponse.getDialogId(true));
 
-        serverTransaction.sendReliableProvisionalResponse(relResponse);
+        // serverTransaction.sendReliableProvisionalResponse(relResponse);
+        /*
+         * After the first reliable provisional response for a request has been
+         * acknowledged, the
+         * UAS MAY send additional reliable provisional responses. The UAS MUST NOT send
+         * a second
+         * reliable provisional response until the first is acknowledged.
+         */
+        if (this.pendingReliableResponseAsBytes != null) {
+            throw new SipException("Unacknowledged response");
+
+        } else {
+            SIPResponse reliableResponse = (SIPResponse) relResponse;
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug("Storing reliableResponse " + reliableResponse + " for Dialog " + this + " with dialog Id " + dialogId + " in STX " + serverTransaction);
+
+            this.pendingReliableResponseAsBytes = reliableResponse.encodeAsBytes(serverTransaction.getTransport());
+            this.pendingReliableResponseMethod = reliableResponse.getCSeq().getMethod();
+            this.pendingReliableCSeqNumber = reliableResponse.getCSeq().getSeqNumber();
+        }
+
+        SIPDialogOutgoingProvisionalResponseTask outgoingMessageProcessingTask = 
+            new SIPDialogOutgoingProvisionalResponseTask(this, serverTransaction, (SIPResponse) relResponse);
+        sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask); 
 
         this.startRetransmitTimer(serverTransaction, relResponse);
-
     }
 
     /*
@@ -4274,6 +4322,8 @@ public class SIPDialog implements DialogExt {
                 localPartyStringified = localParty.toString();
                 localParty = null;
             }
+            pendingReliableResponseAsBytes = null;
+            pendingReliableResponseMethod = null;
         }
     }
 

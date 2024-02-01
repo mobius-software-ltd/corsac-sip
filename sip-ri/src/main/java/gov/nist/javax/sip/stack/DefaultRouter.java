@@ -278,7 +278,7 @@ public class DefaultRouter implements Router {
         RouteList routes = req.getRouteHeaders();
         Route first = (Route) routes.getFirst();
         SipUri firstUri = (SipUri) first.getAddress().getURI();
-        routes.removeFirst();
+        routes.removeFirstItem();
 
         // Add request-URI as last Route entry
         AddressImpl addr = new AddressImpl();

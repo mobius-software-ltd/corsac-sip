@@ -24,6 +24,7 @@ import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.HeaderFactory;
+import javax.sip.header.RequireHeader;
 import javax.sip.header.ToHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.MessageFactory;
@@ -34,6 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import junit.framework.TestCase;
+import test.tck.TestHarness;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
 
@@ -73,10 +75,10 @@ public class Shootme   implements SipListener {
 
     private SipStack sipStack;
 
-    private int ringingDelay;
-    private int okDelay;
+    public int ringingDelay;
+    public int okDelay;
 
-    private boolean sendRinging;
+    public boolean sendRinging;
 
     public boolean waitForCancel;
 
@@ -94,20 +96,28 @@ public class Shootme   implements SipListener {
 
     private String toTag;
 
+    public boolean sendReliableProvisionalResponse = false;
+
+    private boolean prackRequestReceived;
+
+    private Request inviteRequest;
+
+    private ServerTransaction inviteStx;
+
 
     class MyTimerTask extends TimerTask {
-        RequestEvent  requestEvent;
+        Request request;
         ServerTransaction serverTx;
 
-        public MyTimerTask(RequestEvent requestEvent,  ServerTransaction tx) {
+        public MyTimerTask(Request request,  ServerTransaction tx) {
             logger.info("MyTimerTask ");
-            this.requestEvent = requestEvent;
+            this.request = request;
             this.serverTx = tx;
 
         }
 
         public void run() {
-            sendInviteOK(requestEvent,serverTx);
+            sendInviteOK(request,serverTx);
         }
 
     }
@@ -131,11 +141,39 @@ public class Shootme   implements SipListener {
             processBye(requestEvent, serverTransactionId);
         } else if (request.getMethod().equals(Request.CANCEL)) {
             processCancel(requestEvent, serverTransactionId);
+        } else if (request.getMethod().equals(Request.PRACK)) {
+            processPrack(requestEvent, serverTransactionId);
         }
 
     }
 
     public void processResponse(ResponseEvent responseEvent) {
+    }
+
+    private void processPrack(RequestEvent requestEvent,
+            ServerTransaction serverTransaction) {
+        prackRequestReceived = true;
+        Dialog dialog =  serverTransaction.getDialog();
+
+        try {
+            logger.info("shootme: got an PRACK! ");
+            logger.info("Dialog State = " + dialog.getState());
+
+            /**
+             * JvB: First, send 200 OK for PRACK
+             */
+            Request prack = requestEvent.getRequest();
+            Response prackOk = messageFactory.createResponse(200, prack);
+            serverTransaction.sendResponse(prackOk);
+
+            /**
+             * Send a 200 OK response to complete the 3 way handshake for the
+             * INIVTE.
+             */           
+            timer.schedule(new MyTimerTask(inviteRequest,inviteStx), this.okDelay);
+        } catch (Exception ex) {
+            TestHarness.fail(ex.getMessage());
+        }
     }
 
     /**
@@ -160,6 +198,7 @@ public class Shootme   implements SipListener {
             ServerTransaction serverTransaction) {
         SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         Request request = requestEvent.getRequest();
+        inviteRequest = request;
         try {
             logger.info("shootme: got an Invite sending Trying");
             // logger.info("shootme: " + request);
@@ -170,7 +209,8 @@ public class Shootme   implements SipListener {
                 logger.info("null server tx -- getting a new one");
                 st = sipProvider.getNewServerTransaction(request);
             }
-
+            inviteStx = st;
+            
             logger.info("getNewServerTransaction : " + st);
 
             String txId = ((ViaHeader)request.getHeader(ViaHeader.NAME)).getBranch();
@@ -200,17 +240,24 @@ public class Shootme   implements SipListener {
             ToHeader toHeader = (ToHeader) ringingResponse.getHeader(ToHeader.NAME);
             toTag =  Integer.valueOf(new Random().nextInt()).toString();
             toHeader.setTag(toTag);
-            if ( sendRinging ) {
+            Dialog dialog =  st.getDialog();
+            dialog.setApplicationData(st);
+            this.inviteSeen = true;
+
+            if(sendReliableProvisionalResponse) {                
+                ringingResponse.setStatusCode(183);
+                RequireHeader requireHeader = headerFactory
+                        .createRequireHeader("100rel");
+                request.addHeader(requireHeader);
+                ringingResponse.addHeader(contactHeader);
+                dialog.sendReliableProvisionalResponse(ringingResponse);
+            } else if (sendRinging) {
                 ringingResponse.addHeader(contactHeader);
                 Thread.sleep(ringingDelay);
                 st.sendResponse(ringingResponse);
-            }
-            Dialog dialog =  st.getDialog();
-            dialog.setApplicationData(st);
-
-            this.inviteSeen = true;
-            if(!waitForCancel) {
-                timer.schedule(new MyTimerTask(requestEvent,st), this.okDelay);
+            }                        
+            if(!waitForCancel && !sendReliableProvisionalResponse) {
+                timer.schedule(new MyTimerTask(request,st), this.okDelay);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -218,15 +265,13 @@ public class Shootme   implements SipListener {
         }
     }
 
-    private void sendInviteOK(RequestEvent requestEvent, ServerTransaction inviteTid) {
+    private void sendInviteOK(Request request, ServerTransaction inviteTid) {
         try {
             logger.info("sendInviteOK: " + inviteTid);
             if (inviteTid.getState() != TransactionState.COMPLETED) {
                 logger.info("shootme: Dialog state before OK: "
                         + inviteTid.getDialog().getState());
-
-                SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-                Request request = requestEvent.getRequest();
+                
                 Response okResponse = messageFactory.createResponse(Response.OK,
                         request);
                     ListeningPoint lp = sipProvider.getListeningPoint(transport);
@@ -245,7 +290,7 @@ public class Shootme   implements SipListener {
                 logger.info("shootme: Dialog state after OK: "
                         + inviteTid.getDialog().getState());                
             } else {
-                logger.info("semdInviteOK: inviteTid = " + inviteTid + " state = " + inviteTid.getState());
+                logger.info("sedInviteOK: inviteTid = " + inviteTid + " state = " + inviteTid.getState());
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -384,6 +429,8 @@ public class Shootme   implements SipListener {
             public boolean assertCondition() {
                 if(!waitForCancel) {
                     return inviteSeen && byeSeen && ackSeen;
+                } else if(sendReliableProvisionalResponse) {
+                    return inviteSeen && prackRequestReceived && byeSeen && ackSeen;
                 } else {
                     return inviteSeen && cancelSeen;
                 }

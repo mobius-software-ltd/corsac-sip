@@ -279,7 +279,7 @@ public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader imp
     /**
      * Remove the first element of this list.
      */
-    public void removeFirst() {
+    public void removeFirstItem() {
         if (hlist.size() != 0)
             hlist.remove(0);
 
@@ -288,7 +288,7 @@ public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader imp
     /**
      * Remove the last element of this list.
      */
-    public void removeLast() {
+    public void removeLastItem() {
         if (hlist.size() != 0)
             hlist.remove(hlist.size() - 1);
     }

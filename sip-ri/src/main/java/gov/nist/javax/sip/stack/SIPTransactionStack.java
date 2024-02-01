@@ -919,7 +919,21 @@ public abstract class SIPTransactionStack implements
         }
         SIPDialog retval = null;
         SIPDialog earlyDialog = this.earlyDialogTable.get(originalDialogId);
-        if (earlyDialog != null && transaction != null && (transaction.getDefaultDialog() == null || transaction.getDefaultDialog().getDialogId().equals(originalDialogId))) {
+        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+            logger.logDebug("createDialog : originalDialogId="
+                    + originalDialogId + " earlyDialog= " + earlyDialog);
+            if(earlyDialog == null) {
+                logger.logDebug("createDialog : earlyDialogTable=" + earlyDialogTable);
+            } else {
+                logger.logDebug("createDialog : transaction="
+                    + transaction + " transaction default dialg = " + transaction.getDefaultDialog() 
+                    + " transaction default dialg id = " + transaction.getDefaultDialog().getDialogId());
+            }
+        }
+        if (earlyDialog != null && 
+                transaction != null && 
+                (transaction.getDefaultDialog() == null || 
+                    transaction.getDefaultDialog().getDialogId().equals(originalDialogId))) {
             retval = earlyDialog;
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createDialog early Dialog found : earlyDialogId="

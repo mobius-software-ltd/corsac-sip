@@ -18,6 +18,8 @@
  */
 package gov.nist.javax.sip.stack;
 
+import java.io.IOException;
+
 import javax.sip.TransactionState;
 import javax.sip.message.Request;
 
@@ -30,14 +32,16 @@ import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 class ProvisionalResponseTask extends SIPStackTimerTask {
     private StackLogger logger = CommonLogger.getLogger(ProvisionalResponseTask.class);
     SIPServerTransactionImpl serverTransaction;
+    SIPDialog sipDialog;
     
     int ticks;
 
     int ticksLeft;
 
-    public ProvisionalResponseTask(SIPServerTransactionImpl serverTransaction) {
+    public ProvisionalResponseTask(SIPDialog sipDialog, SIPServerTransactionImpl serverTransaction) {
         super(ProvisionalResponseTask.class.getSimpleName());
         this.serverTransaction = serverTransaction;
+        this.sipDialog = sipDialog;
         this.ticks = SIPTransactionImpl.T1;
         this.ticksLeft = this.ticks;
     }
@@ -73,7 +77,16 @@ class ProvisionalResponseTask extends SIPStackTimerTask {
             }
             ticksLeft--;
             if (ticksLeft == -1) {
-                serverTransaction.fireReliableResponseRetransmissionTimer();
+                try {
+                    serverTransaction.resendLastResponseAsBytes(
+                        sipDialog.pendingReliableResponseAsBytes);
+                } catch (IOException e) {
+                    if (logger.isLoggingEnabled())
+                        logger.logException(e);
+                    // serverTransaction.setState(TransactionState._TERMINATED);
+                    serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
+                }
+                
                 this.ticksLeft = 2 * ticks;
                 this.ticks = this.ticksLeft;
                 // timer H MUST be set to fire in 64*T1 seconds for all transports. Timer H
@@ -81,9 +94,12 @@ class ProvisionalResponseTask extends SIPStackTimerTask {
                 // transaction abandons retransmitting the response
                 if (this.ticksLeft >= SIPTransactionImpl.TIMER_H) {
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                        logger.logDebug("canceling ProvisionalResponseTask and firing timeout timer");
+                        logger.logDebug("canceling ProvisionalResponseTask");
                     }
                     sipStack.getTimer().cancel(this);
+                    // If a reliable provisional response is retransmitted for 64*T1 seconds
+                    // without reception of a corresponding PRACK, the UAS SHOULD reject the
+                    // original request with a 5xx response. This should be done at app level
                     serverTransaction.setState(TransactionState._TERMINATED);
                     serverTransaction.fireTimeoutTimer();
                 }

@@ -1276,7 +1276,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       }
 
       Route firstRoute = (Route) routeList.getFirst();
-      routeList.removeFirst();
+      routeList.removeFirstItem();
       javax.sip.address.URI uri = firstRoute.getAddress().getURI();
       ackRequest.setRequestURI(uri);
 
