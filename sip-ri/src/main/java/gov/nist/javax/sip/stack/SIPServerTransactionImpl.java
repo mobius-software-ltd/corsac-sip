@@ -857,7 +857,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 lastResponseStatusCode = transactionResponse.getStatusCode();
 
                 this.sendResponse(transactionResponse);
-                lastResponse = transactionResponse;
+                if(sipStack.getMaxForkTime() > 0) {
+                    // https://github.com/mobius-software-ltd/corsac-sip/issues/1
+                    // needed for forking B2BUA UAS support
+                    lastResponse = transactionResponse;
+                }
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                     logger.logDebug(
                             "messageSent : tx = " + this + " lastResponse = " + lastResponse);
