@@ -21,8 +21,10 @@ package gov.nist.javax.sip.stack;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.text.ParseException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.Dialog;
+import javax.sip.InvalidArgumentException;
 import javax.sip.ObjectInUseException;
 import javax.sip.SipException;
 import javax.sip.Timeout;
@@ -31,17 +33,22 @@ import javax.sip.TransactionState;
 import javax.sip.address.Hop;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.ExpiresHeader;
+import javax.sip.header.RecordRouteHeader;
+import javax.sip.header.RequireHeader;
+import javax.sip.header.RouteHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.HostPort;
+import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.ParameterNames;
 import gov.nist.javax.sip.header.Via;
@@ -166,8 +173,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     private static final long serialVersionUID = 1L;
     private static final String TIMER_J_NAME = "TimerJ";
 
-    private static StackLogger logger = CommonLogger.getLogger(SIPServerTransaction.class);
-    protected int rseqNumber = -1;
+    private static StackLogger logger = CommonLogger.getLogger(SIPServerTransaction.class);    
 
     // private LinkedList pendingRequests;
 
@@ -180,17 +186,6 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     protected String dialogId;
 
     // the unacknowledged SIPResponse
-
-    // private SIPResponse pendingReliableResponse;
-    // wondering if the pendingReliableResponseAsBytes could be put into the
-    // lastResponseAsBytes
-    protected byte[] pendingReliableResponseAsBytes;
-    private String pendingReliableResponseMethod;
-    protected long pendingReliableCSeqNumber;
-    protected long pendingReliableRSeqNumber;
-
-    // The pending reliable Response Timer
-    protected ProvisionalResponseTask provisionalResponseTask;
 
     protected boolean retransmissionAlertEnabled;
 
@@ -220,6 +215,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
     private HostPort originalRequestSentBy;
     protected String originalRequestFromTag;
+
+    // Table of early dialogs for B2BUA Use case
+    // protected ConcurrentHashMap<String, SIPDialog> earlyUASDialogTable;
+    protected ConcurrentHashMap<String, SIPDialog> earlyUACDialogTable;
+
     /**
      * This timer task is for INVITE server transactions. It will send a trying in
      * 200 ms. if the
@@ -713,7 +713,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     // Resend the last response to
                     // the client
                     // Send the message to the client
-                    resendLastResponseAsBytes();
+                    resendLastResponse();
                 } else if (transactionRequest.getMethod().equals(Request.ACK)) {
                     // This is passed up to the TU to suppress
                     // retransmission of OK
@@ -857,7 +857,15 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 lastResponseStatusCode = transactionResponse.getStatusCode();
 
                 this.sendResponse(transactionResponse);
-
+                if(sipStack.getMaxForkTime() > 0) {
+                    // https://github.com/mobius-software-ltd/corsac-sip/issues/1
+                    // needed for forking B2BUA UAS support
+                    lastResponse = transactionResponse;
+                }
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug(
+                            "messageSent : tx = " + this + " lastResponse = " + lastResponse);
+                }
             } catch (IOException e) {
 
                 this.setState(TransactionState._TERMINATED);
@@ -1063,7 +1071,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 if (!this.retransmissionAlertEnabled || sipStack.isTransactionPendingAck(this)) {
                     // Retransmit last response until ack.
                     if (lastResponseStatusCode / 100 >= 2 && !this.isAckSeen) {
-                        resendLastResponseAsBytes();
+                        resendLastResponse();
                     }
                 } else {
                     // alert the application to retransmit the last response
@@ -1091,7 +1099,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      * @see gov.nist.javax.sip.stack.SIPServerTransaction#resendLastResponseAsBytes()
      */
     @Override
-    public void resendLastResponseAsBytes() throws IOException {
+    public void resendLastResponse() throws IOException {
 
         if (lastResponse != null) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -1099,89 +1107,81 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             }
             sendMessage(lastResponse);
         } else if (lastResponseAsBytes != null) {
-            // Send the message to the client
-            // if(!checkStateTimers(lastResponseStatusCode)) {
-            // return;
-            // }
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("resend last response " + new String(lastResponseAsBytes));
-            }
+            resendLastResponseAsBytes(lastResponseAsBytes);
+        }
+    }
 
-            if (isReliable()) {
+    public void resendLastResponseAsBytes(byte[] lastResponseAsBytes) throws IOException {
+        // Send the message to the client
+        // if(!checkStateTimers(lastResponseStatusCode)) {
+        // return;
+        // }
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("resend last response " + new String(lastResponseAsBytes));
+        }
+
+        if (isReliable()) {
+            if (logger.isLoggingEnabled(ServerLogger.TRACE_MESSAGES)) {
+                // Issue 343 : we have to log the retransmission
+                try {
+                    SIPResponse lastReparsedResponse = (SIPResponse) sipStack.getMessageParserFactory()
+                            .createMessageParser(sipStack).parseSIPMessage(lastResponseAsBytes, true, false, null);
+
+                    lastReparsedResponse.setRemoteAddress(
+                            this.getPeerInetAddress());
+                    lastReparsedResponse.setRemotePort(this.getPeerPort());
+                    lastReparsedResponse.setLocalPort(
+                            getMessageChannel().getPort());
+                    lastReparsedResponse.setLocalAddress(
+                            getMessageChannel()
+                                    .getMessageProcessor().getIpAddress());
+
+                    getMessageChannel().logMessage(lastReparsedResponse, this.getPeerInetAddress(),
+                            this.getPeerPort(), System.currentTimeMillis());
+                } catch (ParseException e) {
+                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                        logger.logDebug("couldn't reparse last response " + new String(lastResponseAsBytes), e);
+                    }
+                }
+            }
+            getMessageChannel().sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(),
+                    false);
+        } else {
+            Hop hop = sipStack.addressResolver.resolveAddress(new HopImpl(lastResponseHost, lastResponsePort,
+                    lastResponseTransport));
+
+            MessageChannel messageChannel = ((SIPTransactionStack) getSIPStack())
+                    .createRawMessageChannel(this.getSipProvider().getListeningPoint(
+                            hop.getTransport()).getIPAddress(), this.getPort(), hop);
+            if (messageChannel != null) {
                 if (logger.isLoggingEnabled(ServerLogger.TRACE_MESSAGES)) {
                     // Issue 343 : we have to log the retransmission
                     try {
                         SIPResponse lastReparsedResponse = (SIPResponse) sipStack.getMessageParserFactory()
-                                .createMessageParser(sipStack).parseSIPMessage(lastResponseAsBytes, true, false, null);
+                                .createMessageParser(sipStack)
+                                .parseSIPMessage(lastResponseAsBytes, true, false, null);
 
-                        lastReparsedResponse.setRemoteAddress(
-                                this.getPeerInetAddress());
-                        lastReparsedResponse.setRemotePort(this.getPeerPort());
-                        lastReparsedResponse.setLocalPort(
-                                getMessageChannel().getPort());
-                        lastReparsedResponse.setLocalAddress(
-                                getMessageChannel()
-                                        .getMessageProcessor().getIpAddress());
+                        lastReparsedResponse.setRemoteAddress(messageChannel.getPeerInetAddress());
+                        lastReparsedResponse.setRemotePort(messageChannel.getPeerPort());
+                        lastReparsedResponse.setLocalPort(messageChannel.getPort());
+                        lastReparsedResponse.setLocalAddress(messageChannel.getMessageProcessor().getIpAddress());
 
-                        getMessageChannel().logMessage(lastReparsedResponse, this.getPeerInetAddress(),
-                                this.getPeerPort(), System.currentTimeMillis());
+                        messageChannel.logMessage(lastReparsedResponse, messageChannel.getPeerInetAddress(),
+                                messageChannel.getPeerPort(), System.currentTimeMillis());
                     } catch (ParseException e) {
                         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                             logger.logDebug("couldn't reparse last response " + new String(lastResponseAsBytes), e);
                         }
                     }
                 }
-                getMessageChannel().sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(),
+                messageChannel.sendMessage(lastResponseAsBytes, InetAddress.getByName(hop.getHost()), hop.getPort(),
                         false);
             } else {
-                Hop hop = sipStack.addressResolver.resolveAddress(new HopImpl(lastResponseHost, lastResponsePort,
-                        lastResponseTransport));
-
-                MessageChannel messageChannel = ((SIPTransactionStack) getSIPStack())
-                        .createRawMessageChannel(this.getSipProvider().getListeningPoint(
-                                hop.getTransport()).getIPAddress(), this.getPort(), hop);
-                if (messageChannel != null) {
-                    if (logger.isLoggingEnabled(ServerLogger.TRACE_MESSAGES)) {
-                        // Issue 343 : we have to log the retransmission
-                        try {
-                            SIPResponse lastReparsedResponse = (SIPResponse) sipStack.getMessageParserFactory()
-                                    .createMessageParser(sipStack)
-                                    .parseSIPMessage(lastResponseAsBytes, true, false, null);
-
-                            lastReparsedResponse.setRemoteAddress(messageChannel.getPeerInetAddress());
-                            lastReparsedResponse.setRemotePort(messageChannel.getPeerPort());
-                            lastReparsedResponse.setLocalPort(messageChannel.getPort());
-                            lastReparsedResponse.setLocalAddress(messageChannel.getMessageProcessor().getIpAddress());
-
-                            messageChannel.logMessage(lastReparsedResponse, messageChannel.getPeerInetAddress(),
-                                    messageChannel.getPeerPort(), System.currentTimeMillis());
-                        } catch (ParseException e) {
-                            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                                logger.logDebug("couldn't reparse last response " + new String(lastResponseAsBytes), e);
-                            }
-                        }
-                    }
-                    messageChannel.sendMessage(lastResponseAsBytes, InetAddress.getByName(hop.getHost()), hop.getPort(),
-                            false);
-                } else {
-                    throw new IOException("Could not create a message channel for " + hop + " with source IP:Port " +
-                            this.getSipProvider().getListeningPoint(
-                                    hop.getTransport()).getIPAddress()
-                            + ":" + this.getPort());
-                }
+                throw new IOException("Could not create a message channel for " + hop + " with source IP:Port " +
+                        this.getSipProvider().getListeningPoint(
+                                hop.getTransport()).getIPAddress()
+                        + ":" + this.getPort());
             }
-        }
-    }
-
-    protected void fireReliableResponseRetransmissionTimer() {
-        try {
-            resendLastResponseAsBytes();
-        } catch (IOException e) {
-            if (logger.isLoggingEnabled())
-                logger.logException(e);
-            this.setState(TransactionState._TERMINATED);
-            raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
-
         }
     }
 
@@ -1337,6 +1337,113 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
     }
 
+    @Override
+    public Dialog sendForkedResponse(Response response) throws SipException, InvalidArgumentException {
+
+        SIPResponse newResponse = (SIPResponse) response.clone();        
+        
+        newResponse.setCSeq(lastResponse.getCSeq());   
+        newResponse.setVia(lastResponse.getViaHeaders());
+        newResponse.setFrom(lastResponse.getFrom());
+        newResponse.setTo(lastResponse.getTo());
+        newResponse.removeHeader(RecordRouteHeader.NAME);
+        newResponse.removeHeader(RouteHeader.NAME);
+        newResponse.setHeader(lastResponse.getHeader(ContactHeader.NAME));
+
+        SIPDialog forkedDialog = createForkedUASDialog((SIPResponse) response, newResponse);
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug(" forked response " + newResponse + 
+                " for original response " + response +
+                ", forked dialog " + forkedDialog);
+        }
+        if(response.getHeader(RequireHeader.NAME) != null && ((RequireHeader)response.getHeader(RequireHeader.NAME)).getOptionTag().equalsIgnoreCase("100rel")) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(" forked response " + newResponse + 
+                    " for original response " + response +
+                    ", forked dialog " + forkedDialog + " has 100rel, sending it reliably");
+            }
+            forkedDialog.sendReliableProvisionalResponse(newResponse);            
+        } else {
+            ServerTransactionOutgoingMessageTask outgoingMessageProcessingTask = 
+                new ServerTransactionOutgoingMessageTask(this, newResponse, forkedDialog);
+            sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
+        }
+
+        return forkedDialog;
+
+
+    }
+
+    /**
+     * https://github.com/mobius-software-ltd/corsac-sip/issues/1
+     * Create a Forked Dialog for a given a server tx and response 
+     * in the context of B2BUA UAS Forking.
+     *
+     * @param transaction
+     * @param newResponse
+     * @return
+     */
+
+     public SIPDialog createForkedUASDialog(SIPResponse clientResponse, SIPResponse newResponse) {
+        
+        if(earlyUACDialogTable == null) {            
+            earlyUACDialogTable = new ConcurrentHashMap<String, SIPDialog>();
+        }
+        // if(earlyUASDialogTable == null) {            
+        //     earlyUASDialogTable = new ConcurrentHashMap<String, SIPDialog>();
+        // }
+
+        String earlyUACDialogId = clientResponse.getDialogId(false);
+        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+            logger.logDebug("createForkedUASDialog earlyUACDialogId=" + earlyUACDialogId);
+            logger.logDebug("createForkedUASDialog default Dialog=" + getDialog());
+            if(getDialog() != null) {
+                logger.logDebug("createForkedUASDialog default Dialog Id=" + getDialog().getDialogId());
+            }
+        }
+        SIPDialog retval = null;
+        SIPDialog earlyDialog = earlyUACDialogTable.get(earlyUACDialogId);
+        if (earlyDialog != null) { 
+            // If the dialog is already there then just return it and set the ToTag of the response
+            // to the one of the dialog.
+            retval = earlyDialog;
+            newResponse.setToTag(retval.getLocalTag());
+            String earlyUASDialogId = newResponse.getDialogId(true);            
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("createForkedUASDialog early Dialog found : earlyDialogId="
+                        + earlyUASDialogId + " earlyDialog= " + retval);
+            }            
+        } else {
+            // If the dialog is not there then create a new one and set the ToTag of the response
+            // to the one of the dialog.
+            newResponse.setToTag(Utils.getInstance().generateTag());
+            String earlyUASDialogId = newResponse.getDialogId(true);            
+            retval = new SIPDialog(this);            
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("createForkedUASDialog early Dialog not found : earlyDialogId="
+                        + earlyUASDialogId + " created one " + retval);
+            }            
+            retval.setOriginalDialog(dialog);
+            retval.setLastResponse(this, newResponse);
+            // storing the dialog in the early dialog tables so that we
+            // can match the responses coming from UAC Side and 
+            // mid dialog requests coming from UAS Side
+            // earlyUASDialogTable.put(earlyUASDialogId, retval);
+            earlyUACDialogTable.put(earlyUACDialogId, retval);
+            sipStack.earlyDialogTable.put(dialog.getDialogId(), retval);
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("createForkedUASDialog added early Dialog earlyDialogId="
+                        + earlyUASDialogId + " original dialog Id " + dialog.getDialogId() + " created one " + retval + " to sip stack erarl dialog table");
+            }
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                // logger.logDebug("createForkedUASDialog EarlyUASDialogTable : " + earlyUASDialogTable);
+                logger.logDebug("createForkedUASDialog EarlyUACDialogTable : " + earlyUACDialogTable);
+            }  
+        }
+        return retval;
+
+    }
+
     /**
      * Return the book-keeping information that we actually use.
      */
@@ -1484,8 +1591,15 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      */
     @Override
     public void setDialog(SIPDialog sipDialog, String dialogId) {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug("setDialog " + this + " dialog = " + sipDialog);
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logStackTrace();
+            logger.logDebug("setDialog " + this + " new dialog = " + sipDialog + " existing Dialog " + dialog);
+        }
+        if(dialog != null && sipDialog.getOriginalDialog() != null) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug(" existing dialogId: " + dialog.getDialogId() + ", original Dialog " + sipDialog.getOriginalDialog() + " original Dialog Id " + sipDialog.getOriginalDialog().getDialogId());
+            return ;
+        }
         this.dialog = sipDialog;
         this.dialogId = dialogId;
         if (dialogId != null)
@@ -1531,59 +1645,6 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
     }
 
-    @Override
-    public void sendReliableProvisionalResponse(Response relResponse) throws SipException {
-        
-        /*
-         * After the first reliable provisional response for a request has been
-         * acknowledged, the
-         * UAS MAY send additional reliable provisional responses. The UAS MUST NOT send
-         * a second
-         * reliable provisional response until the first is acknowledged.
-         */
-        if (this.pendingReliableResponseAsBytes != null) {
-            throw new SipException("Unacknowledged response");
-
-        } else {
-            SIPResponse reliableResponse = (SIPResponse) relResponse;
-            this.pendingReliableResponseAsBytes = reliableResponse.encodeAsBytes(this.getTransport());
-            this.pendingReliableResponseMethod = reliableResponse.getCSeq().getMethod();
-            this.pendingReliableCSeqNumber = reliableResponse.getCSeq().getSeqNumber();
-        }
-
-        ServerTransactionOutgoingProvisionalResponseTask outgoingMessageProcessingTask = 
-            new ServerTransactionOutgoingProvisionalResponseTask(this, (SIPResponse) relResponse);
-        sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);        
-    }
-
-    /**
-     * @see gov.nist.javax.sip.stack.SIPServerTransaction#getReliableProvisionalResponse()
-     */
-    @Override
-    public byte[] getReliableProvisionalResponse() {
-
-        return this.pendingReliableResponseAsBytes;
-    }
-
-    /**
-     * @see gov.nist.javax.sip.stack.SIPServerTransaction#prackRecieved()
-     */
-    @Override
-    public boolean prackRecieved() {
-
-        if (this.pendingReliableResponseAsBytes == null)
-            return false;
-        if (provisionalResponseTask != null) {
-            sipStack.getTimer().cancel(provisionalResponseTask);
-            this.provisionalResponseTask = null;
-        }
-
-        this.pendingReliableResponseAsBytes = null;
-        // if (interlockProvisionalResponses && getDialog() != null) {
-        //     this.provisionalResponseSem.release();
-        // }
-        return true;
-    }
 
     /*
      * (non-Javadoc)
@@ -1828,7 +1889,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         if (getReleaseReferencesStrategy() != ReleaseReferencesStrategy.None) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("cleanup on timer : "
-                        + getTransactionId());
+                        + getTransactionId() + " for STX " + this);
             }
             if (dialog != null && getMethod().equals(Request.CANCEL)) {
                 // used to deal with getting the dialog on cancel tx after the 200 OK to CANCEL
@@ -1874,8 +1935,6 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 }
                 lastResponse = null;
             }
-            pendingReliableResponseAsBytes = null;
-            pendingReliableResponseMethod = null;
             if (pendingSubscribeTransaction != null) {
                 // making sure to release the semaphore before we nullify the tx
                 // pendingSubscribeTransaction.releaseSem();
@@ -1884,43 +1943,14 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // provisionalResponseSem = null;
             retransmissionAlertTimerTask = null;
             requestOf = null;
+            // if(earlyUASDialogTable != null) {
+            //     earlyUASDialogTable.clear();
+            //     earlyUASDialogTable = null;    
+            // }
+            if(earlyUACDialogTable != null) {
+                earlyUACDialogTable.clear();
+                earlyUACDialogTable = null;
+            }
         }
     }
-
-    /**
-     * @see gov.nist.javax.sip.stack.SIPServerTransaction#getPendingReliableResponseMethod()
-     */
-    @Override
-    public String getPendingReliableResponseMethod() {
-        return pendingReliableResponseMethod;
-    }
-
-    /**
-     * @see gov.nist.javax.sip.stack.SIPServerTransaction#getPendingReliableCSeqNumber()
-     */
-    @Override
-    public long getPendingReliableCSeqNumber() {
-        return pendingReliableCSeqNumber;
-    }
-
-    /**
-     * @see gov.nist.javax.sip.stack.SIPServerTransaction#getPendingReliableRSeqNumber()
-     */
-    @Override
-    public long getPendingReliableRSeqNumber() {
-        return pendingReliableRSeqNumber;
-    }
-
-    // /**
-    //  * @see gov.nist.javax.sip.stack.SIPServerTransaction#waitForTermination()
-    //  */
-    // @Override
-    // public void waitForTermination() {
-
-    //     // try {
-    //     //     this.terminationSemaphore.acquire();
-    //     // } catch (InterruptedException e) {
-
-    //     // }
-    // }
 }

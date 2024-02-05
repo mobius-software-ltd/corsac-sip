@@ -76,7 +76,8 @@ public interface SIPServerTransaction extends SIPTransaction, ServerTransactionE
 
   // jeand we nullify the last response very fast to save on mem and help GC but we keep it as byte array
   // so this method is used to resend the last response either as a response or byte array depending on if it has been nullified
-  public  void resendLastResponseAsBytes() throws IOException;
+  public  void resendLastResponse() throws IOException;
+  public  void resendLastResponseAsBytes(byte[] lastResponseAsBytes) throws IOException;
 
   /**
    * Get the last response status code.
@@ -133,17 +134,7 @@ public interface SIPServerTransaction extends SIPTransaction, ServerTransactionE
    *
    * @see javax.sip.Transaction#terminate()
    */
-  public  void terminate() throws ObjectInUseException;
-
-  public  byte[] getReliableProvisionalResponse();
-
-  /**
-   * Cancel the retransmit timer for the provisional response task.
-   *
-   * @return true if the tx has seen the prack for the first time and false otherwise.
-   *
-   */
-  public  boolean prackRecieved();
+  public  void terminate() throws ObjectInUseException;  
 
   public  void enableRetransmissionAlerts() throws SipException;
 
@@ -187,25 +178,6 @@ public interface SIPServerTransaction extends SIPTransaction, ServerTransactionE
 
   // jeand cleanup the state of the stx to help GC
   public  void cleanUp();
-
-  /**
-   * @return the pendingReliableResponseMethod
-   */
-  public  String getPendingReliableResponseMethod();
-
-  /**
-   * @return the pendingReliableCSeqNumber
-   */
-  public  long getPendingReliableCSeqNumber();
-
-  /**
-   * @return the pendingReliableRSeqNumber
-   */
-  public  long getPendingReliableRSeqNumber();
-
-  // public  void waitForTermination();
-
-  void sendReliableProvisionalResponse(Response relResponse) throws SipException;
 
   /**
    * Send out a trying response (only happens when the transaction is mapped). Otherwise the

@@ -391,14 +391,14 @@ public class UdpPrackTimeoutTest extends ScenarioHarness implements SipListener 
             return new TestAssertion() {
                 @Override
                 public boolean assertCondition() {
-                    return lastResponse != null && lastResponse.getStatusCode() == 500;
+                    return lastResponse != null && lastResponse.getStatusCode() >= 500;
                 };
             }; 
         }        
 
         public void checkState() {
             TestHarness.assertNotNull(this.lastResponse);
-            TestHarness.assertTrue(this.lastResponse.getStatusCode() == 500 );
+            TestHarness.assertTrue(this.lastResponse.getStatusCode() >= 500 );
         }
     }
 

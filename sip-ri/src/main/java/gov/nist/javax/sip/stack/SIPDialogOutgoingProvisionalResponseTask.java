@@ -20,25 +20,31 @@ package gov.nist.javax.sip.stack;
 
 import javax.sip.header.RSeqHeader;
 
+import gov.nist.core.CommonLogger;
 import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
 import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.header.RSeq;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPResponse;
 
-public class ServerTransactionOutgoingProvisionalResponseTask implements SIPTask {
-    // private StackLogger logger =
-    // CommonLogger.getLogger(ServerTransactionOutgoingProvisionalResponseTask.class);
+public class SIPDialogOutgoingProvisionalResponseTask implements SIPTask {
+    private StackLogger logger =
+        CommonLogger.getLogger(SIPDialogOutgoingProvisionalResponseTask.class);
+
     SIPServerTransactionImpl serverTransaction;
+    SIPDialog sipDialog;
     private String id;
     private long startTime;
 
     SIPResponse relResponse;
 
-    public ServerTransactionOutgoingProvisionalResponseTask(SIPServerTransactionImpl serverTransaction,
+    public SIPDialogOutgoingProvisionalResponseTask(SIPDialog sipDialog, SIPServerTransactionImpl serverTransaction,
             SIPResponse sipResponse) {
         this.serverTransaction = serverTransaction;
+        this.sipDialog = sipDialog;
         startTime = System.currentTimeMillis();
         this.id = sipResponse.getCallId().getCallId();
         this.relResponse = sipResponse;
@@ -58,15 +64,24 @@ public class ServerTransactionOutgoingProvisionalResponseTask implements SIPTask
                 relResponse.setHeader(rseq);
             }
 
-            if (serverTransaction.rseqNumber < 0) {
-                serverTransaction.rseqNumber = (int) (Math.random() * 1000);
+            if (sipDialog.rseqNumber < 0) {
+                sipDialog.rseqNumber = (int) (Math.random() * 1000);
             }
-            serverTransaction.rseqNumber++;
-            rseq.setSeqNumber(serverTransaction.rseqNumber);
-            serverTransaction.pendingReliableRSeqNumber = rseq.getSeqNumber();
+            sipDialog.rseqNumber++;
+            rseq.setSeqNumber(sipDialog.rseqNumber);
+            sipDialog.pendingReliableRSeqNumber = rseq.getSeqNumber();
             // start the timer task which will retransmit the reliable response
             // until the PRACK is received. Cannot send a second provisional.
-            serverTransaction.lastResponse = (SIPResponse) relResponse;
+            sipDialog.setLastResponse(serverTransaction, relResponse);
+
+            SIPResponse reliableResponse = (SIPResponse) relResponse;
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug("Storing reliableResponse " + reliableResponse + " for Dialog " + this + " with dialog Id " + sipDialog.dialogId + " in STX " + serverTransaction);
+
+            sipDialog.pendingReliableResponseAsBytes = reliableResponse.encodeAsBytes(serverTransaction.getTransport());
+            sipDialog.pendingReliableResponseMethod = reliableResponse.getCSeq().getMethod();
+            sipDialog.pendingReliableCSeqNumber = reliableResponse.getCSeq().getSeqNumber();
+            
             // if (this.getDialog() != null && interlockProvisionalResponses) {
             // boolean acquired = this.provisionalResponseSem.tryAcquire(1,
             // TimeUnit.SECONDS);
@@ -76,8 +91,8 @@ public class ServerTransactionOutgoingProvisionalResponseTask implements SIPTask
             // }
             // moved the task scheduling before the sending of the message to overcome
             // Issue 265 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=265
-            serverTransaction.provisionalResponseTask = new ProvisionalResponseTask(serverTransaction);
-            serverTransaction.sipStack.getTimer().scheduleWithFixedDelay(serverTransaction.provisionalResponseTask, 0,
+            sipDialog.provisionalResponseTask = new ProvisionalResponseTask(sipDialog, serverTransaction);
+            serverTransaction.sipStack.getTimer().scheduleWithFixedDelay(sipDialog.provisionalResponseTask, 0,
                     SIPTransactionStack.BASE_TIMER_INTERVAL);
             // provisionalResponseTask.runTask();
             serverTransaction.sendMessage((SIPMessage) relResponse);

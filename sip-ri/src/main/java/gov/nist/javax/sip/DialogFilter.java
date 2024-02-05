@@ -1398,7 +1398,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 if (routes.size() == 1)
                     sipRequest.removeHeader(Route.NAME);
                 else
-                    routes.removeFirst();
+                    routes.removeFirstItem();
             }
         }
     }

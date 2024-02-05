@@ -826,6 +826,10 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         if (transaction instanceof ServerTransaction) {
             SIPServerTransaction st = (SIPServerTransaction) transaction;
             Response response = st.getLastResponse();
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug(
+                        "New Dialog STX: " + st + ", id: " + st.getTransactionId() + ", Last Response: " + response);
+            }
             if (response != null) {
                 if (response.getStatusCode() != 100)
                     throw new SipException(
@@ -834,14 +838,25 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
             SIPRequest sipRequest = (SIPRequest) transaction.getRequest();
             String dialogId = sipRequest.getDialogId(true);
             dialog = sipStack.getDialog(dialogId);
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug(
+                        "Dialog: " + dialog + " for dialogId: " + dialogId);
+            }
             if (dialog == null) {
                 dialog = sipStack.createDialog((SIPTransaction) transaction);
                 // create and register the dialog and add the inital route set.
                 dialog.addTransaction(sipTransaction);
                 dialog.addRoute(sipRequest);
                 sipTransaction.setDialog(dialog, null);
-
+                if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                    logger.logDebug(
+                            "Dialog was null, created a new one " + dialog);
+                }
             } else {
+                if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                    logger.logDebug(
+                            "Dialog was not null, attached to STX " + dialog);
+                }
                 sipTransaction.setDialog(dialog, sipRequest.getDialogId(true));
             }
             if (sipRequest.getMethod().equals(Request.INVITE) && this.isDialogErrorsAutomaticallyHandled()) {

@@ -24,7 +24,6 @@ import javax.sip.DialogState;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.SipException;
 import javax.sip.TransactionState;
-import javax.sip.header.ContentTypeHeader;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
@@ -55,52 +54,17 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
     @Override
     public void execute() {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("Executing task with id: " + id);
+            logger.logDebug("Executing task with id: " + id + " on Dialog " + sipDialog);
         }
         final int statusCode = sipResponse.getStatusCode();
-        final String responseMethod = sipResponse.getCSeq().getMethod();
-        // Fix up the response if the dialog has already been established.
+        final String responseMethod = sipResponse.getCSeq().getMethod();        
         try {
-            /*
-             * The UAS MAY send a final response to the initial request before
-             * having received PRACKs for all unacknowledged reliable provisional responses,
-             * unless the final response is 2xx and any of the unacknowledged reliable
-             * provisional
-             * responses contained a session description. In that case, it MUST NOT send a
-             * final
-             * response until those provisional responses are acknowledged.
-             */
-            final ContentTypeHeader contentTypeHeader = sipResponse.getContentTypeHeader();
-            if (serverTransaction.pendingReliableResponseAsBytes != null
-                    && sipDialog != null
-                    && serverTransaction.getInternalState() != TransactionState._TERMINATED
-                    && statusCode / 100 == 2
-                    && contentTypeHeader != null
-                    && contentTypeHeader.getContentType()
-                            .equalsIgnoreCase(SIPServerTransactionImpl.CONTENT_TYPE_APPLICATION)
-                    && contentTypeHeader.getContentSubType()
-                            .equalsIgnoreCase(SIPServerTransactionImpl.CONTENT_SUBTYPE_SDP)) {
-                // if (!interlockProvisionalResponses) {
-                // throw new SipException("cannot send response -- unacked provisional");
-                // } else {
-                // try {
-                // boolean acquired = provisionalResponseSem.tryAcquire(1, TimeUnit.SECONDS);
-                // if (!acquired) {
-                // throw new SipException("cannot send response -- unacked provisional");
-                // }
-                // } catch (InterruptedException ex) {
-                // logger.logError("Interrupted acuqiring PRACK sem");
-                // throw new SipException("Cannot aquire PRACK sem");
-                // }
-
-                // }
-            } else {
-                // Sending the final response cancels the
-                // pending response task.
-                if (serverTransaction.pendingReliableResponseAsBytes != null && sipResponse.isFinalResponse()) {
-                    serverTransaction.sipStack.getTimer().cancel(serverTransaction.provisionalResponseTask);
-                    serverTransaction.provisionalResponseTask = null;
-                }
+            
+            // Sending the final response cancels the
+            // pending response task.
+            if (sipDialog != null && sipDialog.pendingReliableResponseAsBytes != null && sipResponse.isFinalResponse()) {
+                serverTransaction.sipStack.getTimer().cancel(sipDialog.provisionalResponseTask);
+                sipDialog.provisionalResponseTask = null;
             }
 
             // Dialog checks. These make sure that the response
@@ -124,7 +88,8 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
                             && !sipDialog.getLocalTag().equals(sipResponse.getToTag())) {
                         throw new SipException("Tag mismatch dialogTag is "
                                 + sipDialog.getLocalTag() + " responseTag is "
-                                + sipResponse.getToTag());
+                                + sipResponse.getToTag() + " on response " + sipResponse 
+                                + " dialog = " + sipDialog + " serverTx = " + serverTransaction);
                     }
                 }
 

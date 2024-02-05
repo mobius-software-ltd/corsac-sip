@@ -833,9 +833,9 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
         if (toRemove instanceof SIPHeaderList) {
             SIPHeaderList< ?> hdrList = (SIPHeaderList< ?>) toRemove;
             if (top) {
-                hdrList.removeFirst();
+                hdrList.removeFirstItem();
             } else {
-                hdrList.removeLast();
+                hdrList.removeLastItem();
             }
             // Clean up empty list
             if (hdrList.isEmpty()) {

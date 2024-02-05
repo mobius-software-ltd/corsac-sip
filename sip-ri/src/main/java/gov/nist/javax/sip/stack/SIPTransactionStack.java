@@ -919,7 +919,21 @@ public abstract class SIPTransactionStack implements
         }
         SIPDialog retval = null;
         SIPDialog earlyDialog = this.earlyDialogTable.get(originalDialogId);
-        if (earlyDialog != null && transaction != null && (transaction.getDefaultDialog() == null || transaction.getDefaultDialog().getDialogId().equals(originalDialogId))) {
+        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+            logger.logDebug("createDialog : originalDialogId="
+                    + originalDialogId + " earlyDialog= " + earlyDialog);
+            if(earlyDialog == null) {
+                logger.logDebug("createDialog : earlyDialogTable=" + earlyDialogTable);
+            } else {
+                logger.logDebug("createDialog : transaction="
+                    + transaction + " transaction default dialg = " + transaction.getDefaultDialog() 
+                    + " transaction default dialg id = " + transaction.getDefaultDialog().getDialogId());
+            }
+        }
+        if (earlyDialog != null && 
+                transaction != null && 
+                (transaction.getDefaultDialog() == null || 
+                    transaction.getDefaultDialog().getDialogId().equals(originalDialogId))) {
             retval = earlyDialog;
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createDialog early Dialog found : earlyDialogId="
@@ -939,6 +953,7 @@ public abstract class SIPTransactionStack implements
         return retval;
 
     }
+
     /**
      * Create a Dialog given a sip provider and response.
      *
@@ -3175,6 +3190,20 @@ public abstract class SIPTransactionStack implements
                     "Adding forked client transaction : " + clientTransaction + " branch=" + clientTransaction.getBranch() + 
                     " forkId = " + forkId + "  sipDialog = " + clientTransaction.getDefaultDialog() + 
                     " sipDialogId= " + clientTransaction.getDefaultDialog().getDialogId());
+            logger.logDebug(String.format("removeTransaction: Table size : " +
+                    " clientTransactionTable %d " +
+                    " serverTransactionTable %d " +
+                    " mergetTable %d " +
+                    " terminatedServerTransactionsPendingAck %d  " +
+                    " forkedClientTransactionTable %d " +
+                    " pendingTransactions %d " , 
+                    clientTransactionTable.size(),
+                    serverTransactionTable.size(),
+                    mergeTable.size(),
+                    terminatedServerTransactionsPendingAck.size(),
+                    forkedClientTransactionTable.size(),
+                    pendingTransactions.size()
+            ));
     	}
 
         this.forkedClientTransactionTable.put(forkId, clientTransaction);

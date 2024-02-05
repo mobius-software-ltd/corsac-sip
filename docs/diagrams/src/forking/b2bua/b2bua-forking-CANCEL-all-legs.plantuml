@@ -1,0 +1,45 @@
+@startuml B2BUA Forking
+!includeurl https://raw.githubusercontent.com/RestComm/design/master/telestax-style.plantuml!0
+autonumber
+
+actor Alice
+actor B2BUA
+actor Proxy
+actor Bob
+actor Carol
+
+Alice -> B2BUA : INVITE
+B2BUA -> Alice : Trying
+B2BUA -> Proxy : INVITE
+Proxy -> Bob : INVITE
+Proxy -> Carol : INVITE
+Bob -> Proxy  : 180 Ringing (ToTag 12345)
+Carol -> Proxy : 183 Session Progress (ToTag 54321)
+Proxy -> B2BUA  : 180 Ringing (ToTag 12345)
+Note right of B2BUA : Early Original Dialog 1 created\nOn Same CTX
+Proxy -> B2BUA : 183 Session Progress (ToTag 54321)
+Note right of B2BUA : Forked Dialog 2 created\nOn Same CTX
+B2BUA -> Alice : 180 Ringing (ToTag 12345)
+Note left of B2BUA : Early Dialog 3 created\nOn Same STX
+B2BUA -> Alice : 183 Session Progress (ToTag 54321)
+Note left of B2BUA : Forked Dialog 4 created\nOn Same STX
+Alice <--> Carol : 1 minute wait for Carol to answer
+Alice -> B2BUA : CANCEL (No ToTag)
+B2BUA -> Proxy : CANCEL (No ToTag)
+Proxy -> Bob : CANCEL (No ToTag)
+Proxy -> Carol : CANCEL (No ToTag)
+Bob -> Proxy  : 200 OK CANCEL (ToTag 12345)
+Proxy -> B2BUA : 200 OK CANCEL (ToTag 12345)
+B2BUA -> Alice : 200 OK CANCEL (ToTag 12345)
+Bob -> Proxy  : 487 Request Terminated (ToTag 12345)
+Proxy -> B2BUA : 487 Request Terminated (ToTag 12345)
+B2BUA -> Alice : 487 Request Terminated (ToTag 12345)
+Alice -> B2BUA : ACK (ToTag 12345)
+B2BUA -> Proxy : ACK (ToTag 12345)
+Proxy -> Bob : ACK (ToTag 12345)
+
+Carol -> Proxy : 200 OK CANCEL (ToTag 54321)
+Carol -> Proxy  : 487 Request Terminated (ToTag 54321)
+Proxy -> Carol : ACK (ToTag 54321)
+
+@enduml
