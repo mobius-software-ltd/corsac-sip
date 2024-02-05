@@ -108,7 +108,7 @@ public class Proxy implements SipListener {
             Request request = requestEvent.getRequest();
             SipProvider sipProvider = (SipProvider) requestEvent.getSource();
             this.inviteServerTxProvider = sipProvider;
-            if (request.getMethod().equals(Request.INVITE) || request.getMethod().equals(Request.CANCEL)) {
+            if (request.getMethod().equals(Request.INVITE) || request.getMethod().equals(Request.CANCEL) ) {
                 ServerTransaction st = requestEvent.getServerTransaction();
                 if (st == null) {
                     st = sipProvider.getNewServerTransaction(request);

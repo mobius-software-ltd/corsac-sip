@@ -146,7 +146,7 @@ public class BackToBackUserAgent implements SipListenerExt {
         try {
             Request request = requestEvent.getRequest();
             SipProvider provider = (SipProvider) requestEvent.getSource();
-            if (request.getMethod().equals(Request.INVITE)) {
+            if (request.getMethod().equals(Request.INVITE) || request.getMethod().equals(Request.UPDATE)) {
                 if (requestEvent.getServerTransaction() == null) {
                     try {
                         ServerTransaction serverTx = provider.getNewServerTransaction(request);                        

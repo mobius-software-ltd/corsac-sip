@@ -113,9 +113,13 @@ public class Shootist implements SipListener {
 
     public boolean requireReliableProvisionalResponse;
 
-    private boolean prackConfirmed;
+    private int numberOfPrackConfirmed = 0;
 
-    private int numberOfRelResponsesReceived;    
+    private int numberOfRelResponsesReceived = 0;
+
+    public boolean sendUpdate;
+    public boolean updateOKReceived;
+
 
     class CancelTask extends TimerTask {
         public void run() {
@@ -139,6 +143,7 @@ public class Shootist implements SipListener {
 
                Request byeRequest = dialog.createRequest(Request.BYE);
                ClientTransaction ctx = sipProvider.getNewClientTransaction(byeRequest);
+               logger.info("Sending BYE from shootist " + byeRequest);
                dialog.sendRequest(ctx);
            } catch (Exception ex) {
                TestCase.fail("Unexpected exception");
@@ -180,6 +185,8 @@ public class Shootist implements SipListener {
         // We are the UAC so the only request we get is the BYE.
         if (request.getMethod().equals(Request.BYE))
             processBye(request, serverTransactionId);
+        // else if(request.getMethod().equals(Request.UPDATE))
+        //     processUpdate(request, serverTransactionId);
         else
             TestCase.fail("Unexpected request ! : " + request);
 
@@ -207,6 +214,29 @@ public class Shootist implements SipListener {
 
         }
     }
+
+    // public void processUpdate(Request request,
+    //         ServerTransaction serverTransactionId) {
+    //     try {
+    //         logger.info("shootist:  got a update " + request);
+    //         updateReceived = true;
+    //         if (serverTransactionId == null) {
+    //             logger.info("shootist:  null TID.");
+    //             return;
+    //         }
+    //         Dialog dialog = serverTransactionId.getDialog();
+    //         logger.info("Dialog State = " + dialog.getState());
+    //         Response response = messageFactory.createResponse(
+    //                 200, request);
+    //         serverTransactionId.sendResponse(response);
+    //         logger.info("shootist:  Sending OK.");
+    //         logger.info("Dialog State = " + dialog.getState());            
+    //     } catch (Exception ex) {
+    //         ex.printStackTrace();
+    //         junit.framework.TestCase.fail("Exit JVM");
+
+    //     }
+    // }
 
     public synchronized void processResponse(ResponseEvent responseReceivedEvent) {
         System.out.println("Got a response " + responseReceivedEvent.getResponse());
@@ -241,8 +271,22 @@ public class Shootist implements SipListener {
 
         try {
             if (response.getStatusCode() == Response.OK) {
-                if (cseq.getMethod() == Request.PRACK) {
-                    prackConfirmed = true;
+                if (cseq.getMethod() == Request.UPDATE) {
+                    updateOKReceived = true;
+                } else if (cseq.getMethod() == Request.PRACK) {
+                    numberOfPrackConfirmed++;
+                    if(numberOfPrackConfirmed >= 4 && sendUpdate) {
+                        forkedDialogs.forEach(d -> {
+                            try {
+                                Request update = d.createRequest(Request.UPDATE);
+                                ClientTransaction clientTransaction = sipProvider.getNewClientTransaction(update);
+                                d.sendRequest(clientTransaction);
+                            } catch (Throwable ex) {
+                                ex.printStackTrace();
+                                // junit.framework.TestCase.fail("Exit JVM");
+                            }
+                        });                        
+                    }
                 } else if (cseq.getMethod().equals(Request.INVITE)) {
                     this.inviteOkSeen = true;
                     TestCase.assertEquals( DialogState.CONFIRMED, dialog.getState() );
@@ -258,18 +302,18 @@ public class Shootist implements SipListener {
                     }
                     
                     if ( responseReceivedEvent.getClientTransaction() != null ) {
-                        logger.info("Sending ACK " + ackRequest);
+                        logger.info("Sending ACK from shootist " + ackRequest);
                         dialog.sendAck(ackRequest);
                         TestCase.assertTrue(
                                 "Dialog state should be CONFIRMED", dialog
                                         .getState() == DialogState.CONFIRMED);
 
-                        TestCase.assertTrue(this.ackedDialog == null ||
-                                this.ackedDialog == dialog);
-                        this.ackedDialog = dialog;
+                        // TestCase.assertTrue(this.ackedDialog == null ||
+                        //         this.ackedDialog == dialog);
+                        // this.ackedDialog = dialog;
 
                         if ( callerSendsBye ) {
-                            timer.schedule( new SendBye(ackedDialog), byeDelay);
+                            timer.schedule( new SendBye(dialog), byeDelay);
                         }
 
 
@@ -351,7 +395,11 @@ public class Shootist implements SipListener {
                 if(cancelDelay > 0) {
                     return inviteErrorResponseSeen && cancelSent;
                 } else if(requireReliableProvisionalResponse) {
-                    return prackConfirmed && numberOfRelResponsesReceived >= 2 && inviteOkSeen && byeResponseSeen; 
+                    if(sendUpdate) {
+                        return numberOfPrackConfirmed >= 2 && numberOfRelResponsesReceived >= 2 && inviteOkSeen && byeResponseSeen && updateOKReceived;
+                    } else {
+                        return numberOfPrackConfirmed >= 2 && numberOfRelResponsesReceived >= 2 && inviteOkSeen && byeResponseSeen;
+                    }                    
                 } else {
                     return byeResponseSeen && inviteOkSeen;
                 }

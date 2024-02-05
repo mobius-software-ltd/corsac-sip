@@ -53,6 +53,9 @@ public class BackToBackUserAgentTest extends TestCase {
         this.alice.requireReliableProvisionalResponse = true;
         this.bob.sendReliableProvisionalResponse = true;
         this.carol.sendReliableProvisionalResponse = true;
+        this.alice.sendUpdate = true;
+        this.bob.receiveUpdate = true;
+        this.carol.receiveUpdate = true;                
         this.bob.ringingDelay = 200;
         this.carol.ringingDelay = 200;       
         this.bob.okDelay = 6000;

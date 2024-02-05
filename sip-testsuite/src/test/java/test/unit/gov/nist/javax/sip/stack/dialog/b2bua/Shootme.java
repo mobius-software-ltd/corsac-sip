@@ -6,6 +6,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TooManyListenersException;
 
+import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
 import javax.sip.DialogTerminatedEvent;
@@ -34,6 +35,7 @@ import javax.sip.message.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.javax.sip.message.ResponseExt;
 import junit.framework.TestCase;
 import test.tck.TestHarness;
 import test.tck.msgflow.callflows.ProtocolObjects;
@@ -81,6 +83,7 @@ public class Shootme   implements SipListener {
     public boolean sendRinging;
 
     public boolean waitForCancel;
+    public boolean receiveUpdate;
 
     protected boolean cancelSeen;
 
@@ -104,6 +107,7 @@ public class Shootme   implements SipListener {
 
     private ServerTransaction inviteStx;
 
+    private boolean updateSeen;    
 
     class MyTimerTask extends TimerTask {
         Request request;
@@ -147,6 +151,8 @@ public class Shootme   implements SipListener {
             processAck(requestEvent, serverTransactionId);
         } else if (request.getMethod().equals(Request.BYE)) {
             processBye(requestEvent, serverTransactionId);
+        } else if (request.getMethod().equals(Request.UPDATE)) {
+            processUpdate(requestEvent, serverTransactionId);
         } else if (request.getMethod().equals(Request.CANCEL)) {
             processCancel(requestEvent, serverTransactionId);
         } else if (request.getMethod().equals(Request.PRACK)) {
@@ -155,7 +161,28 @@ public class Shootme   implements SipListener {
 
     }
 
-    public void processResponse(ResponseEvent responseEvent) {
+    public void processResponse(ResponseEvent responseEvent) {        
+        Response response = (Response) responseEvent.getResponse();
+        logger.info("Got a response " + response);
+        ClientTransaction tid = responseEvent.getClientTransaction();
+        logger.info("Response received with client transaction id " + tid
+                + ":\n" + response.getStatusCode());
+        if (tid == null) {
+            logger.info("Stray response -- dropping ");
+            return;
+        }
+        logger.info("transaction state is " + tid.getState());
+        logger.info("Dialog = " + tid.getDialog());
+        logger.info("Dialog State is " + tid.getDialog().getState());
+        try {
+            logger.info("response = " + response);
+            if (response.getStatusCode() == Response.OK && ((ResponseExt)response).getCSeqHeader().getMethod().equals(Request.UPDATE)) {
+                timer.schedule(new MyTimerTask(inviteRequest,inviteStx), this.okDelay);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            junit.framework.TestCase.fail("Exit JVM");
+        }
     }
 
     private void processPrack(RequestEvent requestEvent,
@@ -343,6 +370,32 @@ public class Shootme   implements SipListener {
         }
     }
 
+    /**
+     * Process the update request.
+     */
+    public void processUpdate(RequestEvent requestEvent,
+            ServerTransaction serverTransactionId) {
+        Request request = requestEvent.getRequest();
+        try {
+            logger.info("shootme:  got a update sending OK.");
+            logger.info("shootme:  dialog = " + requestEvent.getDialog());
+            logger.info("shootme:  dialogState = " + requestEvent.getDialog().getState());
+            Response response = messageFactory.createResponse(200, request);
+            if ( serverTransactionId != null) {
+                serverTransactionId.sendResponse(response);
+            }
+            logger.info("shootme:  dialogState = " + requestEvent.getDialog().getState());
+
+            this.updateSeen = true;
+
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            junit.framework.TestCase.fail("Exit JVM");
+
+        }
+    }
+
     public void processCancel(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
         Request request = requestEvent.getRequest();
@@ -443,14 +496,18 @@ public class Shootme   implements SipListener {
     }
     
     public TestAssertion getAssertion() {
-        return new TestAssertion() {
-            
+        return new TestAssertion() {            
+
             @Override
             public boolean assertCondition() {
                 if(!waitForCancel) {
                     return inviteSeen && byeSeen && ackSeen;
                 } else if(sendReliableProvisionalResponse) {
-                    return inviteSeen && numberOfPrackReceived == 2 && byeSeen && ackSeen;
+                    if(receiveUpdate) {
+                        return inviteSeen && numberOfPrackReceived == 2 && byeSeen && ackSeen && updateSeen;
+                    } else {
+                        return inviteSeen && numberOfPrackReceived == 2 && byeSeen && ackSeen;
+                    }                    
                 } else {
                     return inviteSeen && cancelSeen;
                 }
