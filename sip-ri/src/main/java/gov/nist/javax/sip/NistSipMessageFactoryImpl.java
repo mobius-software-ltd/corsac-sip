@@ -103,9 +103,13 @@ class NistSipMessageFactoryImpl implements StackMessageFactory {
             SIPResponse sipResponse, MessageChannel msgChannel) {
         // Tr is null if a transaction is not mapped.
         SIPTransaction tr = sipStack.findTransaction(sipResponse, false);
-        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
+        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
             logger.logDebug(
                     "Found Transaction " + tr + " for " + sipResponse);
+            if(tr != null) {
+                logger.logDebug("Transaction State is " + tr.getState());
+            }
+        }
 
         if (tr != null) {
             // Prune unhealthy responses early if handling statefully.

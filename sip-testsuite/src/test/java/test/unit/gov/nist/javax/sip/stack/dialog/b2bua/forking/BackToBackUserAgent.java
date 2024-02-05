@@ -189,8 +189,9 @@ public class BackToBackUserAgent implements SipListenerExt {
                 Dialog peer = (Dialog) dialog.getApplicationData();
                 // Dialog peer = this.getPeerDialog(dialog);
                 System.out.println("PRACK Peer DialogId " + peer.getDialogId());
-                System.out.println("PRACK Peer Dialog " + peer);
+                System.out.println("PRACK Peer Dialog " + peer);                
                 Response response = this.lastResponseTable.get(peer);                            
+                System.out.println("last Response from peer dialog " + response);
                 Request prackRequest = peer.createPrack(response);
 
                 SipProvider sipProvider = (SipProvider) requestEvent.getSource();

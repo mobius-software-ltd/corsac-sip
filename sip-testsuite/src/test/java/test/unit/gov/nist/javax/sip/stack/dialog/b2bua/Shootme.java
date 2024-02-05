@@ -98,7 +98,7 @@ public class Shootme   implements SipListener {
 
     public boolean sendReliableProvisionalResponse = false;
 
-    private boolean prackRequestReceived;
+    private int numberOfPrackReceived = 0;
 
     private Request inviteRequest;
 
@@ -117,7 +117,15 @@ public class Shootme   implements SipListener {
         }
 
         public void run() {
-            sendInviteOK(request,serverTx);
+            if(!sendReliableProvisionalResponse) {
+                sendInviteOK(request,serverTx);
+            } else {
+                if(numberOfPrackReceived >= 2) {
+                    sendInviteOK(request,serverTx);
+                } else {
+                    sendRinging(request,serverTx);
+                }
+            }
         }
 
     }
@@ -152,7 +160,7 @@ public class Shootme   implements SipListener {
 
     private void processPrack(RequestEvent requestEvent,
             ServerTransaction serverTransaction) {
-        prackRequestReceived = true;
+        numberOfPrackReceived++;
         Dialog dialog =  serverTransaction.getDialog();
 
         try {
@@ -166,11 +174,11 @@ public class Shootme   implements SipListener {
             Response prackOk = messageFactory.createResponse(200, prack);
             serverTransaction.sendResponse(prackOk);
 
-            /**
-             * Send a 200 OK response to complete the 3 way handshake for the
-             * INIVTE.
-             */           
-            timer.schedule(new MyTimerTask(inviteRequest,inviteStx), this.okDelay);
+            if(numberOfPrackReceived >= 2) {
+                timer.schedule(new MyTimerTask(inviteRequest,inviteStx), this.okDelay);
+            } else {
+                timer.schedule(new MyTimerTask(inviteRequest,inviteStx), this.ringingDelay);
+            }           
         } catch (Exception ex) {
             TestHarness.fail(ex.getMessage());
         }
@@ -218,27 +226,42 @@ public class Shootme   implements SipListener {
 
             // Create the 100 Trying response.
             Response response = messageFactory.createResponse(Response.TRYING,
-                    request);
-                ListeningPoint lp = sipProvider.getListeningPoint(transport);
-            int myPort = lp.getPort();
-
-            Address address = addressFactory.createAddress("Shootme <sip:"
-                    + myAddress + ":" + myPort + ">");
+                    request);            
 
             // Add a random sleep to stagger the two OK's for the benefit of implementations
             // that may not be too good about handling re-entrancy.
-            int timeToSleep = (int) ( Math.random() * 1000);
+            int timeToSleep = (int) (Math.random() * 1000);
             System.out.println("UAC Time to sleep " + timeToSleep);
             Thread.sleep(timeToSleep);
 
             st.sendResponse(response);
 
+            sendRinging(request, st);                        
+            if(!waitForCancel && !sendReliableProvisionalResponse) {
+                timer.schedule(new MyTimerTask(request, st), this.okDelay);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            junit.framework.TestCase.fail("Exit JVM");
+        }
+    }
+
+    private void sendRinging(Request request, ServerTransaction st) {
+        
+        ListeningPoint lp = sipProvider.getListeningPoint(transport);
+        int myPort = lp.getPort();            
+        try {
+            Address address = addressFactory.createAddress("Shootme <sip:"
+                + myAddress + ":" + myPort + ">");
             Response ringingResponse = messageFactory.createResponse(Response.RINGING,
                     request);
             ContactHeader contactHeader = headerFactory.createContactHeader(address);
-            response.addHeader(contactHeader);
+            // ringingResponse.addHeader(contactHeader);
             ToHeader toHeader = (ToHeader) ringingResponse.getHeader(ToHeader.NAME);
-            toTag =  Integer.valueOf(new Random().nextInt()).toString();
+            if(toTag == null) {
+                toTag =  Integer.valueOf(new Random().nextInt()).toString();
+            }
+
             toHeader.setTag(toTag);
             Dialog dialog =  st.getDialog();
             dialog.setApplicationData(st);
@@ -255,9 +278,6 @@ public class Shootme   implements SipListener {
                 ringingResponse.addHeader(contactHeader);
                 Thread.sleep(ringingDelay);
                 st.sendResponse(ringingResponse);
-            }                        
-            if(!waitForCancel && !sendReliableProvisionalResponse) {
-                timer.schedule(new MyTimerTask(request,st), this.okDelay);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -430,7 +450,7 @@ public class Shootme   implements SipListener {
                 if(!waitForCancel) {
                     return inviteSeen && byeSeen && ackSeen;
                 } else if(sendReliableProvisionalResponse) {
-                    return inviteSeen && prackRequestReceived && byeSeen && ackSeen;
+                    return inviteSeen && numberOfPrackReceived == 2 && byeSeen && ackSeen;
                 } else {
                     return inviteSeen && cancelSeen;
                 }

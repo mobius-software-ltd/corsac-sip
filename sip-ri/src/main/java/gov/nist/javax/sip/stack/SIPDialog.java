@@ -325,7 +325,7 @@ public class SIPDialog implements DialogExt {
     // lastResponseAsBytes
     protected int rseqNumber = -1;
     protected byte[] pendingReliableResponseAsBytes;
-    private String pendingReliableResponseMethod;
+    protected String pendingReliableResponseMethod;
     protected long pendingReliableCSeqNumber;
     protected long pendingReliableRSeqNumber;
 
@@ -3937,15 +3937,7 @@ public class SIPDialog implements DialogExt {
         if (this.pendingReliableResponseAsBytes != null) {
             throw new SipException("Unacknowledged response");
 
-        } else {
-            SIPResponse reliableResponse = (SIPResponse) relResponse;
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                logger.logDebug("Storing reliableResponse " + reliableResponse + " for Dialog " + this + " with dialog Id " + dialogId + " in STX " + serverTransaction);
-
-            this.pendingReliableResponseAsBytes = reliableResponse.encodeAsBytes(serverTransaction.getTransport());
-            this.pendingReliableResponseMethod = reliableResponse.getCSeq().getMethod();
-            this.pendingReliableCSeqNumber = reliableResponse.getCSeq().getSeqNumber();
-        }
+        } 
 
         SIPDialogOutgoingProvisionalResponseTask outgoingMessageProcessingTask = 
             new SIPDialogOutgoingProvisionalResponseTask(this, serverTransaction, (SIPResponse) relResponse);

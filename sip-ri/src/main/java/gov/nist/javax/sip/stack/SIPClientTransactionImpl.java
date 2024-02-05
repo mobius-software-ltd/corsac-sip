@@ -490,6 +490,11 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       MessageChannel sourceChannel,
       SIPDialog dialog) {
 
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+          logger.logDebug("processing " + transactionResponse.getFirstLine() + "current state = "
+              + getState());
+          logger.logDebug("dialog = " + dialog);
+        }
     // If the state has not yet been assigned then this is a
     // spurious response.
 
@@ -503,11 +508,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       return;
     }
 
-    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-      logger.logDebug("processing " + transactionResponse.getFirstLine() + "current state = "
-          + getState());
-      logger.logDebug("dialog = " + dialog);
-    }
+    
 
     this.lastResponse = transactionResponse;
 

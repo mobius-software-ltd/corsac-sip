@@ -20,7 +20,10 @@ package gov.nist.javax.sip.stack;
 
 import javax.sip.header.RSeqHeader;
 
+import gov.nist.core.CommonLogger;
 import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
 import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.header.RSeq;
@@ -28,8 +31,9 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPResponse;
 
 public class SIPDialogOutgoingProvisionalResponseTask implements SIPTask {
-    // private StackLogger logger =
-    // CommonLogger.getLogger(SIPDialogOutgoingProvisionalResponseTask.class);
+    private StackLogger logger =
+        CommonLogger.getLogger(SIPDialogOutgoingProvisionalResponseTask.class);
+
     SIPServerTransactionImpl serverTransaction;
     SIPDialog sipDialog;
     private String id;
@@ -69,6 +73,15 @@ public class SIPDialogOutgoingProvisionalResponseTask implements SIPTask {
             // start the timer task which will retransmit the reliable response
             // until the PRACK is received. Cannot send a second provisional.
             sipDialog.setLastResponse(serverTransaction, relResponse);
+
+            SIPResponse reliableResponse = (SIPResponse) relResponse;
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug("Storing reliableResponse " + reliableResponse + " for Dialog " + this + " with dialog Id " + sipDialog.dialogId + " in STX " + serverTransaction);
+
+            sipDialog.pendingReliableResponseAsBytes = reliableResponse.encodeAsBytes(serverTransaction.getTransport());
+            sipDialog.pendingReliableResponseMethod = reliableResponse.getCSeq().getMethod();
+            sipDialog.pendingReliableCSeqNumber = reliableResponse.getCSeq().getSeqNumber();
+            
             // if (this.getDialog() != null && interlockProvisionalResponses) {
             // boolean acquired = this.provisionalResponseSem.tryAcquire(1,
             // TimeUnit.SECONDS);

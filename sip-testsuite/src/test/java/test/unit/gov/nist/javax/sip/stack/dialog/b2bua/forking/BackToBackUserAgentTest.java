@@ -55,8 +55,8 @@ public class BackToBackUserAgentTest extends TestCase {
         this.carol.sendReliableProvisionalResponse = true;
         this.bob.ringingDelay = 200;
         this.carol.ringingDelay = 200;       
-        this.bob.okDelay = 2000;
-        this.carol.okDelay = 2000;       
+        this.bob.okDelay = 6000;
+        this.carol.okDelay = 6000;       
         this.alice.sendInvite();        
     }
     
@@ -77,6 +77,4 @@ public class BackToBackUserAgentTest extends TestCase {
         
         super.tearDown();
     }
-    
-
 }

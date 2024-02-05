@@ -115,7 +115,7 @@ public class Shootist implements SipListener {
 
     private boolean prackConfirmed;
 
-    private boolean prackTriggerReceived;    
+    private int numberOfRelResponsesReceived;    
 
     class CancelTask extends TimerTask {
         public void run() {
@@ -235,6 +235,10 @@ public class Shootist implements SipListener {
 
         System.out.println("Dialog state is " + dialog.getState());
 
+        this.canceledDialog.add(dialog);
+        // Proxy will fork. I will accept the first dialog.
+        this.forkedDialogs.add(dialog);
+
         try {
             if (response.getStatusCode() == Response.OK) {
                 if (cseq.getMethod() == Request.PRACK) {
@@ -252,10 +256,9 @@ public class Shootist implements SipListener {
                         dialog.sendAck(ackRequest);
                         return;
                     }
-                    // Proxy will fork. I will accept the first dialog.
-                    this.forkedDialogs.add(dialog);
+                    
                     if ( responseReceivedEvent.getClientTransaction() != null ) {
-                        logger.info("Sending ACK");
+                        logger.info("Sending ACK " + ackRequest);
                         dialog.sendAck(ackRequest);
                         TestCase.assertTrue(
                                 "Dialog state should be CONFIRMED", dialog
@@ -270,8 +273,7 @@ public class Shootist implements SipListener {
                         }
 
 
-                    } else {
-                        this.canceledDialog.add(dialog);
+                    } else {                        
                         // Send ACK to quench re-transmission
                         sipProvider.sendRequest(ackRequest);
                         // Kill the second dialog by sending a bye.
@@ -304,7 +306,7 @@ public class Shootist implements SipListener {
                 TestHarness.assertEquals( DialogState.EARLY, dialog.getState() );
                 RequireHeader requireHeader = (RequireHeader) response.getHeader(RequireHeader.NAME);
                 if (requireHeader.getOptionTag().equalsIgnoreCase("100rel")) {
-                    prackTriggerReceived = true;                    
+                    numberOfRelResponsesReceived++;                    
                     Request prackRequest = dialog.createPrack(response);
                     // create Request URI
                     // SipURI requestURI = addressFactory.createSipURI(toUser,
@@ -349,7 +351,7 @@ public class Shootist implements SipListener {
                 if(cancelDelay > 0) {
                     return inviteErrorResponseSeen && cancelSent;
                 } else if(requireReliableProvisionalResponse) {
-                    return prackConfirmed && inviteOkSeen && byeResponseSeen; 
+                    return prackConfirmed && numberOfRelResponsesReceived >= 2 && inviteOkSeen && byeResponseSeen; 
                 } else {
                     return byeResponseSeen && inviteOkSeen;
                 }
