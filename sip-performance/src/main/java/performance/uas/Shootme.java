@@ -25,6 +25,7 @@ import javax.sip.address.SipURI;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.HeaderFactory;
 import javax.sip.header.ToHeader;
+import javax.sip.header.CSeqHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -117,7 +118,7 @@ public class Shootme implements SipListener {
             ServerTransaction serverTransaction) {
     	final Dialog dialog = requestEvent.getDialog();
     	final RequestExt request = (RequestExt) requestEvent.getRequest();
-    	if(((SipURI)request.getFromHeader().getAddress().getURI()).getUser().equalsIgnoreCase(TIMER_USER)) {
+    	if(((SipURI)request.getFromHeader().getCSeqHeader().getAddress().getURI()).getUser().equalsIgnoreCase(TIMER_USER)) {
     		timer.schedule(new ByeTask(dialog), BYE_DELAY) ;
     	}
     }
@@ -140,6 +141,7 @@ public class Shootme implements SipListener {
             Response response = messageFactory.createResponse(Response.RINGING,
                     request);            
             ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
+            CSeqHeader cSeqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NUMBER);
             toHeader.setTag(toTag); // Application is supposed to set.            
 			// Creates a dialog only for non trying responses				
             st.sendResponse(response);
@@ -151,6 +153,7 @@ public class Shootme implements SipListener {
             final ContactHeader contactHeader = headerFactory
                     .createContactHeader(address);
             response.addHeader(contactHeader);
+            cSeqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NUMBER);
             toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
             toHeader.setTag(toTag); // Application is supposed to set.
             st.sendResponse(response);
