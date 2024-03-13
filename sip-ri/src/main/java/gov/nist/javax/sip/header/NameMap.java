@@ -193,6 +193,7 @@ public class NameMap implements SIPHeaderNames, PackageNames {
         putNameMap(SESSION_EXPIRES, "SessionExpires");
         putNameMap(MIN_SE, "MinSE");
         putNameMap(REPLACES, "Replaces");
+        putNameMap(TARGET_DIALOG, "TargetDialog");
         // jean deruelle
         putNameMap(JOIN, "Join");
 

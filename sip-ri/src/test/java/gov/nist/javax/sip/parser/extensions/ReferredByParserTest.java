@@ -17,6 +17,6 @@ public class ReferredByParserTest extends ParserTestCase {
 
 
         super.testParser(ReferredByParser.class,to);
-    }
+    } 
 
 }

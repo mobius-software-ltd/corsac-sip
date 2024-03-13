@@ -32,6 +32,7 @@ import gov.nist.javax.sip.header.extensions.References;
 import gov.nist.javax.sip.header.extensions.ReferredBy;
 import gov.nist.javax.sip.header.extensions.Replaces;
 import gov.nist.javax.sip.header.extensions.SessionExpires;
+import gov.nist.javax.sip.header.extensions.TargetDialog;
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
 import gov.nist.javax.sip.header.ims.PAssertedIdentityHeader;
 import gov.nist.javax.sip.header.ims.PAssertedServiceHeader;
@@ -58,6 +59,7 @@ import gov.nist.javax.sip.parser.extensions.ReferencesParser;
 import gov.nist.javax.sip.parser.extensions.ReferredByParser;
 import gov.nist.javax.sip.parser.extensions.ReplacesParser;
 import gov.nist.javax.sip.parser.extensions.SessionExpiresParser;
+import gov.nist.javax.sip.parser.extensions.TargetDialogParser;
 import gov.nist.javax.sip.parser.ims.PAccessNetworkInfoParser;
 import gov.nist.javax.sip.parser.ims.PAssertedIdentityParser;
 import gov.nist.javax.sip.parser.ims.PAssertedServiceParser;
@@ -387,6 +389,10 @@ public class ParserFactory {
         
         //http://tools.ietf.org/html/draft-worley-references-05
         parserTable.put(References.NAME.toLowerCase(), ReferencesParser.class);
+        
+        //per RFC4538 (Mukha V.)
+        parserTable.put(TargetDialog.NAME.toLowerCase(), TargetDialogParser.class);
+        
         
     }
 

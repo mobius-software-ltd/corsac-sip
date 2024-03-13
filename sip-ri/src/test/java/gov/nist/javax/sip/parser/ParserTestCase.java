@@ -58,7 +58,7 @@ public abstract class ParserTestCase extends TestCase {
         System.out.println("start " + getClass().getName());
     }
 
-    protected void tearDown() throws Exception {
+    protected void tearDown() throws Exception {  
         super.tearDown();
         System.out.println("done " + getClass().getName());
     }

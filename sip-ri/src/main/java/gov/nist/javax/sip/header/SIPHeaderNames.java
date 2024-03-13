@@ -116,6 +116,7 @@ public interface SIPHeaderNames {
     public static final String MIN_SE = MinSEHeader.NAME; //50
     public static final String REPLACES = ReplacesHeader.NAME; //51
     public static final String JOIN = JoinHeader.NAME; //52
+    public static final String TARGET_DIALOG = TargetDialogHeader.NAME; //53
 
 }
 
