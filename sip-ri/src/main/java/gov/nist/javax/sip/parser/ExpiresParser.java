@@ -59,7 +59,7 @@ public class ExpiresParser extends HeaderParser {
 
     /**
      * Parse the header.
-     */
+     */ 
     public SIPHeader parse() throws ParseException {
         Expires expires = new Expires();
         if (debug)

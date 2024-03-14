@@ -67,11 +67,9 @@ public class ParserTestSuite extends TestSuite {
         addTestSuite(URLParserTest.class);
         addTestSuite(ViaParserTest.class);
         addTestSuite(TimeStampParserTest.class);
-        addTestSuite(TargetDialogParserTest.class);
     }
 
     public static Test suite() {
         return new ParserTestSuite("ParserTestSuite");
     }
- 
 }

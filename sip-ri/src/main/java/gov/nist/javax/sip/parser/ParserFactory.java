@@ -179,7 +179,7 @@ public class ParserFactory {
         parserTable.put("t", ToParser.class);
         parserTable.put(ToHeader.NAME.toLowerCase(), ToParser.class);
 
-        parserTable.put(FromHeader.NAME.toLowerCase(), FromParser.class);
+        parserTable.put(FromHeader.NAME.toLowerCase(), FromParser.class); 
         parserTable.put("f", FromParser.class);
 
         parserTable.put(CSeqHeader.NAME.toLowerCase(), CSeqParser.class);
@@ -390,7 +390,7 @@ public class ParserFactory {
         //http://tools.ietf.org/html/draft-worley-references-05
         parserTable.put(References.NAME.toLowerCase(), ReferencesParser.class);
         
-        //per RFC4538 (Mukha V.)
+        //per RFC4538 (Mukha Valeriia)
         parserTable.put(TargetDialog.NAME.toLowerCase(), TargetDialogParser.class);
         
         

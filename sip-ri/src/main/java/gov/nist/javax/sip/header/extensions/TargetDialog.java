@@ -2,25 +2,27 @@ package gov.nist.javax.sip.header.extensions;
 
 import java.text.ParseException;
 import java.util.Iterator;
+import gov.nist.core.NameValueList;
 import javax.sip.header.ExtensionHeader;
 import gov.nist.javax.sip.header.*;
 
 /**
  * SIP Target-Dialog header implementation.
+ *  @author ValeriiaMukha
  */
-public class TargetDialog extends AddressParametersHeader implements ExtensionHeader, TargetDialogHeader {
- 
+public class TargetDialog extends ParametersHeader implements ExtensionHeader, TargetDialogHeader {
+
     private static final long serialVersionUID = 1L;
-	protected CallIdentifier callId;
+    // Change access level to public
+    public CallIdentifier callId;
     public static final String NAME = SIPHeaderNames.TARGET_DIALOG;
 
     /**
      * Default constructor.
      */
-    public TargetDialog() { 
+    public TargetDialog() {
         super(NAME);
     }
-
     /**
      * Constructor with CallIdentifier.
      *
@@ -59,7 +61,11 @@ public class TargetDialog extends AddressParametersHeader implements ExtensionHe
     @Override
     public StringBuilder encodeBody(StringBuilder retval) {
         if (callId != null) {
-            return callId.encode(retval);
+            retval.append(callId.encode());
+            // Encode parameters
+            if (!parameters.isEmpty()) {
+                retval.append(SEMICOLON).append(parameters.encode());
+            }
         }
         return retval;
     }
@@ -81,24 +87,51 @@ public class TargetDialog extends AddressParametersHeader implements ExtensionHe
 
     @Override
     public String getParameter(String name) {
-        // Not implemented yet
-        return null;
+        return parameters.getValue(name, true).toString();
     }
 
     @Override
     public void setParameter(String name, String value) throws ParseException {
-        // Not implemented yet
+        parameters.set(name, value);
     }
 
     @Override
     public Iterator<String> getParameterNames() {
-        // Not implemented yet
-        return null;
+        return parameters.getNames();
     }
- 
-    @Override
+
+    @Override 
     public void removeParameter(String name) {
-        // Not implemented yet
+        parameters.delete(name);
+    }
+
+    /**
+     * Parses the header string into Call-Id and parameters.
+     *
+     * @param body the header string to parse
+     * @throws ParseException if the header string cannot be parsed
+     */
+    public void decodeBody(String body) throws ParseException {
+        int delimiter = body.indexOf(';');
+        String callIdStr = (delimiter != -1) ? body.substring(0, delimiter) : body;
+        setCallId(callIdStr.trim());
+        if (delimiter != -1) {
+            // Parse parameters if present
+            String parameterString = body.substring(delimiter + 1).trim();
+            if (!parameterString.isEmpty()) {
+                this.parameters = new NameValueList();
+                this.parameters.setSeparator(SEMICOLON);
+                this.parameters.setQuotedValue();
+                this.parameters.setEscaped(false);
+                String[] paramArray = parameterString.split(";");
+                for (String param : paramArray) {
+                    String[] pair = param.split("=");
+                    if (pair.length == 2) {
+                        this.parameters.set(pair[0].trim(), pair[1].trim());
+                    }
+                }
+            }
+        }
     }
 }
 

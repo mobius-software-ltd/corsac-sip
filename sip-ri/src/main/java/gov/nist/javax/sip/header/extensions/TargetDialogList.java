@@ -14,6 +14,7 @@ public final class TargetDialogList extends SIPHeaderList<TargetDialog> {
 
 	/**
      * Sets the Call-Id of the Target-Dialog header.
+     * @author ValeriiaMukha
      *
      * @param callId the Call-Id value to set
      * @throws ParseException if the callId is invalid and cannot be parsed
@@ -21,7 +22,7 @@ public final class TargetDialogList extends SIPHeaderList<TargetDialog> {
     void setCallId(String callId) throws ParseException {
         // Iterate over each TargetDialog in the list and set the Call-Id
         for (TargetDialog targetDialog : this) { 
-            targetDialog.setCallId(callId);
+            targetDialog.setCallId(callId); 
         }
     }
 

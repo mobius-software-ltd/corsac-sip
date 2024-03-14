@@ -110,7 +110,6 @@ import javax.sip.header.ViaHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.header.WarningHeader;
 
-
 /**
  * Lexer class for the parser.
  *

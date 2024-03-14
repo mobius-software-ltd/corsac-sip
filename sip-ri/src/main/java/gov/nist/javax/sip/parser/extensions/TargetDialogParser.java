@@ -1,24 +1,19 @@
+
 package gov.nist.javax.sip.parser.extensions;
 
-import java.text.ParseException;
 import gov.nist.javax.sip.header.*;
-import gov.nist.javax.sip.header.extensions.*;
+import gov.nist.javax.sip.header.extensions.TargetDialog;
 import gov.nist.javax.sip.parser.*;
 
-/**
- * ReferredBy Header parser.
- *
- * <a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
- *
- * Based on JAIN ReferToParser
- *
- */
-public class TargetDialogParser extends AddressParametersParser {
+import java.text.ParseException;
+import gov.nist.javax.sip.parser.ParametersParser;
 
-    /**
-     * Creates new ToParser
-     * @param referBy String to set
-     */
+/**
+ * Parser for Target-Dialog header.
+ * @author ValeriiaMukha
+ */
+public class TargetDialogParser extends ParametersParser {
+
     public TargetDialogParser(String targetDialog) {
         super(targetDialog);
     }
@@ -27,33 +22,38 @@ public class TargetDialogParser extends AddressParametersParser {
         super(lexer);
     }
 
+    @Override
     public SIPHeader parse() throws ParseException {
-        headerName(TokenTypes.TARGET_DIALOG);
-        TargetDialog target = new TargetDialog();
-        super.parse(target);
-        this.lexer.match('\n');
-        return target;
-    }
+        TargetDialog targetDialog = new TargetDialog();
+        try {
+            headerName(TokenTypes.TARGET_DIALOG);
+            this.lexer.SPorHT();
 
-    public static void main(String args[]) throws ParseException {
-        String to[] = {
-            "Target-Dialog: <sip:dave@denver.example.org?" +
-                    "Replaces=12345%40192.168.118.3%3Bto-tag%3D12345%3Bfrom-tag%3D5FFE-3994>\n",
-            "Target-Dialog: <sip:+1-650-555-2222@ss1.wcom.com;user=phone>;tag=5617\n",
-            "Target-Dialog: T. A. Watson <sip:watson@bell-telephone.com>\n",
-            "Target-Dialog: LittleGuy <sip:UserB@there.com>\n",
-            "Target-Dialog: sip:mranga@120.6.55.9\n",
-            "Target-Dialog: sip:mranga@129.6.55.9 ; tag=696928473514.129.6.55.9\n"
-        };
+            String callId;
+            char firstChar = this.lexer.lookAhead(0);
+            if (firstChar == '<') {
+                // Enclosed in <> (quoted string)
+                callId = this.lexer.quotedString();
+                this.lexer.match('>');
+            } else {
+                // Not enclosed in <> (SIP URI)
+                callId = this.lexer.byteStringNoSemicolon();
 
-        for (int i = 0; i < to.length; i++) {
-            TargetDialogParser tp = new TargetDialogParser(to[i]);
-            TargetDialog t = (TargetDialog) tp.parse();
-            System.out.println("encoded = " + t.encode());
+                // Check for unexpected characters (excluding whitespace)
+                if (callId.indexOf('<') >= 0 || callId.indexOf('>') >= 0) {
+                    throw new ParseException("Unexpected characters in Call-Id (<>): " + callId, this.lexer.getPtr());
+                }
+            }
 
+            targetDialog.setCallId(callId.trim());
+
+            super.parse(targetDialog); // Parse optional parameters (if implemented)
+            this.lexer.match('\n');
+
+        } catch (ParseException e) {
+            throw new ParseException("Error parsing target dialog: " + e.getMessage(), e.getErrorOffset());
         }
+
+        return targetDialog;
     }
-} 
-
-
-    
+}

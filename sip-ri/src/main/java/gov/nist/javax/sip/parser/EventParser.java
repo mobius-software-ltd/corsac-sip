@@ -49,7 +49,7 @@ public class EventParser extends ParametersParser {
         super(event);
     }
 
-    /**
+    /** 
      * Cosntructor
      * @param lexer the lexer to use to parse the header
      */

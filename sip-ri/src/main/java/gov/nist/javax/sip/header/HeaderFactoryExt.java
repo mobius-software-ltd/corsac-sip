@@ -295,7 +295,6 @@ public interface HeaderFactoryExt extends HeaderFactory {
      */
     public ReferencesHeader createReferencesHeader(String callId, String rel) throws ParseException;
     
-    
     /**
      * Create a header from a string. The string is assumed to be in the 
      * name:value format. The trailing CRLF (if any ) will be stripped

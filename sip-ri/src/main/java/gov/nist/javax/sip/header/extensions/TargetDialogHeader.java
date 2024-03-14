@@ -10,6 +10,7 @@ public interface TargetDialogHeader extends Parameters, Header{
 	 /**
      * Sets the Call-Id of the TargetDialogHeader. The CallId parameter uniquely
      * identifies a serious of messages within a dialogue.
+     *  @author ValeriiaMukha
      *
      * @param callId - the string value of the Call-Id of this TargetDialogHeader
      * @throws ParseException which signals that an error has been reached

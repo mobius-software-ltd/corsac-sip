@@ -57,13 +57,17 @@ public class NameValueList implements Serializable, Cloneable, Map<String,NameVa
 
     private Map<String,NameValue> hmap;
 
+    protected boolean isQuotedString; //@MukhaValeriia
+    private String quotes; 	//@MukhaValeriia		 
     private String separator;
     
+    
+    private boolean escaped; //@MukhaValeriia
     private boolean sync = false;
 
     /**
      * default constructor.
-     */
+     */ 
     public NameValueList() {
         this.separator = Separators.SEMICOLON;
         //jeand : lazy loading of the map to save on mem consumption
@@ -119,6 +123,25 @@ public class NameValueList implements Serializable, Cloneable, Map<String,NameVa
     public String toString() {
         return this.encode();
     }
+    
+    /**
+     * Set a namevalue object in this list. @MukhaValeriia
+     */
+    
+    public void setQuotedValue() {
+        isQuotedString = true;
+        this.quotes = Separators.DOUBLE_QUOTE;
+    }
+    
+    
+    /**
+     * Return true if the value is quoted in doublequotes. @MukhaValeriia
+     */
+    
+    public boolean isValueQuoted() {
+        return isQuotedString;
+    }
+
 
     /**
      * Set a namevalue object in this list.
@@ -415,5 +438,12 @@ public class NameValueList implements Serializable, Cloneable, Map<String,NameVa
 			}
 		}
 		return hmap;
+	}
+
+    
+   // Set the flag indicating whether backslashes are treated as escape characters @MukhaValeriia
+	public void setEscaped(boolean b) {
+		this.escaped = b;
+		
 	}
 }
