@@ -7,22 +7,21 @@ import gov.nist.javax.sip.header.*;
 
 /**
  * This interface represents the Target-Dialog SIP header list, as defined by RFC 4538.
+ * @author ValeriiaMukha
  */
 public final class TargetDialogList extends SIPHeaderList<TargetDialog> {
     
     private static final long serialVersionUID = 1L;
 
-	/**
-     * Sets the Call-Id of the Target-Dialog header.
-     * @author ValeriiaMukha
-     *
-     * @param callId the Call-Id value to set
-     * @throws ParseException if the callId is invalid and cannot be parsed
+    /**
+     * Default constructor, requires Call-Id to be set during instantiation.
+     * 
+     * @param callId the Call-Id value to set for all TargetDialogs in the list
      */
-    void setCallId(String callId) throws ParseException {
-        // Iterate over each TargetDialog in the list and set the Call-Id
-        for (TargetDialog targetDialog : this) { 
-            targetDialog.setCallId(callId); 
+    public TargetDialogList(String callId) throws ParseException {
+        super(TargetDialog.class, TargetDialogHeader.NAME);
+        for (TargetDialog targetDialog : this) {
+          targetDialog.setCallId(callId);
         }
     }
 
@@ -35,10 +34,5 @@ public final class TargetDialogList extends SIPHeaderList<TargetDialog> {
             retval.add((TargetDialog) targetDialog.clone());
         }
         return retval;
-    }
-
-    /** Default constructor */
-    public TargetDialogList() {
-        super(TargetDialog.class, TargetDialogHeader.NAME);
     }
 }
