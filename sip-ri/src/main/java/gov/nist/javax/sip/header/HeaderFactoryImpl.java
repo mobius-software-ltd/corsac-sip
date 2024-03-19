@@ -1807,7 +1807,7 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
     
     public TargetDialogHeader createTargetDialogHeader(String callId) throws ParseException {
     	        if (callId == null)
-    	            throw new NullPointerException("null arg callId");
+    	            throw new NullPointerException("callId shouldn't be null or empty");
     	       TargetDialog t = new TargetDialog();
     	        t.setCallId(callId);
     	        return t;

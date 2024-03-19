@@ -284,7 +284,8 @@ public interface HeaderFactoryExt extends HeaderFactory {
      * @return the newly created References header.
      * @throws ParseException 
      */
-    public TargetDialogHeader createTargetDialogHeader(String callId) throws ParseException;
+    public ReferencesHeader createReferencesHeader(String callId, String rel) throws ParseException;
+    
     
     /**
      * Create a Target Dialog header.
@@ -293,7 +294,7 @@ public interface HeaderFactoryExt extends HeaderFactory {
      * 
      * @return the newly created Target Dialog header.
      */
-    public ReferencesHeader createReferencesHeader(String callId, String rel) throws ParseException;
+    public TargetDialogHeader createTargetDialogHeader(String callId) throws ParseException;
     
     /**
      * Create a header from a string. The string is assumed to be in the 

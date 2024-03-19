@@ -113,8 +113,9 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
      */
     public void decodeBody(String body) throws ParseException {
         int delimiter = body.indexOf(';');
-        String callIdStr = (delimiter != -1) ? body.substring(0, delimiter) : body;
+        String callIdStr = delimiter != -1 ? body.substring(0, delimiter) : body;
         setCallId(callIdStr.trim());
+
         if (delimiter != -1) {
             // Parse parameters if present
             String parameterString = body.substring(delimiter + 1).trim();
@@ -133,5 +134,20 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
             }
         }
     }
-}
+
+    // Implement setRemoteTag and setLocalTag based on RFC specifications (if applicable)
+    @Override
+    public void setRemoteTag(String quotedString) {
+        // TODO: Implement remote tag parsing and validation (refer to RFC)
+        throw new UnsupportedOperationException("Remote tag not currently supported in Target-Dialog header");
+    }
+
+    @Override
+    public void setLocalTag(String quotedString) {
+        // TODO: Implement local tag parsing and validation (refer to RFC)
+        throw new UnsupportedOperationException("Local tag not currently supported in Target-Dialog header");
+        
+    }
+    }
+
 

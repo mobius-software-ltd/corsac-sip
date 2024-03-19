@@ -1,16 +1,12 @@
-
 package gov.nist.javax.sip.parser.extensions;
 
-import gov.nist.javax.sip.header.*;
 import gov.nist.javax.sip.header.extensions.TargetDialog;
-import gov.nist.javax.sip.parser.*;
-
 import java.text.ParseException;
-import gov.nist.javax.sip.parser.ParametersParser;
+import gov.nist.javax.sip.header.*;
+import gov.nist.javax.sip.parser.*;
 
 /**
  * Parser for Target-Dialog header.
- * @author ValeriiaMukha
  */
 public class TargetDialogParser extends ParametersParser {
 
@@ -47,6 +43,30 @@ public class TargetDialogParser extends ParametersParser {
 
             targetDialog.setCallId(callId.trim());
 
+            // Check for optional parameters (local-tag and/or remote-tag)
+            if (this.lexer.lookAhead(0) == ';') {
+                this.lexer.match(';');
+
+                // Parse local-tag (if present)
+                if (this.lexer.lookAhead(0) == 'l') {
+                    this.lexer.match('l');
+                    this.lexer.match('=');
+                    targetDialog.setLocalTag(this.lexer.quotedString());
+
+                    // Optional semicolon after local-tag (consume if present)
+                    if (this.lexer.lookAhead(0) == ';') {
+                        this.lexer.match(';');
+                    }
+                }
+
+                // Parse remote-tag (if present)
+                if (this.lexer.lookAhead(0) == 'r') {
+                    this.lexer.match('r');
+                    this.lexer.match('=');
+                    targetDialog.setRemoteTag(this.lexer.quotedString());
+                }
+            }
+
             super.parse(targetDialog); // Parse optional parameters (if implemented)
             this.lexer.match('\n');
 
@@ -57,3 +77,4 @@ public class TargetDialogParser extends ParametersParser {
         return targetDialog;
     }
 }
+

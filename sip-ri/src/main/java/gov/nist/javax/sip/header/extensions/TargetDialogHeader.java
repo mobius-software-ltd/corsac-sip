@@ -32,5 +32,11 @@ public interface TargetDialogHeader extends Parameters, Header{
      * Name of TargetDialogHeader
      */
 	public final static String NAME = "Target-Dialog";
+
+
+
+	void setRemoteTag(String quotedString);
+
+	void setLocalTag(String quotedString);
 	
 }

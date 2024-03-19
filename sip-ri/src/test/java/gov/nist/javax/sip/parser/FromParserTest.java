@@ -46,5 +46,5 @@ public class FromParserTest extends ParserTestCase {
             super.testParser(gov.nist.javax.sip.parser.FromParser.class,from); 
 
     }
-
+ 
 }
