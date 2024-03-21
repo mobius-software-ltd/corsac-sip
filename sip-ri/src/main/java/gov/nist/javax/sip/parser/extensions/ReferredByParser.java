@@ -22,7 +22,7 @@ public class ReferredByParser extends AddressParametersParser {
      */
     public ReferredByParser(String referBy) {
         super(referBy);
-    }
+    } 
 
     protected ReferredByParser(Lexer lexer) {
         super(lexer);

@@ -26,17 +26,24 @@ public interface TargetDialogHeader extends Parameters, Header{
      */
     public String getCallId();
 	
-	
+    /**
+     * @param tag - the new tag of the TargetDialogHeader
+     * @throws ParseException which signals that an error has been reached
+     * unexpectedly while parsing the Tag value.
+     */
+    public void setLocalTag(String localTag) throws ParseException;
+    public void setRemoteTag(String remoteTag) throws ParseException;
+    
+    /**
+     * @return the tag parameter of the TargetDialogHeader.
+     */
+
+    public String getLocalTag();
+    public String getRemoteTag(); 
 	
     /**
      * Name of TargetDialogHeader
      */
 	public final static String NAME = "Target-Dialog";
-
-
-
-	void setRemoteTag(String quotedString);
-
-	void setLocalTag(String quotedString);
 	
 }

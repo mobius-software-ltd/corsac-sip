@@ -1,12 +1,14 @@
 package gov.nist.javax.sip.parser.extensions;
 
-import gov.nist.javax.sip.header.extensions.TargetDialog;
-import java.text.ParseException;
 import gov.nist.javax.sip.header.*;
+import gov.nist.javax.sip.header.extensions.TargetDialog;
 import gov.nist.javax.sip.parser.*;
+
+import java.text.ParseException;
 
 /**
  * Parser for Target-Dialog header.
+ * @author valeriiamukha
  */
 public class TargetDialogParser extends ParametersParser {
 
@@ -25,49 +27,18 @@ public class TargetDialogParser extends ParametersParser {
             headerName(TokenTypes.TARGET_DIALOG);
             this.lexer.SPorHT();
 
-            String callId;
-            char firstChar = this.lexer.lookAhead(0);
-            if (firstChar == '<') {
-                // Enclosed in <> (quoted string)
-                callId = this.lexer.quotedString();
-                this.lexer.match('>');
-            } else {
-                // Not enclosed in <> (SIP URI)
-                callId = this.lexer.byteStringNoSemicolon();
-
-                // Check for unexpected characters (excluding whitespace)
-                if (callId.indexOf('<') >= 0 || callId.indexOf('>') >= 0) {
-                    throw new ParseException("Unexpected characters in Call-Id (<>): " + callId, this.lexer.getPtr());
-                }
-            }
-
+            String callId = this.lexer.byteStringNoSemicolon();
             targetDialog.setCallId(callId.trim());
 
-            // Check for optional parameters (local-tag and/or remote-tag)
-            if (this.lexer.lookAhead(0) == ';') {
-                this.lexer.match(';');
-
-                // Parse local-tag (if present)
-                if (this.lexer.lookAhead(0) == 'l') {
-                    this.lexer.match('l');
-                    this.lexer.match('=');
-                    targetDialog.setLocalTag(this.lexer.quotedString());
-
-                    // Optional semicolon after local-tag (consume if present)
-                    if (this.lexer.lookAhead(0) == ';') {
-                        this.lexer.match(';');
-                    }
-                }
-
-                // Parse remote-tag (if present)
-                if (this.lexer.lookAhead(0) == 'r') {
-                    this.lexer.match('r');
-                    this.lexer.match('=');
-                    targetDialog.setRemoteTag(this.lexer.quotedString());
-                }
+            // Parse parameters (including local and remote tags)
+            while (this.lexer.lookAhead(0) == ';') {
+                this.lexer.consume(1); // Consume the semicolon
+                this.lexer.SPorHT();
+                System.out.println("parameter='" + this.lexer.getBuffer() + "'");
+                super.parseNameValueList(targetDialog);
             }
 
-            super.parse(targetDialog); // Parse optional parameters (if implemented)
+            // Parse remaining characters (should be newline)
             this.lexer.match('\n');
 
         } catch (ParseException e) {

@@ -47,7 +47,7 @@ public class ToParser extends AddressParametersParser {
     public ToParser(String to) {
         super(to);
     }
-
+ 
     protected ToParser(Lexer lexer) {
         super(lexer);
     }

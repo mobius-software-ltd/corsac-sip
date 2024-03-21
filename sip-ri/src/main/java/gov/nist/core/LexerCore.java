@@ -308,7 +308,7 @@ public class LexerCore extends StringTokenizer {
             while (c == ' ' || c == '\t') {
                 consume(1);
                 c = lookAhead(0);
-            }
+            } 
         } catch (ParseException ex) {
             // Ignore
         }
