@@ -11,7 +11,7 @@ import java.text.ParseException;
  * @author valeriiamukha
  */
 public class TargetDialogParser extends ParametersParser {
-
+	
     public TargetDialogParser(String targetDialog) {
         super(targetDialog);
     }
@@ -34,7 +34,7 @@ public class TargetDialogParser extends ParametersParser {
             while (this.lexer.lookAhead(0) == ';') {
                 this.lexer.consume(1); // Consume the semicolon
                 this.lexer.SPorHT();
-                System.out.println("parameter='" + this.lexer.getBuffer() + "'");
+               // logger.trace("parameter='{}'", this.lexer.getBuffer()); // Commented out for now
                 super.parseNameValueList(targetDialog);
             }
 

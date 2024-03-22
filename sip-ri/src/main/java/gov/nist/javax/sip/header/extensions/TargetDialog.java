@@ -2,7 +2,6 @@ package gov.nist.javax.sip.header.extensions;
 
 import java.text.ParseException;
 import java.util.Iterator;
-import gov.nist.core.NameValueList;
 import javax.sip.header.ExtensionHeader;
 import gov.nist.javax.sip.header.*;
 
@@ -11,13 +10,14 @@ import gov.nist.javax.sip.header.*;
  */
 public class TargetDialog extends ParametersHeader implements ExtensionHeader, TargetDialogHeader {
 
-  private static final long serialVersionUID = 1L;
-  // Change access level to public
-  public CallIdentifier callId;
-  public static final String NAME = SIPHeaderNames.TARGET_DIALOG;
+	  private static final long serialVersionUID = 1L;
 
-  private String localTag;
-  private String remoteTag;
+	  public CallIdentifier callId;
+
+	  public static final String NAME = SIPHeaderNames.TARGET_DIALOG;
+
+	  private String localTag;
+	  private String remoteTag;
 
   /**
    * Default constructor.
@@ -112,13 +112,11 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
     if (callId != null) {
       retval.append(callId.encode());
       if (localTag != null) {
-        // RFC 4538 uses ";to-tag=" for local tag
-        retval.append(";to-tag=");
+        retval.append(";"); // Use semicolon directly
         retval.append(localTag);
       }
       if (remoteTag != null) {
-        // RFC 4538 uses ";from-tag=" for remote tag
-        retval.append(";from-tag=");
+        retval.append(";"); // Use semicolon directly
         retval.append(remoteTag);
       }
       // Encode parameters (if any)
@@ -173,40 +171,31 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
    * @throws ParseException if the header string cannot be parsed
    */
   public void decodeBody(String body) throws ParseException {
-    int localTagIndex = body.indexOf(";to-tag=");
-    int remoteTagIndex = body.indexOf(";from-tag=");
-    int delimiter = Math.min(localTagIndex != -1 ? localTagIndex : Integer.MAX_VALUE,
-        remoteTagIndex != -1 ? remoteTagIndex : Integer.MAX_VALUE);
+	    int localTagIndex = body.indexOf(';');
+	    int remoteTagIndex = body.indexOf(';');
 
-    String callIdStr = (delimiter != -1) ? body.substring(0, delimiter) : body;
-    setCallId(callIdStr.trim());
+	    if (localTagIndex != -1 && remoteTagIndex != -1) {
+	      // If both semicolons are present, ensure they're not next to each other
+	      if (localTagIndex == remoteTagIndex + 1) {
+	        throw new ParseException("Invalid Target-Dialog header format", 0);
+	      }
+	    }
 
-    if (localTagIndex != -1) {
-      int endLocalTag = body.indexOf(';', localTagIndex + 9);
-      localTag = body.substring(localTagIndex + 9, endLocalTag != -1 ? endLocalTag : body.length()).trim();
-    }
+	    int delimiter = localTagIndex != -1 ? localTagIndex : (remoteTagIndex != -1 ? remoteTagIndex : -1);
 
-    if (remoteTagIndex != -1) {
-      remoteTag = body.substring(remoteTagIndex + 10).trim();
-    }
+	    String callIdStr = (delimiter != -1) ? body.substring(0, delimiter) : body;
+	    setCallId(callIdStr.trim());
 
-    if (delimiter != -1) {
-      // Parse parameters if present
-      String parameterString = body.substring(delimiter + 1).trim();
-      if (!parameterString.isEmpty()) {
-        this.parameters = new NameValueList();
-        this.parameters.setSeparator(SEMICOLON);
-        this.parameters.setQuotedValue();
-        this.parameters.setEscaped(false);
-        String[] paramArray = parameterString.split(";");
-        for (String param : paramArray) {
-          String[] pair = param.split("=");
-          if (pair.length == 2) {
-            this.parameters.set(pair[0].trim(), pair[1].trim());
-          }
-        }
-      }
-    }
+	    if (localTagIndex != -1) {
+	      localTag = body.substring(localTagIndex + 1).trim(); // Skip leading semicolon
+	      int nextSemicolon = body.indexOf(';', localTagIndex + 1);
+	      if (nextSemicolon != -1 && nextSemicolon < remoteTagIndex) {
+	        throw new ParseException("Invalid local tag format in Target-Dialog header", 0);
+	      }
+	    }
+
+	    if (remoteTagIndex != -1) {
+	      remoteTag = body.substring(remoteTagIndex + 1).trim(); // Skip leading semicolon
+	    }
   }
 }
-
