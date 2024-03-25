@@ -162,4 +162,9 @@ public interface ParameterNames {
     public static final String PUB_GRUU = "pub-gruu";
     public static final String TEMP_GRUU = "temp-gruu";
     public static final String GRUU = "gruu";
+    
+    //Support for RFC 4538 @MukhaValeriia
+    public static final String LOCAL_TAG = "local-tag";
+    public static final String REMOTE_TAG = "remote-tag";
+
 }

@@ -56,13 +56,7 @@
             <version>2.0.38.Final</version>
             <classifier>linux-x86_64</classifier>
         </dependency>
-        <dependency>
-        	<groupId>com.mobius-software.protocols.sip</groupId>
-        	<artifactId>docs</artifactId>
-        	<version>10.1.0-2-SNAPSHOT</version>
-        </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>

@@ -1,7 +1,6 @@
 package gov.nist.javax.sip.header.extensions;
 
 import java.text.ParseException;
-import java.util.Iterator;
 import javax.sip.header.ExtensionHeader;
 import gov.nist.javax.sip.header.*;
 
@@ -10,192 +9,189 @@ import gov.nist.javax.sip.header.*;
  */
 public class TargetDialog extends ParametersHeader implements ExtensionHeader, TargetDialogHeader {
 
-	  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    
+    public CallIdentifier callIdentifier;
+    public String callId;
 
-	  public CallIdentifier callId;
+    public static final String NAME = SIPHeaderNames.TARGET_DIALOG;
 
-	  public static final String NAME = SIPHeaderNames.TARGET_DIALOG;
-
-	  private String localTag;
-	  private String remoteTag;
-
-  /**
-   * Default constructor.
-   */
-  public TargetDialog() {
-    super(NAME);
-  }
-
-  /**
-   * Constructor with CallIdentifier.
-   *
-   * @param cid CallIdentifier to set
-   */
-  public TargetDialog(CallIdentifier cid) {
-    super(NAME);
-    callId = cid;
-  }
-
-  /**
-   * Sets the Call-Id of the Target-Dialog header.
-   *
-   * @param callId the Call-Id value to set
-   * @throws ParseException if the provided callId cannot be parsed
-   */
-  public void setCallId(String callId) throws ParseException {
-    try {
-      // Instantiating a new CallIdentifier object using the provided callId
-      this.callId = new CallIdentifier(callId);
-    } catch (Exception e) {
-      // If an exception occurs during instantiation, throw a ParseException
-      throw new ParseException(e.getMessage(), 0);
+    /**
+     * Default constructor.
+     */
+    public TargetDialog() {
+        super(NAME);
     }
-  }
 
-  /**
-   * Gets the Call-Id value of the Target-Dialog header.
-   *
-   * @return the Call-Id value
-   */
-  public String getCallId() {
-    return callId != null ? callId.encode() : null;
-  }
-
-  // New methods for local and remote tags
-
-  /**
-   * Gets the local tag of the Target-Dialog header.
-   *
-   * @return the local tag value
-   */
-  public String getLocalTag() {
-    return localTag;
-  }
-
-  /**
-   * Sets the local tag of the Target-Dialog header.
-   *
-   * @param localTag the local tag value to set
-   * @throws ParseException if the provided localTag is invalid
-   */
-  public void setLocalTag(String localTag) throws ParseException {
-    if (localTag == null || localTag.trim().isEmpty()) {
-      throw new ParseException("Local tag cannot be null or empty", 0);
+    /**
+     * Constructor with CallIdentifier.
+     *
+     * @param cid CallIdentifier to set
+     */
+    public TargetDialog(String callId) throws IllegalArgumentException {
+        super(NAME);
+        this.callIdentifier = new CallIdentifier(callId);;
     }
-    this.localTag = localTag.trim();
-  }
 
-  /**
-   * Gets the remote tag of the Target-Dialog header.
-   *
-   * @return the remote tag value
-   */
-  public String getRemoteTag() {
-    return remoteTag;
-  }
-
-  /**
-   * Sets the remote tag of the Target-Dialog header.
-   *
-   * @param remoteTag the remote tag value to set
-   * @throws ParseException if the provided remoteTag is invalid
-   */
-  public void setRemoteTag(String remoteTag) throws ParseException {
-    if (remoteTag == null || remoteTag.trim().isEmpty()) {
-      throw new ParseException("Remote tag cannot be null or empty", 0);
+    /**
+     * Encode the body part of this header (i.e. leave out the hdrName).
+     * @return String encoded body part of the header.
+     */
+    public StringBuilder encodeBody(StringBuilder retval) {
+        if (callId == null)
+            return retval;
+        else {
+            retval.append(callId);
+            if (!parameters.isEmpty()) {
+                retval.append(SEMICOLON);
+                parameters.encode(retval);
+            }
+            return retval;
+        }
     }
-    this.remoteTag = remoteTag.trim();
-  }
-
-  @Override
-  public StringBuilder encodeBody(StringBuilder retval) {
-    if (callId != null) {
-      retval.append(callId.encode());
-      if (localTag != null) {
-        retval.append(";"); // Use semicolon directly
-        retval.append(localTag);
-      }
-      if (remoteTag != null) {
-        retval.append(";"); // Use semicolon directly
-        retval.append(remoteTag);
-      }
-      // Encode parameters (if any)
-      if (!parameters.isEmpty()) {
-        retval.append(SEMICOLON).append(parameters.encode());
-      }
+    /**
+     * get the CallId field. This does the same thing as encodeBody
+     *
+     * @return String the encoded body part of the
+     */
+    public String getCallId() {
+        return callId;
     }
-    return retval;
-  }
 
-  @Override
-  public Object clone() {
-    TargetDialog retval = (TargetDialog) super.clone();
-    if (callId != null) {
-      retval.callId = (CallIdentifier) callId.clone();
+    public CallIdentifier getCallIdentifer() {
+        return callIdentifier;
     }
-    retval.localTag = localTag;
-    retval.remoteTag = remoteTag;
-    return retval;
-  }
 
-  @Override
-  public void setValue(String value) throws ParseException {
-    // Not implemented yet, throw an exception to indicate it
-    throw new UnsupportedOperationException("setValue method is not implemented yet");
-  }
+    /**
+     * set the CallId field
+     * @param cid String to set. This is the body part of the Call-Id
+     *  header. It must have the form localId@host or localId.
+     * @throws IllegalArgumentException if cid is null, not a token, or is
+     * not a token@token.
+     */
+    public void setCallId(String cid) {
+        callId = cid;
+    }
 
-  @Override
-  public String getParameter(String name) {
-    return parameters.getValue(name, true).toString();
-  }
+    /**
+     * Set the callIdentifier member.
+     * @param cid CallIdentifier to set (localId@host).
+     */
+    public void setCallIdentifier(CallIdentifier cid) {
+        callIdentifier = cid;
+    }
 
-  @Override
-  public void setParameter(String name, String value) throws ParseException {
-    parameters.set(name, value);
-  }
+    /**
+     * Gets the local-tag parameter from the address param list.
+     * @return tag field
+     */
+    public String getLocalTag() {
+        if (parameters == null)
+            return null;
+        return getParameter(ParameterNames.LOCAL_TAG);
+    }
+    /**
+     * Sets the local tag of the Target-Dialog header.
+     *
+     * @param localTag the local tag value to set
+     * @throws ParseException if the provided localTag is invalid
+     */
+    public void setLocalTag(String t) throws ParseException {
+    	  if (t == null)
+              throw new NullPointerException("null tag ");
+          else if (t.trim().equals(""))
+              throw new ParseException("bad tag", 0);
+          this.setParameter(ParameterNames.LOCAL_TAG, t);
+    }
+    /** Boolean function
+     * @return true if the Tag exist
+     */
+    public boolean hasLocalTag() {
+        return hasParameter(ParameterNames.LOCAL_TAG);
+    }
 
-  @Override
-  public Iterator<String> getParameterNames() {
-    return parameters.getNames();
-  }
+    /** remove Tag member
+     */
+    public void removeLocalTag() {
+        parameters.delete(ParameterNames.LOCAL_TAG);
+        
+    }
+    /**
+     * Gets the remote tag of the Target-Dialog header.
+     *
+     * @return the remote tag value
+     */
+    public String getRemoteTag() {
+    	 if (parameters == null)
+             return null;
+         return getParameter(ParameterNames.REMOTE_TAG);
+    }
+    /**
+     * Sets the remote tag of the Target-Dialog header.
+     *
+     * @param remoteTag the remote tag value to set
+     * @throws ParseException if the provided remoteTag is invalid
+     */
+    public void setRemoteTag(String t) throws ParseException {
+    	  if (t == null)
+              throw new NullPointerException("null tag ");
+          else if (t.trim().equals(""))
+              throw new ParseException("bad tag", 0);
+          this.setParameter(ParameterNames.REMOTE_TAG, t);
+    }
+    /** Boolean function
+     * @return true if the Tag exist
+     */
+    public boolean hasRemoteTag() {
+        return hasParameter(ParameterNames.REMOTE_TAG);
+    }
 
-  @Override
-  public void removeParameter(String name) {
-    parameters.delete(name);
-  }
+    /** remove Tag member
+     */
+    public void removeRemoteTag() {
+        parameters.delete(ParameterNames.REMOTE_TAG);      
+    }
 
-  /**
-   * Parses the header string into Call-Id, local tag, remote tag, and parameters.
-   *
-   * @param body the header string to parse
-   * @throws ParseException if the header string cannot be parsed
-   */
-  public void decodeBody(String body) throws ParseException {
-	    int localTagIndex = body.indexOf(';');
-	    int remoteTagIndex = body.indexOf(';');
+    @Override
+    public void setValue(String value) throws ParseException {
+        throw new ParseException(value,0);
+    }
 
-	    if (localTagIndex != -1 && remoteTagIndex != -1) {
-	      // If both semicolons are present, ensure they're not next to each other
-	      if (localTagIndex == remoteTagIndex + 1) {
-	        throw new ParseException("Invalid Target-Dialog header format", 0);
-	      }
-	    }
 
-	    int delimiter = localTagIndex != -1 ? localTagIndex : (remoteTagIndex != -1 ? remoteTagIndex : -1);
+    /**
+     * Parses the header string into Call-Id, local tag, remote tag, and parameters.
+     *
+     * @param body the header string to parse
+     * @throws ParseException if the header string cannot be parsed
+     */
+    public void decodeBody(String body) {
+        try {
+            // Split the header by semicolons to extract each parameter
+            String[] params = body.split(";");
 
-	    String callIdStr = (delimiter != -1) ? body.substring(0, delimiter) : body;
-	    setCallId(callIdStr.trim());
+            // Extract the call ID from the first parameter
+            String callIdParam = params[0].trim();
+            int equalIndex = callIdParam.indexOf('=');
+            if (equalIndex != -1) {
+                setCallId(callIdParam.substring(equalIndex + 1).trim());
+            } else {
+                throw new ParseException("Invalid Target-Dialog header format: missing Call-Id", 0);
+            }
 
-	    if (localTagIndex != -1) {
-	      localTag = body.substring(localTagIndex + 1).trim(); // Skip leading semicolon
-	      int nextSemicolon = body.indexOf(';', localTagIndex + 1);
-	      if (nextSemicolon != -1 && nextSemicolon < remoteTagIndex) {
-	        throw new ParseException("Invalid local tag format in Target-Dialog header", 0);
-	      }
-	    }
-
-	    if (remoteTagIndex != -1) {
-	      remoteTag = body.substring(remoteTagIndex + 1).trim(); // Skip leading semicolon
-	    }
-  }
+            // Extract local and remote tags from subsequent parameters
+            for (int i = 1; i < params.length; i++) {
+                String param = params[i].trim();
+                equalIndex = param.indexOf('=');
+                if (equalIndex != -1) {
+                    String paramName = param.substring(0, equalIndex).trim();
+                    if (paramName.equals("local-tag")) {
+                    } else if (paramName.equals("remote-tag")) {
+                    }
+                }
+            }
+        } catch (ParseException e) {
+            // Handle the exception gracefully, e.g., log an error message
+            System.err.println("Error parsing Target-Dialog header: " + e.getMessage());
+        }
+    }
 }
