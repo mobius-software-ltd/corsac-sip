@@ -176,7 +176,7 @@ public class HeaderParser extends Parser {
         retval.setValue(body);
         return retval;
 
-    }
+    } 
 
     /**
      * Parse the header name until the colon  and chew WS after that.

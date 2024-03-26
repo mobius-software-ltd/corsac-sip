@@ -19,6 +19,7 @@
 */
 package gov.nist.javax.sip.parser;
 
+import gov.nist.javax.sip.parser.extensions.TargetDialogParserTest;
 import junit.framework.*;
 
 /** A test suite for all parser tests
@@ -58,7 +59,7 @@ public class ParserTestSuite extends TestSuite {
         addTestSuite(FromParserTest.class);
         addTestSuite(InReplyToParserTest.class);
         addTestSuite(MaxForwardsParserTest.class);
-        addTestSuite(MimeVersionParserTest.class);
+        addTestSuite(MimeVersionParserTest.class); 
         addTestSuite(MinExpiresParserTest.class);
         addTestSuite(OrganizationParserTest.class);
         addTestSuite(ReferToParserTest.class);
@@ -71,5 +72,4 @@ public class ParserTestSuite extends TestSuite {
     public static Test suite() {
         return new ParserTestSuite("ParserTestSuite");
     }
-
 }

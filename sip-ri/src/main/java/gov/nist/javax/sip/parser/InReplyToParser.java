@@ -43,7 +43,7 @@ public class InReplyToParser extends HeaderParser {
 
     /**
      * Creates a new instance of InReplyToParser
-     * @param inReplyTo the header to parse
+     * @param inReplyTo the header to parse 
      */
     public InReplyToParser(String inReplyTo) {
         super(inReplyTo);

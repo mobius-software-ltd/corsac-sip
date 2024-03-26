@@ -59,11 +59,12 @@ public class NameValueList implements Serializable, Cloneable, Map<String,NameVa
 
     private String separator;
     
+    
     private boolean sync = false;
 
     /**
      * default constructor.
-     */
+     */ 
     public NameValueList() {
         this.separator = Separators.SEMICOLON;
         //jeand : lazy loading of the map to save on mem consumption
@@ -72,7 +73,7 @@ public class NameValueList implements Serializable, Cloneable, Map<String,NameVa
 
     public NameValueList(boolean sync) {
         this.separator = Separators.SEMICOLON;
-        this.sync = sync;
+        this.sync = sync; 
         //jeand : lazy loading of the map to save on mem consumption
 //        if (sync)
 //            this.hmap = new ConcurrentHashMap<String,NameValue>(0);

@@ -16,20 +16,18 @@ import gov.nist.javax.sip.parser.*;
  *
  */
 public class ReferredByParser extends AddressParametersParser {
-
     /**
      * Creates new ToParser
      * @param referBy String to set
      */
     public ReferredByParser(String referBy) {
         super(referBy);
-    }
+    } 
 
     protected ReferredByParser(Lexer lexer) {
         super(lexer);
     }
     public SIPHeader parse() throws ParseException {
-
         headerName(TokenTypes.REFERREDBY_TO);
         ReferredBy referBy = new ReferredBy();
         super.parse(referBy);

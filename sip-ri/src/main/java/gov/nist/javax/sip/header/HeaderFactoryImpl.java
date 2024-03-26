@@ -102,6 +102,8 @@ import gov.nist.javax.sip.header.extensions.Replaces;
 import gov.nist.javax.sip.header.extensions.ReplacesHeader;
 import gov.nist.javax.sip.header.extensions.SessionExpires;
 import gov.nist.javax.sip.header.extensions.SessionExpiresHeader;
+import gov.nist.javax.sip.header.extensions.TargetDialog;
+import gov.nist.javax.sip.header.extensions.TargetDialogHeader;
 /* IMS headers - issued by Miguel Freitas */
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfo;
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
@@ -1793,9 +1795,24 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
         return retval;
     }
     
+
+    /**
+     * Create and return a references header.
+     * 
+     * @param callId
+     * @return
+     * @throws ParseException
+     */
+
     
-
-
+    public TargetDialogHeader createTargetDialogHeader(String callId) throws ParseException {
+    	        if (callId == null)
+    	            throw new NullPointerException("callId shouldn't be null or empty");
+    	       TargetDialog t = new TargetDialog();
+    	        t.setCallId(callId);
+    	        return t;
+    }
+   
     //////////////////////////////////////////////////////////
     // Constructor
     //////////////////////////////////////////////////////////

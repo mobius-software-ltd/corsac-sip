@@ -32,6 +32,7 @@ import gov.nist.javax.sip.header.extensions.ReferencesHeader;
 import gov.nist.javax.sip.header.extensions.ReferredByHeader;
 import gov.nist.javax.sip.header.extensions.ReplacesHeader;
 import gov.nist.javax.sip.header.extensions.SessionExpiresHeader;
+import gov.nist.javax.sip.header.extensions.TargetDialogHeader;
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
 import gov.nist.javax.sip.header.ims.PAssertedIdentityHeader;
 import gov.nist.javax.sip.header.ims.PAssertedServiceHeader;
@@ -381,6 +382,10 @@ public class Lexer extends LexerCore {
                 
                 // added References header
                 addKeyword(ReferencesHeader.NAME,TokenTypes.REFERENCES);
+                
+                // added for rfc4538
+                addKeyword(TargetDialogHeader.NAME,TokenTypes.TARGET_DIALOG);
+                
 
                 // end //
 
@@ -390,7 +395,7 @@ public class Lexer extends LexerCore {
             } else if (lexerName.equals("request_lineLexer")) {
                 addKeyword(TokenNames.SIP, TokenTypes.SIP);
             } else if (lexerName.equals("sip_urlLexer")) {
-                addKeyword(TokenNames.TEL, TokenTypes.TEL);
+                addKeyword(TokenNames.TEL, TokenTypes.TEL); 
                 addKeyword(TokenNames.SIP, TokenTypes.SIP);
                 addKeyword(TokenNames.SIPS, TokenTypes.SIPS);
             }

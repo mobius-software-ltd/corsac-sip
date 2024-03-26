@@ -166,6 +166,8 @@ public interface TokenTypes {
     public static final int P_ASSERTED_SERVICE = START + 97;
     //mranga - References header
     public static final int REFERENCES = START + 98;
+    //Mukha Valeriia: RFC 4538 Support
+    public static final int TARGET_DIALOG = START + 99;
 
     public static final int ALPHA = LexerCore.ALPHA;
     public static final int DIGIT = LexerCore.DIGIT;
@@ -206,7 +208,7 @@ public interface TokenTypes {
     public static final int QUESTION = (int) '?';
     public static final int AND = (int) '&';
     public static final int UNDERSCORE = (int) '_';
-
+	
 }
 /*
  * $Log: not supported by cvs2svn $

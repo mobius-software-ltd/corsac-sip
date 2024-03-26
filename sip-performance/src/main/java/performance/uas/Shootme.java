@@ -286,5 +286,4 @@ public class Shootme implements SipListener {
     	//Dialog dialog = dialogTerminatedEvent.getDialog();
     	//System.out.println(dialog);
     }
-
 }

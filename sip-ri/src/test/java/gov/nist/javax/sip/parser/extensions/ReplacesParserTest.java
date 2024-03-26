@@ -13,6 +13,5 @@ public class ReplacesParserTest extends ParserTestCase {
         super.testParser(ReplacesParser.class,to);
 
 
-    }
-
+    } 
 }

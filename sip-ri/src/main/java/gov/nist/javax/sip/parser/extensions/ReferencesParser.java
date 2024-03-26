@@ -20,7 +20,7 @@ public class ReferencesParser extends ParametersParser {
     /**
      * Constructor
      * @param lexer the lexer to use to parse the header
-     */
+     */ 
     protected ReferencesParser(Lexer lexer) {
         super(lexer);
     }

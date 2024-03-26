@@ -7,6 +7,7 @@ import gov.nist.javax.sip.header.extensions.ReferencesHeader;
 import gov.nist.javax.sip.header.extensions.ReferredByHeader;
 import gov.nist.javax.sip.header.extensions.ReplacesHeader;
 import gov.nist.javax.sip.header.extensions.SessionExpiresHeader;
+import gov.nist.javax.sip.header.extensions.TargetDialogHeader;
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
 import gov.nist.javax.sip.header.ims.PAssertedIdentityHeader;
 import gov.nist.javax.sip.header.ims.PAssertedServiceHeader;
@@ -279,11 +280,21 @@ public interface HeaderFactoryExt extends HeaderFactory {
      * Create a References header.
      * 
      * @param callId -- the referenced call Id.
-     * @param rel -- the rel parameter of the references header.
      * 
      * @return the newly created References header.
+     * @throws ParseException 
      */
     public ReferencesHeader createReferencesHeader(String callId, String rel) throws ParseException;
+    
+    
+    /**
+     * Create a Target Dialog header.
+     * 
+     * @param callId -- the target call Id.
+     * 
+     * @return the newly created Target Dialog header.
+     */
+    public TargetDialogHeader createTargetDialogHeader(String callId) throws ParseException;
     
     /**
      * Create a header from a string. The string is assumed to be in the 

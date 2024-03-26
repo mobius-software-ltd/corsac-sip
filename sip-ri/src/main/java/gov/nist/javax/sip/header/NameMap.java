@@ -75,7 +75,7 @@ public class NameMap implements SIPHeaderNames, PackageNames {
             try {
                 return Class.forName(className);
             } catch (ClassNotFoundException ex) {
-                return null;
+                return null; 
             }
         }
     }
@@ -193,10 +193,13 @@ public class NameMap implements SIPHeaderNames, PackageNames {
         putNameMap(SESSION_EXPIRES, "SessionExpires");
         putNameMap(MIN_SE, "MinSE");
         putNameMap(REPLACES, "Replaces");
+       
         // jean deruelle
         putNameMap(JOIN, "Join");
 
-
+        //Mukha Valeriia
+        putNameMap(TARGET_DIALOG, "TargetDialog");
+        
         // IMS Specific headers.
 
         putNameMap(PAccessNetworkInfoHeader.NAME, PAccessNetworkInfo.class.getName());

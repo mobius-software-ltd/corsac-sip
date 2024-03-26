@@ -43,8 +43,8 @@ public class FromParserTest extends ParserTestCase {
                 "From: \"A. G. Bell\" <sip:agb@bell-telephone.com> ;tag=a48s\n"
                  };
 
-            super.testParser(gov.nist.javax.sip.parser.FromParser.class,from);
+            super.testParser(gov.nist.javax.sip.parser.FromParser.class,from); 
 
     }
-
+ 
 }
