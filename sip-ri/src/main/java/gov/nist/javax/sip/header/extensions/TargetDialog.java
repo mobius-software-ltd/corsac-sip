@@ -154,10 +154,9 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
 
     @Override
     public void setValue(String value) throws ParseException {
-        throw new ParseException(value,0);
+        decodeBody(value);
     }
-
-
+    
     /**
      * Parses the header string into Call-Id, local tag, remote tag, and parameters.
      *
@@ -184,8 +183,11 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
                 equalIndex = param.indexOf('=');
                 if (equalIndex != -1) {
                     String paramName = param.substring(0, equalIndex).trim();
-                    if (paramName.equals("local-tag")) {
-                    } else if (paramName.equals("remote-tag")) {
+                    String paramValue = param.substring(equalIndex + 1).trim();
+                    if (paramName.equalsIgnoreCase(ParameterNames.LOCAL_TAG)) {
+                        setLocalTag(paramValue);
+                    } else if (paramName.equalsIgnoreCase(ParameterNames.REMOTE_TAG)) {
+                        setRemoteTag(paramValue);
                     }
                 }
             }

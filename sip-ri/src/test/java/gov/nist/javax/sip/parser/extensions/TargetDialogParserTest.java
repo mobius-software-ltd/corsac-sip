@@ -1,5 +1,7 @@
 package gov.nist.javax.sip.parser.extensions;
 
+import java.text.ParseException;
+
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.extensions.TargetDialog;
 import gov.nist.javax.sip.parser.ParserTestCase;
@@ -16,53 +18,39 @@ public class TargetDialogParserTest extends ParserTestCase {
         };
 
         super.testParser(TargetDialogParser.class, to);
-        //Additional test for toString method
-        for (String targetDialogHeader : to) {
-            try {
-                TargetDialogParser parser = new TargetDialogParser(targetDialogHeader);
-                SIPHeader header = parser.parse();
-                assertNotNull(header);
-                assertTrue(header instanceof TargetDialog);
-                String toString = header.toString();
-                assertNotNull(toString);
-                assertFalse(toString.isEmpty());
-                // Assert if toString doesn't throw any exception
-                TargetDialog targetDialog = (TargetDialog) header;
-                System.out.println("Target-dialog:");
-                System.out.println("Encoded header = " + toString);
-                System.out.println("CallId: " + targetDialog.getCallId());
-                printLocalTag(targetDialog);
-                printRemoteTag(targetDialog);
-            } catch (Exception e) {
-                fail("Exception occurred: " + e.getMessage());
-            }
+    }
+    
+    public void testParseCallIdAndParameters() {
+        String targetDialogHeader = "Target-dialog: 12345th5z8z;local-tag=localzght6-45;remote-tag=remotezght789-337-2\n";
+        try {
+            TargetDialogParser parser = new TargetDialogParser(targetDialogHeader);
+            SIPHeader header = parser.parse();
+            assertNotNull(header);
+            assertTrue(header instanceof TargetDialog);
+            TargetDialog targetDialog = (TargetDialog) header;
+
+            // Test parsing of callId and parameters
+            assertEquals("12345th5z8z", targetDialog.getCallId());
+            assertEquals("localzght6-45", targetDialog.getLocalTag());
+            assertEquals("remotezght789-337-2", targetDialog.getRemoteTag());
+        } catch (Exception e) {
+            fail("Exception occurred: " + e.getMessage());
         }
     }
 
-    private void printLocalTag(TargetDialog targetDialog) {
-        String localTag = targetDialog.getLocalTag();
-        System.out.println("Local-tag:");
-        if (localTag != null) {
-            System.out.println(localTag);
-        } else {
-            System.out.println("no local tag");
-        }
-    }
+    public void testEncodeBody() throws ParseException {
+        // Create a TargetDialog instance with specific values
+        TargetDialog targetDialog = new TargetDialog();
+        targetDialog.setCallId("12345th5z8z");
+        targetDialog.setLocalTag("localzght6-45");
+        targetDialog.setRemoteTag("remotezght789-337-2");
 
-    private void printRemoteTag(TargetDialog targetDialog) {
-        String remoteTag = targetDialog.getRemoteTag();
-        System.out.println("Remote-tag:");
-        if (remoteTag != null) {
-            System.out.println(remoteTag);
-        } else {
-            System.out.println("no remote tag");
-        }
+        // Encode the TargetDialog instance
+        StringBuilder encodedHeader = new StringBuilder();
+        targetDialog.encodeBody(encodedHeader);
+
+        // Test if the encoded header matches the expected format
+        String expectedHeader = "12345th5z8z;local-tag=localzght6-45;remote-tag=remotezght789-337-2\n";
+        assertEquals(expectedHeader.trim().toLowerCase(), encodedHeader.toString().trim().toLowerCase());
     }
 }
-
-
-
-
-
-
-
