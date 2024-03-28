@@ -108,9 +108,7 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * TRACE) If this is set to INFO or above, then incoming valid messages are
  * logged in SERVER_LOG. If you set this to 32 and specify a DEBUG_LOG then vast
  * amounts of trace information will be dumped in to the specified DEBUG_LOG.
- * The server log accumulates the signaling trace. <a href="{@docRoot}
- * /tools/tracesviewer/tracesviewer.html"> This can be viewed using the trace
- * viewer tool .</a> Please send us both the server log and debug log when
+ * The server log accumulates the signaling trace.Please send us both the server log and debug log when
  * reporting non-obvious problems. You can also use the strings DEBUG or INFO
  * for level 32 and 16 respectively. If the value of this property is set to
  * LOG4J, then the effective log levels are determined from the log4j settings
@@ -139,9 +137,7 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * integration with logging frameworks and for custom formatting of log records.
  * </b> Log valid incoming messages here. If this is left null AND the
  * TRACE_LEVEL is above INFO (or TRACE) then the messages are printed to stdout.
- * Otherwise messages are logged in a format that can later be viewed using the
- * trace viewer application which is located in the tools/tracesviewer
- * directory. <font color=red> Mail this to us with bug reports. </font></li>
+ * <font color=red> Mail this to us with bug reports. </font></li>
  *
  * <li><b>gov.nist.javax.sip.DEBUG_LOG = fileName </b> <b> Use of this property
  * is still supported but deprecated. Please use gov.nist.javax.sip.STACK_LOGGER

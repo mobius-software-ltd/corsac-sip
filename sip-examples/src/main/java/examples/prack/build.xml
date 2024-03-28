@@ -45,16 +45,6 @@
 		fork="true">
         </java>
      </target>
-    <target name="shootistlog" description= "Show the prack log" >
-        <java classname="tools.tracesviewer.TracesViewer" fork="true">
-	  <arg name="-server_file" value="prack.txt" />
-	</java>
-     </target>
-    <target name="shootmelog" description= "Show the prack log" >
-        <java classname="tools.tracesviewer.TracesViewer" fork="true">
-	  <arg name="-server_file" value="shootmelog.txt" />
-	</java>
-     </target>
 	
 
 </project>

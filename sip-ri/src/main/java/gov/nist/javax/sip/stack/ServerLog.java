@@ -49,7 +49,7 @@ import javax.sip.header.TimeStampHeader;
 /**
  * Log file wrapper class. Log messages into the message trace file and also write the log into
  * the debug file if needed. This class keeps an XML formatted trace around for later access via
- * RMI. The trace can be viewed with a trace viewer (see tools.traceviewerapp).
+ * RMI.
  *
  * @version 1.2 $Revision: 1.42 $ $Date: 2010-12-15 11:43:02 $
  *
@@ -174,7 +174,6 @@ public class ServerLog implements ServerLogger {
 
                 printWriter = new PrintWriter(fw, true);
                 printWriter.println("<!-- "
-                        + "Use the  Trace Viewer in src/tools/tracesviewer to"
                         + " view this  trace  \n"
                         + "Here are the stack configuration properties \n"
                         + "javax.sip.IP_ADDRESS= "

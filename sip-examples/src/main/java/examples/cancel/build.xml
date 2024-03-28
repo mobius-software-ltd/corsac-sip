@@ -44,16 +44,6 @@
         fork="true">
         </java>
      </target>
-    <target name="shootistlog" description= "Show the cancel log" >
-        <java classname="tools.tracesviewer.TracesViewer" fork="true">
-      <arg name="-server_file" value="cancellog.txt" />
-    </java>
-     </target>
-    <target name="shootmelog" description= "Show the cancel log" >
-        <java classname="tools.tracesviewer.TracesViewer" fork="true">
-      <arg name="-server_file" value="shootmelog.txt" />
-    </java>
-     </target>
      <target name="clean" description="clean the logs">
         <delete failonerror="false" >
             <fileset dir="." includes="*debug*.txt" />

@@ -52,7 +52,8 @@ public class Test implements SipListener {
         try {
             String filePath = System.getProperty("SIP_STACK_PROPERTIES_PATH");
             if (filePath == null) {
-                throw new RuntimeException("SIP_STACK_PROPERTIES_PATH environment variable not set");
+                //throw new RuntimeException("SIP_STACK_PROPERTIES_PATH environment variable not set");
+            	filePath = "src/test/resources/performance/uas/sip-stack.properties";
             }
             properties.load(new FileInputStream(new File(filePath)));
 			if(System.getProperty("javax.sip.IP_ADDRESS") != null) {
