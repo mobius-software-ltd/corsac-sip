@@ -18,6 +18,10 @@
  */
 package gov.nist.javax.sip.stack;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import javax.sip.Timeout;
 import javax.sip.TimeoutEvent;
 import javax.sip.TransactionState;
@@ -29,37 +33,69 @@ import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 
 class ExpiresTimerTask extends SIPStackTimerTask {
     private static StackLogger logger = CommonLogger.getLogger(ExpiresTimerTask.class);
-    private SIPClientTransactionImpl ct;
+    private SIPClientTransactionImpl clientTransaction;
+    private ExpiresTimerTaskData data;
 
     public ExpiresTimerTask(SIPClientTransactionImpl clientTransaction) {
-        super(ExpiresTimerTask.class.getSimpleName());
-        this.ct = clientTransaction;
+        super(ExpiresTimerTask.class.getSimpleName());        
+        this.clientTransaction = clientTransaction;
+        this.data = new ExpiresTimerTaskData(clientTransaction.getBranch());
     }
 
     @Override
     public void runTask() {
-        SipProviderImpl provider = ct.getSipProvider();
+        SipProviderImpl provider = clientTransaction.getSipProvider();
 
-        if (ct.getState() != TransactionState.TERMINATED) {
-            TimeoutEvent tte = new TimeoutEvent(provider, ct, Timeout.TRANSACTION);
-            provider.handleEvent(tte, ct);
+        if (clientTransaction.getState() != TransactionState.TERMINATED) {
+            TimeoutEvent tte = new TimeoutEvent(provider, clientTransaction, Timeout.TRANSACTION);
+            provider.handleEvent(tte, clientTransaction);
         } else {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("state = " + ct.getState());
+                logger.logDebug("state = " + clientTransaction.getState());
             }
         }
     }
 
     @Override
     public String getId() {
-        Request request = ct.getRequest();
+        Request request = clientTransaction.getRequest();
         if (request != null && request instanceof SIPRequest) {
             return ((SIPRequest) request).getCallIdHeader().getCallId();
         } else {
-            return ct.originalRequestCallId;
+            return clientTransaction.originalRequestCallId;
+        }
+    }
+
+    
+
+    @Override
+    public SipTimerTaskData getData() {                
+        return data;
+    }
+
+    class ExpiresTimerTaskData extends SipTimerTaskData {
+        private String clientTransactionId;        
+
+        public ExpiresTimerTaskData(String clientTransactionId) {
+            this.clientTransactionId = clientTransactionId;
+        }
+
+        public String getClientTransactionId() {
+            return clientTransactionId;
+        }
+
+        @Override
+        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            clientTransactionId = in.readUTF();
+        }
+
+        @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+            out.writeUTF(clientTransactionId);
         }
     }
 

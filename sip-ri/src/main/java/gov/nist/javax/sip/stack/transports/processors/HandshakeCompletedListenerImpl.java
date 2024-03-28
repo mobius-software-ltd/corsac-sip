@@ -22,6 +22,7 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.nio.NioTlsMessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.oio.TLSMessageChannel;
@@ -176,6 +177,11 @@ public class HandshakeCompletedListenerImpl implements HandshakeCompletedListene
              }
 			 logger.logInfo("socket closed " + socket + " on sslhandshaketimeout");
 		}
+
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
+        }
     	
     }
 

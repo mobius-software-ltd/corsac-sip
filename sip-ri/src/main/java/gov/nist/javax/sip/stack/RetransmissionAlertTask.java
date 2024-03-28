@@ -18,39 +18,39 @@
  */
 package gov.nist.javax.sip.stack;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import javax.sip.message.Request;
 
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 
 /**
  * This timer task is used for alerting the application to send retransmission
  * alerts.
  */
 class RetransmissionAlertTimerTask extends SIPStackTimerTask {
+    private RetransmissionAlertTimerTaskData data;
     SIPServerTransactionImpl serverTransaction;
-
-    String dialogId;
-
-    int ticks;
-
-    int ticksLeft;
 
     public RetransmissionAlertTimerTask(SIPServerTransactionImpl serverTransaction, String dialogId) {
         super(RetransmissionAlertTimerTask.class.getSimpleName());
+        this.data = new RetransmissionAlertTimerTaskData(serverTransaction.getBranch(), dialogId);
         this.serverTransaction = serverTransaction;
-        this.ticks = SIPTransactionImpl.T1;
-        this.ticksLeft = this.ticks;
+        data.ticks = SIPTransactionImpl.T1;
+        data.ticksLeft = data.ticks;
         // Fix from http://java.net/jira/browse/JSIP-443
         // by mitchell.c.ackerman
-        this.dialogId = dialogId;
     }
 
     public void runTask() {        
-        ticksLeft--;
-        if (ticksLeft == -1) {
+        data.ticksLeft--;
+        if (data.ticksLeft == -1) {
             serverTransaction.fireRetransmissionTimer();
-            this.ticksLeft = 2 * ticks;
+            data.ticksLeft = 2 * data.ticks;
         }
 
     }
@@ -62,6 +62,47 @@ class RetransmissionAlertTimerTask extends SIPStackTimerTask {
             return ((SIPRequest) request).getCallIdHeader().getCallId();
         } else {
             return serverTransaction.originalRequestCallId;
+        }
+    }
+
+    @Override
+    public RetransmissionAlertTimerTaskData getData() {
+        return data;
+    }
+
+    class RetransmissionAlertTimerTaskData extends SipTimerTaskData {
+        String serverTransactionId;        
+        String dialogId;  
+        int ticks;
+        int ticksLeft;      
+
+        public RetransmissionAlertTimerTaskData(String serverTransactionId, String dialogId) {
+            this.serverTransactionId = serverTransactionId;
+            this.dialogId = dialogId;  
+        }
+
+        public String getServerTransactionId() {
+            return serverTransactionId;
+        }
+
+        @Override
+        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            serverTransactionId = in.readUTF();
+            dialogId = in.readUTF();
+            ticks = in.readInt();
+            ticksLeft = in.readInt();
+        }
+
+        @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+            out.writeUTF(serverTransactionId);
+            out.writeUTF(dialogId);
+            out.writeInt(ticks);
+            out.writeInt(ticksLeft);
+        }
+
+        public String getDialogId() {
+            return dialogId;
         }
     }
 

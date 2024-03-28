@@ -2,7 +2,11 @@ package gov.nist.javax.sip.clientauthutils;
 
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.timers.SipTimer;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,28 +34,57 @@ class CredentialsCache {
     private SipTimer timer;
 
     class TimeoutTask extends SIPStackTimerTask {
-        String callId;
-        String userName;
+        TimeoutTaskData data;
+        
 
         public TimeoutTask(String userName, String callId) {
         	super(TimeoutTask.class.getSimpleName());
-            this.callId = callId;
-            this.userName = userName;
+            this.data = new TimeoutTaskData(callId, userName);
         }
         
         @Override
         public String getId() {
-            return callId;
+            return data.getCallId();
         }         
 
         public void runTask() {
-            authorizationHeaders.remove(callId);
-
+            authorizationHeaders.remove(data.getCallId());
         }
 
+        public SipTimerTaskData getData() {
+            return data;
+        }
     }
 
+    class TimeoutTaskData extends SipTimerTaskData {
+        private String callId;
+        private String userName;
 
+        public TimeoutTaskData(String callId, String userName) {
+            this.callId = callId;
+            this.userName = userName;
+        }
+
+        public String getCallId() {
+            return callId;
+        }
+
+        public String getUserName() {
+            return userName;
+        }
+
+        @Override
+        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            callId = in.readUTF();
+            userName = in.readUTF();
+        }
+
+        @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+            out.writeUTF(callId);
+            out.writeUTF(userName);
+        }
+    }
 
     CredentialsCache (SipTimer timer) {
         this.timer = timer;

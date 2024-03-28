@@ -37,6 +37,7 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 
 /**
  * @author jean.deruelle@gmail.com
@@ -55,10 +56,15 @@ public class SocketTimeoutAuditor extends SIPStackTimerTask {
 		this.nioHandler = nioHandler;
 	}
         
-        @Override
-        public String getId() {
-            return nioHandler.toString();
-        }        
+	@Override
+	public String getId() {
+		return nioHandler.toString();
+	}   
+	
+	@Override
+	public SipTimerTaskData getData() {
+		return null;
+	}
 	
 	public void runTask() {
 		int closedCount = 0;

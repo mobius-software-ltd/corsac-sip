@@ -63,6 +63,7 @@ import gov.nist.javax.sip.stack.ServerLog;
 import gov.nist.javax.sip.stack.ServerRequestInterface;
 import gov.nist.javax.sip.stack.ServerResponseInterface;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.nio.NioTcpMessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.oio.TCPMessageProcessor;
 
@@ -866,6 +867,11 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
 	                    peerAddress.getHostAddress(), peerPort, getTransport()));
 	            }
             }
+        }
+
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
         }
     }
 }

@@ -613,7 +613,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                                 .getHeader(EventHeader.NAME);
                         if (sipStack.isEventForked(event.getEventType())) {
 
-                            subscriptionDialog = sipStack.createDialog(
+                            subscriptionDialog = sipStack.createNewDialog(
                                     pendingSubscribeClientTx, transaction);
 
                         }
@@ -1738,7 +1738,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                         logger.logDebug(
                                 "Creating dialog for forked response " + sipResponse);
                     }
-                    sipDialog = this.sipStack.createDialog(sipProvider,
+                    sipDialog = this.sipStack.createNewDialog(sipProvider,
                             sipResponse);
                 }
             }

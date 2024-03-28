@@ -61,6 +61,7 @@ import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.ServerRequestInterface;
 import gov.nist.javax.sip.stack.ServerResponseInterface;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.HandshakeCompletedListenerImpl;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
@@ -1126,6 +1127,11 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 									peerAddress.getHostAddress(), peerPort, getTransport()));
 				}
 			}
+		}
+
+		@Override
+		public SipTimerTaskData getData() {
+			return null;
 		}
 	}
 

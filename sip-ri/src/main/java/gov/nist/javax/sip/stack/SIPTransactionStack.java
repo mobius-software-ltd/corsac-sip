@@ -19,6 +19,8 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -80,6 +82,7 @@ import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.MessageParserFactory;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.timers.SipTimer;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.ClientAuthType;
 import gov.nist.javax.sip.stack.transports.processors.ConnectionOrientedMessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
@@ -550,31 +553,61 @@ public abstract class SIPTransactionStack implements
             }
         }
 
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
+        }
     }
 
 
     class RemoveForkedTransactionTimerTask extends SIPStackTimerTask {
-        private final String id;
-        private final String forkId;
+        private RemoveForkedTransactionTimerTaskData data;
 
         public RemoveForkedTransactionTimerTask(String id, String forkId) {
         	super(RemoveForkedTransactionTimerTask.class.getSimpleName());
-            this.id = id;
-            this.forkId = forkId;
+            data = new RemoveForkedTransactionTimerTaskData(id, forkId);
         }
         
         @Override
         public String getId() {
-            return id;
+            return data.id;
         }         
 
         @Override
         public void runTask() {
         	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             	logger.logDebug(
-                        "Removing forked client transaction : forkId = " + forkId);
+                        "Removing forked client transaction : forkId = " + data.forkId);
         	}
-            forkedClientTransactionTable.remove(forkId);
+            forkedClientTransactionTable.remove(data.forkId);
+        }
+
+        @Override
+        public SipTimerTaskData getData() {
+            return data;
+        }
+
+        class RemoveForkedTransactionTimerTaskData extends SipTimerTaskData {
+            String id;
+            String forkId;
+
+
+            public RemoveForkedTransactionTimerTaskData(String id, String forkId) {
+                this.id = id;
+                this.forkId = forkId;  
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                id = in.readUTF();
+                forkId = in.readUTF();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                out.writeUTF(id);
+                out.writeUTF(forkId);
+            }
         }
 
     }
@@ -878,11 +911,11 @@ public abstract class SIPTransactionStack implements
                                 + dialogId + " earlyDialog= " + dialog);
                     }
                 } else {
-                    retval = new SIPDialog(transaction);
+                    retval = createNewDialog(transaction);
                     this.earlyDialogTable.put(dialogId, retval);
                 }
             } else {
-                retval = new SIPDialog(transaction);
+                retval = createNewDialog(transaction);
                 this.earlyDialogTable.put(dialogId, retval);
                 if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                     logger.logDebug("createDialog early Dialog not found : earlyDialogId="
@@ -890,7 +923,7 @@ public abstract class SIPTransactionStack implements
                 }
             }
         } else {
-            retval = new SIPDialog(transaction);
+            retval = createNewDialog(transaction);
         }
 
         return retval;
@@ -944,7 +977,7 @@ public abstract class SIPTransactionStack implements
             }
 
         } else {
-            retval = new SIPDialog(transaction, sipResponse);
+            retval = createNewDialog(transaction, sipResponse);
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createDialog early Dialog not found : earlyDialogId="
                         + earlyDialogId + " created one " + retval);
@@ -955,13 +988,38 @@ public abstract class SIPTransactionStack implements
     }
 
     /**
+     * Create a dialog given a transaction.
+     *
+     * @param transaction
+     *            -- tx to add to the dialog.
+     * @return the newly created Dialog.
+     */
+    public SIPDialog createNewDialog(SIPTransaction transaction) {
+        return new SIPDialog(transaction);
+    }
+
+    /**
+     * Create a dialog given a transaction and a response.
+     *
+     * @param transaction
+     *            -- tx to add to the dialog.
+     * @param sipResponse
+     *          -- sipResponse
+     * 
+     * @return the newly created Dialog.
+     */
+    public SIPDialog createNewDialog(SIPClientTransaction transaction, SIPResponse sipResponse) {
+        return new SIPDialog(transaction, sipResponse);
+    }
+    
+    /**
      * Create a Dialog given a sip provider and response.
      *
      * @param sipProvider
      * @param sipResponse
      * @return
      */
-    public SIPDialog createDialog(SipProviderImpl sipProvider,
+    public SIPDialog createNewDialog(SipProviderImpl sipProvider,
             SIPResponse sipResponse) {
         return new SIPDialog(sipProvider, sipResponse);
     }
@@ -982,7 +1040,7 @@ public abstract class SIPTransactionStack implements
      * 
      * 
      */
-    public SIPDialog createDialog(SIPClientTransaction subscribeTx, SIPTransaction notifyST) {
+    public SIPDialog createNewDialog(SIPClientTransaction subscribeTx, SIPTransaction notifyST) {
       return new SIPDialog(subscribeTx, notifyST);
     }
 
@@ -1894,8 +1952,7 @@ public abstract class SIPTransactionStack implements
      */
     public SIPClientTransaction createClientTransaction(SIPRequest sipRequest,
             MessageChannel encapsulatedMessageChannel) {
-        SIPClientTransaction ct = new SIPClientTransactionImpl(this,
-                encapsulatedMessageChannel);
+        SIPClientTransaction ct = createNewClientTransaction(sipRequest, encapsulatedMessageChannel);
         ct.setOriginalRequest(sipRequest);
         return ct;
     }
@@ -1913,7 +1970,7 @@ public abstract class SIPTransactionStack implements
         // unlimitedServerTransactionTableSize is true,
         // a new Server Transaction is created no matter what
         if (unlimitedServerTransactionTableSize) {
-            return new SIPServerTransactionImpl(this, encapsulatedMessageChannel);
+            return createNewServerTransaction(encapsulatedMessageChannel);
         } else {
             float threshold = ((float) (serverTransactionTable.size() - serverTransactionTableLowaterMark))
                     / ((float) (serverTransactionTableHighwaterMark - serverTransactionTableLowaterMark));
@@ -1921,12 +1978,33 @@ public abstract class SIPTransactionStack implements
             if (decision) {
                 return null;
             } else {
-                return new SIPServerTransactionImpl(this,
-                        encapsulatedMessageChannel);
+                return createNewServerTransaction(encapsulatedMessageChannel);
             }
 
         }
+    }
 
+    /**
+     * Creates a new client transaction that encapsulates a MessageChannel without any additional logic. 
+     * Useful for implementations that want to subclass the standard
+     *
+     * @param encapsulatedMessageChannel
+     *            Message channel of the transport layer.
+     */
+    public SIPClientTransactionImpl createNewClientTransaction(SIPRequest sipRequest,
+            MessageChannel encapsulatedMessageChannel) {
+        return new SIPClientTransactionImpl(this, encapsulatedMessageChannel);
+    }
+
+    /**
+     * Creates a new server transaction that encapsulates a MessageChannel without any additional logic. 
+     * Useful for implementations that want to subclass the standard
+     *
+     * @param encapsulatedMessageChannel
+     *            Message channel of the transport layer.
+     */
+    public SIPServerTransactionImpl createNewServerTransaction(MessageChannel encapsulatedMessageChannel) {
+        return new SIPServerTransactionImpl(this, encapsulatedMessageChannel);
     }
 
     /**

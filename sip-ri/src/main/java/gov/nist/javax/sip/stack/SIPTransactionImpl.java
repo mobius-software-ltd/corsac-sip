@@ -58,6 +58,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.RawMessageChannel;
@@ -297,6 +298,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
                 return originalRequestCallId;
             }
         }
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
+        }
     }
 
     /**
@@ -340,6 +345,11 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             } else {
                 return originalRequestCallId;
             }
+        }
+
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
         }
     }
 

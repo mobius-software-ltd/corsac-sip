@@ -19,6 +19,8 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.text.ParseException;
@@ -108,6 +110,7 @@ import gov.nist.javax.sip.parser.CallIDParser;
 import gov.nist.javax.sip.parser.ContactParser;
 import gov.nist.javax.sip.parser.RecordRouteParser;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
@@ -196,11 +199,11 @@ public class SIPDialog implements DialogExt {
 
     protected RouteList routeList;
 
-    private transient SIPTransactionStack sipStack;
+    protected transient SIPTransactionStack sipStack;
 
-    private int dialogState;
+    protected int dialogState;
 
-    private transient ACKWrapper lastAckSent;
+    protected transient ACKWrapper lastAckSent;
     
     // jeand : replaced the lastAckReceived message with only the data needed to
     // save on mem
@@ -426,6 +429,11 @@ public class SIPDialog implements DialogExt {
             return getCallId().getCallId();
         }
 
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
+        }
+
     }
 
     /**
@@ -592,22 +600,25 @@ public class SIPDialog implements DialogExt {
         public String getId() {
             return getCallId().getCallId();
         }
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
+        }
 
     }
 
     class DialogTimerTask extends SIPStackTimerTask implements Serializable {
-        private static final long serialVersionUID = 1L;
-
-		int nRetransmissions;
-
+        private static final long serialVersionUID = 1L;		
+        DialogTimerTaskData data;
         SIPServerTransaction transaction;
 
         // long cseqNumber;
 
         public DialogTimerTask(SIPServerTransaction transaction) {
         	super(DialogTimerTask.class.getSimpleName());
+            this.data = new DialogTimerTaskData(transaction.getBranch());
             this.transaction = transaction;
-            this.nRetransmissions = 0;
+            data.nRetransmissions = 0;
          }
 
         public void runTask() {
@@ -616,7 +627,7 @@ public class SIPDialog implements DialogExt {
             SIPDialog dialog = SIPDialog.this;
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug("Running dialog timer");
-            nRetransmissions++;
+            data.nRetransmissions++;
             SIPServerTransaction transaction = this.transaction;
             /*
              * Issue 106. Section 13.3.1.4 RFC 3261 The 2xx response is passed
@@ -627,7 +638,7 @@ public class SIPDialog implements DialogExt {
              * be terminated.
              */
 
-            if (nRetransmissions > sipStack.getAckTimeoutFactor()
+            if (data.nRetransmissions > sipStack.getAckTimeoutFactor()
                     * SIPTransaction.T1) {
                 if (SIPDialog.this.getSipProvider().getSipListener() != null
                         && SIPDialog.this.getSipProvider().getSipListener() instanceof SipListenerExt) {
@@ -694,6 +705,36 @@ public class SIPDialog implements DialogExt {
             return getCallId().getCallId();
         }
 
+        @Override
+        public SipTimerTaskData getData() {
+            return data;
+        }
+
+        class DialogTimerTaskData extends SipTimerTaskData {
+            private String serverTransactionId;        
+            int nRetransmissions;      
+
+            public DialogTimerTaskData(String serverTransactionId) {
+                this.serverTransactionId = serverTransactionId;
+            }
+
+            public String getServerTransactionId() {
+                return serverTransactionId;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                serverTransactionId = in.readUTF();
+                nRetransmissions = in.readInt();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                out.writeUTF(serverTransactionId);
+                out.writeInt(nRetransmissions);
+            }
+        }
+
     }
 
     /**
@@ -715,6 +756,10 @@ public class SIPDialog implements DialogExt {
         public String getId() {
             return getCallId().getCallId();
         }
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
+        }
 
     }
 
@@ -726,12 +771,11 @@ public class SIPDialog implements DialogExt {
     class DialogDeleteIfNoAckSentTask extends SIPStackTimerTask implements
             Serializable {
 		private static final long serialVersionUID = 1L;
-
-		private long seqno;
+		DialogDeleteIfNoAckSentTaskData data;
 
         public DialogDeleteIfNoAckSentTask(long seqno) {
         	super(DialogDeleteIfNoAckSentTask.class.getSimpleName());
-            this.seqno = seqno;
+            data = new DialogDeleteIfNoAckSentTaskData(seqno);
         }
         
         @Override
@@ -740,7 +784,7 @@ public class SIPDialog implements DialogExt {
         }        
 
         public void runTask() {
-            if (SIPDialog.this.highestSequenceNumberAcknowledged < seqno) {
+            if (SIPDialog.this.highestSequenceNumberAcknowledged < data.seqno) {
                 /*
                  * Did not send ACK so we need to delete the dialog. B2BUA NOTE:
                  * we may want to send BYE to the Dialog at this point. Do we
@@ -794,6 +838,29 @@ public class SIPDialog implements DialogExt {
             }
         }
 
+
+        @Override
+        public SipTimerTaskData getData() {
+            return data;
+        }
+
+        class DialogDeleteIfNoAckSentTaskData extends SipTimerTaskData {
+            long seqno;     
+
+            public DialogDeleteIfNoAckSentTaskData(long seqno) {
+                this.seqno = seqno;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                seqno = in.readLong();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                out.writeLong(seqno);
+            }
+        }
     }
 
     // ///////////////////////////////////////////////////////////
@@ -802,7 +869,7 @@ public class SIPDialog implements DialogExt {
     /**
      * Protected Dialog constructor.
      */
-    private SIPDialog(SipProviderImpl provider) {
+    protected SIPDialog(SipProviderImpl provider) {
         this.terminateOnBye = true;
         this.routeList = new RouteList();
         this.dialogState = NULL_STATE; // not yet initialized.

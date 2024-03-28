@@ -46,6 +46,7 @@ import gov.nist.javax.sip.message.MessageExt;
 import gov.nist.javax.sip.message.RequestExt;
 import gov.nist.javax.sip.message.ResponseExt;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
 import gov.nist.javax.sip.stack.transports.processors.nio.NioMessageProcessorFactory;
 import junit.framework.Assert;
@@ -361,7 +362,11 @@ public class StackTimerTest extends TestCase {
                     ex.printStackTrace();
                     fail("Unexpected exception ");
                 }
+            }
 
+            @Override
+            public SipTimerTaskData getData() {
+                return null;
             }
 
         }

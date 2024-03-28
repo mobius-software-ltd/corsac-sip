@@ -1,6 +1,6 @@
 /*
  * Mobius Software LTD
- * Copyright 2019 - 2023, Mobius Software LTD and individual contributors
+ * Copyright 2019 - 2024, Mobius Software LTD and individual contributors
  * by the @authors tag.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,21 +18,11 @@
  */
 package gov.nist.javax.sip.stack.timers;
 
-public interface SIPTimerTask {
-    /**     
-     * This id is used to guarantee serialization of the tasks.
-     * No two tasks with the same id will be executed at the same time.
-     * @return the id of the task
-     */
-    String getId();
-    /**
-     * Business logic of the task when it runs
-     */
-    void runTask();
+import java.io.Externalizable;
 
-    /**
-     * Get the data associated with the task
-     * @return
-     */
-    SipTimerTaskData getData();
+/**
+ * Separate the timer task data from the timer task itself.
+ */
+public abstract class SipTimerTaskData implements Externalizable {
+
 }

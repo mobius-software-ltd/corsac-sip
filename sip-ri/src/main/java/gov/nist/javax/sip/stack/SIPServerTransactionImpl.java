@@ -57,6 +57,7 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
@@ -267,6 +268,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 return originalRequestCallId;
             }
         }
+
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
+        }
     }
 
     class SIPServerTransactionTimer extends SIPStackTimerTask {
@@ -323,6 +329,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             } else {
                 return originalRequestCallId;
             }
+        }
+
+        @Override
+        public SipTimerTaskData getData() {
+            return null;
         }
 
     }
@@ -1418,7 +1429,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // to the one of the dialog.
             newResponse.setToTag(Utils.getInstance().generateTag());
             String earlyUASDialogId = newResponse.getDialogId(true);            
-            retval = new SIPDialog(this);            
+            retval = sipStack.createNewDialog(this);            
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createForkedUASDialog early Dialog not found : earlyDialogId="
                         + earlyUASDialogId + " created one " + retval);
@@ -1537,6 +1548,10 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                             return originalRequestCallId;
                         }
                     }
+                    @Override
+                    public SipTimerTaskData getData() {
+                        return null;
+                    }
                 };
                 if (time > 0) {
                     sipStack.getTimer().schedule(task, time * T1 * baseTimerInterval);
@@ -1606,9 +1621,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             sipDialog.setAssigned();
         if (this.retransmissionAlertEnabled && this.retransmissionAlertTimerTask != null) {
             sipStack.getTimer().cancel(retransmissionAlertTimerTask);
-            if (this.retransmissionAlertTimerTask.dialogId != null) {
+            if (this.retransmissionAlertTimerTask.getData().getDialogId() != null) {
                 sipStack.retransmissionAlertTransactions
-                        .remove(this.retransmissionAlertTimerTask.dialogId);
+                        .remove(this.retransmissionAlertTimerTask.getData().getDialogId());
             }
             this.retransmissionAlertTimerTask = null;
         }
@@ -1630,9 +1645,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         this.setState(TransactionState._TERMINATED);
         if (this.retransmissionAlertTimerTask != null) {
             sipStack.getTimer().cancel(retransmissionAlertTimerTask);
-            if (retransmissionAlertTimerTask.dialogId != null) {
+            if (retransmissionAlertTimerTask.getData().getDialogId() != null) {
                 this.sipStack.retransmissionAlertTransactions
-                        .remove(retransmissionAlertTimerTask.dialogId);
+                        .remove(retransmissionAlertTimerTask.getData().getDialogId());
             }
             this.retransmissionAlertTimerTask = null;
 
@@ -1684,7 +1699,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             sipStack.getTimer().cancel(retransmissionAlertTimerTask);
             this.retransmissionAlertEnabled = false;
 
-            String dialogId = this.retransmissionAlertTimerTask.dialogId;
+            String dialogId = this.retransmissionAlertTimerTask.getData().getDialogId();
             if (dialogId != null) {
                 sipStack.retransmissionAlertTransactions.remove(dialogId);
             }

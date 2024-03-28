@@ -28,6 +28,7 @@ package gov.nist.javax.sip.parser;
 import gov.nist.core.InternalErrorHandler;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.timers.SipTimer;
+import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,8 +93,15 @@ public class Pipeline extends InputStream {
         	this.pipeline = null;
         	super.cleanUpBeforeCancel();
         }
+
+        @Override
+        public SipTimerTaskData getData() {
+            // this timer is not used in the new netty stack so no need to support serialization
+            throw new UnsupportedOperationException("Unimplemented method 'getData'");
+        }
         
     }
+    
 
     class Buffer {
         byte[] bytes;

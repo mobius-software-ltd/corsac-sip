@@ -1412,7 +1412,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		}
 
 		super.rfc2543Supported = configurationProperties.getProperty(
-				"gov.nist.javax.sip.RFC_2543_SUPPORT_ENABLED", "true")
+				"gov.nist.javax.sip.RFC_2543_SUPPORT_ENABLED", "false")
 				.equalsIgnoreCase("true");
 
 		super.setPatchWebSocketHeaders(Boolean.parseBoolean(configurationProperties.getProperty(
@@ -1766,12 +1766,16 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		if (listeningPointImpl.sipProvider != null)
 			throw new ObjectInUseException("Provider already attached!");
 
-		SipProviderImpl provider = new SipProviderImpl(this);
+		SipProviderImpl provider = createNewSipProvider();
 
 		provider.setListeningPoint(listeningPointImpl);
 		listeningPointImpl.sipProvider = provider;
 		this.sipProviders.add(provider);
 		return provider;
+	}
+
+	public SipProviderImpl createNewSipProvider() {
+		return new SipProviderImpl(this);
 	}
 
 	/*
