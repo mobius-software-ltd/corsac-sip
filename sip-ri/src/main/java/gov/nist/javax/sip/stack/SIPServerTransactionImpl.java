@@ -19,6 +19,8 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -228,9 +230,12 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      *
      */
     class SendTrying extends SIPStackTimerTask {
+        SendTryingTaskData data;
 
         protected SendTrying() {
             super(SendTrying.class.getSimpleName());
+            data = new SendTryingTaskData(getTransactionId());
+
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug("scheduled timer for " + SIPServerTransactionImpl.this);
 
@@ -271,14 +276,40 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
         @Override
         public SipTimerTaskData getData() {
-            return null;
+            return data;
+        }
+
+        class SendTryingTaskData extends SipTimerTaskData {
+            private String serverTransactionId;
+
+            public SendTryingTaskData(String serverTransactionId) {
+                this.serverTransactionId = serverTransactionId;
+            }
+
+            public String getServerTransactionId() {
+                return serverTransactionId;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
+                serverTransactionId = in.readUTF();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
+                out.writeUTF(serverTransactionId);
+            }
         }
     }
 
     class SIPServerTransactionTimer extends SIPStackTimerTask {
+        SIPServerTransactionTimerTaskData data;
 
         public SIPServerTransactionTimer() {
             super(SIPServerTransactionTimer.class.getSimpleName());
+            data = new SIPServerTransactionTimerTaskData(getTransactionId());
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("TransactionTimer() : " + getTransactionId());
             }
@@ -333,10 +364,95 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
         @Override
         public SipTimerTaskData getData() {
-            return null;
+            return data;
+        }
+
+        class SIPServerTransactionTimerTaskData extends SipTimerTaskData {
+            private String serverTransactionId;
+
+            public SIPServerTransactionTimerTaskData(String serverTransactionId) {
+                this.serverTransactionId = serverTransactionId;
+            }
+
+            public String getServerTransactionId() {
+                return serverTransactionId;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
+                serverTransactionId = in.readUTF();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
+                out.writeUTF(serverTransactionId);
+            }
         }
 
     }
+
+    class SIPServerTransactionTimerJ extends SIPStackTimerTask {
+        SIPServerTransactionTimerJTaskData data;
+
+        public SIPServerTransactionTimerJ() {
+            super(TIMER_J_NAME);
+            data = new SIPServerTransactionTimerJTaskData(getTransactionId());
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("TransactionTimerJ() : " + getTransactionId());
+            }
+        }
+
+        public void runTask() {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("executing TransactionTimerJ() : " + getTransactionId());
+            }
+            fireTimeoutTimer();
+            cleanUp();
+            if (originalRequest != null) {
+                originalRequest.cleanUp();
+            }
+        }
+
+        @Override
+        public String getId() {
+            Request request = getRequest();
+            if (request != null && request instanceof SIPRequest) {
+                return ((SIPRequest) request).getCallIdHeader().getCallId();
+            } else {
+                return originalRequestCallId;
+            }
+        }
+        @Override
+        public SipTimerTaskData getData() {
+            return data;
+        }
+
+        class SIPServerTransactionTimerJTaskData extends SipTimerTaskData {
+            private String serverTransactionId;
+
+            public SIPServerTransactionTimerJTaskData(String serverTransactionId) {
+                this.serverTransactionId = serverTransactionId;
+            }
+
+            public String getServerTransactionId() {
+                return serverTransactionId;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
+                serverTransactionId = in.readUTF();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
+                out.writeUTF(serverTransactionId);
+            }
+        }
+    };
 
     /**
      * Send a response.
@@ -1526,33 +1642,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 }
                 // The timer is set to null when the Stack is
                 // shutting down.
-                SIPStackTimerTask task = new SIPStackTimerTask(TIMER_J_NAME) {
-
-                    public void runTask() {
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                            logger.logDebug("executing TransactionTimerJ() : " + getTransactionId());
-                        }
-                        fireTimeoutTimer();
-                        cleanUp();
-                        if (originalRequest != null) {
-                            originalRequest.cleanUp();
-                        }
-                    }
-
-                    @Override
-                    public String getId() {
-                        Request request = getRequest();
-                        if (request != null && request instanceof SIPRequest) {
-                            return ((SIPRequest) request).getCallIdHeader().getCallId();
-                        } else {
-                            return originalRequestCallId;
-                        }
-                    }
-                    @Override
-                    public SipTimerTaskData getData() {
-                        return null;
-                    }
-                };
+                SIPStackTimerTask task = new SIPServerTransactionTimerJ();
                 if (time > 0) {
                     sipStack.getTimer().schedule(task, time * T1 * baseTimerInterval);
                 } else {

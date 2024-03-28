@@ -75,12 +75,14 @@ class CredentialsCache {
 
         @Override
         public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            super.readExternal(in);
             callId = in.readUTF();
             userName = in.readUTF();
         }
 
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
+            super.writeExternal(out);
             out.writeUTF(callId);
             out.writeUTF(userName);
         }

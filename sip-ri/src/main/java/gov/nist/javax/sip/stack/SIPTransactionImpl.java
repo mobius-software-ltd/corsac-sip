@@ -19,6 +19,8 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.net.InetAddress;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
@@ -274,11 +276,13 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      *
      */
     class LingerTimer extends SIPStackTimerTask {
+        LingerTimerTaskData data;
 
         public LingerTimer() {
         	super(LingerTimer.class.getSimpleName());
+            SIPTransaction sipTransaction = SIPTransactionImpl.this;
+            data = new LingerTimerTaskData(sipTransaction.getTransactionId());
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            	SIPTransaction sipTransaction = SIPTransactionImpl.this;
                 logger.logDebug("LingerTimer : "
                         + sipTransaction.getTransactionId());
             }
@@ -300,7 +304,31 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         }
         @Override
         public SipTimerTaskData getData() {
-            return null;
+            return data;
+        }
+
+        class LingerTimerTaskData extends SipTimerTaskData {
+            private String transactionId;
+
+            public LingerTimerTaskData(String transactionId) {
+                this.transactionId = transactionId;
+            }
+
+            public String getTransactionId() {
+                return transactionId;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
+                transactionId = in.readUTF();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
+                out.writeUTF(transactionId);
+            }
         }
     }
 
@@ -310,9 +338,11 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      *
      */
     class MaxTxLifeTimeListener extends SIPStackTimerTask {
-    	
+    	MaxTxLifeTimeListenerTaskData data;
+
     	MaxTxLifeTimeListener() {
     		super(MaxTxLifeTimeListener.class.getSimpleName());
+            data = new MaxTxLifeTimeListenerTaskData(SIPTransactionImpl.this.getTransactionId());
     	}
         SIPTransaction sipTransaction = SIPTransactionImpl.this;
 
@@ -349,7 +379,31 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
         @Override
         public SipTimerTaskData getData() {
-            return null;
+            return data;
+        }
+
+        class MaxTxLifeTimeListenerTaskData extends SipTimerTaskData {
+            private String transactionId;
+
+            public MaxTxLifeTimeListenerTaskData(String transactionId) {
+                this.transactionId = transactionId;
+            }
+
+            public String getTransactionId() {
+                return transactionId;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
+                transactionId = in.readUTF();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
+                out.writeUTF(transactionId);
+            }
         }
     }
 

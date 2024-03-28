@@ -19,8 +19,8 @@
 */
 package gov.nist.javax.sip.parser;
 
-import gov.nist.javax.sip.parser.extensions.TargetDialogParserTest;
-import junit.framework.*;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
 /** A test suite for all parser tests
 

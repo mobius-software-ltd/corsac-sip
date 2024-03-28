@@ -19,6 +19,8 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.text.ParseException;
 import java.util.ListIterator;
 import java.util.Set;
@@ -237,9 +239,11 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   private boolean terminateDialogOnCleanUp = true;
 
   public class SIPClientTransactionTimer extends SIPStackTimerTask {
+    SIPClientTransactionTimerData data;
 
     public SIPClientTransactionTimer() {
       super(SIPClientTransactionTimer.class.getSimpleName());
+      data = new SIPClientTransactionTimerData(getTransactionId());
     }
 
     public void runTask() {
@@ -282,15 +286,41 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
     @Override
     public SipTimerTaskData getData() {
-      return null;
+      return data;
+    }
+
+    class SIPClientTransactionTimerData extends SipTimerTaskData {
+      private String clientTransactionId;
+
+      public SIPClientTransactionTimerData(String clientTransactionId) {
+        this.clientTransactionId = clientTransactionId;
+      }
+
+      public String getClientTransactionId() {
+        return clientTransactionId;
+      }
+
+      @Override
+      public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        super.readExternal(in);
+        clientTransactionId = in.readUTF();
+      }
+
+      @Override
+      public void writeExternal(ObjectOutput out) throws IOException {
+        super.writeExternal(out);
+        out.writeUTF(clientTransactionId);
+      }
     }
 
   }
 
   public class ClientTransactionTimerK extends SIPStackTimerTask {
+    SIPClientTransactionTimerKData data;
 
     ClientTransactionTimerK() {
       super(TIMER_K);
+      data = new SIPClientTransactionTimerKData(getTransactionId());
     }
 
     public void runTask() {
@@ -313,7 +343,30 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
     @Override
     public SipTimerTaskData getData() {
-      return null;
+      return data;
+    }
+    class SIPClientTransactionTimerKData extends SipTimerTaskData {
+      private String clientTransactionId;
+
+      public SIPClientTransactionTimerKData(String clientTransactionId) {
+        this.clientTransactionId = clientTransactionId;
+      }
+
+      public String getClientTransactionId() {
+        return clientTransactionId;
+      }
+
+      @Override
+      public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        super.readExternal(in);
+        clientTransactionId = in.readUTF();
+      }
+
+      @Override
+      public void writeExternal(ObjectOutput out) throws IOException {
+        super.writeExternal(out);
+        out.writeUTF(clientTransactionId);
+      }
     }
   }
 

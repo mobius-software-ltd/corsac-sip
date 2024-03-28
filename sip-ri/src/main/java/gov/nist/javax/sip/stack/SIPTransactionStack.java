@@ -555,7 +555,7 @@ public abstract class SIPTransactionStack implements
 
         @Override
         public SipTimerTaskData getData() {
-            return null;
+            throw new UnsupportedOperationException("This operation is not supported on this Timer");
         }
     }
 
@@ -599,12 +599,14 @@ public abstract class SIPTransactionStack implements
 
             @Override
             public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
                 id = in.readUTF();
                 forkId = in.readUTF();
             }
 
             @Override
             public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
                 out.writeUTF(id);
                 out.writeUTF(forkId);
             }

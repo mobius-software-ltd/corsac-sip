@@ -19,10 +19,32 @@
 package gov.nist.javax.sip.stack.timers;
 
 import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * Separate the timer task data from the timer task itself.
  */
 public abstract class SipTimerTaskData implements Externalizable {
+    Object timerGenericData;
+
+    public Object getTimerGenericData() {
+        return timerGenericData;
+    }
+
+    public void setTimerGenericData(Object timerGenericData) {
+        this.timerGenericData = timerGenericData;
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        timerGenericData = in.readObject();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(timerGenericData);        
+    }
 
 }

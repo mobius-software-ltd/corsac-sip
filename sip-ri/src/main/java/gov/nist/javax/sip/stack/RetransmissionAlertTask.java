@@ -87,6 +87,7 @@ class RetransmissionAlertTimerTask extends SIPStackTimerTask {
 
         @Override
         public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            super.readExternal(in);
             serverTransactionId = in.readUTF();
             dialogId = in.readUTF();
             ticks = in.readInt();
@@ -95,6 +96,7 @@ class RetransmissionAlertTimerTask extends SIPStackTimerTask {
 
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
+            super.writeExternal(out);
             out.writeUTF(serverTransactionId);
             out.writeUTF(dialogId);
             out.writeInt(ticks);

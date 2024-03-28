@@ -1131,7 +1131,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 		@Override
 		public SipTimerTaskData getData() {
-			return null;
+			throw new UnsupportedOperationException("This operation is not supported on this Timer");
 		}
 	}
 

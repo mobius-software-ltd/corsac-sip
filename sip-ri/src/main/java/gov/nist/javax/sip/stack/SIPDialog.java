@@ -400,10 +400,11 @@ public class SIPDialog implements DialogExt {
 
     class EarlyStateTimerTask extends SIPStackTimerTask implements Serializable {        
 		private static final long serialVersionUID = 1L;
+        EarlyStateTimerTaskData data;
 
 		public EarlyStateTimerTask() {
         	super(EarlyStateTimerTask.class.getSimpleName());
-
+            data = new EarlyStateTimerTaskData(getDialogId());
         }
 
         @Override
@@ -431,7 +432,32 @@ public class SIPDialog implements DialogExt {
 
         @Override
         public SipTimerTaskData getData() {
-            return null;
+            return data;
+        }
+
+        class EarlyStateTimerTaskData extends SipTimerTaskData {
+            private String dialogId;
+
+            public EarlyStateTimerTaskData(String dialogId) {
+                this.dialogId = dialogId;
+            }
+
+            public String getDialogId() {
+                return dialogId;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
+                dialogId = in.readUTF();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
+                out.writeUTF(dialogId);
+            }
+        
         }
 
     }
@@ -579,10 +605,13 @@ public class SIPDialog implements DialogExt {
 
     class LingerTimer extends SIPStackTimerTask implements Serializable {
 		private static final long serialVersionUID = 1L;
+        LingerTimerTaskData data;
 
 		LingerTimer(){
     		super(LingerTimer.class.getSimpleName());
+            data = new LingerTimerTaskData(getDialogId());
     	}
+
         public void runTask() {
             SIPDialog dialog = SIPDialog.this;
             sipStack.removeDialog(dialog);
@@ -602,7 +631,32 @@ public class SIPDialog implements DialogExt {
         }
         @Override
         public SipTimerTaskData getData() {
-            return null;
+            return data;
+        }
+
+        class LingerTimerTaskData extends SipTimerTaskData {
+            private String dialogId;
+
+            public LingerTimerTaskData(String dialogId) {
+                this.dialogId = dialogId;
+            }
+
+            public String getDialogId() {
+                return dialogId;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
+                dialogId = in.readUTF();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
+                out.writeUTF(dialogId);
+            }
+        
         }
 
     }
@@ -724,12 +778,14 @@ public class SIPDialog implements DialogExt {
 
             @Override
             public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
                 serverTransactionId = in.readUTF();
                 nRetransmissions = in.readInt();
             }
 
             @Override
             public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
                 out.writeUTF(serverTransactionId);
                 out.writeInt(nRetransmissions);
             }
@@ -744,10 +800,13 @@ public class SIPDialog implements DialogExt {
 
     class DialogDeleteTask extends SIPStackTimerTask implements Serializable {
 		private static final long serialVersionUID = 1L;
+        DialogDeleteTaskData data;
 
 		DialogDeleteTask() {
     		super(DialogDeleteTask.class.getSimpleName());
+            data = new DialogDeleteTaskData(getDialogId());
     	}
+        
         public void runTask() {
             delete();
         }
@@ -758,7 +817,32 @@ public class SIPDialog implements DialogExt {
         }
         @Override
         public SipTimerTaskData getData() {
-            return null;
+            return data;
+        }
+
+        class DialogDeleteTaskData extends SipTimerTaskData {
+            private String dialogId;
+
+            public DialogDeleteTaskData(String dialogId) {
+                this.dialogId = dialogId;
+            }
+
+            public String getDialogId() {
+                return dialogId;
+            }
+
+            @Override
+            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
+                dialogId = in.readUTF();
+            }
+
+            @Override
+            public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
+                out.writeUTF(dialogId);
+            }
+        
         }
 
     }
@@ -853,11 +937,13 @@ public class SIPDialog implements DialogExt {
 
             @Override
             public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+                super.readExternal(in);
                 seqno = in.readLong();
             }
 
             @Override
             public void writeExternal(ObjectOutput out) throws IOException {
+                super.writeExternal(out);
                 out.writeLong(seqno);
             }
         }
