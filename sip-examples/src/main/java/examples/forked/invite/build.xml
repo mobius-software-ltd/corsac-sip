@@ -41,22 +41,6 @@
         <java classname="examples.forked.invite.Proxy" fork="true" classpathref="project.class.path" />
     </target>
 
-    <target name="shootistlog" description="Show the  log">
-        <java classname="tools.tracesviewer.TracesViewer" fork="true">
-            <arg name="-server_file" value="shootistlog.txt" />
-        </java>
-    </target>
-    <target name="shootmelog" description="Show the  log">
-        <java classname="tools.tracesviewer.TracesViewer" fork="true">
-            <arg name="-server_file" value="shootmelog.txt" />
-        </java>
-    </target>
-    <target name="proxylog" description="Show the  log">
-        <java classname="tools.tracesviewer.TracesViewer" fork="true">
-            <arg name="-server_file" value="proxylog.txt" />
-        </java>
-    </target>
-
     <target name="clean" description="clean the logs">
         <delete file="proxydebug.txt" />
         <delete file="proxylog.txt" />

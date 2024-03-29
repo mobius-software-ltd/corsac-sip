@@ -59,34 +59,6 @@
 		<java classname="examples.subsnotify.Forker" fork="true" classpathref="project.class.path" />
 	</target>
 	
-	<target name="subscriberlog" description="Show the subscriber log">
-		<java classname="tools.tracesviewer.TracesViewer" 
-		      classpathref="project.class.path" fork="true">
-			<arg value= "-server_file" />
-			<arg value= "subscriberlog.txt" />
-		</java>
-	</target>
-	<target name="notifierlog" description="Show the notifier log">
-		<java classname="tools.tracesviewer.TracesViewer" 
-		      classpathref="project.class.path" fork="true">
-			<arg value="-server_file" />
-			<arg value="notifierlog_5070.txt" />
-		</java>
-	</target>
-	<target name="notifierlog2" description="Show the notifier log">
-		<java classname="tools.tracesviewer.TracesViewer" 
-		      classpathref="project.class.path" fork="true">
-			<arg value="-server_file" />
-			<arg value="notifierlog_5071.txt" />
-		</java>
-	</target>
-	<target name="forkerlog" description="Show the proxy log">
-		<java classname="tools.tracesviewer.TracesViewer" 
-		      classpathref="project.class.path" fork="true">
-			<arg value="-server_file" />
-			<arg value="forkerlog.txt" />
-		</java>
-	</target>
 	<target name="clean" description="clean the logs">
 		<delete failonerror="false" >
 			<fileset dir="." includes="*debug*.txt" />

@@ -38,16 +38,6 @@
 		</java>
 	</target>
 	
-	<target name="refererlog" description="Show the  log">
-		<java classname="tools.tracesviewer.TracesViewer" fork="true">
-			<arg name="-server_file" value="refererlog.txt" />
-		</java>
-	</target>
-	<target name="refereelog" description="Show the  log">
-		<java classname="tools.tracesviewer.TracesViewer" fork="true">
-			<arg name="-server_file" value="refereelog.txt" />
-		</java>
-	</target>
 	<target name="clean" description="clean the logs">
 		<delete failonerror="false" >
 			<fileset dir="." includes="*debug*.txt" />

@@ -41,13 +41,6 @@
         </java>
     </target>
 
-    <target name="ShootAuthlog" description="Show the notifier log">
-        <java classname="tools.tracesviewer.TracesViewer" classpathref="project.class.path" fork="true">
-            <arg value="-server_file" />
-            <arg value="ShootAuthlog.txt" />
-        </java>
-    </target>
-
     <target name="clean" description="clean the logs">
         <delete failonerror="false">
             <fileset dir="." includes="*debug*.txt" />
