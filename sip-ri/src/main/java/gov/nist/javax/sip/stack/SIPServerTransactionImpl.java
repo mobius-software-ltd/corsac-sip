@@ -183,7 +183,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     // Real RequestInterface to pass messages to
     private transient ServerRequestInterface requestOf;
 
-    private SIPDialog dialog;
+    protected SIPDialog dialog;
     // jeand needed because we nullify the dialog ref early and keep only the
     // dialogId to save on mem and help GC
     protected String dialogId;
@@ -196,9 +196,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
     protected boolean isAckSeen;
 
-    private SIPClientTransaction pendingSubscribeTransaction;
+    protected SIPClientTransaction pendingSubscribeTransaction;
 
-    private SIPServerTransaction inviteTransaction;
+    protected SIPServerTransaction inviteTransaction;
 
     // Experimental.
     // private static boolean interlockProvisionalResponses = true;
