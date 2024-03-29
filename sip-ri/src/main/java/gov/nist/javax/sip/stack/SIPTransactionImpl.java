@@ -153,16 +153,16 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     protected AtomicBoolean transactionTimerStarted = new AtomicBoolean(false);
 
     // Transaction branch ID
-    private String branch;
+    protected String branch;
 
     // Method of the Request used to create the transaction.
-    private String method;
+    protected String method;
 
     // Current transaction state
-    private int currentState = -1;
+    protected int currentState = -1;
 
     // Number of ticks the retransmission timer was set to last
-    private transient int retransmissionTimerLastTickCount;
+    protected transient int retransmissionTimerLastTickCount;
 
     // Number of ticks before the message is retransmitted
     protected transient int retransmissionTimerTicksLeft;
@@ -179,20 +179,20 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     // after the Transaction goes to terminated state.
     protected int collectionTime;
 
-    private boolean terminatedEventDelivered;
+    protected boolean terminatedEventDelivered;
 
     // aggressive flag to optimize eagerly
-    private ReleaseReferencesStrategy releaseReferencesStrategy;
+    protected ReleaseReferencesStrategy releaseReferencesStrategy;
 
     // caching flags
-    private Boolean inviteTransaction = null;
-    private Boolean dialogCreatingTransaction = null;
+    protected Boolean inviteTransaction = null;
+    protected Boolean dialogCreatingTransaction = null;
 
     // caching fork id
-    private String forkId = null;
+    protected String forkId = null;
     protected String mergeId = null;
 
-    public ExpiresTimerTask expiresTimerTask;
+    protected ExpiresTimerTask expiresTimerTask;
 	// http://java.net/jira/browse/JSIP-420
     private MaxTxLifeTimeListener maxTxLifeTimeListener;
 

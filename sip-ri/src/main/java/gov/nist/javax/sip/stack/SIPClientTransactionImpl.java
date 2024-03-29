@@ -184,27 +184,23 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  * @version 1.2 $Revision: 1.144 $ $Date: 2010-12-02 22:04:16 $
  */
 public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPClientTransaction {
-  private static final String TIMER_K = "TimerK";
-
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-
   private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.class);
+  private static final String TIMER_K = "TimerK";
+  private static final long serialVersionUID = 1L;  
+
   // a SIP Client transaction may belong simultaneously to multiple
   // dialogs in the early state. These dialogs all have
   // the same call ID and same From tag but different to tags.
 
   // jeand : we don't keep the ref to the dialogs but only to their id to save on
   // memory
-  private Set<String> sipDialogs;
+  protected Set<String> sipDialogs;
 
-  private SIPRequest lastRequest;
+  protected SIPRequest lastRequest;
 
-  private int viaPort;
+  protected int viaPort;
 
-  private String viaHost;
+  protected String viaHost;
 
   // Real ResponseInterface to pass messages to
   private transient ServerResponseInterface respondTo;
@@ -212,31 +208,31 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   // jeand: ref to the default dialog id to allow nullying the ref to the dialog
   // quickly
   // and thus saving on mem
-  private String defaultDialogId;
-  private SIPDialog defaultDialog;
+  protected String defaultDialogId;
+  protected SIPDialog defaultDialog;
 
-  private Hop nextHop;
+  protected Hop nextHop;
 
-  private boolean notifyOnRetransmit;
+  protected boolean notifyOnRetransmit;
 
-  private boolean timeoutIfStillInCallingState;
+  protected boolean timeoutIfStillInCallingState;
 
-  private int callingStateTimeoutCount;
+  protected int callingStateTimeoutCount;
 
   private transient SIPStackTimerTask transactionTimer;
 
   // jeand/ avoid keeping the full Original Request in memory
-  private String originalRequestFromTag;
-  private Event originalRequestEventHeader;
-  private Contact originalRequestContact;
-  private String originalRequestScheme;
+  protected String originalRequestFromTag;
+  protected Event originalRequestEventHeader;
+  protected Contact originalRequestContact;
+  protected String originalRequestScheme;
 
   // private transient Object transactionTimerLock = new Object();
-  private AtomicBoolean timerKStarted = new AtomicBoolean(false);
-  private AtomicBoolean transactionTimerCancelled = new AtomicBoolean(false);
-  private Set<Integer> responsesReceived = new CopyOnWriteArraySet<Integer>();
+  protected AtomicBoolean timerKStarted = new AtomicBoolean(false);
+  protected AtomicBoolean transactionTimerCancelled = new AtomicBoolean(false);
+  protected Set<Integer> responsesReceived = new CopyOnWriteArraySet<Integer>();
 
-  private boolean terminateDialogOnCleanUp = true;
+  protected boolean terminateDialogOnCleanUp = true;
 
   public class SIPClientTransactionTimer extends SIPStackTimerTask {
     SIPClientTransactionTimerData data;

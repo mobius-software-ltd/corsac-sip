@@ -209,14 +209,14 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
     // jeand we nullify the last response fast to save on mem and help GC, but we
     // keep only the information needed
-    private byte[] lastResponseAsBytes;
-    private String lastResponseHost;
-    private int lastResponsePort;
-    private String lastResponseTransport;
+    protected byte[] lastResponseAsBytes;
+    protected String lastResponseHost;
+    protected int lastResponsePort;
+    protected String lastResponseTransport;
 
-    private int lastResponseStatusCode;
+    protected int lastResponseStatusCode;
 
-    private HostPort originalRequestSentBy;
+    protected HostPort originalRequestSentBy;
     protected String originalRequestFromTag;
 
     // Table of early dialogs for B2BUA Use case

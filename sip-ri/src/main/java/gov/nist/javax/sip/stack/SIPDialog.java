@@ -144,8 +144,7 @@ public class SIPDialog implements DialogExt {
 
     private static final long serialVersionUID = -1429794423085204069L;
 
-    private transient AtomicBoolean dialogTerminatedEventDelivered; // prevent
-    // duplicate
+    private transient AtomicBoolean dialogTerminatedEventDelivered; // prevent duplicate
 
     // private transient String stackTrace; // for semaphore debugging.
 
@@ -156,10 +155,10 @@ public class SIPDialog implements DialogExt {
 
     protected boolean reInviteFlag;
 
-    private transient Object applicationData; // Opaque pointer to application
+    protected transient Object applicationData; // Opaque pointer to application
     // data.
 
-    private transient SIPRequest originalRequest;
+    protected transient SIPRequest originalRequest;
     // jeand : avoid keeping the original request ref above for too long (mem
     // saving)
     protected transient String originalRequestRecordRouteHeadersString;
@@ -169,7 +168,7 @@ public class SIPDialog implements DialogExt {
     // jeand replaced the last response with only the data from it needed to
     // save on mem
     protected String lastResponseDialogId;
-    private Via lastResponseTopMostVia;
+    protected Via lastResponseTopMostVia;
     protected Integer lastResponseStatusCode;
     protected long lastResponseCSeqNumber;
     protected long lastInviteResponseCSeqNumber;
@@ -217,17 +216,17 @@ public class SIPDialog implements DialogExt {
 
     protected transient AtomicLong nextSeqno;
 
-    private transient int retransmissionTicksLeft;
+    protected transient int retransmissionTicksLeft;
 
-    private transient int prevRetransmissionTicks;
+    protected transient int prevRetransmissionTicks;
 
     protected long originalLocalSequenceNumber;
 
     // This is for debugging only.
-    private transient int ackLine;
+    protected transient int ackLine;
 
     // Audit tag used by the SIP Stack audit
-    public transient long auditTag = 0;
+    protected transient long auditTag = 0;
 
     // The following fields are extracted from the request that created the
     // Dialog.
@@ -251,7 +250,7 @@ public class SIPDialog implements DialogExt {
 
     protected boolean serverTransactionFlag;
 
-    private transient SipProviderImpl sipProvider;
+    protected transient SipProviderImpl sipProvider;
 
     protected boolean terminateOnBye;
 
@@ -279,7 +278,7 @@ public class SIPDialog implements DialogExt {
 
     protected transient boolean isAcknowledged;
 
-    private transient long highestSequenceNumberAcknowledged = -1;
+    protected transient long highestSequenceNumberAcknowledged = -1;
 
     protected boolean isBackToBackUserAgent;
 
@@ -306,7 +305,7 @@ public class SIPDialog implements DialogExt {
     protected Contact contactHeader;
     protected String contactHeaderStringified;
 
-    private boolean pendingRouteUpdateOn202Response;
+    protected boolean pendingRouteUpdateOn202Response;
 
     protected ProxyAuthorizationHeader proxyAuthorizationHeader; // For
                                                                  // subequent
@@ -317,11 +316,11 @@ public class SIPDialog implements DialogExt {
 
     private transient EarlyStateTimerTask earlyStateTimerTask;
 
-    private int earlyDialogTimeout = 180;
+    protected int earlyDialogTimeout = 180;
 
-	private Set<String> responsesReceivedInForkingCase = new HashSet<String>(0);
+	protected Set<String> responsesReceivedInForkingCase = new HashSet<String>(0);
 
-    private SIPDialog originalDialog;
+    protected SIPDialog originalDialog;
 
     // private SIPResponse pendingReliableResponse;
     // wondering if the pendingReliableResponseAsBytes could be put into the
@@ -352,14 +351,16 @@ public class SIPDialog implements DialogExt {
             this.hop = hop; 
             this.lp = lp;   
         }
-
+        
         @Override
         public void send(SIPRequest ackRequest) throws SipException, IOException {
             InetAddress inetAddress = InetAddress.getByName(hop.getHost());
             messageChannel = lp.getMessageProcessor()
                     .createMessageChannel(inetAddress, hop.getPort());
-            messageChannel.sendMessage(ackRequest);
+            
+            SIPDialog.this.send(messageChannel, ackRequest);
         }
+
 
         @Override
         public void execute() {
@@ -806,7 +807,7 @@ public class SIPDialog implements DialogExt {
     		super(DialogDeleteTask.class.getSimpleName());
             data = new DialogDeleteTaskData(getDialogId());
     	}
-        
+
         public void runTask() {
             delete();
         }
@@ -1411,6 +1412,18 @@ public class SIPDialog implements DialogExt {
     void setRouteList(RouteList routeList) {
         this.routeList = routeList;
     }
+
+    /**
+     * Send ack request on a given message channel
+     * @param messageChannel
+     * @param ackRequest
+     * @throws SipException
+     * @throws IOException
+    */
+    protected void send(MessageChannel messageChannel, SIPRequest ackRequest) throws SipException, IOException {        
+        messageChannel.sendMessage(ackRequest);
+    }
+
 
     /**
      * Sends ACK Request to the remote party of this Dialogue.
