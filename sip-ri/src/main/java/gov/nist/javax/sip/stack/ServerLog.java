@@ -174,7 +174,6 @@ public class ServerLog implements ServerLogger {
 
                 printWriter = new PrintWriter(fw, true);
                 printWriter.println("<!-- "
-                        + " view this  trace  \n"
                         + "Here are the stack configuration properties \n"
                         + "javax.sip.IP_ADDRESS= "
                         + configurationProperties.getProperty("javax.sip.IP_ADDRESS") + "\n"

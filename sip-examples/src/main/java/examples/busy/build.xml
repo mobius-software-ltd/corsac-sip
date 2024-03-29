@@ -42,16 +42,6 @@
         classpathref="project.class.path"
     />
      </target>
-        	<target name="shootistlog" description="Show the log">
-        	    <java classname="gov.nist.core.LogWriter" fork="true">
-        	        <arg line="-server_file shootistlog.txt" /> 
-    </java>
-     </target>
-    <target name="shootmelog" description= "Show the  log" >
-        <java classname="gov.nist.core.LogWriter" fork="true">
-      <arg name="-server_file" value="shootmelog.txt" />
-    </java>
-     </target>
 
 
 </project>
