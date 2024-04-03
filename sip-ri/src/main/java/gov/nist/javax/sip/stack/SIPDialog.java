@@ -144,7 +144,7 @@ public class SIPDialog implements DialogExt {
 
     private static final long serialVersionUID = -1429794423085204069L;
 
-    private transient AtomicBoolean dialogTerminatedEventDelivered; // prevent duplicate
+    protected transient AtomicBoolean dialogTerminatedEventDelivered; // prevent duplicate
 
     // private transient String stackTrace; // for semaphore debugging.
 
@@ -312,7 +312,7 @@ public class SIPDialog implements DialogExt {
                                                                  // requests.
 
     // aggressive flag to optimize eagerly
-    private ReleaseReferencesStrategy releaseReferencesStrategy;
+    protected ReleaseReferencesStrategy releaseReferencesStrategy;
 
     private transient EarlyStateTimerTask earlyStateTimerTask;
 
@@ -1844,7 +1844,7 @@ public class SIPDialog implements DialogExt {
         return lastAckSent != null ? lastAckSent.getDialogId() : null;
     }
     
-    final class ACKWrapper {
+    protected final class ACKWrapper {
         String msgBytes;
         String fromTag;
         String dialogId;
@@ -4231,7 +4231,7 @@ public class SIPDialog implements DialogExt {
         }
     }
 
-    String getEarlyDialogId() {
+    public String getEarlyDialogId() {
         return earlyDialogId;
     }
 

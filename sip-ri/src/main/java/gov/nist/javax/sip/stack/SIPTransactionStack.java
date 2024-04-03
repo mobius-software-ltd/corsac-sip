@@ -2049,13 +2049,13 @@ public abstract class SIPTransactionStack implements
      * Remove transaction. This actually gets the tx out of the search
      * structures which the stack keeps around. When the tx
      */
-    public void removeTransaction(SIPTransaction sipTransaction) {
+    public SIPTransaction removeTransaction(SIPTransaction sipTransaction) {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("removeTransaction: Removing Transaction = "
                     + sipTransaction.getTransactionId() + " transaction = "
                     + sipTransaction);
         }
-        Object removed = null;
+        SIPTransaction removed = null;
         try {
         	if (sipTransaction instanceof SIPServerTransaction) {
         		if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
@@ -2113,7 +2113,7 @@ public abstract class SIPTransactionStack implements
         		if (removed != null
         				&& sipTransaction.testAndSetTransactionTerminatedEvent()) {
         			SipProviderImpl sipProvider = (SipProviderImpl) sipTransaction
-        			.getSipProvider();
+        			    .getSipProvider();
         			TransactionTerminatedEvent event = new TransactionTerminatedEvent(
         					sipProvider, (ClientTransaction) sipTransaction);
 
@@ -2126,7 +2126,7 @@ public abstract class SIPTransactionStack implements
         	if(removed != null) {
             	((SIPTransaction)removed).cancelMaxTxLifeTimeTimer();
             }
-        	if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+        	if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
         		logger.logDebug(String.format("removeTransaction: Table size : " +
         				" clientTransactionTable %d " +
         				" serverTransactionTable %d " +
@@ -2141,7 +2141,9 @@ public abstract class SIPTransactionStack implements
         				forkedClientTransactionTable.size(),
         				pendingTransactions.size()
         		));
+            }            
         }
+        return removed;
     }
 
     /**
@@ -2245,11 +2247,11 @@ public abstract class SIPTransactionStack implements
     /**
      * Remove the transaction from transaction hash.
      */
-    protected void removeTransactionHash(SIPTransaction sipTransaction) {
+    protected SIPTransaction removeTransactionHash(SIPTransaction sipTransaction) {
         SIPRequest sipRequest = sipTransaction.getOriginalRequest();
         if (sipRequest == null)
-            return;
-        Object removed = null;
+            return null;
+        SIPTransaction removed = null;
         if (sipTransaction instanceof SIPClientTransaction) {
             String key = sipTransaction.getTransactionId();
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -2269,7 +2271,10 @@ public abstract class SIPTransactionStack implements
         if(removed != null) {
         	((SIPTransaction)removed).cancelMaxTxLifeTimeTimer();
         }
+        return removed;
     }
+
+
 
     /**
      * Invoked when an error has ocurred with a transaction.

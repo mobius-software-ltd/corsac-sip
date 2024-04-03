@@ -185,7 +185,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     protected ReleaseReferencesStrategy releaseReferencesStrategy;
 
     // caching flags
-    protected Boolean inviteTransaction = null;
+    protected Boolean isInviteTransaction = null;
     protected Boolean dialogCreatingTransaction = null;
 
     // caching fork id
@@ -557,10 +557,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public boolean isInviteTransaction() {
-        if (inviteTransaction == null) {
-        	inviteTransaction = Boolean.valueOf(getMethod().equals(Request.INVITE));
+        if (isInviteTransaction == null) {
+        	isInviteTransaction = Boolean.valueOf(getMethod().equals(Request.INVITE));
         }
-    	return inviteTransaction.booleanValue();
+    	return isInviteTransaction.booleanValue();
     }
 
     /**
