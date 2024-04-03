@@ -115,7 +115,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     // Proposed feature for next release.
     private static final String DEFAULT_APP_DATA = "appdata.default";
-    protected transient final ConcurrentMap<String, Object> applicationData;
+    protected transient ConcurrentMap<String, Object> applicationData;
 
     protected SIPResponse lastResponse;
 
