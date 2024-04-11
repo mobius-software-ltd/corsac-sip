@@ -1545,7 +1545,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // to the one of the dialog.
             newResponse.setToTag(Utils.getInstance().generateTag());
             String earlyUASDialogId = newResponse.getDialogId(true);            
-            retval = sipStack.createNewDialog(this);            
+            retval = sipStack.createNewDialog(this, dialog.getDialogId(), true);            
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createForkedUASDialog early Dialog not found : earlyDialogId="
                         + earlyUASDialogId + " created one " + retval);
@@ -1557,7 +1557,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // mid dialog requests coming from UAS Side
             // earlyUASDialogTable.put(earlyUASDialogId, retval);
             earlyUACDialogTable.put(earlyUACDialogId, retval);
-            sipStack.earlyDialogTable.put(dialog.getDialogId(), retval);
+            // done as part of CreateNewDialog now
+            // sipStack.earlyDialogTable.put(dialog.getDialogId(), retval);
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createForkedUASDialog added early Dialog earlyDialogId="
                         + earlyUASDialogId + " original dialog Id " + dialog.getDialogId() + " created one " + retval + " to sip stack erarl dialog table");

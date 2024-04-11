@@ -1755,9 +1755,12 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     if (this.defaultDialog == null && defaultDialogId == null) {
       this.defaultDialog = sipDialog;
       // We only deal with Forked INVITEs.
-      if (isInviteTransaction() && this.getSIPStack().getMaxForkTime() != 0) {
-        this.getSIPStack().addForkedClientTransaction(this);
-      }
+      String requestForkId = ((SIPRequest)getRequest()).getForkId();
+      setForkId(requestForkId);
+      // replaced by code above
+      // if (isInviteTransaction() && this.getSIPStack().getMaxForkTime() != 0) {
+      //   this.getSIPStack().addForkedClientTransaction(this);
+      // }
     }
     if (dialogId != null && sipDialog.getDialogId() != null && sipDialogs != null) {
       this.sipDialogs.add(dialogId);

@@ -1527,11 +1527,13 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 
             if (sipStack.getMaxForkTime() != 0
                     && SIPTransactionStack.isDialogCreatingMethod(response.getCSeqHeader().getMethod())) {
+                String branchId = response.getTopmostVia().getBranch();
             	if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
-                    logger.logDebug("Trying to find forked Transaction for forked id " + response.getForkId());
+                    logger.logDebug("Trying to find forked Transaction for forked id " + 
+                        response.getForkId() + " transactionId " + branchId);
                 }
                 SIPClientTransaction forked = this.sipStack
-                        .getForkedTransaction(response.getForkId());
+                        .getForkedTransaction(response.getForkId(), branchId);
                 
                 if(dialog != null && forked != null) {
                     dialog.checkRetransmissionForForking(response);
@@ -1567,8 +1569,14 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 (ClientTransactionExt) transaction, dialog, (Response) response);
         if (sipStack.getMaxForkTime() != 0
                 && SIPTransactionStack.isDialogCreatingMethod(response.getCSeqHeader().getMethod())) {
-            SIPClientTransaction forked = this.sipStack
-                    .getForkedTransaction(response.getForkId());            
+            String branchId = response.getTopmostVia().getBranch();                    
+            SIPClientTransaction forked = null;
+            if(transaction != null && response.getForkId().equalsIgnoreCase(transaction.getForkId())) {
+                forked = transaction;
+            } else {
+                forked = this.sipStack
+                    .getForkedTransaction(response.getForkId(), branchId);            
+            }
             if(dialog != null && forked != null) {
                 dialog.checkRetransmissionForForking(response);
                 if(forked.getDefaultDialog() != null && !dialog.equals(forked.getDefaultDialog())) {
@@ -1709,8 +1717,14 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                  createDialog = true;
             }
             else {
-                ClientTransactionExt originalTx = this.sipStack
-                    .getForkedTransaction(sipResponse.getForkId());
+                String branchId = sipResponse.getTopmostVia().getBranch();
+                SIPClientTransaction originalTx = null;
+                if(transaction != null && sipResponse.getForkId().equalsIgnoreCase(transaction.getForkId())) {
+                    originalTx = transaction;
+                } else {
+                    originalTx = this.sipStack
+                        .getForkedTransaction(sipResponse.getForkId(), branchId);            
+                }                
                 if(originalTx != null && originalTx.getDefaultDialog() != null) {
                     if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
                         logger.logDebug(
@@ -1823,8 +1837,15 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
 
         if (sipStack.getMaxForkTime() != 0
         		&& SIPTransactionStack.isDialogCreatingMethod(sipResponse.getCSeqHeader().getMethod())) {
-            ClientTransactionExt originalTx = this.sipStack
-                    .getForkedTransaction(sipResponse.getForkId());
+            String branchId = sipResponse.getTopmostVia().getBranch();
+            SIPClientTransaction originalTx = null;
+            if(transaction != null && sipResponse.getForkId().equalsIgnoreCase(transaction.getForkId())) {
+                originalTx = transaction;
+            } else {
+                originalTx = this.sipStack
+                    .getForkedTransaction(sipResponse.getForkId(), branchId);            
+            } 
+            
             if(sipDialog != null && originalTx != null) {
                 sipDialog.checkRetransmissionForForking(sipResponse);
                 if(originalTx.getDefaultDialog() != null && !sipDialog.equals(originalTx.getDefaultDialog())) {

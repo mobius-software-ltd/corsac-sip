@@ -1657,6 +1657,9 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public void setForkId(String forkId) {
+        if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("setForkId: " + forkId + " on transaction " + this + " with txId " + this.getTransactionId() + " and state " + this.getState());
+        }
 		this.forkId = forkId;
 	}
 

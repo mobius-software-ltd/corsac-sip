@@ -664,7 +664,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	// RFC3261: TLS_RSA_WITH_AES_128_CBC_SHA MUST be supported
 	// RFC3261: TLS_RSA_WITH_3DES_EDE_CBC_SHA SHOULD be supported for backwards
 	// compat
-        public static final String[] DEFAULT_CIPHERS = {
+	public static final String[] DEFAULT_CIPHERS = {
 			"TLS_RSA_WITH_AES_128_CBC_SHA", // AES difficult to get with
 											// c++/Windows
 			// "TLS_RSA_WITH_3DES_EDE_CBC_SHA", // Unsupported by Sun impl,
