@@ -1231,10 +1231,10 @@ public abstract class SIPTransactionStack implements
             //https://github.com/RestComm/jain-sip/issues/60
             //take into account dialogId, so we can try and match the proper TX
             String dialogId = notifyMessage.getDialogId(true);
-            Iterator<SIPClientTransaction> it = clientTransactionTable.values().iterator();
+            Iterator<SIPClientTransaction> it = getAllClientTransactions().iterator();
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("ct table size = "
-                        + clientTransactionTable.size());
+                        + getClientTransactionTableSize());
             }
 
             String thisToTag = notifyMessage.getTo().getTag();
@@ -1407,8 +1407,7 @@ public abstract class SIPTransactionStack implements
                 }
                 // Need to scan the table for old style transactions (RFC 2543
                 // style)
-                Iterator<SIPServerTransaction> it = serverTransactionTable
-                        .values().iterator();
+                Iterator<SIPServerTransaction> it = getAllServerTransactions().iterator();
                 while (it.hasNext()) {
                     SIPServerTransaction sipServerTransaction = (SIPServerTransaction) it
                             .next();
@@ -1436,8 +1435,7 @@ public abstract class SIPTransactionStack implements
                 // Need to scan the table for old style transactions (RFC 2543
                 // style). This is terribly slow but we need to do this
                 // for backasswords compatibility.
-                Iterator<SIPClientTransaction> it = clientTransactionTable
-                        .values().iterator();
+                Iterator<SIPClientTransaction> it = getAllClientTransactions().iterator();
                 while (it.hasNext()) {
                     SIPClientTransaction clientTransaction = (SIPClientTransaction) it
                             .next();
@@ -1475,6 +1473,14 @@ public abstract class SIPTransactionStack implements
         }
     }
 
+    public Collection<SIPClientTransaction> getAllClientTransactions() {
+        return clientTransactionTable.values();
+    }
+
+    public Collection<SIPServerTransaction> getAllServerTransactions() {
+        return serverTransactionTable.values();
+    }
+
     /**
      * Get the transaction to cancel. Search the server transaction table for a
      * transaction that matches the given transaction.
@@ -1489,8 +1495,7 @@ public abstract class SIPTransactionStack implements
         }
 
         if (isServer) {
-            Iterator<SIPServerTransaction> li = this.serverTransactionTable
-                    .values().iterator();
+            Iterator<SIPServerTransaction> li = getAllServerTransactions().iterator();
             while (li.hasNext()) {
                 SIPTransaction transaction = (SIPTransaction) li.next();
 
@@ -1501,8 +1506,7 @@ public abstract class SIPTransactionStack implements
             }
 
         } else {
-            Iterator<SIPClientTransaction> li = this.clientTransactionTable
-                    .values().iterator();
+            Iterator<SIPClientTransaction> li = getAllClientTransactions().iterator();
             while (li.hasNext()) {
                 SIPTransaction transaction = (SIPTransaction) li.next();
 
@@ -1737,7 +1741,7 @@ public abstract class SIPTransactionStack implements
             currentTransaction = null;
             if (!key.toLowerCase().startsWith(
                     SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
-                Iterator<SIPServerTransaction> transactionIterator = serverTransactionTable.values().iterator();
+                Iterator<SIPServerTransaction> transactionIterator = getAllServerTransactions().iterator();
                 while (transactionIterator.hasNext()
                         && currentTransaction == null) {
 
@@ -1885,7 +1889,7 @@ public abstract class SIPTransactionStack implements
                         .startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE))) {
             // Loop through all client transactions
 
-            transactionIterator = clientTransactionTable.values().iterator();
+            transactionIterator = getAllClientTransactions().iterator();
             currentTransaction = null;
             while (transactionIterator.hasNext() && currentTransaction == null) {
 
@@ -2008,7 +2012,7 @@ public abstract class SIPTransactionStack implements
         if (unlimitedServerTransactionTableSize) {
             return createNewServerTransaction(encapsulatedMessageChannel);
         } else {
-            float threshold = ((float) (serverTransactionTable.size() - serverTransactionTableLowaterMark))
+            float threshold = ((float) (getServerTransactionTableSize() - serverTransactionTableLowaterMark))
                     / ((float) (serverTransactionTableHighwaterMark - serverTransactionTableLowaterMark));
             boolean decision = Math.random() > 1.0 - threshold;
             if (decision) {
@@ -2157,8 +2161,8 @@ public abstract class SIPTransactionStack implements
         				" terminatedServerTransactionsPendingAck %d  " +
         				// " forkedClientTransactionTable %d " +
         				" pendingTransactions %d " , 
-        				clientTransactionTable.size(),
-        				serverTransactionTable.size(),
+        				getClientTransactionTableSize(),
+        				getServerTransactionTableSize(),
         				mergeTable.size(),
         				terminatedServerTransactionsPendingAck.size(),
         				// forkedClientTransactionTable.size(),
@@ -2237,8 +2241,7 @@ public abstract class SIPTransactionStack implements
                 this.activeClientTransactionCount.incrementAndGet();
             }
             String key = sipRequest.getTransactionId();
-            existingTx = clientTransactionTable.putIfAbsent(key,
-                    (SIPClientTransaction) sipTransaction);
+            existingTx = storeTransaction(key, sipTransaction, false);                        
             
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger
@@ -2251,8 +2254,7 @@ public abstract class SIPTransactionStack implements
                 logger
                         .logDebug(" putTransactionHash : " + " key = " + key);
             }
-            existingTx = serverTransactionTable.putIfAbsent(key,
-                    (SIPServerTransaction) sipTransaction);
+            existingTx = storeTransaction(key, sipTransaction, true);            
 
         }
     	// http://java.net/jira/browse/JSIP-420
@@ -2260,6 +2262,14 @@ public abstract class SIPTransactionStack implements
         	sipTransaction.scheduleMaxTxLifeTimeTimer();
         }
         return existingTx;
+    }
+
+    protected SIPTransaction storeTransaction(String key, SIPTransaction sipTransaction, boolean isServer) {
+        if(isServer) {
+            return serverTransactionTable.putIfAbsent(key, (SIPServerTransaction) sipTransaction);
+        } else {
+            return clientTransactionTable.putIfAbsent(key, (SIPClientTransaction) sipTransaction);            
+        }
     }
 
     /**
@@ -3181,8 +3191,7 @@ public abstract class SIPTransactionStack implements
          * This could be a forked dialog. Search for it.
          */
         if ( replacesDialog == null ) {
-            for (SIPClientTransaction ctx : this.clientTransactionTable
-                    .values()) {
+            for (SIPClientTransaction ctx : getAllClientTransactions()) {
                if ( ctx.getDialog(did) != null ) {
                    replacesDialog = ctx.getDialog(did);
                    break;
