@@ -1529,7 +1529,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             }
         }
         SIPDialog retval = null;
-        SIPDialog earlyDialog = earlyUACDialogTable.get(earlyUACDialogId);
+        SIPDialog earlyDialog = getEarlyUACDialog(earlyUACDialogId);
         if (earlyDialog != null) { 
             // If the dialog is already there then just return it and set the ToTag of the response
             // to the one of the dialog.
@@ -1556,7 +1556,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // can match the responses coming from UAC Side and 
             // mid dialog requests coming from UAS Side
             // earlyUASDialogTable.put(earlyUASDialogId, retval);
-            earlyUACDialogTable.put(earlyUACDialogId, retval);
+            storeEarlyUACDialog(earlyUACDialogId, retval);
             // done as part of CreateNewDialog now
             // sipStack.earlyDialogTable.put(dialog.getDialogId(), retval);
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
@@ -1570,6 +1570,18 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
         return retval;
 
+    }
+
+    protected void storeEarlyUACDialog(String earlyUACDialogId, SIPDialog retval) {
+        earlyUACDialogTable.put(earlyUACDialogId, retval);
+    }
+
+    protected SIPDialog getEarlyUACDialog(String earlyUACDialogId) {
+        return earlyUACDialogTable.get(earlyUACDialogId);
+    }
+
+    protected void removeEarlyUACDialog(String earlyUACDialogId) {
+        earlyUACDialogTable.remove(earlyUACDialogId);
     }
 
     /**
