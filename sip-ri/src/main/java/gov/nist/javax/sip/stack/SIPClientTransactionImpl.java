@@ -714,16 +714,16 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     if (transactionTimer != null && timerKStarted.compareAndSet(false, true)) {
       // synchronized (transactionTimerLock) {
       if (!transactionTimerCancelled.get()) {
-        sipStack.getTimer().cancel(transactionTimer);
-        transactionTimer = null;
+        stopTransactionTimer();
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
           logger.logDebug("starting TransactionTimerK() : " + getTransactionId() + " time "
               + time);
         }
-        ClientTransactionTimerK task = new ClientTransactionTimerK();
+        
         if (time > 0) {
-          sipStack.getTimer().schedule(task, time * baseTimerInterval);
+          startTimerK(time);
         } else {
+          ClientTransactionTimerK task = new ClientTransactionTimerK();
           task.runTask();
         }
         transactionTimerCancelled.set(true);
@@ -731,6 +731,13 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       // }
     }
   }
+
+  protected void startTimerK(long time) {
+    ClientTransactionTimerK task = new ClientTransactionTimerK();
+    sipStack.getTimer().schedule(task, time * baseTimerInterval);
+  }
+
+
 
   /**
    * Implements the state machine for invite client transactions.
@@ -1426,16 +1433,25 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       {
         // synchronized (transactionTimerLock) {
         if (!transactionTimerCancelled.get()) {
-          if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug("Start transaction timer : " + getTransactionId());
-          transactionTimer = new SIPClientTransactionTimer();
-          sipStack.getTimer().scheduleWithFixedDelay(transactionTimer,
-              baseTimerInterval,
-              baseTimerInterval);
+          scheduleTransactionTimer();
         }
         // }
       }
     }
+  }
+
+  protected void scheduleTransactionTimer() {
+    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+            logger.logDebug("Start transaction timer : " + getTransactionId());
+    transactionTimer = new SIPClientTransactionTimer();
+    sipStack.getTimer().scheduleWithFixedDelay(transactionTimer,
+        baseTimerInterval,
+        baseTimerInterval);
+  }
+
+  protected void stopTransactionTimer() {
+    sipStack.getTimer().cancel(transactionTimer);
+    transactionTimer = null;
   }
 
   /*

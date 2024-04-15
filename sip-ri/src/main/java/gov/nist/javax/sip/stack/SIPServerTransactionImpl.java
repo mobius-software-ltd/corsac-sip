@@ -1535,14 +1535,10 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 || getMethod().equalsIgnoreCase(Request.ACK)) {
             if (this.transactionTimerStarted.compareAndSet(false, true)) {
                 if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                    // The timer is set to null when the Stack is
-                    // shutting down.
-                    SIPStackTimerTask myTimer = new SIPServerTransactionTimer();
                     // Do not schedule when the stack is not alive.
                     if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                        sipStack.getTimer().scheduleWithFixedDelay(myTimer, baseTimerInterval, baseTimerInterval);
-                    }
-                    myTimer = null;
+                        sipStack.getTimer().scheduleWithFixedDelay(new SIPServerTransactionTimer(), baseTimerInterval, baseTimerInterval);
+                    }                    
                 }
             }
         }
