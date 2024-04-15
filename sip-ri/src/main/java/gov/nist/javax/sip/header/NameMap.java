@@ -199,6 +199,7 @@ public class NameMap implements SIPHeaderNames, PackageNames {
 
         //Mukha Valeriia
         putNameMap(TARGET_DIALOG, "TargetDialog");
+        putNameMap(DIVERSION, "Diversion");
         
         // IMS Specific headers.
 

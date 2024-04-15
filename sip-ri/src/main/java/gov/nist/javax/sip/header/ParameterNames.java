@@ -167,4 +167,12 @@ public interface ParameterNames {
     public static final String LOCAL_TAG = "local-tag";
     public static final String REMOTE_TAG = "remote-tag";
 
+    //Support for RFC 5806 @MukhaValeriia
+	public static final String REASON = "reason";
+	public static final String LIMIT = "limit";
+	public static final String COUNTER = "counter";
+	public static final String PRIVACY = "privacy";
+	public static final String SCREEN = "screen";
+	public static final String EXTENSION = "extension";
+
 }

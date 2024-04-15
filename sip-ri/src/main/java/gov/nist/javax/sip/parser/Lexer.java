@@ -26,6 +26,7 @@
 package gov.nist.javax.sip.parser;
 
 import gov.nist.core.LexerCore;
+import gov.nist.javax.sip.header.extensions.DiversionHeader;
 import gov.nist.javax.sip.header.extensions.JoinHeader;
 import gov.nist.javax.sip.header.extensions.MinSEHeader;
 import gov.nist.javax.sip.header.extensions.ReferencesHeader;
@@ -385,8 +386,8 @@ public class Lexer extends LexerCore {
                 
                 // added for rfc4538
                 addKeyword(TargetDialogHeader.NAME,TokenTypes.TARGET_DIALOG);
-                
-
+                //added for rfc5806
+                addKeyword(DiversionHeader.NAME,TokenTypes.DIVERSION);
                 // end //
 
 
