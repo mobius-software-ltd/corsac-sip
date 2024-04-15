@@ -585,7 +585,7 @@ public abstract class SIPTransactionStack implements
 
         @Override
         public SipTimerTaskData getData() {
-            return data;
+            return null;
         }
 
         class RemoveForkedTransactionTimerTaskData extends SipTimerTaskData {
@@ -2141,6 +2141,7 @@ public abstract class SIPTransactionStack implements
         	        	}
         				this.timer.schedule(new RemoveForkedTransactionTimerTask(
         						clientTx.getOriginalRequestCallId(), key, forkId), this.maxForkTime * 1000);
+                        
         				clientTx.stopExpiresTimer();
         			} else {
                         removed = removeTransactionById(key, false);                    

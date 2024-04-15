@@ -632,7 +632,7 @@ public class SIPDialog implements DialogExt {
         }
         @Override
         public SipTimerTaskData getData() {
-            return data;
+            return null;
         }
 
         class LingerTimerTaskData extends SipTimerTaskData {
@@ -816,9 +816,10 @@ public class SIPDialog implements DialogExt {
         public String getId() {
             return getCallId().getCallId();
         }
+
         @Override
         public SipTimerTaskData getData() {
-            return data;
+            return null;
         }
 
         class DialogDeleteTaskData extends SipTimerTaskData {
@@ -923,10 +924,9 @@ public class SIPDialog implements DialogExt {
             }
         }
 
-
         @Override
         public SipTimerTaskData getData() {
-            return data;
+            return null;
         }
 
         class DialogDeleteIfNoAckSentTaskData extends SipTimerTaskData {

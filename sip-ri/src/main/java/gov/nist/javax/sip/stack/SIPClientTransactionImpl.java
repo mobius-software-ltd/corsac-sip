@@ -49,11 +49,13 @@ import gov.nist.core.NameValueList;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
+import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.Event;
+import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.header.RecordRouteList;
 import gov.nist.javax.sip.header.Route;
@@ -234,6 +236,8 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
   protected boolean terminateDialogOnCleanUp = true;
 
+  protected long expiresTime = -1;
+
   public class SIPClientTransactionTimer extends SIPStackTimerTask {
     SIPClientTransactionTimerData data;
 
@@ -261,6 +265,17 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         cleanUpOnTerminated();
 
       } else {
+        SipProviderImpl provider = getSipProvider();
+
+        // This is a User Agent. The user has specified an Expires time. Start a timer
+        // which will check if the tx is terminated by that time.
+        if (getDefaultDialog() != null && isInviteTransaction() && expiresTime != -1 && expiresTime < System.currentTimeMillis()) {
+            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("Expires time has been reached for the transaction " + getTransactionId());
+            }
+            TimeoutEvent tte = new TimeoutEvent(provider, SIPClientTransactionImpl.this, Timeout.TRANSACTION);
+            provider.handleEvent(tte, SIPClientTransactionImpl.this);
+        }
         // If this transaction has not
         // terminated,
         // Fire the transaction timer.
@@ -474,12 +489,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   @Override
   public void sendMessage(SIPMessage messageToSend) throws IOException {
 
+    // Message typecast as a request
+    SIPRequest transactionRequest = (SIPRequest) messageToSend;
+
     try {
-      // Message typecast as a request
-      SIPRequest transactionRequest;
-
-      transactionRequest = (SIPRequest) messageToSend;
-
       // Set the branch id for the top via header.
       Via topVia = (Via) transactionRequest.getTopmostVia();
       // Tack on a branch identifier to match responses.
@@ -559,6 +572,13 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       }
     } finally {
       this.isMapped = true;
+      // Time extracted from the Expires header.
+      if (transactionRequest.getHeader(ExpiresHeader.NAME) != null) {
+          Expires expires = (Expires) transactionRequest.getHeader(ExpiresHeader.NAME);        
+          int expiresSec = expires.getExpires();
+          expiresTime = System.currentTimeMillis() + expiresSec * 1000L;
+
+      }      
       this.startTransactionTimer();
 
     }
@@ -1517,10 +1537,11 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    */
   @Override
   public void stopExpiresTimer() {
-    if (this.expiresTimerTask != null) {
-      sipStack.getTimer().cancel(this.expiresTimerTask);
-      this.expiresTimerTask = null;
-    }
+    expiresTime = -1;
+    // if (this.expiresTimerTask != null) {
+    //   sipStack.getTimer().cancel(this.expiresTimerTask);
+    //   this.expiresTimerTask = null;
+    // }
   }
 
   /**

@@ -52,7 +52,7 @@ class CredentialsCache {
         }
 
         public SipTimerTaskData getData() {
-            return data;
+            return null;
         }
     }
 

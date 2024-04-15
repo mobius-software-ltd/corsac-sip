@@ -192,7 +192,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     protected String forkId = null;
     protected String mergeId = null;
 
-    protected ExpiresTimerTask expiresTimerTask;
+    // protected ExpiresTimerTask expiresTimerTask;
 	// http://java.net/jira/browse/JSIP-420
     private MaxTxLifeTimeListener maxTxLifeTimeListener;
 
@@ -302,9 +302,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
                 return originalRequestCallId;
             }
         }
+
         @Override
         public SipTimerTaskData getData() {
-            return data;
+            return null;
         }
 
         class LingerTimerTaskData extends SipTimerTaskData {
@@ -379,7 +380,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
         @Override
         public SipTimerTaskData getData() {
-            return data;
+            return null;
         }
 
         class MaxTxLifeTimeListenerTaskData extends SipTimerTaskData {
@@ -1265,10 +1266,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public void raiseIOExceptionEvent(Reason reason) {
-        setState(TransactionState._TERMINATED);
-        if (expiresTimerTask != null) {
-            sipStack.getTimer().cancel(expiresTimerTask);
-        }
+        setState(TransactionState._TERMINATED);        
+        // if (expiresTimerTask != null) {
+        //     sipStack.getTimer().cancel(expiresTimerTask);
+        // }
         String host = getPeerAddress();
         int port = getPeerPort();
         String transport = getTransport();

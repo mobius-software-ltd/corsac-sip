@@ -18,10 +18,6 @@
  */
 package gov.nist.javax.sip.stack;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import javax.sip.message.Request;
 
 import gov.nist.javax.sip.message.SIPRequest;
@@ -33,24 +29,28 @@ import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
  * alerts.
  */
 class RetransmissionAlertTimerTask extends SIPStackTimerTask {
-    private RetransmissionAlertTimerTaskData data;
+    String serverTransactionId;        
+    String dialogId;  
+    int ticks;
+    int ticksLeft; 
     SIPServerTransactionImpl serverTransaction;
 
     public RetransmissionAlertTimerTask(SIPServerTransactionImpl serverTransaction, String dialogId) {
         super(RetransmissionAlertTimerTask.class.getSimpleName());
-        this.data = new RetransmissionAlertTimerTaskData(serverTransaction.getBranch(), dialogId);
+        // this.data = new RetransmissionAlertTimerTaskData(serverTransaction.getBranch(), dialogId);
+        this.dialogId = dialogId;  
         this.serverTransaction = serverTransaction;
-        data.ticks = SIPTransactionImpl.T1;
-        data.ticksLeft = data.ticks;
+        this.ticks = SIPTransactionImpl.T1;
+        this.ticksLeft = this.ticks;
         // Fix from http://java.net/jira/browse/JSIP-443
         // by mitchell.c.ackerman
     }
 
     public void runTask() {        
-        data.ticksLeft--;
-        if (data.ticksLeft == -1) {
+        this.ticksLeft--;
+        if (this.ticksLeft == -1) {
             serverTransaction.fireRetransmissionTimer();
-            data.ticksLeft = 2 * data.ticks;
+            this.ticksLeft = 2 * this.ticks;
         }
 
     }
@@ -66,46 +66,43 @@ class RetransmissionAlertTimerTask extends SIPStackTimerTask {
     }
 
     @Override
-    public RetransmissionAlertTimerTaskData getData() {
-        return data;
+    public SipTimerTaskData getData() {
+        return null;
     }
 
-    class RetransmissionAlertTimerTaskData extends SipTimerTaskData {
-        String serverTransactionId;        
-        String dialogId;  
-        int ticks;
-        int ticksLeft;      
+    // class RetransmissionAlertTimerTaskData extends SipTimerTaskData {
+             
 
-        public RetransmissionAlertTimerTaskData(String serverTransactionId, String dialogId) {
-            this.serverTransactionId = serverTransactionId;
-            this.dialogId = dialogId;  
-        }
+    //     public RetransmissionAlertTimerTaskData(String serverTransactionId, String dialogId) {
+    //         this.serverTransactionId = serverTransactionId;
+    //         this.dialogId = dialogId;  
+    //     }
 
-        public String getServerTransactionId() {
-            return serverTransactionId;
-        }
+    //     public String getServerTransactionId() {
+    //         return serverTransactionId;
+    //     }
 
-        @Override
-        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-            super.readExternal(in);
-            serverTransactionId = in.readUTF();
-            dialogId = in.readUTF();
-            ticks = in.readInt();
-            ticksLeft = in.readInt();
-        }
+    //     @Override
+    //     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    //         super.readExternal(in);
+    //         serverTransactionId = in.readUTF();
+    //         dialogId = in.readUTF();
+    //         ticks = in.readInt();
+    //         ticksLeft = in.readInt();
+    //     }
 
-        @Override
-        public void writeExternal(ObjectOutput out) throws IOException {
-            super.writeExternal(out);
-            out.writeUTF(serverTransactionId);
-            out.writeUTF(dialogId);
-            out.writeInt(ticks);
-            out.writeInt(ticksLeft);
-        }
+    //     @Override
+    //     public void writeExternal(ObjectOutput out) throws IOException {
+    //         super.writeExternal(out);
+    //         out.writeUTF(serverTransactionId);
+    //         out.writeUTF(dialogId);
+    //         out.writeInt(ticks);
+    //         out.writeInt(ticksLeft);
+    //     }
 
-        public String getDialogId() {
-            return dialogId;
-        }
-    }
+    //     public String getDialogId() {
+    //         return dialogId;
+    //     }
+    // }
 
 }

@@ -375,8 +375,6 @@ public class StackTimerTest extends TestCase {
         public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
         }
 
-
-
         @Override
         public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
             System.out.println("message Sent " + messageSentEvent + " transaction " + transaction);
