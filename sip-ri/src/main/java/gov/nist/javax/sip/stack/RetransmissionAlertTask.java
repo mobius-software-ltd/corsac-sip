@@ -22,7 +22,6 @@ import javax.sip.message.Request;
 
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
-import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 
 /**
  * This timer task is used for alerting the application to send retransmission
@@ -64,45 +63,4 @@ class RetransmissionAlertTimerTask extends SIPStackTimerTask {
             return serverTransaction.originalRequestCallId;
         }
     }
-
-    @Override
-    public SipTimerTaskData getData() {
-        return null;
-    }
-
-    // class RetransmissionAlertTimerTaskData extends SipTimerTaskData {
-             
-
-    //     public RetransmissionAlertTimerTaskData(String serverTransactionId, String dialogId) {
-    //         this.serverTransactionId = serverTransactionId;
-    //         this.dialogId = dialogId;  
-    //     }
-
-    //     public String getServerTransactionId() {
-    //         return serverTransactionId;
-    //     }
-
-    //     @Override
-    //     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    //         super.readExternal(in);
-    //         serverTransactionId = in.readUTF();
-    //         dialogId = in.readUTF();
-    //         ticks = in.readInt();
-    //         ticksLeft = in.readInt();
-    //     }
-
-    //     @Override
-    //     public void writeExternal(ObjectOutput out) throws IOException {
-    //         super.writeExternal(out);
-    //         out.writeUTF(serverTransactionId);
-    //         out.writeUTF(dialogId);
-    //         out.writeInt(ticks);
-    //         out.writeInt(ticksLeft);
-    //     }
-
-    //     public String getDialogId() {
-    //         return dialogId;
-    //     }
-    // }
-
 }

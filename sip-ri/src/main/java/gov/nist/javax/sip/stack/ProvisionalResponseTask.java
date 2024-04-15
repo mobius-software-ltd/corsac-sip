@@ -19,8 +19,6 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 import javax.sip.TransactionState;
 import javax.sip.message.Request;
@@ -30,22 +28,21 @@ import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
-import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 
 class ProvisionalResponseTask extends SIPStackTimerTask {
     private StackLogger logger = CommonLogger.getLogger(ProvisionalResponseTask.class);
-    ProvisionalResponseTaskData data;
-
+    
     SIPServerTransactionImpl serverTransaction;
     SIPDialog sipDialog;
+    int ticks;
+    int ticksLeft;     
 
     public ProvisionalResponseTask(SIPDialog sipDialog, SIPServerTransactionImpl serverTransaction) {
         super(ProvisionalResponseTask.class.getSimpleName());
-        this.data = new ProvisionalResponseTaskData(serverTransaction.getBranch(), sipDialog.getDialogId());
         this.serverTransaction = serverTransaction;
         this.sipDialog = sipDialog;
-        data.ticks = SIPTransactionImpl.T1;
-        data.ticksLeft = data.ticks;
+        ticks = SIPTransactionImpl.T1;
+        ticksLeft = ticks;
     }
 
     public void runTask() {        
@@ -75,10 +72,10 @@ class ProvisionalResponseTask extends SIPStackTimerTask {
 
         } else {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("ProvisionalResponseTask ticksLeft " + data.ticksLeft);
+                logger.logDebug("ProvisionalResponseTask ticksLeft " + ticksLeft);
             }
-            data.ticksLeft--;
-            if (data.ticksLeft == -1) {
+            ticksLeft--;
+            if (ticksLeft == -1) {
                 try {
                     serverTransaction.resendLastResponseAsBytes(
                         sipDialog.pendingReliableResponseAsBytes);
@@ -89,12 +86,12 @@ class ProvisionalResponseTask extends SIPStackTimerTask {
                     serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
                 }
                 
-                data.ticksLeft = 2 * data.ticks;
-                data.ticks = data.ticksLeft;
+                ticksLeft = 2 * ticks;
+                ticks = ticksLeft;
                 // timer H MUST be set to fire in 64*T1 seconds for all transports. Timer H
                 // determines when the server
                 // transaction abandons retransmitting the response
-                if (data.ticksLeft >= SIPTransactionImpl.TIMER_H) {
+                if (ticksLeft >= SIPTransactionImpl.TIMER_H) {
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                         logger.logDebug("canceling ProvisionalResponseTask");
                     }
@@ -118,45 +115,6 @@ class ProvisionalResponseTask extends SIPStackTimerTask {
             return ((SIPRequest) request).getCallIdHeader().getCallId();
         } else {
             return serverTransaction.originalRequestCallId;
-        }
-    }
-
-    @Override
-    public SipTimerTaskData getData() {
-        return data;
-    }
-
-    class ProvisionalResponseTaskData extends SipTimerTaskData {
-        private String serverTransactionId;        
-        private String dialogId;  
-        int ticks;
-        int ticksLeft;      
-
-        public ProvisionalResponseTaskData(String serverTransactionId, String dialogId) {
-            this.serverTransactionId = serverTransactionId;
-            this.dialogId = dialogId;  
-        }
-
-        public String getServerTransactionId() {
-            return serverTransactionId;
-        }
-
-        @Override
-        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-            super.readExternal(in);
-            serverTransactionId = in.readUTF();
-            dialogId = in.readUTF();
-            ticks = in.readInt();
-            ticksLeft = in.readInt();
-        }
-
-        @Override
-        public void writeExternal(ObjectOutput out) throws IOException {
-            super.writeExternal(out);
-            out.writeUTF(serverTransactionId);
-            out.writeUTF(dialogId);
-            out.writeInt(ticks);
-            out.writeInt(ticksLeft);
         }
     }
 }

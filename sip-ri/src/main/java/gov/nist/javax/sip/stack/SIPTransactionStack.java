@@ -19,8 +19,6 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -82,7 +80,6 @@ import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.MessageParserFactory;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.timers.SipTimer;
-import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.ClientAuthType;
 import gov.nist.javax.sip.stack.transports.processors.ConnectionOrientedMessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
@@ -551,71 +548,37 @@ public abstract class SIPTransactionStack implements
                 getTimer().schedule(new PingTimer(threadHandle),
                         threadHandle.getPingIntervalInMillisecs());
             }
-        }
-
-        @Override
-        public SipTimerTaskData getData() {
-            throw new UnsupportedOperationException("This operation is not supported on this Timer");
-        }
+        }        
     }
 
 
     class RemoveForkedTransactionTimerTask extends SIPStackTimerTask {
-        private RemoveForkedTransactionTimerTaskData data;
+        String id;
+        String forkId;
+        String transactionId;
+
 
         public RemoveForkedTransactionTimerTask(String id, String transactionId, String forkId) {
         	super(RemoveForkedTransactionTimerTask.class.getSimpleName());
-            data = new RemoveForkedTransactionTimerTaskData(id, transactionId, forkId);
+            this.id = id;
+            this.forkId = forkId;  
+            this.transactionId = transactionId;
         }
         
         @Override
         public String getId() {
-            return data.id;
+            return id;
         }         
 
         @Override
         public void runTask() {
         	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             	logger.logDebug(
-                        "Removing forked client transaction : forkId = " + data.forkId);
+                        "Removing forked client transaction : forkId = " + forkId);
         	}
-            SIPTransaction removed = removeTransactionById(data.transactionId, false);
+            SIPTransaction removed = removeTransactionById(transactionId, false);
             sendTransactionTerminatedEvent(removed);
         }
-
-        @Override
-        public SipTimerTaskData getData() {
-            return null;
-        }
-
-        class RemoveForkedTransactionTimerTaskData extends SipTimerTaskData {
-            String id;
-            String forkId;
-            String transactionId;
-
-            public RemoveForkedTransactionTimerTaskData(String id, String transactionId, String forkId) {
-                this.id = id;
-                this.forkId = forkId;  
-                this.transactionId = transactionId;
-            }
-
-            @Override
-            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-                super.readExternal(in);
-                id = in.readUTF();
-                forkId = in.readUTF();
-                transactionId = in.readUTF();
-            }
-
-            @Override
-            public void writeExternal(ObjectOutput out) throws IOException {
-                super.writeExternal(out);
-                out.writeUTF(id);
-                out.writeUTF(forkId);
-                out.writeUTF(transactionId);
-            }
-        }
-
     }
 
     static {

@@ -1,12 +1,5 @@
 package gov.nist.javax.sip.clientauthutils;
 
-import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
-import gov.nist.javax.sip.stack.timers.SipTimer;
-import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
-
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +7,9 @@ import java.util.ListIterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.header.AuthorizationHeader;
+
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimer;
 
 /**
  * A cache of authorization headers to be used for subsequent processing when we
@@ -34,33 +30,12 @@ class CredentialsCache {
     private SipTimer timer;
 
     class TimeoutTask extends SIPStackTimerTask {
-        TimeoutTaskData data;
+        private String callId;
+        private String userName;
         
 
         public TimeoutTask(String userName, String callId) {
         	super(TimeoutTask.class.getSimpleName());
-            this.data = new TimeoutTaskData(callId, userName);
-        }
-        
-        @Override
-        public String getId() {
-            return data.getCallId();
-        }         
-
-        public void runTask() {
-            authorizationHeaders.remove(data.getCallId());
-        }
-
-        public SipTimerTaskData getData() {
-            return null;
-        }
-    }
-
-    class TimeoutTaskData extends SipTimerTaskData {
-        private String callId;
-        private String userName;
-
-        public TimeoutTaskData(String callId, String userName) {
             this.callId = callId;
             this.userName = userName;
         }
@@ -72,20 +47,15 @@ class CredentialsCache {
         public String getUserName() {
             return userName;
         }
-
+        
         @Override
-        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-            super.readExternal(in);
-            callId = in.readUTF();
-            userName = in.readUTF();
-        }
+        public String getId() {
+            return callId;
+        }         
 
-        @Override
-        public void writeExternal(ObjectOutput out) throws IOException {
-            super.writeExternal(out);
-            out.writeUTF(callId);
-            out.writeUTF(userName);
-        }
+        public void runTask() {
+            authorizationHeaders.remove(callId);
+        }        
     }
 
     CredentialsCache (SipTimer timer) {

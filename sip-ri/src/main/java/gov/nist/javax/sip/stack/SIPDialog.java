@@ -19,8 +19,6 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.text.ParseException;
@@ -110,7 +108,6 @@ import gov.nist.javax.sip.parser.CallIDParser;
 import gov.nist.javax.sip.parser.ContactParser;
 import gov.nist.javax.sip.parser.RecordRouteParser;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
-import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
@@ -401,66 +398,20 @@ public class SIPDialog implements DialogExt {
 
     class EarlyStateTimerTask extends SIPStackTimerTask implements Serializable {        
 		private static final long serialVersionUID = 1L;
-        EarlyStateTimerTaskData data;
 
 		public EarlyStateTimerTask() {
         	super(EarlyStateTimerTask.class.getSimpleName());
-            data = new EarlyStateTimerTaskData(getDialogId());
         }
 
         @Override
         public void runTask() {
-            try {
-                if (SIPDialog.this.getState().equals(DialogState.EARLY)) {
-                    
-                    SIPDialog.this
-                            .raiseErrorEvent(SIPDialogErrorEvent.EARLY_STATE_TIMEOUT);
-                } else {
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                        logger.logDebug("EarlyStateTimerTask : Dialog state is " + SIPDialog.this.getState());
-                    }
-                }
-            } catch (Exception ex) {
-                logger.logError(
-                        "Unexpected exception delivering event", ex);
-            }
+            fireEarlyStateTimer();
         }
 
         @Override
         public String getId() {
             return getCallId().getCallId();
         }
-
-        @Override
-        public SipTimerTaskData getData() {
-            return data;
-        }
-
-        class EarlyStateTimerTaskData extends SipTimerTaskData {
-            private String dialogId;
-
-            public EarlyStateTimerTaskData(String dialogId) {
-                this.dialogId = dialogId;
-            }
-
-            public String getDialogId() {
-                return dialogId;
-            }
-
-            @Override
-            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-                super.readExternal(in);
-                dialogId = in.readUTF();
-            }
-
-            @Override
-            public void writeExternal(ObjectOutput out) throws IOException {
-                super.writeExternal(out);
-                out.writeUTF(dialogId);
-            }
-        
-        }
-
     }
 
     /**
@@ -606,11 +557,9 @@ public class SIPDialog implements DialogExt {
 
     class LingerTimer extends SIPStackTimerTask implements Serializable {
 		private static final long serialVersionUID = 1L;
-        LingerTimerTaskData data;
 
 		LingerTimer(){
     		super(LingerTimer.class.getSimpleName());
-            data = new LingerTimerTaskData(getDialogId());
     	}
 
         public void runTask() {
@@ -630,50 +579,19 @@ public class SIPDialog implements DialogExt {
         public String getId() {
             return getCallId().getCallId();
         }
-        @Override
-        public SipTimerTaskData getData() {
-            return null;
-        }
-
-        class LingerTimerTaskData extends SipTimerTaskData {
-            private String dialogId;
-
-            public LingerTimerTaskData(String dialogId) {
-                this.dialogId = dialogId;
-            }
-
-            public String getDialogId() {
-                return dialogId;
-            }
-
-            @Override
-            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-                super.readExternal(in);
-                dialogId = in.readUTF();
-            }
-
-            @Override
-            public void writeExternal(ObjectOutput out) throws IOException {
-                super.writeExternal(out);
-                out.writeUTF(dialogId);
-            }
-        
-        }
-
     }
 
     class DialogTimerTask extends SIPStackTimerTask implements Serializable {
         private static final long serialVersionUID = 1L;		
-        DialogTimerTaskData data;
         SIPServerTransaction transaction;
+        int nRetransmissions;      
 
         // long cseqNumber;
 
         public DialogTimerTask(SIPServerTransaction transaction) {
         	super(DialogTimerTask.class.getSimpleName());
-            this.data = new DialogTimerTaskData(transaction.getBranch());
             this.transaction = transaction;
-            data.nRetransmissions = 0;
+            nRetransmissions = 0;
          }
 
         public void runTask() {
@@ -682,7 +600,7 @@ public class SIPDialog implements DialogExt {
             SIPDialog dialog = SIPDialog.this;
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug("Running dialog timer");
-            data.nRetransmissions++;
+            nRetransmissions++;
             SIPServerTransaction transaction = this.transaction;
             /*
              * Issue 106. Section 13.3.1.4 RFC 3261 The 2xx response is passed
@@ -693,7 +611,7 @@ public class SIPDialog implements DialogExt {
              * be terminated.
              */
 
-            if (data.nRetransmissions > sipStack.getAckTimeoutFactor()
+            if (nRetransmissions > sipStack.getAckTimeoutFactor()
                     * SIPTransaction.T1) {
                 if (SIPDialog.this.getSipProvider().getSipListener() != null
                         && SIPDialog.this.getSipProvider().getSipListener() instanceof SipListenerExt) {
@@ -759,39 +677,6 @@ public class SIPDialog implements DialogExt {
         public String getId() {
             return getCallId().getCallId();
         }
-
-        @Override
-        public SipTimerTaskData getData() {
-            return data;
-        }
-
-        class DialogTimerTaskData extends SipTimerTaskData {
-            private String serverTransactionId;        
-            int nRetransmissions;      
-
-            public DialogTimerTaskData(String serverTransactionId) {
-                this.serverTransactionId = serverTransactionId;
-            }
-
-            public String getServerTransactionId() {
-                return serverTransactionId;
-            }
-
-            @Override
-            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-                super.readExternal(in);
-                serverTransactionId = in.readUTF();
-                nRetransmissions = in.readInt();
-            }
-
-            @Override
-            public void writeExternal(ObjectOutput out) throws IOException {
-                super.writeExternal(out);
-                out.writeUTF(serverTransactionId);
-                out.writeInt(nRetransmissions);
-            }
-        }
-
     }
 
     /**
@@ -801,11 +686,9 @@ public class SIPDialog implements DialogExt {
 
     class DialogDeleteTask extends SIPStackTimerTask implements Serializable {
 		private static final long serialVersionUID = 1L;
-        DialogDeleteTaskData data;
 
 		DialogDeleteTask() {
     		super(DialogDeleteTask.class.getSimpleName());
-            data = new DialogDeleteTaskData(getDialogId());
     	}
 
         public void runTask() {
@@ -816,37 +699,6 @@ public class SIPDialog implements DialogExt {
         public String getId() {
             return getCallId().getCallId();
         }
-
-        @Override
-        public SipTimerTaskData getData() {
-            return null;
-        }
-
-        class DialogDeleteTaskData extends SipTimerTaskData {
-            private String dialogId;
-
-            public DialogDeleteTaskData(String dialogId) {
-                this.dialogId = dialogId;
-            }
-
-            public String getDialogId() {
-                return dialogId;
-            }
-
-            @Override
-            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-                super.readExternal(in);
-                dialogId = in.readUTF();
-            }
-
-            @Override
-            public void writeExternal(ObjectOutput out) throws IOException {
-                super.writeExternal(out);
-                out.writeUTF(dialogId);
-            }
-        
-        }
-
     }
 
     /**
@@ -857,11 +709,11 @@ public class SIPDialog implements DialogExt {
     class DialogDeleteIfNoAckSentTask extends SIPStackTimerTask implements
             Serializable {
 		private static final long serialVersionUID = 1L;
-		DialogDeleteIfNoAckSentTaskData data;
+        long seqno;     
 
         public DialogDeleteIfNoAckSentTask(long seqno) {
         	super(DialogDeleteIfNoAckSentTask.class.getSimpleName());
-            data = new DialogDeleteIfNoAckSentTaskData(seqno);
+            this.seqno = seqno;
         }
         
         @Override
@@ -870,7 +722,7 @@ public class SIPDialog implements DialogExt {
         }        
 
         public void runTask() {
-            if (SIPDialog.this.highestSequenceNumberAcknowledged < data.seqno) {
+            if (SIPDialog.this.highestSequenceNumberAcknowledged < seqno) {
                 /*
                  * Did not send ACK so we need to delete the dialog. B2BUA NOTE:
                  * we may want to send BYE to the Dialog at this point. Do we
@@ -923,31 +775,6 @@ public class SIPDialog implements DialogExt {
                 }
             }
         }
-
-        @Override
-        public SipTimerTaskData getData() {
-            return null;
-        }
-
-        class DialogDeleteIfNoAckSentTaskData extends SipTimerTaskData {
-            long seqno;     
-
-            public DialogDeleteIfNoAckSentTaskData(long seqno) {
-                this.seqno = seqno;
-            }
-
-            @Override
-            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-                super.readExternal(in);
-                seqno = in.readLong();
-            }
-
-            @Override
-            public void writeExternal(ObjectOutput out) throws IOException {
-                super.writeExternal(out);
-                out.writeLong(seqno);
-            }
-        }
     }
 
     // ///////////////////////////////////////////////////////////
@@ -978,6 +805,23 @@ public class SIPDialog implements DialogExt {
     //     logger.logDebug("TraceRecord = " + stackTraceSignature);
     //     this.stackTrace = "TraceRecord = " + stackTraceSignature + ":" +  stringWriter.getBuffer().toString();
     // }
+
+    public void fireEarlyStateTimer() {
+        try {
+            if (SIPDialog.this.getState().equals(DialogState.EARLY)) {
+                
+                SIPDialog.this
+                        .raiseErrorEvent(SIPDialogErrorEvent.EARLY_STATE_TIMEOUT);
+            } else {
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug("EarlyStateTimerTask : Dialog state is " + SIPDialog.this.getState());
+                }
+            }
+        } catch (Exception ex) {
+            logger.logError(
+                    "Unexpected exception delivering event", ex);
+        }
+    }
 
     /**
      * Constructor given the first transaction.
@@ -3010,7 +2854,6 @@ public class SIPDialog implements DialogExt {
      * 
      * @param transaction
      */
-
     protected void startTimer(SIPServerTransaction transaction) {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug(
@@ -3764,28 +3607,10 @@ public class SIPDialog implements DialogExt {
                 // this.acquireTimerTaskSem();
                 // try {
                     if (this.getState() == DialogState.EARLY) {
-                        if (this.earlyStateTimerTask != null) {
-                            sipStack.getTimer()
-                                    .cancel(this.earlyStateTimerTask);
-                        }
-                        
-                        this.earlyStateTimerTask = new EarlyStateTimerTask();
-                        logger.logDebug(
-                                "EarlyStateTimerTask " + earlyStateTimerTask + " created "
-                                        + this.earlyDialogTimeout * 1000);
-                        if (sipStack.getTimer() != null && sipStack.getTimer().isStarted() ) {
-                        	sipStack.getTimer().schedule(this.earlyStateTimerTask,
-                                this.earlyDialogTimeout * 1000);
-                        }
+                        stopEarlyStateTimer();
+                        startEarlyStateTimer();
                     } else {
-                        if (this.earlyStateTimerTask != null) {
-                            logger.logDebug(
-                                "EarlyStateTimerTask " + earlyStateTimerTask + " cancelled");
-                            sipStack.getTimer()
-                                    .cancel(this.earlyStateTimerTask);
-                            this.earlyStateTimerTask = null;
-                        }
-
+                        stopEarlyStateTimer();
                     }
                 // } finally {
                 //     this.releaseTimerTaskSem();
@@ -4012,10 +3837,7 @@ public class SIPDialog implements DialogExt {
 
         if (this.pendingReliableResponseAsBytes == null)
             return false;
-        if (provisionalResponseTask != null) {
-            sipStack.getTimer().cancel(provisionalResponseTask);
-            this.provisionalResponseTask = null;
-        }
+        stopReliableResponseTimer();
         
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("cleaning reliableResponse " + pendingReliableResponseAsBytes + " for STX " + this + " after PRACK Received");
@@ -4632,5 +4454,39 @@ public class SIPDialog implements DialogExt {
     @Override
     public Dialog getOriginalDialog() {
       return originalDialog;
-    } 
+    }     
+
+    protected void startReliableResponseTimer(SIPServerTransactionImpl serverTransaction) {
+        provisionalResponseTask = new ProvisionalResponseTask(this, serverTransaction);
+        sipStack.getTimer().scheduleWithFixedDelay(provisionalResponseTask, 0,
+                SIPTransactionStack.BASE_TIMER_INTERVAL);    
+    }
+    
+    protected void stopReliableResponseTimer() {
+        if (provisionalResponseTask != null) {
+            sipStack.getTimer().cancel(provisionalResponseTask);
+            this.provisionalResponseTask = null;
+        }
+    }
+
+    protected void startEarlyStateTimer() {
+        this.earlyStateTimerTask = new EarlyStateTimerTask();
+        logger.logDebug(
+                "EarlyStateTimerTask " + earlyStateTimerTask + " created "
+                        + this.earlyDialogTimeout * 1000);
+        if (sipStack.getTimer() != null && sipStack.getTimer().isStarted() ) {
+            sipStack.getTimer().schedule(this.earlyStateTimerTask,
+                this.earlyDialogTimeout * 1000);
+        }
+    }
+    
+    protected void stopEarlyStateTimer() {
+        if (this.earlyStateTimerTask != null) {
+            logger.logDebug(
+                "EarlyStateTimerTask " + earlyStateTimerTask + " cancelled");
+            sipStack.getTimer()
+                    .cancel(this.earlyStateTimerTask);
+            this.earlyStateTimerTask = null;
+        }
+    }
 }

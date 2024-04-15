@@ -19,8 +19,6 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.net.InetAddress;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
@@ -60,7 +58,6 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
-import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.RawMessageChannel;
@@ -276,12 +273,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      *
      */
     class LingerTimer extends SIPStackTimerTask {
-        LingerTimerTaskData data;
 
         public LingerTimer() {
         	super(LingerTimer.class.getSimpleName());
             SIPTransaction sipTransaction = SIPTransactionImpl.this;
-            data = new LingerTimerTaskData(sipTransaction.getTransactionId());
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("LingerTimer : "
                         + sipTransaction.getTransactionId());
@@ -302,35 +297,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
                 return originalRequestCallId;
             }
         }
-
-        @Override
-        public SipTimerTaskData getData() {
-            return null;
-        }
-
-        class LingerTimerTaskData extends SipTimerTaskData {
-            private String transactionId;
-
-            public LingerTimerTaskData(String transactionId) {
-                this.transactionId = transactionId;
-            }
-
-            public String getTransactionId() {
-                return transactionId;
-            }
-
-            @Override
-            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-                super.readExternal(in);
-                transactionId = in.readUTF();
-            }
-
-            @Override
-            public void writeExternal(ObjectOutput out) throws IOException {
-                super.writeExternal(out);
-                out.writeUTF(transactionId);
-            }
-        }
     }
 
     /**
@@ -339,11 +305,9 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      *
      */
     class MaxTxLifeTimeListener extends SIPStackTimerTask {
-    	MaxTxLifeTimeListenerTaskData data;
 
     	MaxTxLifeTimeListener() {
     		super(MaxTxLifeTimeListener.class.getSimpleName());
-            data = new MaxTxLifeTimeListenerTaskData(SIPTransactionImpl.this.getTransactionId());
     	}
         SIPTransaction sipTransaction = SIPTransactionImpl.this;
 
@@ -375,35 +339,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
                 return ((SIPRequest)request).getCallIdHeader().getCallId();
             } else {
                 return originalRequestCallId;
-            }
-        }
-
-        @Override
-        public SipTimerTaskData getData() {
-            return null;
-        }
-
-        class MaxTxLifeTimeListenerTaskData extends SipTimerTaskData {
-            private String transactionId;
-
-            public MaxTxLifeTimeListenerTaskData(String transactionId) {
-                this.transactionId = transactionId;
-            }
-
-            public String getTransactionId() {
-                return transactionId;
-            }
-
-            @Override
-            public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-                super.readExternal(in);
-                transactionId = in.readUTF();
-            }
-
-            @Override
-            public void writeExternal(ObjectOutput out) throws IOException {
-                super.writeExternal(out);
-                out.writeUTF(transactionId);
             }
         }
     }

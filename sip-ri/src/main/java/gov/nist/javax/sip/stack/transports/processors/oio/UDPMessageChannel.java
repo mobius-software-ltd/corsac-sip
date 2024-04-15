@@ -69,7 +69,6 @@ import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.ServerRequestInterface;
 import gov.nist.javax.sip.stack.ServerResponseInterface;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
-import gov.nist.javax.sip.stack.timers.SipTimerTaskData;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.RawMessageChannel;
@@ -178,11 +177,6 @@ public class UDPMessageChannel extends MessageChannel implements
         @Override
         public int hashCode() {
             return (ipAddress + ":" + port).hashCode();
-        }
-
-        @Override
-        public SipTimerTaskData getData() {
-            return null;
         }
     }
 

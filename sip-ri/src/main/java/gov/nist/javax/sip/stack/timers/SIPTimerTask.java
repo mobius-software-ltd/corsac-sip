@@ -28,11 +28,5 @@ public interface SIPTimerTask {
     /**
      * Business logic of the task when it runs
      */
-    void runTask();
-
-    /**
-     * Get the data associated with the task
-     * @return
-     */
-    SipTimerTaskData getData();
+    void runTask();    
 }
