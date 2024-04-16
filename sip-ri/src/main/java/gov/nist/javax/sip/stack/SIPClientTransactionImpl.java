@@ -47,7 +47,6 @@ import gov.nist.core.NameValueList;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
-import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.address.AddressImpl;
@@ -184,7 +183,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  */
 public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPClientTransaction {
   private static StackLogger logger = CommonLogger.getLogger(SIPClientTransaction.class);
-  private static final String TIMER_K = "TimerK";
+  public static final String TIMER_K = "TimerK";
   private static final long serialVersionUID = 1L;  
 
   // a SIP Client transaction may belong simultaneously to multiple
@@ -232,87 +231,6 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   protected boolean terminateDialogOnCleanUp = true;
 
   protected long expiresTime = -1;
-
-  public class SIPClientTransactionTimer extends SIPStackTimerTask {
-
-    public SIPClientTransactionTimer() {
-      super(SIPClientTransactionTimer.class.getSimpleName());
-    }
-
-    public void runTask() {
-      if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        logger.logDebug("running transaction timer  = " + getTransactionId() +
-            ", isTerminated " + isTerminated());
-      }
-      // If the transaction has terminated,
-      if (isTerminated()) {
-
-        try {
-          stopTransactionTimer();
-
-        } catch (IllegalStateException ex) {
-          if (!sipStack.isAlive())
-            return;
-        }
-
-        cleanUpOnTerminated();
-
-      } else {
-        SipProviderImpl provider = getSipProvider();
-
-        // This is a User Agent. The user has specified an Expires time. Start a timer
-        // which will check if the tx is terminated by that time.
-        if (getDefaultDialog() != null && isInviteTransaction() && expiresTime != -1 && expiresTime < System.currentTimeMillis()) {
-            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("Expires time has been reached for the transaction " + getTransactionId());
-            }
-            TimeoutEvent tte = new TimeoutEvent(provider, SIPClientTransactionImpl.this, Timeout.TRANSACTION);
-            provider.handleEvent(tte, SIPClientTransactionImpl.this);
-        }
-        // If this transaction has not
-        // terminated,
-        // Fire the transaction timer.
-        fireTimer();
-
-      }
-
-    }
-
-    @Override
-    public String getId() {
-      Request request = getRequest();
-      if (request != null && request instanceof SIPRequest) {
-        return ((SIPRequest) request).getCallIdHeader().getCallId();
-      } else {
-        return originalRequestCallId;
-      }
-    }
-  }
-
-  public class ClientTransactionTimerK extends SIPStackTimerTask {
-
-    public ClientTransactionTimerK() {
-      super(TIMER_K);
-    }
-
-    public void runTask() {
-      if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        logger.logDebug("executing TransactionTimerJ() : " + getTransactionId());
-      }
-      fireTimeoutTimer();
-      cleanUpOnTerminated();
-    }
-
-    @Override
-    public String getId() {
-      Request request = getRequest();
-      if (request != null && request instanceof SIPRequest) {
-        return ((SIPRequest) request).getCallIdHeader().getCallId();
-      } else {
-        return originalRequestCallId;
-      }
-    }
-  }
 
   /**
    * Creates a new client transaction.
@@ -721,7 +639,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         if (time > 0) {
           scheduleTimerK(time);
         } else {
-          ClientTransactionTimerK task = new ClientTransactionTimerK();
+          ClientTransactionTimerK task = new ClientTransactionTimerK(this);
           task.runTask();
         }
         transactionTimerCancelled.set(true);
@@ -731,7 +649,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   }
 
   protected void scheduleTimerK(long time) {
-    ClientTransactionTimerK task = new ClientTransactionTimerK();
+    ClientTransactionTimerK task = new ClientTransactionTimerK(this);
     sipStack.getTimer().schedule(task, time * baseTimerInterval);
   }
 
@@ -1441,7 +1359,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   protected void scheduleTransactionTimer() {
     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Start transaction timer : " + getTransactionId());
-    transactionTimer = new SIPClientTransactionTimer();
+    transactionTimer = new SIPClientTransactionTimer(this);
     sipStack.getTimer().scheduleWithFixedDelay(transactionTimer,
         baseTimerInterval,
         baseTimerInterval);

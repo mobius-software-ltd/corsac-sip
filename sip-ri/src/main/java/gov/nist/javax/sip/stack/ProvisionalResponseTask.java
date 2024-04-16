@@ -29,7 +29,7 @@ import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
-class ProvisionalResponseTask extends SIPStackTimerTask {
+public class ProvisionalResponseTask extends SIPStackTimerTask {
     private StackLogger logger = CommonLogger.getLogger(ProvisionalResponseTask.class);
     
     SIPServerTransactionImpl serverTransaction;

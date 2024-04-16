@@ -273,7 +273,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      *
      *
      */
-    class LingerTimer extends SIPStackTimerTask {
+    public class LingerTimer extends SIPStackTimerTask {
 
         public LingerTimer() {
         	super(LingerTimer.class.getSimpleName());

@@ -171,7 +171,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  */
 public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPServerTransaction {
     private static final long serialVersionUID = 1L;
-    private static final String TIMER_J_NAME = "TimerJ";
+    public static final String TIMER_J_NAME = "TimerJ";
 
     private static StackLogger logger = CommonLogger.getLogger(SIPServerTransaction.class);    
 
@@ -268,90 +268,6 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             }
         }
     }
-
-    class SIPServerTransactionTimer extends SIPStackTimerTask {
-
-        public SIPServerTransactionTimer() {
-            super(SIPServerTransactionTimer.class.getSimpleName());
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("TransactionTimer() : " + getTransactionId());
-            }
-        }
-
-        public void runTask() {
-            // If the transaction has terminated,
-            if (isTerminated()) {
-                // Keep the transaction hanging around in the transaction table
-                // to catch the incoming ACK -- this is needed for tcp only.
-                // Note that the transaction record is actually removed in
-                // the connection linger timer.
-                stopTransactionTimer();
-                
-
-                // Oneshot timer that garbage collects the SeverTransaction
-                // after a scheduled amount of time. The linger timer allows
-                // the client side of the tx to use the same connection to
-                // send an ACK and prevents a race condition for creation
-                // of new server tx
-                SIPStackTimerTask myTimer = new LingerTimer();
-
-                if (sipStack.getConnectionLingerTimer() != 0) {
-                    sipStack.getTimer().schedule(myTimer, sipStack.getConnectionLingerTimer() * 1000);
-                } else {
-                    myTimer.runTask();
-                }
-            } else {
-                // Add to the fire list -- needs to be moved
-                // outside the synchronized block to prevent
-                // deadlock.
-                fireTimer();
-            }
-            if (originalRequest != null) {
-                originalRequest.cleanUp();
-            }
-        }
-
-        @Override
-        public String getId() {
-            Request request = getRequest();
-            if (request != null && request instanceof SIPRequest) {
-                return ((SIPRequest) request).getCallIdHeader().getCallId();
-            } else {
-                return originalRequestCallId;
-            }
-        }
-    }
-
-    public class SIPServerTransactionTimerJ extends SIPStackTimerTask {
-
-        public SIPServerTransactionTimerJ() {
-            super(TIMER_J_NAME);
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("TransactionTimerJ() : " + getTransactionId());
-            }
-        }
-
-        public void runTask() {
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("executing TransactionTimerJ() : " + getTransactionId());
-            }
-            fireTimeoutTimer();
-            cleanUp();
-            if (originalRequest != null) {
-                originalRequest.cleanUp();
-            }
-        }
-
-        @Override
-        public String getId() {
-            Request request = getRequest();
-            if (request != null && request instanceof SIPRequest) {
-                return ((SIPRequest) request).getCallIdHeader().getCallId();
-            } else {
-                return originalRequestCallId;
-            }
-        }        
-    };
 
     /**
      * Send a response.
@@ -1538,7 +1454,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     }
 
     protected void scheduleTransactionTimer() {
-        transactionTimer = new SIPServerTransactionTimer();
+        transactionTimer = new SIPServerTransactionTimer(this);
         sipStack.getTimer().scheduleWithFixedDelay(transactionTimer, baseTimerInterval, baseTimerInterval);
     }
 
@@ -1556,7 +1472,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 if (time > 0) {
                     scheduleTransactionTimerJ(time);
                 } else {
-                    SIPStackTimerTask transactionTimerJ = new SIPServerTransactionTimerJ();
+                    SIPStackTimerTask transactionTimerJ = new SIPServerTransactionTimerJ(this);
                     transactionTimerJ.runTask();
                 }
             }
@@ -1564,7 +1480,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     }
 
     protected void scheduleTransactionTimerJ(long time) {
-        SIPStackTimerTask transactionTimerJ = new SIPServerTransactionTimerJ();
+        SIPStackTimerTask transactionTimerJ = new SIPServerTransactionTimerJ(this);
         sipStack.getTimer().schedule(transactionTimerJ, time * T1 * baseTimerInterval);
     }
 
