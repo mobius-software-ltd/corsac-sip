@@ -291,7 +291,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
   public class ClientTransactionTimerK extends SIPStackTimerTask {
 
-    ClientTransactionTimerK() {
+    public ClientTransactionTimerK() {
       super(TIMER_K);
     }
 
