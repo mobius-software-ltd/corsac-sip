@@ -322,7 +322,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
     }
 
-    class SIPServerTransactionTimerJ extends SIPStackTimerTask {
+    public class SIPServerTransactionTimerJ extends SIPStackTimerTask {
 
         public SIPServerTransactionTimerJ() {
             super(TIMER_J_NAME);
