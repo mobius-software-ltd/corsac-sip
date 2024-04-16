@@ -188,7 +188,6 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     // the unacknowledged SIPResponse
 
     protected boolean retransmissionAlertEnabled;
-
     protected RetransmissionAlertTimerTask retransmissionAlertTimerTask;
 
     protected boolean isAckSeen;
@@ -286,12 +285,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 // to catch the incoming ACK -- this is needed for tcp only.
                 // Note that the transaction record is actually removed in
                 // the connection linger timer.
-                try {
-                    sipStack.getTimer().cancel(this);
-                } catch (IllegalStateException ex) {
-                    if (!sipStack.isAlive())
-                        return;
-                }
+                stopTransactionTimer();
+                
 
                 // Oneshot timer that garbage collects the SeverTransaction
                 // after a scheduled amount of time. The linger timer allows
@@ -1534,14 +1529,17 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         if (getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL)
                 || getMethod().equalsIgnoreCase(Request.ACK)) {
             if (this.transactionTimerStarted.compareAndSet(false, true)) {
+                // Do not schedule when the stack is not alive.
                 if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                    // Do not schedule when the stack is not alive.
-                    if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                        sipStack.getTimer().scheduleWithFixedDelay(new SIPServerTransactionTimer(), baseTimerInterval, baseTimerInterval);
-                    }                    
+                    scheduleTransactionTimer();
                 }
             }
         }
+    }
+
+    protected void scheduleTransactionTimer() {
+        transactionTimer = new SIPServerTransactionTimer();
+        sipStack.getTimer().scheduleWithFixedDelay(transactionTimer, baseTimerInterval, baseTimerInterval);
     }
 
     /**
@@ -1555,14 +1553,19 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 }
                 // The timer is set to null when the Stack is
                 // shutting down.
-                SIPStackTimerTask task = new SIPServerTransactionTimerJ();
                 if (time > 0) {
-                    sipStack.getTimer().schedule(task, time * T1 * baseTimerInterval);
+                    scheduleTransactionTimerJ(time);
                 } else {
-                    task.runTask();
+                    SIPStackTimerTask transactionTimerJ = new SIPServerTransactionTimerJ();
+                    transactionTimerJ.runTask();
                 }
             }
         }
+    }
+
+    protected void scheduleTransactionTimerJ(long time) {
+        SIPStackTimerTask transactionTimerJ = new SIPServerTransactionTimerJ();
+        sipStack.getTimer().schedule(transactionTimerJ, time * T1 * baseTimerInterval);
     }
 
     /**

@@ -1426,10 +1426,7 @@ public class SIPDialog implements DialogExt {
             if (tr.getCSeq() == cseqNumber) {
                 // acquireTimerTaskSem();
                 // try {
-                    if (this.timerTask != null) {
-                        this.getStack().getTimer().cancel(timerTask);
-                        this.timerTask = null;
-                    }
+                    stopDialogTimer();
                 // } finally {
                 //     releaseTimerTaskSem();
                 // }
@@ -2874,17 +2871,9 @@ public class SIPDialog implements DialogExt {
                         "setting  this.timerTask.transaction " + this.timerTask.transaction + " to " + transaction);
                 this.timerTask.transaction = transaction;
             } else {
-                this.timerTask = new DialogTimerTask(transaction);
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                    logger.logDebug(
-                        "Created DialogTimerTask " + timerTask);
-                if ( sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        logger.logDebug(
-                            "Executing DialogTimerTask " + timerTask + " with fixed delay and period of " + transaction.getBaseTimerInterval());
-                	sipStack.getTimer().scheduleWithFixedDelay(timerTask,
-                        transaction.getBaseTimerInterval(),
-                        transaction.getBaseTimerInterval());
+                
+                if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
+                    scheduleDialogTimer(transaction);
                 }
             }
         // } finally {
@@ -2907,28 +2896,35 @@ public class SIPDialog implements DialogExt {
             // acquireTimerTaskSem();
             // try {
                 
-                if (this.timerTask != null) {
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                        logger.logDebug(
-                                "Cancelled Dialog Timer " + timerTask);
-                    }                    
-                    this.getStack().getTimer().cancel(timerTask);
-                    this.timerTask = null;                    
-                }
-                if (this.earlyStateTimerTask != null) {
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                        logger.logDebug(
-                                "Cancelled Early Dialog Timer " + earlyStateTimerTask);
-                    } 
-                    this.getStack().getTimer().cancel(this.earlyStateTimerTask);
-                    this.earlyStateTimerTask = null;
-                }
+                stopDialogTimer();
+                stopEarlyStateTimer();
             // } finally {
             //     releaseTimerTaskSem();
             // }
         // } catch (Exception ex) {
         //     ex.printStackTrace();
         // }
+    }
+
+    protected void scheduleDialogTimer(SIPServerTransaction transaction) {
+        this.timerTask = new DialogTimerTask(transaction);
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+            logger.logDebug(
+                "Executing DialogTimerTask " + timerTask + " with fixed delay and period of " + transaction.getBaseTimerInterval());
+        sipStack.getTimer().scheduleWithFixedDelay(timerTask,
+            transaction.getBaseTimerInterval(),
+            transaction.getBaseTimerInterval());
+    }
+
+    protected void stopDialogTimer() {
+        if (this.timerTask != null) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                        "Cancelled Dialog Timer " + timerTask);
+            }                    
+            this.getStack().getTimer().cancel(timerTask);
+            this.timerTask = null;                    
+        }
     }
 
     /*
@@ -4003,10 +3999,7 @@ public class SIPDialog implements DialogExt {
             }
             // acquireTimerTaskSem();
             // try {
-                if (this.timerTask != null) {
-                    this.getStack().getTimer().cancel(timerTask);
-                    this.timerTask = null;
-                }
+                stopDialogTimer();
             // } finally {
             //     releaseTimerTaskSem();
             // }

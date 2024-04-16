@@ -45,8 +45,7 @@ class ProvisionalResponseTask extends SIPStackTimerTask {
         ticksLeft = ticks;
     }
 
-    public void runTask() {        
-        SIPTransactionStack sipStack = serverTransaction.sipStack;
+    public void runTask() {                
         /*
          * The reliable provisional response is passed to the transaction layer
          * periodically
@@ -68,7 +67,7 @@ class ProvisionalResponseTask extends SIPStackTimerTask {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("canceling ProvisionalResponseTask as tx is terminated");
             }
-            sipStack.getTimer().cancel(this);
+            sipDialog.stopReliableResponseTimer();
 
         } else {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -95,7 +94,7 @@ class ProvisionalResponseTask extends SIPStackTimerTask {
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                         logger.logDebug("canceling ProvisionalResponseTask");
                     }
-                    sipStack.getTimer().cancel(this);
+                    sipDialog.stopReliableResponseTimer();
                     // If a reliable provisional response is retransmitted for 64*T1 seconds
                     // without reception of a corresponding PRACK, the UAS SHOULD reject the
                     // original request with a 5xx response. This should be done at app level

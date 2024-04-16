@@ -147,6 +147,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     // Underlying channel being used to send messages for this transaction
     protected transient MessageChannel encapsulatedChannel;
 
+    protected transient SIPStackTimerTask transactionTimer;
     protected AtomicBoolean transactionTimerStarted = new AtomicBoolean(false);
 
     // Transaction branch ID
@@ -1644,6 +1645,22 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 			maxTxLifeTimeListener = null;
 		}
 	}
+
+    protected void stopTransactionTimer() {
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("stopping TransactionTimer : " + getTransactionId());
+        }
+        if (transactionTimer != null) {
+            try {
+                sipStack.getTimer().cancel(transactionTimer);
+            } catch (IllegalStateException ex) {
+                if (!sipStack.isAlive())
+                    return;
+            } finally {
+                transactionTimer = null;
+            }
+        }
+    }
 
 	/**
    * @see gov.nist.javax.sip.stack.SIPTransaction#getMergeId()

@@ -218,8 +218,6 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
   protected int callingStateTimeoutCount;
 
-  private transient SIPStackTimerTask transactionTimer;
-
   // jeand/ avoid keeping the full Original Request in memory
   protected String originalRequestFromTag;
   protected Event originalRequestEventHeader;
@@ -250,7 +248,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       if (isTerminated()) {
 
         try {
-          sipStack.getTimer().cancel(this);
+          stopTransactionTimer();
 
         } catch (IllegalStateException ex) {
           if (!sipStack.isAlive())
@@ -655,7 +653,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       } else if (200 <= statusCode && statusCode <= 699) {
         if (!isReliable()) {
           this.setState(TransactionState._COMPLETED);
-          scheduleTimerK(timerK);
+          startTimerK(timerK);
         } else {
           this.setState(TransactionState._TERMINATED);
         }
@@ -684,7 +682,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         disableTimeoutTimer();
         if (!isReliable()) {
           this.setState(TransactionState._COMPLETED);
-          scheduleTimerK(timerK);
+          startTimerK(timerK);
         } else {
           this.setState(TransactionState._TERMINATED);
         }
@@ -710,7 +708,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   // avoid re-scheduling the transaction timer every 500ms while we know we have
   // to wait for TIMER_K
   // * 500 ms
-  private void scheduleTimerK(long time) {
+  private void startTimerK(long time) {
     if (transactionTimer != null && timerKStarted.compareAndSet(false, true)) {
       // synchronized (transactionTimerLock) {
       if (!transactionTimerCancelled.get()) {
@@ -721,7 +719,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         }
         
         if (time > 0) {
-          startTimerK(time);
+          scheduleTimerK(time);
         } else {
           ClientTransactionTimerK task = new ClientTransactionTimerK();
           task.runTask();
@@ -732,7 +730,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     }
   }
 
-  protected void startTimerK(long time) {
+  protected void scheduleTimerK(long time) {
     ClientTransactionTimerK task = new ClientTransactionTimerK();
     sipStack.getTimer().schedule(task, time * baseTimerInterval);
   }
@@ -1447,11 +1445,6 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     sipStack.getTimer().scheduleWithFixedDelay(transactionTimer,
         baseTimerInterval,
         baseTimerInterval);
-  }
-
-  protected void stopTransactionTimer() {
-    sipStack.getTimer().cancel(transactionTimer);
-    transactionTimer = null;
   }
 
   /*
