@@ -627,7 +627,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   // to wait for TIMER_K
   // * 500 ms
   private void startTimerK(long time) {
-    if (transactionTimer != null && timerKStarted.compareAndSet(false, true)) {
+    if (transactionTimerStarted.get() && timerKStarted.compareAndSet(false, true)) {
       // synchronized (transactionTimerLock) {
       if (!transactionTimerCancelled.get()) {
         stopTransactionTimer();

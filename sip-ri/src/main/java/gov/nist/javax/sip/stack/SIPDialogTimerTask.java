@@ -12,15 +12,11 @@ import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializable {
     private static StackLogger logger = CommonLogger.getLogger(SIPDialogTimerTask.class);    
     private static final long serialVersionUID = 1L;
-    SIPServerTransaction transaction;
-    SIPDialog dialog;
-    int nRetransmissions;
+    protected SIPDialog dialog;
+    protected int nRetransmissions;
 
-    // long cseqNumber;
-
-    public SIPDialogTimerTask(SIPDialog sipDialog, SIPServerTransaction transaction) {
+    public SIPDialogTimerTask(SIPDialog sipDialog) {
         	super(SIPDialogTimerTask.class.getSimpleName());
-            this.transaction = transaction;
             this.dialog = sipDialog;
             nRetransmissions = 0;
          }
@@ -31,7 +27,8 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Running dialog timer");
         nRetransmissions++;
-        SIPServerTransaction transaction = this.transaction;
+        SIPServerTransaction transaction = (SIPServerTransaction) 
+            dialog.getStack().findTransaction(getTaskName(), true);
         /*
          * Issue 106. Section 13.3.1.4 RFC 3261 The 2xx response is passed
          * to the transport with an interval that starts at T1 seconds and
@@ -89,8 +86,8 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
         // Stop running this timer if the dialog is in the
         // confirmed state or ack seen if retransmit filter on.
         if (dialog.isAckSeen() || dialog.dialogState == SIPDialog.TERMINATED_STATE) {
-            this.transaction = null;
-            dialog.getStack().getTimer().cancel(this);
+            dialog.ongoingTransactionId = null;
+            dialog.stopDialogTimer();
 
         }
 
@@ -98,7 +95,7 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
 
     @Override
     public void cleanUpBeforeCancel() {
-        transaction = null;
+        dialog.ongoingTransactionId = null;
         // lastAckSent = null;
         dialog.cleanUpOnAck();
         super.cleanUpBeforeCancel();
@@ -107,5 +104,13 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
     @Override
     public String getId() {
         return dialog.getCallId().getCallId();
+    }
+
+    public int getNumberOfRetransmissions() {
+        return nRetransmissions;
+    }
+
+    public void setNumberOfRetransmissions(int nRetransmissions) {
+        this.nRetransmissions = nRetransmissions;
     }
 }

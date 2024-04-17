@@ -180,6 +180,7 @@ public class SIPDialog implements DialogExt {
     // jeand needed for checking 491 but nullifyed right after the ACK has been
     // received or sent to let go of the ref ASAP
     protected SIPTransaction lastTransaction;
+    protected String ongoingTransactionId;
 
     protected String dialogId;
 
@@ -210,6 +211,7 @@ public class SIPDialog implements DialogExt {
     protected transient boolean ackProcessed;
 
     protected transient SIPDialogTimerTask timerTask;
+    protected AtomicBoolean timerTaskStarted = new AtomicBoolean(false);
 
     protected transient AtomicLong nextSeqno;
 
@@ -1330,7 +1332,7 @@ public class SIPDialog implements DialogExt {
             if (tr.getCSeq() == cseqNumber) {
                 // acquireTimerTaskSem();
                 // try {
-                    stopDialogTimer();
+                    stopTimer();
                 // } finally {
                 //     releaseTimerTaskSem();
                 // }
@@ -2071,11 +2073,12 @@ public class SIPDialog implements DialogExt {
      * Get the INVITE transaction (null if no invite transaction).
      */
     public SIPServerTransaction getInviteTransaction() {
-        SIPDialogTimerTask t = this.timerTask;
-        if (t != null)
-            return t.transaction;
-        else
+        // SIPDialogTimerTask t = this.timerTask;
+        if (ongoingTransactionId != null) {
+            return (SIPServerTransaction) sipStack.findTransaction(ongoingTransactionId, true);
+        } else {
             return null;
+        }
     }
 
     /**
@@ -2758,31 +2761,28 @@ public class SIPDialog implements DialogExt {
     protected void startTimer(SIPServerTransaction transaction) {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug(
-                    "Starting dialog timer for " + getDialogId() + ", timerTask=" + timerTask);
+                    "Starting dialog timer for " + getDialogId() + 
+                    ", timerTask=" + timerTask + 
+                    ", timerTaskStarted=" + timerTaskStarted.get() +
+                    ", ongoingTransactionId=" + ongoingTransactionId + 
+                    ", transaction= " + transaction.getTransactionId());
 
-        if (this.timerTask != null && timerTask.transaction == transaction) {
+        if (this.timerTaskStarted.get() && ongoingTransactionId == transaction.getTransactionId()) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug(
                         "Timer already running for " + getDialogId());
             return;
         }
-        
-        // acquireTimerTaskSem();
-        // try {
-            if (this.timerTask != null) {
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                    logger.logDebug(
-                        "setting  this.timerTask.transaction " + this.timerTask.transaction + " to " + transaction);
-                this.timerTask.transaction = transaction;
-            } else {
-                
-                if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                    scheduleDialogTimer(transaction);
-                }
+            
+        if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+            logger.logDebug(
+                "setting  this.ongoingTransactionId " + this.ongoingTransactionId + " to " + transaction.getTransactionId());
+            this.ongoingTransactionId = transaction.getTransactionId();
+            if (this.timerTaskStarted.compareAndSet(false, true)) {
+                scheduleDialogTimer(transaction);
             }
-        // } finally {
-        //     releaseTimerTaskSem();
-        // }
+        }
 
         this.setRetransmissionTicks();
     }
@@ -2792,26 +2792,14 @@ public class SIPDialog implements DialogExt {
      * 
      */
     protected void stopTimer() {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug(
-                    "Trying to stop Dialog Timers " + this.timerTask + " or " + this.earlyStateTimerTask);
-        }
-        // try {
-            // acquireTimerTaskSem();
-            // try {
-                
-                stopDialogTimer();
-                stopEarlyStateTimer();
-            // } finally {
-            //     releaseTimerTaskSem();
-            // }
-        // } catch (Exception ex) {
-        //     ex.printStackTrace();
-        // }
+        stopDialogTimer();
+        stopEarlyStateTimer();
+        this.timerTask = null;
+        this.ongoingTransactionId = null;                    
     }
 
     protected void scheduleDialogTimer(SIPServerTransaction transaction) {
-        this.timerTask = new SIPDialogTimerTask(this, transaction);
+        this.timerTask = new SIPDialogTimerTask(this);
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug(
                 "Executing DialogTimerTask " + timerTask + " with fixed delay and period of " + transaction.getBaseTimerInterval());
@@ -2821,13 +2809,16 @@ public class SIPDialog implements DialogExt {
     }
 
     protected void stopDialogTimer() {
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug(
+                    "Trying to stop Dialog Timers " + this.timerTask);
+        }
         if (this.timerTask != null) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug(
                         "Cancelled Dialog Timer " + timerTask);
             }                    
             this.getStack().getTimer().cancel(timerTask);
-            this.timerTask = null;                    
         }
     }
 
@@ -3903,7 +3894,7 @@ public class SIPDialog implements DialogExt {
             }
             // acquireTimerTaskSem();
             // try {
-                stopDialogTimer();
+                stopTimer();
             // } finally {
             //     releaseTimerTaskSem();
             // }
@@ -4081,15 +4072,7 @@ public class SIPDialog implements DialogExt {
      */
     void setEventHeader(EventHeader eventHeader) {
         this.eventHeader = eventHeader;
-    }
-
-    /**
-     * @param serverTransactionFlag
-     *            the serverTransactionFlag to set
-     */
-    void setServerTransactionFlag(boolean serverTransactionFlag) {
-        this.serverTransactionFlag = serverTransactionFlag;
-    }
+    }    
 
     /**
      * @param reInviteFlag
@@ -4378,6 +4361,10 @@ public class SIPDialog implements DialogExt {
     }
     
     protected void stopEarlyStateTimer() {
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug(
+                    "Trying to stop Early Dialog Timer " + this.earlyStateTimerTask);
+        }
         if (this.earlyStateTimerTask != null) {
             logger.logDebug(
                 "EarlyStateTimerTask " + earlyStateTimerTask + " cancelled");

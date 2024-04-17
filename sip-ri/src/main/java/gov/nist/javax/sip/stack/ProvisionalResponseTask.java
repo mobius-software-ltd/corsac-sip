@@ -32,10 +32,10 @@ import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 public class ProvisionalResponseTask extends SIPStackTimerTask {
     private StackLogger logger = CommonLogger.getLogger(ProvisionalResponseTask.class);
     
-    SIPServerTransactionImpl serverTransaction;
-    SIPDialog sipDialog;
-    int ticks;
-    int ticksLeft;     
+    protected SIPServerTransactionImpl serverTransaction;
+    protected SIPDialog sipDialog;
+    protected int ticks;
+    protected int ticksLeft;     
 
     public ProvisionalResponseTask(SIPDialog sipDialog, SIPServerTransactionImpl serverTransaction) {
         super(ProvisionalResponseTask.class.getSimpleName());
@@ -115,5 +115,21 @@ public class ProvisionalResponseTask extends SIPStackTimerTask {
         } else {
             return serverTransaction.originalRequestCallId;
         }
+    }
+
+    public int getTicks() {
+        return ticks;
+    }
+
+    public void setTicks(int ticks) {
+        this.ticks = ticks;
+    }
+
+    public int getTicksLeft() {
+        return ticksLeft;
+    }
+
+    public void setTicksLeft(int ticksLeft) {
+        this.ticksLeft = ticksLeft;
     }
 }
