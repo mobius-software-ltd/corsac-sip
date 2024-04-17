@@ -2,6 +2,7 @@ package gov.nist.javax.sip.parser.extensions;
 
 import gov.nist.javax.sip.header.*;
 import gov.nist.javax.sip.header.extensions.Diversion;
+import gov.nist.javax.sip.header.extensions.DiversionHeader;
 import gov.nist.javax.sip.header.extensions.DiversionList;
 import gov.nist.javax.sip.parser.*;
 import java.text.ParseException;
@@ -14,8 +15,8 @@ import java.text.ParseException;
 
 public class DiversionParser extends AddressParametersParser {
 
-    public DiversionParser(String diversion) {
-        super(diversion);
+    public DiversionParser(String diversionAddress) {
+        super(diversionAddress);
     }
 
     protected DiversionParser(Lexer lexer) {
@@ -65,11 +66,19 @@ public class DiversionParser extends AddressParametersParser {
 
         for (int i = 0; i < diversionStrings.length; i++) {
             DiversionParser dp = new DiversionParser(diversionStrings[i]);
-            DiversionList diversionList = (DiversionList) dp.parse();
-            System.out.println("encoded = " + diversionList.encode());
+            DiversionList dList = (DiversionList) dp.parse();
+            System.out.println("Parsing => " + diversionStrings[i]);
+            
+            // Iterate over the list and handle each DiversionHeader individually
+            for (DiversionHeader d : dList) {
+                System.out.print("encoded = " + d.encode() + "==> ");
+                System.out.println("address: " + d.getAddress() + " reason="
+                        + d.getReason() + " limit=" + d.getLimit()
+                        + " privacy= " + d.getPrivacy() + " counter=" + d.getCounter()
+                        + " screen=" + d.getScreen() + " extension=" + d.getExtension());
+            }
         }
     }
 }
-
 
 

@@ -27,5 +27,6 @@ public class DiversionList extends SIPHeaderList<Diversion>{
              */
         public DiversionList() {
             super( Diversion.class, Diversion.NAME);
+            
         }
 }
