@@ -686,6 +686,9 @@ public class SIPDialog implements DialogExt {
     // ///////////////////////////////////////////////////////////
     // Constructors.
     // ///////////////////////////////////////////////////////////
+    
+    protected SIPDialog() {}
+    
     /**
      * Protected Dialog constructor.
      */

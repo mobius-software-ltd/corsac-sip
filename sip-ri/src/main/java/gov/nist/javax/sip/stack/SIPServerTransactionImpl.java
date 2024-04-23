@@ -375,6 +375,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
     }
 
+
+    protected SIPServerTransactionImpl() {}
+
     /**
      * Creates a new server transaction.
      *

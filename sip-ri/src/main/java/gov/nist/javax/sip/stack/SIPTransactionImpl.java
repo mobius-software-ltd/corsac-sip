@@ -344,6 +344,9 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         }
     }
 
+    // May be required by the subclasses for in memory datagrid frameworks
+    protected SIPTransactionImpl() {}
+
     /**
      * Transaction constructor.
      *

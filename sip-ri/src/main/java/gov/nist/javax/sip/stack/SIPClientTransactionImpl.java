@@ -232,6 +232,8 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
   protected long expiresTime = -1;
 
+  protected SIPClientTransactionImpl() {}
+
   /**
    * Creates a new client transaction.
    * 
