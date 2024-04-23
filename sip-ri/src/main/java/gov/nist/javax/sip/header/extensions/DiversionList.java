@@ -21,12 +21,17 @@ public class DiversionList extends SIPHeaderList<Diversion>{
             retval.clonehlist(this.hlist);
             return retval;
         }
+        public String encode() {
+            if ( super.hlist.isEmpty()) return "";
+            else return super.encode();
+        }
+
 
 
             /** default constructor
              */
         public DiversionList() {
-            super( Diversion.class, Diversion.NAME);
+            super( Diversion.class, DiversionHeader.NAME);
             
         }
 }

@@ -15,8 +15,8 @@ import java.text.ParseException;
 
 public class DiversionParser extends AddressParametersParser {
 
-    public DiversionParser(String diversionAddress) {
-        super(diversionAddress);
+    public DiversionParser(String address) {
+        super(address);
     }
 
     protected DiversionParser(Lexer lexer) {
@@ -28,40 +28,43 @@ public class DiversionParser extends AddressParametersParser {
      * @throws SIPParseException if errors occur during the parsing
      */
     public SIPHeader parse() throws ParseException {
-        DiversionList diversionList = new DiversionList();
-        if (debug)
-            dbg_enter("parse");
-
-        try {
+        DiversionList retval = new DiversionList();
             this.lexer.match(TokenTypes.DIVERSION);
             this.lexer.SPorHT();
             this.lexer.match(':');
             this.lexer.SPorHT();
             while (true) {
                 Diversion diversion = new Diversion();
-                super.parse(diversion);
-                diversionList.add(diversion);
+                if (lexer.lookAhead(0) == '*') {
+                    final char next = lexer.lookAhead(1);
+                    if (next == ' ' || next == '\t' || next == '\r' || next == '\n') {
+                        this.lexer.match('*');
+                        diversion.setWildCardFlag(true);
+                    } else {
+                        super.parse(diversion);
+                    }
+                } else {
+                    super.parse(diversion);
+                }
+                retval.add(diversion);
                 this.lexer.SPorHT();
                 char la = lexer.lookAhead(0);
                 if (la == ',') {
                     this.lexer.match(',');
                     this.lexer.SPorHT();
-                } else if (la == '\n')
+                } else if (la == '\n' || la == '\0')
                     break;
                 else
                     throw createParseException("unexpected char");
             }
-            return diversionList;
-        } finally {
-            if (debug)
-                dbg_leave("parse");
-        }
+            return retval;
+        } 
 
-    }
-
+    //testing case
+    
     public static void main(String args[]) throws ParseException {
         String[] diversionStrings = {
-                "Diversion: sip:user@example.com;reason=busy;limit=4;privacy=conditionally;counter=2;screen=yes;extension=token\n"
+                "Diversion: <sip:user@example.com>;reason=busy;limit=4;privacy=conditionally;counter=2;screen=yes\n"
         };
 
         for (int i = 0; i < diversionStrings.length; i++) {
@@ -74,8 +77,8 @@ public class DiversionParser extends AddressParametersParser {
                 System.out.print("encoded = " + d.encode() + "==> ");
                 System.out.println("address: " + d.getAddress() + " reason="
                         + d.getReason() + " limit=" + d.getLimit()
-                        + " privacy= " + d.getPrivacy() + " counter=" + d.getCounter()
-                        + " screen=" + d.getScreen() + " extension=" + d.getExtension());
+                        + " privacy=" + d.getPrivacy() + " counter=" + d.getCounter()
+                        + " screen=" + d.getScreen() );
             }
         }
     }

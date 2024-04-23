@@ -4,79 +4,117 @@ import java.text.ParseException;
 
 import javax.sip.address.Address;
 import javax.sip.header.ExtensionHeader;
+import gov.nist.core.NameValue;
+import gov.nist.core.NameValueList;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.header.*;
+/**
+ * SIP Diversion header implementation.
+ */
 
-public class Diversion 
-	extends AddressParametersHeader 
-	implements ExtensionHeader, DiversionHeader{
+public final class Diversion 
+    extends AddressParametersHeader 
+    implements ExtensionHeader, DiversionHeader{
+	
+	/**
+	*
+	*@author ValeriiaMukha
+	*
+	*/
 
     private static final long serialVersionUID = 1L;
-    public String diversionAddress;
-    
-	/**
-     * Default constructor.
-     */
-    public Diversion() {
-        super(NAME);
-    }
-    
+    public Address diversion;
+    protected boolean wildCardFlag;
+    public static final String REASON = ParameterNames.REASON;
+    public static final String PRIVACY = ParameterNames.PRIVACY;
+    public static final String SCREEN = ParameterNames.SCREEN;
+    public static final String LIMIT = ParameterNames.LIMIT;
+    public static final String COUNTER = ParameterNames.COUNTER;
+
     /** Default constructor given an address.
-    *
-    *@param address -- address of this header.
     *
     */
 
-   public Diversion(AddressImpl address) {
+   public Diversion() {
        super(NAME);
-       this.address = address;
    }
    
-   public String encodeBody() {
-       return encodeBody(new StringBuilder()).toString();
-   }
-   /**
-    * Set the address member
-    *
-    * @param address Address to set
-    */
-   public void setDiversion(javax.sip.address.Address address) {
-       // Canonical form must have <> around the address.
-       if (address == null)
-           throw new NullPointerException("null address");
-       this.address = (AddressImpl) address;
-   }
-   
-   public void setDiversionAddress(String devAd) {
-	   diversionAddress = devAd;
-   }
+   public void setDiversion(String diversion) {
+       this.diversion = address;
+    }
    
    public Address getDiversion() {
-	   return address;
+       return address;
    }
    
-   public String getDiversionAddress() {
-	   return diversionAddress;
+   /**
+    * Set the wildCardFlag member
+    * @param w boolean to set
+    */
+   public void setWildCardFlag(boolean w) {
+       this.address = new AddressImpl();
+       this.address.setWildCardFlag();
    }
+   
+   /** Set a parameter.
+    */
+    public void setParameter(String name, String value) throws ParseException {
+        NameValue nv = parameters.getNameValue(name);
+        if (nv != null) {
+            nv.setValueAsObject(value);
+        } else {
+            nv = new NameValue(name, value);
+            if (name.equalsIgnoreCase("methods"))
+                nv.setQuotedValue();
+            this.parameters.set(nv);
+        }
+    }
+   
+    /** get the address field.
+     * @return Address
+     */
+    public javax.sip.address.Address getAddress() {
+        // JAIN-SIP stores the wild card as an address!
+        return address;
+    }
+    
+    /**
+     * Set the address member
+     *
+     * @param address Address to set
+     */
+    public void setAddress(javax.sip.address.Address address) {
+        // Canonical form must have <> around the address.
+        if (address == null)
+            throw new NullPointerException("null address");
+        this.address = (AddressImpl) address;
+    }
+
+    /** get the parameters List
+     * @return NameValueList
+     */
+    public NameValueList getDiversionParms() {
+        return parameters;
+    }
    
    /**
     * Gets the Reason parameter of the Diversion header.
     *
-    * @return the remote tag value
+    * @return the parameter value
     */
    public String getReason() {
-   	 if (parameters == null)
+        if (parameters == null)
             return null;
         return getParameter(ParameterNames.REASON);
    }
    /**
-    * Sets the remote tag of the Target-Dialog header.
+    * Sets the Reason parameter of the Diversion header.
     *
-    * @param remoteTag the remote tag value to set
-    * @throws ParseException if the provided remoteTag is invalid
+    * @param diversion-reason parameter value to set
+    * @throws ParseException if the provided parameter is invalid
     */
    public void setReason(String r) throws ParseException {
-   	  if (r == null)
+         if (r == null)
              throw new NullPointerException("null param");
          else if (r.trim().equals(""))
              throw new ParseException("bad param", 0);
@@ -89,7 +127,7 @@ public class Diversion
        return hasParameter(ParameterNames.REASON);
    }
 
-   /** remove Tag member
+   /** remove diversion-reason member
     */
    public void removeReason() {
        parameters.delete(ParameterNames.REASON);      
@@ -108,11 +146,11 @@ public class Diversion
    /**
     * Sets the diversion-limit parameter of the Diversion header.
     *
-    * @param reason diversion-limit parameter value to set
+    * @param diversion-limit parameter value to set
     * @throws ParseException if the provided parameter is invalid
     */
    public void setLimit(String l) throws ParseException {
-   	  if (l == null)
+         if (l == null)
              throw new NullPointerException("no limit param");
          else if (l.trim().equals(""))
              throw new ParseException("bad parameter", 0);
@@ -150,7 +188,7 @@ public class Diversion
     * @throws ParseException if the provided parameter is invalid
     */
    public void setCounter(String c) throws ParseException {
-   	  if (c == null)
+         if (c == null)
              throw new NullPointerException("no counter param");
          else if (c.trim().equals(""))
              throw new ParseException("bad parameter", 0);
@@ -188,7 +226,7 @@ public class Diversion
     * @throws ParseException if the provided parameter is invalid
     */
    public void setPrivacy(String p) throws ParseException {
-   	  if (p == null)
+         if (p == null)
              throw new NullPointerException("no privacy param");
          else if (p.trim().equals(""))
              throw new ParseException("bad parameter", 0);
@@ -236,7 +274,7 @@ public class Diversion
    }
    
    /** Boolean function
-    * @return true if the Tag exist
+    * @return true if the parameter exist
     */
    public boolean hasScreen() {
        return hasParameter(ParameterNames.SCREEN);
@@ -248,73 +286,37 @@ public class Diversion
        parameters.delete(ParameterNames.SCREEN);
    }
    
-   /**
-    * Gets the diversion-extension parameter from the address parameter list.
-    * @return field
-    */
-   public String getExtension() {
-       if (parameters == null)
-           return null;
-       return getParameter(ParameterNames.EXTENSION);
+   public String encodeBody() {
+       return encodeBody(new StringBuilder()).toString();
    }
-   
-   /**
-    * Sets the diversion-extension parameter of the Diversion header.
-    *
-    * @param reason diversion-extension parameter value to set
-    * @throws ParseException if the provided parameter is invalid
-    */
-   public void setExtension(String ex) throws ParseException {
-   	  if (ex == null)
-             throw new NullPointerException("no extension param");
-         else if (ex.trim().equals(""))
-             throw new ParseException("bad parameter", 0);
-         this.setParameter(ParameterNames.EXTENSION, ex);
-   }
-   
-   /** Boolean function
-    * @return true if the parameter exist
-    */
-   public boolean hasExtension() {
-       return hasParameter(ParameterNames.EXTENSION);
-   }
-   
-   /** remove diversion-extension member
-    */
-   public void removeExtension() {
-       parameters.delete(ParameterNames.EXTENSION);
-   }
+
     /**
      * Encode the body part of this header (i.e. leave out the hdrName).
      * @return String encoded body part of the header.
      */
-   protected StringBuilder encodeBody(StringBuilder buffer) {
-       boolean addrFlag = address.getAddressType() == AddressImpl.NAME_ADDR;
-       if (!addrFlag) {
-           buffer.append('<');
-           address.encode(buffer);
-           buffer.append('>');
-       } else {
-           address.encode(buffer);
-       }
-       if (!parameters.isEmpty()) {
-           buffer.append(SEMICOLON);
-           parameters.encode(buffer);
-       }
-       return buffer;
-   }
+   public StringBuilder encodeBody(StringBuilder buffer) {
+	    boolean addrFlag = address.getAddressType() == AddressImpl.NAME_ADDR;
+	    if (!addrFlag) {
+	        buffer.append('<');
+	        address.encode(buffer);
+	        buffer.append('>');
+	    } else {
+	        address.encode(buffer);
+	    }
+	    if (!parameters.isEmpty()) {
+	        buffer.append(SEMICOLON);
+	        parameters.encode(buffer);
+	    }
+	    return buffer;
+	}
 
-   public boolean equals(Object other) {
-       return (other instanceof DiversionHeader) && super.equals(other);
-   }
    @Override
    public void setValue(String value) throws ParseException {
        decodeBody(value);
    }
-   
+
    /**
-    * Parses the header string into Call-Id, local tag, remote tag, and parameters.
- * @param <Address>
+    * Parses the header string into Address and parameters.
     *
     * @param body the header string to parse
     * @throws ParseException if the header string cannot be parsed
@@ -328,7 +330,7 @@ public class Diversion
            String diversionParam = params[0].trim();
            int equalIndex = diversionParam.indexOf('=');
            if (equalIndex != -1) {
-               setDiversionAddress(diversionParam.substring(equalIndex + 1).trim());
+               setDiversion(diversionParam.substring(equalIndex + 1).trim());
            } else {
                throw new ParseException("Invalid Diversion header format: missing Call-Id", 0);
            }
@@ -342,14 +344,17 @@ public class Diversion
                    String paramValue = param.substring(equalIndex + 1).trim();
                    if (paramName.equalsIgnoreCase(ParameterNames.REASON)) {
                        setReason(paramValue);
+                   } else if (paramName.equalsIgnoreCase(ParameterNames.PRIVACY)) {
+                       setLimit(paramValue);
                    } else if (paramName.equalsIgnoreCase(ParameterNames.LIMIT)) {
                        setLimit(paramValue);
-                   }  else if (paramName.equalsIgnoreCase(ParameterNames.COUNTER)) {
+                   } else if (paramName.equalsIgnoreCase(ParameterNames.COUNTER)) {
                        setCounter(paramValue);
                    } else if (paramName.equalsIgnoreCase(ParameterNames.SCREEN)) {
                        setScreen(paramValue);
-                   } else if (paramName.equalsIgnoreCase(ParameterNames.EXTENSION)) {
-                       setExtension(paramValue);
+                   } else {
+                       // Handle random parameters
+                       setParameter(paramName, paramValue);
                    }
                }
            }
@@ -357,7 +362,7 @@ public class Diversion
            // Handle the exception gracefully, e.g., log an error message
            System.err.println("Error parsing Diversion header: " + e.getMessage());
        }
-	}
+   }
 
 }
    

@@ -173,6 +173,5 @@ public interface ParameterNames {
 	public static final String COUNTER = "counter";
 	public static final String PRIVACY = "privacy";
 	public static final String SCREEN = "screen";
-	public static final String EXTENSION = "extension";
 
 }

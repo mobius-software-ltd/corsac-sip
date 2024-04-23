@@ -19,12 +19,7 @@ public interface DiversionHeader extends HeaderAddress,Parameters,Header {
      */
 	public static final String NAME = "Diversion";
 
-	public String encode();
-	 public void setDiversion(Address address);
-	 public Address getAddress();
-	 
-	 public void setDiversionAddress(String devAd);
-	 public String getDiversionAddress();
+	 public String encode();
 	 
 	 public void  setReason(String r) throws ParseException;
 	 public String getReason();
@@ -40,8 +35,9 @@ public interface DiversionHeader extends HeaderAddress,Parameters,Header {
 	 
 	 public void setScreen(String s) throws ParseException;
 	 public String getScreen();
-	 
-	 public void setExtension(String ex) throws ParseException;
-	 public String getExtension();
+
+	 public void setDiversion(String diversion);
+	 public Address getDiversion();
+
 
 }
