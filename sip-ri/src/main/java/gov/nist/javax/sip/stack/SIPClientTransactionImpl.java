@@ -232,7 +232,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
   protected long expiresTime = -1;
 
-  protected SIPClientTransactionImpl() {}
+  protected SIPClientTransactionImpl() {
+    this.sipDialogs = new CopyOnWriteArraySet<String>();
+  }
 
   /**
    * Creates a new client transaction.

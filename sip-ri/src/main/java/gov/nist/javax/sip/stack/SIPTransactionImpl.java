@@ -169,7 +169,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     protected AtomicInteger timeoutTimerTicksLeft=new AtomicInteger(-1);
 
     // List of event listeners for this transaction
-    private transient Set<SIPTransactionEventListener> eventListeners;
+    protected transient Set<SIPTransactionEventListener> eventListeners;
 
 
     // Counter for caching of connections.
@@ -345,7 +345,9 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     }
 
     // May be required by the subclasses for in memory datagrid frameworks
-    protected SIPTransactionImpl() {}
+    protected SIPTransactionImpl() {
+        eventListeners = new CopyOnWriteArraySet<SIPTransactionEventListener>();
+    }
 
     /**
      * Transaction constructor.
