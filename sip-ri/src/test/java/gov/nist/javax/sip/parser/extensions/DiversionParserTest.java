@@ -13,7 +13,7 @@ public class DiversionParserTest extends ParserTestCase {
 	
    public void testParser() {
        String[] diversionHeaders = {
-    		   "Diversion: <sip:user@example.com>;reason=busy;limit=4;privacy=conditionally;counter=2;screen=yes\n",
+    		   "Diversion: <sip:user@example.com>;reason=busy;limit=4;privacy=conditionally;counter=2;screen=yes;randomParam=randomValue\n",
                "Diversion: <sip:alice@example.com>;reason=unavailable;limit=3;privacy=urgent;counter=1;screen=no\n",
                "Diversion: <sip:bob@example.com>;reason=no-answer;limit=5;privacy=emergency;counter=3;screen=yes\n",
                "Diversion: <sip:carol@example.com>;reason=offline;limit=2;privacy=normal;counter=4;screen=no\n",

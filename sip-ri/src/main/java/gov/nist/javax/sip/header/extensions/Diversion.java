@@ -134,27 +134,39 @@ public final class Diversion
    }
    
    /**
-    * Gets the diversion-limit parameter from the address param list.
-    * @return field
-    */
-   public String getLimit() {
-       if (parameters == null)
-           return null;
-       return getParameter(ParameterNames.LIMIT);
-   }
-   
-   /**
     * Sets the diversion-limit parameter of the Diversion header.
     *
-    * @param diversion-limit parameter value to set
-    * @throws ParseException if the provided parameter is invalid
+    * @param limit The diversion-limit value as a positive integer.
+    * @throws IllegalArgumentException if the provided limit is not a positive integer.
+ * @throws ParseException 
     */
-   public void setLimit(String l) throws ParseException {
-         if (l == null)
-             throw new NullPointerException("no limit param");
-         else if (l.trim().equals(""))
-             throw new ParseException("bad parameter", 0);
-         this.setParameter(ParameterNames.LIMIT, l);
+   public void setLimit(int l) throws IllegalArgumentException, ParseException{
+     if (l <= 0) {
+       throw new IllegalArgumentException("Diversion limit must be a positive integer");
+     }
+     this.setParameter(ParameterNames.LIMIT,String.valueOf(l));
+   }
+
+   /**
+    * Gets the diversion-limit parameter from the address param list as an integer.
+    * 
+    * @return The diversion-limit value as an integer, or null if not present.
+    * @throws ParseException if the limit parameter is invalid.
+    */
+   public Integer getLimit() throws ParseException {
+     String limitStr = getParameter(ParameterNames.LIMIT);
+     if (limitStr == null) {
+       return null;
+     }
+     try {
+       int limit = Integer.parseInt(limitStr);
+       if (limit <= 0) {
+         throw new ParseException("Invalid diversion limit: must be positive", 0);
+       }
+       return limit;
+     } catch (NumberFormatException e) {
+       throw new ParseException("Invalid diversion limit format", 0);
+     }
    }
    
    /** Boolean function
@@ -172,28 +184,41 @@ public final class Diversion
    
    
    /**
-    * Gets the diversion-counter parameter from the address param list.
-    * @return field
-    */
-   public String getCounter() {
-       if (parameters == null)
-           return null;
-       return getParameter(ParameterNames.COUNTER);
-   }
-   
-   /**
     * Sets the diversion-counter parameter of the Diversion header.
     *
-    * @param reason diversion-counter parameter value to set
-    * @throws ParseException if the provided parameter is invalid
+    * @param counter The diversion-counter value as a positive integer.
+    * @throws IllegalArgumentException if the provided counter is not a positive integer.
+ * @throws ParseException 
     */
-   public void setCounter(String c) throws ParseException {
-         if (c == null)
-             throw new NullPointerException("no counter param");
-         else if (c.trim().equals(""))
-             throw new ParseException("bad parameter", 0);
-         this.setParameter(ParameterNames.COUNTER, c);
+   public void setCounter(int c) throws IllegalArgumentException, ParseException {
+     if (c <= 0) {
+       throw new IllegalArgumentException("Diversion counter must be a positive integer");
+     }
+     this.setParameter(ParameterNames.COUNTER, String.valueOf(c));
    }
+
+   /**
+    * Gets the diversion-counter parameter from the address param list as an integer.
+    * 
+    * @return The diversion-counter value as an integer, or null if not present.
+    * @throws ParseException if the counter parameter is invalid.
+    */
+   public Integer getCounter() throws ParseException {
+     String counterStr = getParameter(ParameterNames.COUNTER);
+     if (counterStr == null) {
+       return null;
+     }
+     try {
+       int counter = Integer.parseInt(counterStr);
+       if (counter <= 0) {
+         throw new ParseException("Invalid diversion counter: must be positive", 0);
+       }
+       return counter;
+     } catch (NumberFormatException e) {
+       throw new ParseException("Invalid diversion counter format", 0);
+     }
+   }
+
    
    /** Boolean function
     * @return true if the parameter exist
@@ -314,55 +339,61 @@ public final class Diversion
    public void setValue(String value) throws ParseException {
        decodeBody(value);
    }
-
    /**
     * Parses the header string into Address and parameters.
     *
     * @param body the header string to parse
     * @throws ParseException if the header string cannot be parsed
     */
-   public void decodeBody(String body) {
-       try {
-           // Split the header by semicolons to extract each parameter
-           String[] params = body.split(";");
+   public void decodeBody(String body) throws ParseException {
+     try {
+       // Split the header by semicolons to extract each parameter
+       String[] params = body.split(";");
 
-           // Extract the address from the first parameter
-           String diversionParam = params[0].trim();
-           int equalIndex = diversionParam.indexOf('=');
-           if (equalIndex != -1) {
-               setDiversion(diversionParam.substring(equalIndex + 1).trim());
-           } else {
-               throw new ParseException("Invalid Diversion header format: missing Call-Id", 0);
-           }
-
-           // Extract other parameters from subsequent parameters
-           for (int i = 1; i < params.length; i++) {
-               String param = params[i].trim();
-               equalIndex = param.indexOf('=');
-               if (equalIndex != -1) {
-                   String paramName = param.substring(0, equalIndex).trim();
-                   String paramValue = param.substring(equalIndex + 1).trim();
-                   if (paramName.equalsIgnoreCase(ParameterNames.REASON)) {
-                       setReason(paramValue);
-                   } else if (paramName.equalsIgnoreCase(ParameterNames.PRIVACY)) {
-                       setLimit(paramValue);
-                   } else if (paramName.equalsIgnoreCase(ParameterNames.LIMIT)) {
-                       setLimit(paramValue);
-                   } else if (paramName.equalsIgnoreCase(ParameterNames.COUNTER)) {
-                       setCounter(paramValue);
-                   } else if (paramName.equalsIgnoreCase(ParameterNames.SCREEN)) {
-                       setScreen(paramValue);
-                   } else {
-                       // Handle random parameters
-                       setParameter(paramName, paramValue);
-                   }
-               }
-           }
-       } catch (ParseException e) {
-           // Handle the exception gracefully, e.g., log an error message
-           System.err.println("Error parsing Diversion header: " + e.getMessage());
+       // Extract the address from the first parameter
+       String diversionParam = params[0].trim();
+       int equalIndex = diversionParam.indexOf('=');
+       if (equalIndex != -1) {
+         setDiversion(diversionParam.substring(equalIndex + 1).trim());
+       } else {
+         throw new ParseException("Invalid Diversion header format: missing Call-Id", 0);
        }
-   }
 
+       // Extract other parameters from subsequent parameters
+       for (int i = 1; i < params.length; i++) {
+         String param = params[i].trim();
+         equalIndex = param.indexOf('=');
+         if (equalIndex != -1) {
+           String paramName = param.substring(0, equalIndex).trim();
+           String paramValue = param.substring(equalIndex + 1).trim();
+           if (paramName.equalsIgnoreCase(ParameterNames.REASON)) {
+             setReason(paramValue);
+           } else if (paramName.equalsIgnoreCase(ParameterNames.PRIVACY)) {
+             setPrivacy(paramValue);
+           } else if (paramName.equalsIgnoreCase(ParameterNames.LIMIT)) {
+             try {
+               setLimit(Integer.parseInt(paramValue)); // Parse limit as integer
+             } catch (NumberFormatException e) {
+               throw new ParseException("Invalid diversion limit format: Not a valid integer", 0);
+             }
+           } else if (paramName.equalsIgnoreCase(ParameterNames.COUNTER)) {
+             try {
+               setCounter(Integer.parseInt(paramValue)); // Parse counter as integer
+             } catch (NumberFormatException e) {
+               throw new ParseException("Invalid diversion counter format: Not a valid integer", 0);
+             }
+           } else if (paramName.equalsIgnoreCase(ParameterNames.SCREEN)) {
+             setScreen(paramValue);
+           } else {
+             // Handle random parameters
+             setParameter(paramName, paramValue);
+           }
+         }
+       }
+     } catch (ParseException e) {
+       // Handle the exception gracefully, e.g., log an error message
+       System.err.println("Error parsing Diversion header: " + e.getMessage());
+     }
+   }
 }
    

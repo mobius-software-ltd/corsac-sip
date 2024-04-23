@@ -24,14 +24,14 @@ public interface DiversionHeader extends HeaderAddress,Parameters,Header {
 	 public void  setReason(String r) throws ParseException;
 	 public String getReason();
 	 
-	 public void setLimit(String l) throws ParseException;
-	 public String getLimit();
+	 public void setLimit(int l) throws ParseException;
+	 public Integer getLimit() throws ParseException;
 	 
 	 public void setPrivacy(String p) throws ParseException;
 	 public String getPrivacy();
 	 
-	 public void setCounter(String c) throws ParseException;
-	 public String getCounter();
+	 public void setCounter(int c) throws ParseException;
+	 public Integer getCounter() throws ParseException;
 	 
 	 public void setScreen(String s) throws ParseException;
 	 public String getScreen();
