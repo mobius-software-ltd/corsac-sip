@@ -168,6 +168,8 @@ public interface TokenTypes {
     public static final int REFERENCES = START + 98;
     //Mukha Valeriia: RFC 4538 Support
     public static final int TARGET_DIALOG = START + 99;
+    //Mukha Valeriia: RFC 5806 Support
+    public static final int DIVERSION = START + 100;
 
     public static final int ALPHA = LexerCore.ALPHA;
     public static final int DIGIT = LexerCore.DIGIT;

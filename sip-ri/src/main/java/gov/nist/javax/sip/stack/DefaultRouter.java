@@ -282,7 +282,7 @@ public class DefaultRouter implements Router {
 
         // Add request-URI as last Route entry
         AddressImpl addr = new AddressImpl();
-        addr.setAddess(req.getRequestURI()); // don't clone it
+        addr.setAddress(req.getRequestURI()); // don't clone it
         Route route = new Route(addr);
 
         routes.add(route); // as last one

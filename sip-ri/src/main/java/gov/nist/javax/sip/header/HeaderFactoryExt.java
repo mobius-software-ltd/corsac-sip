@@ -2,6 +2,7 @@ package gov.nist.javax.sip.header;
 
 import java.text.ParseException;
 
+import gov.nist.javax.sip.header.extensions.DiversionHeader;
 import gov.nist.javax.sip.header.extensions.JoinHeader;
 import gov.nist.javax.sip.header.extensions.ReferencesHeader;
 import gov.nist.javax.sip.header.extensions.ReferredByHeader;
@@ -296,6 +297,15 @@ public interface HeaderFactoryExt extends HeaderFactory {
      */
     public TargetDialogHeader createTargetDialogHeader(String callId) throws ParseException;
     
+    
+    /**
+     * Create a Diversion header.
+     * 
+     * @param URI -- the diverted URI.
+     * 
+     * @return the newly created Diversion header.
+     */
+    public DiversionHeader createDiversionHeader(Address address) throws ParseException;
     /**
      * Create a header from a string. The string is assumed to be in the 
      * name:value format. The trailing CRLF (if any ) will be stripped

@@ -236,7 +236,7 @@ public final class AddressImpl
      * @param address SipUri to set
      *
      */
-    public void setAddess(javax.sip.address.URI address) {
+    public void setAddress(javax.sip.address.URI address) {
         this.address = (GenericURI) address;
     }
 

@@ -19,7 +19,7 @@ public interface TargetDialogHeader extends Parameters, Header{
     public void setCallId(String callId) throws ParseException;
 
     /**
-     * Returns the Call-Id of InReplyToHeader. The CallId parameter uniquely
+     * Returns the Call-Id of TargetDialogHeader. The CallId parameter uniquely
      * identifies a series of messages within a dialogue.
      *
      * @return the String value of the Call-Id of this InReplyToHeader
