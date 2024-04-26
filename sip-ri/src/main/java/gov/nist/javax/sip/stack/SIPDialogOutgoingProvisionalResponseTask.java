@@ -91,9 +91,7 @@ public class SIPDialogOutgoingProvisionalResponseTask implements SIPTask {
             // }
             // moved the task scheduling before the sending of the message to overcome
             // Issue 265 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=265
-            sipDialog.provisionalResponseTask = new ProvisionalResponseTask(sipDialog, serverTransaction);
-            serverTransaction.sipStack.getTimer().scheduleWithFixedDelay(sipDialog.provisionalResponseTask, 0,
-                    SIPTransactionStack.BASE_TIMER_INTERVAL);
+            sipDialog.startReliableResponseTimer(serverTransaction);
             // provisionalResponseTask.runTask();
             serverTransaction.sendMessage((SIPMessage) relResponse);
             /**

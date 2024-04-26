@@ -660,7 +660,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	// RFC3261: TLS_RSA_WITH_AES_128_CBC_SHA MUST be supported
 	// RFC3261: TLS_RSA_WITH_3DES_EDE_CBC_SHA SHOULD be supported for backwards
 	// compat
-        public static final String[] DEFAULT_CIPHERS = {
+	public static final String[] DEFAULT_CIPHERS = {
 			"TLS_RSA_WITH_AES_128_CBC_SHA", // AES difficult to get with
 											// c++/Windows
 			// "TLS_RSA_WITH_3DES_EDE_CBC_SHA", // Unsupported by Sun impl,
@@ -1408,7 +1408,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		}
 
 		super.rfc2543Supported = configurationProperties.getProperty(
-				"gov.nist.javax.sip.RFC_2543_SUPPORT_ENABLED", "true")
+				"gov.nist.javax.sip.RFC_2543_SUPPORT_ENABLED", "false")
 				.equalsIgnoreCase("true");
 
 		super.setPatchWebSocketHeaders(Boolean.parseBoolean(configurationProperties.getProperty(
@@ -1762,12 +1762,16 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		if (listeningPointImpl.sipProvider != null)
 			throw new ObjectInUseException("Provider already attached!");
 
-		SipProviderImpl provider = new SipProviderImpl(this);
+		SipProviderImpl provider = createNewSipProvider();
 
 		provider.setListeningPoint(listeningPointImpl);
 		listeningPointImpl.sipProvider = provider;
 		this.sipProviders.add(provider);
 		return provider;
+	}
+
+	public SipProviderImpl createNewSipProvider() {
+		return new SipProviderImpl(this);
 	}
 
 	/*

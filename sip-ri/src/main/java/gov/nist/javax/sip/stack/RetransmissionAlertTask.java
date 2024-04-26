@@ -28,29 +28,28 @@ import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
  * alerts.
  */
 class RetransmissionAlertTimerTask extends SIPStackTimerTask {
-    SIPServerTransactionImpl serverTransaction;
-
-    String dialogId;
-
+    String serverTransactionId;        
+    String dialogId;  
     int ticks;
-
-    int ticksLeft;
+    int ticksLeft; 
+    SIPServerTransactionImpl serverTransaction;
 
     public RetransmissionAlertTimerTask(SIPServerTransactionImpl serverTransaction, String dialogId) {
         super(RetransmissionAlertTimerTask.class.getSimpleName());
+        // this.data = new RetransmissionAlertTimerTaskData(serverTransaction.getBranch(), dialogId);
+        this.dialogId = dialogId;  
         this.serverTransaction = serverTransaction;
         this.ticks = SIPTransactionImpl.T1;
         this.ticksLeft = this.ticks;
         // Fix from http://java.net/jira/browse/JSIP-443
         // by mitchell.c.ackerman
-        this.dialogId = dialogId;
     }
 
     public void runTask() {        
-        ticksLeft--;
-        if (ticksLeft == -1) {
+        this.ticksLeft--;
+        if (this.ticksLeft == -1) {
             serverTransaction.fireRetransmissionTimer();
-            this.ticksLeft = 2 * ticks;
+            this.ticksLeft = 2 * this.ticks;
         }
 
     }
@@ -64,5 +63,4 @@ class RetransmissionAlertTimerTask extends SIPStackTimerTask {
             return serverTransaction.originalRequestCallId;
         }
     }
-
 }

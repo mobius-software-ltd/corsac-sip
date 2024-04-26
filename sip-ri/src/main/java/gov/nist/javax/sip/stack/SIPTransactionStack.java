@@ -197,7 +197,7 @@ public abstract class SIPTransactionStack implements
 
     private ConcurrentHashMap<String,SIPServerTransaction> terminatedServerTransactionsPendingAck;
 
-    private ConcurrentHashMap<String,SIPClientTransaction> forkedClientTransactionTable;
+    // private ConcurrentHashMap<String,SIPClientTransaction> forkedClientTransactionTable;
 
     protected boolean deliverRetransmittedAckToListener = false;
 
@@ -548,19 +548,21 @@ public abstract class SIPTransactionStack implements
                 getTimer().schedule(new PingTimer(threadHandle),
                         threadHandle.getPingIntervalInMillisecs());
             }
-        }
-
+        }        
     }
 
 
     class RemoveForkedTransactionTimerTask extends SIPStackTimerTask {
-        private final String id;
-        private final String forkId;
+        String id;
+        String forkId;
+        String transactionId;
 
-        public RemoveForkedTransactionTimerTask(String id, String forkId) {
+
+        public RemoveForkedTransactionTimerTask(String id, String transactionId, String forkId) {
         	super(RemoveForkedTransactionTimerTask.class.getSimpleName());
             this.id = id;
-            this.forkId = forkId;
+            this.forkId = forkId;  
+            this.transactionId = transactionId;
         }
         
         @Override
@@ -574,9 +576,9 @@ public abstract class SIPTransactionStack implements
             	logger.logDebug(
                         "Removing forked client transaction : forkId = " + forkId);
         	}
-            forkedClientTransactionTable.remove(forkId);
+            SIPTransaction removed = removeTransactionById(transactionId, false);
+            sendTransactionTerminatedEvent(removed);
         }
-
     }
 
     static {
@@ -640,7 +642,7 @@ public abstract class SIPTransactionStack implements
         this.pendingTransactions = new ConcurrentHashMap<String, SIPServerTransaction>();
 
 
-        this.forkedClientTransactionTable = new ConcurrentHashMap<String,SIPClientTransaction>();
+        // this.forkedClientTransactionTable = new ConcurrentHashMap<String,SIPClientTransaction>();
     }
 
     /**
@@ -663,7 +665,7 @@ public abstract class SIPTransactionStack implements
         this.earlyDialogTable = new ConcurrentHashMap<String, SIPDialog>();
         this.serverDialogMergeTestTable = new ConcurrentHashMap<String, SIPDialog>();
         this.terminatedServerTransactionsPendingAck = new ConcurrentHashMap<String,SIPServerTransaction>();
-        this.forkedClientTransactionTable = new ConcurrentHashMap<String,SIPClientTransaction>();
+        // this.forkedClientTransactionTable = new ConcurrentHashMap<String,SIPClientTransaction>();
 
         this.activeClientTransactionCount = new AtomicInteger(0);
 
@@ -823,13 +825,14 @@ public abstract class SIPTransactionStack implements
      */
     public SIPDialog putDialog(SIPDialog dialog) {
         String dialogId = dialog.getDialogId();
-        if (dialogTable.containsKey(dialogId)) {
+        SIPDialog existingDialog = getDialog(dialogId);
+        if(existingDialog != null) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger
                         .logDebug("putDialog: dialog already exists" + dialogId
-                                + " in table = " + dialogTable.get(dialogId));
+                                + " in table = " + existingDialog);
             }
-            return dialogTable.get(dialogId);
+            return existingDialog;
         }
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("putDialog dialogId=" + dialogId
@@ -838,11 +841,15 @@ public abstract class SIPTransactionStack implements
         dialog.setStack(this);
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
             logger.logStackTrace();
-        dialogTable.put(dialogId, dialog);
+        storeDialog(dialogId, dialog);
         putMergeDialog(dialog);
         
         return dialog;
     }
+
+    protected void storeDialog(String dialogId, SIPDialog dialog) {
+        dialogTable.put(dialogId, dialog);
+    }   
 
     /**
      * Create a dialog and add this transaction to it.
@@ -868,8 +875,8 @@ public abstract class SIPTransactionStack implements
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createDialog dialogId=" + dialogId);
             }
-            if (this.earlyDialogTable.get(dialogId) != null) {
-                SIPDialog dialog = this.earlyDialogTable.get(dialogId);
+            SIPDialog dialog = getEarlyDialog(dialogId);
+            if (dialog != null) {
                 if (dialog.getState() == null
                         || dialog.getState() == DialogState.EARLY) {
                     retval = dialog;
@@ -878,19 +885,18 @@ public abstract class SIPTransactionStack implements
                                 + dialogId + " earlyDialog= " + dialog);
                     }
                 } else {
-                    retval = new SIPDialog(transaction);
-                    this.earlyDialogTable.put(dialogId, retval);
+                    retval = createNewDialog(transaction, dialogId, true);
+                    
                 }
             } else {
-                retval = new SIPDialog(transaction);
-                this.earlyDialogTable.put(dialogId, retval);
+                retval = createNewDialog(transaction, dialogId, true);
                 if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                     logger.logDebug("createDialog early Dialog not found : earlyDialogId="
                             + dialogId + " created one " + retval);
                 }
             }
         } else {
-            retval = new SIPDialog(transaction);
+            retval = createNewDialog(transaction, null, false);
         }
 
         return retval;
@@ -918,7 +924,7 @@ public abstract class SIPTransactionStack implements
             }
         }
         SIPDialog retval = null;
-        SIPDialog earlyDialog = this.earlyDialogTable.get(originalDialogId);
+        SIPDialog earlyDialog = getEarlyDialog(originalDialogId);
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
             logger.logDebug("createDialog : originalDialogId="
                     + originalDialogId + " earlyDialog= " + earlyDialog);
@@ -940,11 +946,11 @@ public abstract class SIPTransactionStack implements
                         + originalDialogId + " earlyDialog= " + retval);
             }
             if (sipResponse.isFinalResponse()) {
-                this.earlyDialogTable.remove(originalDialogId);
+                removeEarlyDialog(originalDialogId);
             }
 
         } else {
-            retval = new SIPDialog(transaction, sipResponse);
+            retval = createNewDialog(transaction, sipResponse);
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createDialog early Dialog not found : earlyDialogId="
                         + earlyDialogId + " created one " + retval);
@@ -955,13 +961,42 @@ public abstract class SIPTransactionStack implements
     }
 
     /**
+     * Create a dialog given a transaction.
+     *
+     * @param transaction
+     *            -- tx to add to the dialog.
+     * @return the newly created Dialog.
+     */
+    public SIPDialog createNewDialog(SIPTransaction transaction, String dialogId, boolean isEarlyDialog) {
+        SIPDialog sipDialog = new SIPDialog(transaction);
+        if(isEarlyDialog) {            
+            this.earlyDialogTable.put(dialogId, sipDialog);
+        }
+        return sipDialog;
+    }
+
+    /**
+     * Create a dialog given a transaction and a response.
+     *
+     * @param transaction
+     *            -- tx to add to the dialog.
+     * @param sipResponse
+     *          -- sipResponse
+     * 
+     * @return the newly created Dialog.
+     */
+    public SIPDialog createNewDialog(SIPClientTransaction transaction, SIPResponse sipResponse) {
+        return new SIPDialog(transaction, sipResponse);
+    }
+    
+    /**
      * Create a Dialog given a sip provider and response.
      *
      * @param sipProvider
      * @param sipResponse
      * @return
      */
-    public SIPDialog createDialog(SipProviderImpl sipProvider,
+    public SIPDialog createNewDialog(SipProviderImpl sipProvider,
             SIPResponse sipResponse) {
         return new SIPDialog(sipProvider, sipResponse);
     }
@@ -982,7 +1017,7 @@ public abstract class SIPTransactionStack implements
      * 
      * 
      */
-    public SIPDialog createDialog(SIPClientTransaction subscribeTx, SIPTransaction notifyST) {
+    public SIPDialog createNewDialog(SIPClientTransaction subscribeTx, SIPTransaction notifyST) {
       return new SIPDialog(subscribeTx, notifyST);
     }
 
@@ -998,8 +1033,8 @@ public abstract class SIPTransactionStack implements
         String earlyId = dialog.getEarlyDialogId();
 
         if (earlyId != null) {
-            this.earlyDialogTable.remove(earlyId);
-            this.dialogTable.remove(earlyId);
+            removeEarlyDialog(earlyId);
+            removeDialog(earlyId);            
         }
 
         removeMergeDialog(dialog.getMergeId());
@@ -1010,10 +1045,10 @@ public abstract class SIPTransactionStack implements
             // the same as the one
             // specified
 
-            Object old = this.dialogTable.get(id);
+            Object old = getDialog(id);
 
             if (old == dialog) {
-                this.dialogTable.remove(id);
+                removeDialog(id);
             }
 
             // We now deliver DTE even when the dialog is not originally present
@@ -1048,6 +1083,13 @@ public abstract class SIPTransactionStack implements
             }
         }
 
+    }
+
+    public void removeEarlyDialog(String earlyDialogId) {
+        SIPDialog sipDialog = this.earlyDialogTable.remove(earlyDialogId);
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("removeEarlyDialog(" + earlyDialogId + ") : returned " + sipDialog);
+        }
     }
 
     public SIPDialog getEarlyDialog(String dialogId) {
@@ -1152,10 +1194,10 @@ public abstract class SIPTransactionStack implements
             //https://github.com/RestComm/jain-sip/issues/60
             //take into account dialogId, so we can try and match the proper TX
             String dialogId = notifyMessage.getDialogId(true);
-            Iterator<SIPClientTransaction> it = clientTransactionTable.values().iterator();
+            Iterator<SIPClientTransaction> it = getAllClientTransactions().iterator();
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("ct table size = "
-                        + clientTransactionTable.size());
+                        + getClientTransactionTableSize());
             }
 
             String thisToTag = notifyMessage.getTo().getTag();
@@ -1313,7 +1355,7 @@ public abstract class SIPTransactionStack implements
                 if (via.getBranch() != null) {
                     String key = sipMessage.getTransactionId();
 
-                    retval = (SIPTransaction) serverTransactionTable.get(key);
+                    retval = (SIPTransaction) findTransaction(key, true);
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                         logger
                                 .logDebug(
@@ -1328,8 +1370,7 @@ public abstract class SIPTransactionStack implements
                 }
                 // Need to scan the table for old style transactions (RFC 2543
                 // style)
-                Iterator<SIPServerTransaction> it = serverTransactionTable
-                        .values().iterator();
+                Iterator<SIPServerTransaction> it = getAllServerTransactions().iterator();
                 while (it.hasNext()) {
                     SIPServerTransaction sipServerTransaction = (SIPServerTransaction) it
                             .next();
@@ -1347,7 +1388,7 @@ public abstract class SIPTransactionStack implements
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                         logger.logDebug(
                                 "clientTx: looking for key " + key);
-                    retval = (SIPTransaction) clientTransactionTable.get(key);
+                    retval = (SIPTransaction) findTransaction(key, false);
                     if (key
                             .startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
                         return retval;
@@ -1357,8 +1398,7 @@ public abstract class SIPTransactionStack implements
                 // Need to scan the table for old style transactions (RFC 2543
                 // style). This is terribly slow but we need to do this
                 // for backasswords compatibility.
-                Iterator<SIPClientTransaction> it = clientTransactionTable
-                        .values().iterator();
+                Iterator<SIPClientTransaction> it = getAllClientTransactions().iterator();
                 while (it.hasNext()) {
                     SIPClientTransaction clientTransaction = (SIPClientTransaction) it
                             .next();
@@ -1382,10 +1422,26 @@ public abstract class SIPTransactionStack implements
 
     public SIPTransaction findTransaction(String transactionId, boolean isServer) {
         if(isServer) {
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("Trying to find server transaction for branchID " + transactionId +
+                    " serverTransactionTable " + serverTransactionTable);
+            }
             return serverTransactionTable.get(transactionId);
         } else {
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("Trying to find client transaction for branchID " + transactionId +
+                    " clientTransactionTable " + clientTransactionTable);
+            }
             return clientTransactionTable.get(transactionId);
         }
+    }
+
+    public Collection<SIPClientTransaction> getAllClientTransactions() {
+        return clientTransactionTable.values();
+    }
+
+    public Collection<SIPServerTransaction> getAllServerTransactions() {
+        return serverTransactionTable.values();
     }
 
     /**
@@ -1402,8 +1458,7 @@ public abstract class SIPTransactionStack implements
         }
 
         if (isServer) {
-            Iterator<SIPServerTransaction> li = this.serverTransactionTable
-                    .values().iterator();
+            Iterator<SIPServerTransaction> li = getAllServerTransactions().iterator();
             while (li.hasNext()) {
                 SIPTransaction transaction = (SIPTransaction) li.next();
 
@@ -1414,8 +1469,7 @@ public abstract class SIPTransactionStack implements
             }
 
         } else {
-            Iterator<SIPClientTransaction> li = this.clientTransactionTable
-                    .values().iterator();
+            Iterator<SIPClientTransaction> li = getAllClientTransactions().iterator();
             while (li.hasNext()) {
                 SIPTransaction transaction = (SIPTransaction) li.next();
 
@@ -1499,8 +1553,7 @@ public abstract class SIPTransactionStack implements
                  * Check for loop detection for really late arriving
                  * requests
                  */
-                SIPDialog serverDialog = this.serverDialogMergeTestTable
-                        .get(mergeId);
+                SIPDialog serverDialog = findMergedDialogByMergeId(mergeId);
                 if (serverDialog != null && serverDialog.firstTransactionIsServerTransaction
                         && serverDialog.getState() == DialogState.CONFIRMED) {
                 	if(logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
@@ -1512,6 +1565,14 @@ public abstract class SIPTransactionStack implements
         }
 
         return false;
+    }
+
+    protected SIPServerTransaction findMergedTransactionByMergeId(String mergeId) {
+        return this.mergeTable.get(mergeId);
+    }
+
+    protected SIPDialog findMergedDialogByMergeId(String mergeId) {
+        return this.serverDialogMergeTestTable.get(mergeId);
     }
 
     /**
@@ -1643,7 +1704,7 @@ public abstract class SIPTransactionStack implements
             currentTransaction = null;
             if (!key.toLowerCase().startsWith(
                     SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
-                Iterator<SIPServerTransaction> transactionIterator = serverTransactionTable.values().iterator();
+                Iterator<SIPServerTransaction> transactionIterator = getAllServerTransactions().iterator();
                 while (transactionIterator.hasNext()
                         && currentTransaction == null) {
 
@@ -1791,7 +1852,7 @@ public abstract class SIPTransactionStack implements
                         .startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE))) {
             // Loop through all client transactions
 
-            transactionIterator = clientTransactionTable.values().iterator();
+            transactionIterator = getAllClientTransactions().iterator();
             currentTransaction = null;
             while (transactionIterator.hasNext() && currentTransaction == null) {
 
@@ -1826,6 +1887,10 @@ public abstract class SIPTransactionStack implements
 
             }
         }
+
+        if(currentTransaction != null && currentTransaction.getMessageChannel() == null) {
+            currentTransaction.setEncapsulatedChannel(responseMessageChannel);
+        } 
 
         // Aquire the sem -- previous request may still be processing.
         // boolean acquired = currentTransaction.acquireSem();
@@ -1894,8 +1959,7 @@ public abstract class SIPTransactionStack implements
      */
     public SIPClientTransaction createClientTransaction(SIPRequest sipRequest,
             MessageChannel encapsulatedMessageChannel) {
-        SIPClientTransaction ct = new SIPClientTransactionImpl(this,
-                encapsulatedMessageChannel);
+        SIPClientTransaction ct = createNewClientTransaction(sipRequest, encapsulatedMessageChannel);
         ct.setOriginalRequest(sipRequest);
         return ct;
     }
@@ -1913,20 +1977,41 @@ public abstract class SIPTransactionStack implements
         // unlimitedServerTransactionTableSize is true,
         // a new Server Transaction is created no matter what
         if (unlimitedServerTransactionTableSize) {
-            return new SIPServerTransactionImpl(this, encapsulatedMessageChannel);
+            return createNewServerTransaction(encapsulatedMessageChannel);
         } else {
-            float threshold = ((float) (serverTransactionTable.size() - serverTransactionTableLowaterMark))
+            float threshold = ((float) (getServerTransactionTableSize() - serverTransactionTableLowaterMark))
                     / ((float) (serverTransactionTableHighwaterMark - serverTransactionTableLowaterMark));
             boolean decision = Math.random() > 1.0 - threshold;
             if (decision) {
                 return null;
             } else {
-                return new SIPServerTransactionImpl(this,
-                        encapsulatedMessageChannel);
+                return createNewServerTransaction(encapsulatedMessageChannel);
             }
 
         }
+    }
 
+    /**
+     * Creates a new client transaction that encapsulates a MessageChannel without any additional logic. 
+     * Useful for implementations that want to subclass the standard
+     *
+     * @param encapsulatedMessageChannel
+     *            Message channel of the transport layer.
+     */
+    public SIPClientTransactionImpl createNewClientTransaction(SIPRequest sipRequest,
+            MessageChannel encapsulatedMessageChannel) {
+        return new SIPClientTransactionImpl(this, encapsulatedMessageChannel);
+    }
+
+    /**
+     * Creates a new server transaction that encapsulates a MessageChannel without any additional logic. 
+     * Useful for implementations that want to subclass the standard
+     *
+     * @param encapsulatedMessageChannel
+     *            Message channel of the transport layer.
+     */
+    public SIPServerTransactionImpl createNewServerTransaction(MessageChannel encapsulatedMessageChannel) {
+        return new SIPServerTransactionImpl(this, encapsulatedMessageChannel);
     }
 
     /**
@@ -1969,20 +2054,20 @@ public abstract class SIPTransactionStack implements
      * Remove transaction. This actually gets the tx out of the search
      * structures which the stack keeps around. When the tx
      */
-    public void removeTransaction(SIPTransaction sipTransaction) {
+    public SIPTransaction removeTransaction(SIPTransaction sipTransaction) {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("removeTransaction: Removing Transaction = "
                     + sipTransaction.getTransactionId() + " transaction = "
                     + sipTransaction);
         }
-        Object removed = null;
+        SIPTransaction removed = null;
         try {
         	if (sipTransaction instanceof SIPServerTransaction) {
         		if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
         			logger.logStackTrace();
         		}
         		String key = sipTransaction.getTransactionId();
-        		removed = serverTransactionTable.remove(key);
+        		removed = removeTransactionById(key, true);
         		String method = sipTransaction.getMethod();
         		this
         		.removePendingTransaction((SIPServerTransaction) sipTransaction);
@@ -2006,15 +2091,13 @@ public abstract class SIPTransactionStack implements
         	} else {
 
         		String key = sipTransaction.getTransactionId();
-        		removed = clientTransactionTable.remove(key);
+        		removed = findTransaction(key, false);
 
         		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        			logger.logDebug("REMOVED client tx " + removed + " KEY = "
+        			logger.logDebug("client tx to be removed " + removed + " KEY = "
         					+ key);
-
-
         		}
-        		if ( removed != null ) {
+        		if (removed != null) {
         			SIPClientTransaction clientTx = (SIPClientTransaction)removed;
         			final String forkId = clientTx.getForkId();
         			if (forkId != null && clientTx.isInviteTransaction()
@@ -2024,43 +2107,50 @@ public abstract class SIPTransactionStack implements
         	                        "Scheduling to remove forked client transaction : forkId = " + forkId + " in "  + this.maxForkTime + " seconds");
         	        	}
         				this.timer.schedule(new RemoveForkedTransactionTimerTask(
-        						clientTx.getOriginalRequestCallId(), forkId), this.maxForkTime * 1000);
+        						clientTx.getOriginalRequestCallId(), key, forkId), this.maxForkTime * 1000);
+                        
         				clientTx.stopExpiresTimer();
-        			}
-        		}
-
-        		// Send a notification to the listener.
-        		if (removed != null
-        				&& sipTransaction.testAndSetTransactionTerminatedEvent()) {
-        			SipProviderImpl sipProvider = (SipProviderImpl) sipTransaction
-        			.getSipProvider();
-        			TransactionTerminatedEvent event = new TransactionTerminatedEvent(
-        					sipProvider, (ClientTransaction) sipTransaction);
-
-        			sipProvider.handleEvent(event, sipTransaction);
-        		}
-
+        			} else {
+                        removed = removeTransactionById(key, false);                    
+                        sendTransactionTerminatedEvent(removed);
+                    } 
+        		}        		
         	}
         } finally {
         	// http://java.net/jira/browse/JSIP-420
         	if(removed != null) {
             	((SIPTransaction)removed).cancelMaxTxLifeTimeTimer();
             }
-        	if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+        	if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
         		logger.logDebug(String.format("removeTransaction: Table size : " +
         				" clientTransactionTable %d " +
         				" serverTransactionTable %d " +
         				" mergetTable %d " +
         				" terminatedServerTransactionsPendingAck %d  " +
-        				" forkedClientTransactionTable %d " +
+        				// " forkedClientTransactionTable %d " +
         				" pendingTransactions %d " , 
-        				clientTransactionTable.size(),
-        				serverTransactionTable.size(),
+        				getClientTransactionTableSize(),
+        				getServerTransactionTableSize(),
         				mergeTable.size(),
         				terminatedServerTransactionsPendingAck.size(),
-        				forkedClientTransactionTable.size(),
+        				// forkedClientTransactionTable.size(),
         				pendingTransactions.size()
         		));
+            }            
+        }
+        return removed;
+    }
+
+    private void sendTransactionTerminatedEvent(SIPTransaction sipTransaction) {
+        // Send a notification to the listener.
+        if (sipTransaction != null
+            && sipTransaction.testAndSetTransactionTerminatedEvent()) {
+                SipProviderImpl sipProvider = (SipProviderImpl) sipTransaction
+                    .getSipProvider();
+                TransactionTerminatedEvent event = new TransactionTerminatedEvent(
+                        sipProvider, (ClientTransaction) sipTransaction);
+
+                sipProvider.handleEvent(event, sipTransaction);
         }
     }
 
@@ -2103,7 +2193,7 @@ public abstract class SIPTransactionStack implements
                         // }
                         
                         String key = sipRequest.getTransactionId();
-                        existingTx = clientTransactionTable.get(key);
+                        existingTx = findTransaction(key, false);
                 
                         return existingTx;
                     // } catch (Exception ex) {
@@ -2119,8 +2209,7 @@ public abstract class SIPTransactionStack implements
                 this.activeClientTransactionCount.incrementAndGet();
             }
             String key = sipRequest.getTransactionId();
-            existingTx = clientTransactionTable.putIfAbsent(key,
-                    (SIPClientTransaction) sipTransaction);
+            existingTx = storeTransaction(key, sipTransaction, false);                        
             
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger
@@ -2133,8 +2222,7 @@ public abstract class SIPTransactionStack implements
                 logger
                         .logDebug(" putTransactionHash : " + " key = " + key);
             }
-            existingTx = serverTransactionTable.putIfAbsent(key,
-                    (SIPServerTransaction) sipTransaction);
+            existingTx = storeTransaction(key, sipTransaction, true);            
 
         }
     	// http://java.net/jira/browse/JSIP-420
@@ -2142,6 +2230,14 @@ public abstract class SIPTransactionStack implements
         	sipTransaction.scheduleMaxTxLifeTimeTimer();
         }
         return existingTx;
+    }
+
+    protected SIPTransaction storeTransaction(String key, SIPTransaction sipTransaction, boolean isServer) {
+        if(isServer) {
+            return serverTransactionTable.putIfAbsent(key, (SIPServerTransaction) sipTransaction);
+        } else {
+            return clientTransactionTable.putIfAbsent(key, (SIPClientTransaction) sipTransaction);            
+        }
     }
 
     /**
@@ -2165,22 +2261,22 @@ public abstract class SIPTransactionStack implements
     /**
      * Remove the transaction from transaction hash.
      */
-    protected void removeTransactionHash(SIPTransaction sipTransaction) {
+    protected SIPTransaction removeTransactionHash(SIPTransaction sipTransaction) {
         SIPRequest sipRequest = sipTransaction.getOriginalRequest();
         if (sipRequest == null)
-            return;
-        Object removed = null;
+            return null;
+        SIPTransaction removed = null;
         if (sipTransaction instanceof SIPClientTransaction) {
             String key = sipTransaction.getTransactionId();
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logStackTrace();
                 logger.logDebug("removing client Tx : " + key);
             }
-            removed = clientTransactionTable.remove(key);
+            removed = removeTransactionById(key, false);
 
         } else if (sipTransaction instanceof SIPServerTransaction) {
             String key = sipTransaction.getTransactionId();
-            removed = serverTransactionTable.remove(key);
+            removed = removeTransactionById(key, true);
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logDebug("removing server Tx : " + key);
             }
@@ -2189,6 +2285,21 @@ public abstract class SIPTransactionStack implements
         if(removed != null) {
         	((SIPTransaction)removed).cancelMaxTxLifeTimeTimer();
         }
+        return removed;
+    }
+
+    protected SIPTransaction removeTransactionById(String transactionId, boolean isServer) {
+        SIPTransaction sipTransaction = null;
+        if(isServer) {
+            sipTransaction = serverTransactionTable.remove(transactionId);
+        } else {
+            sipTransaction = clientTransactionTable.remove(transactionId);
+        }
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("REMOVED tx " + sipTransaction + " KEY = "
+                    + transactionId + " isServer = " + isServer);
+        }
+        return sipTransaction;
     }
 
     /**
@@ -3043,13 +3154,12 @@ public abstract class SIPTransactionStack implements
         /*
          * Check if we can find this dialog in our dialog table.
          */
-        Dialog replacesDialog =  this.dialogTable.get(did);
+        Dialog replacesDialog =  getDialog(did);
         /*
          * This could be a forked dialog. Search for it.
          */
         if ( replacesDialog == null ) {
-            for (SIPClientTransaction ctx : this.clientTransactionTable
-                    .values()) {
+            for (SIPClientTransaction ctx : getAllClientTransactions()) {
                if ( ctx.getDialog(did) != null ) {
                    replacesDialog = ctx.getDialog(did);
                    break;
@@ -3083,7 +3193,7 @@ public abstract class SIPTransactionStack implements
             retval.append(":");
             retval.append(fromTag);
         }
-        return this.dialogTable.get(retval.toString().toLowerCase());
+        return getDialog(retval.toString().toLowerCase());
     }
 
     /**
@@ -3180,37 +3290,87 @@ public abstract class SIPTransactionStack implements
         this.isDialogTerminatedEventDeliveredForNullDialog = true;
     }
     
-    public void addForkedClientTransaction(
-            SIPClientTransaction clientTransaction) {
-        String forkId = ((SIPRequest)clientTransaction.getRequest()).getForkId();
-        clientTransaction.setForkId(forkId);
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        	logger.logStackTrace();
-            logger.logDebug(
-                    "Adding forked client transaction : " + clientTransaction + " branch=" + clientTransaction.getBranch() + 
-                    " forkId = " + forkId + "  sipDialog = " + clientTransaction.getDefaultDialog() + 
-                    " sipDialogId= " + clientTransaction.getDefaultDialog().getDialogId());
-            logger.logDebug(String.format("removeTransaction: Table size : " +
-                    " clientTransactionTable %d " +
-                    " serverTransactionTable %d " +
-                    " mergetTable %d " +
-                    " terminatedServerTransactionsPendingAck %d  " +
-                    " forkedClientTransactionTable %d " +
-                    " pendingTransactions %d " , 
-                    clientTransactionTable.size(),
-                    serverTransactionTable.size(),
-                    mergeTable.size(),
-                    terminatedServerTransactionsPendingAck.size(),
-                    forkedClientTransactionTable.size(),
-                    pendingTransactions.size()
-            ));
-    	}
+    // public void addForkedClientTransaction(
+    //         SIPClientTransaction clientTransaction) {
+    //     String forkId = ((SIPRequest)clientTransaction.getRequest()).getForkId();
+    //     clientTransaction.setForkId(forkId);
+    //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //     	logger.logStackTrace();
+    //         logger.logDebug(
+    //                 "Adding forked client transaction : " + clientTransaction + " branch=" + clientTransaction.getBranch() + 
+    //                 " forkId = " + forkId + "  sipDialog = " + clientTransaction.getDefaultDialog() + 
+    //                 " sipDialogId= " + clientTransaction.getDefaultDialog().getDialogId());
+    //         logger.logDebug(String.format("addForkedClientTransaction: Table size : " +
+    //                 " clientTransactionTable %d " +
+    //                 " serverTransactionTable %d " +
+    //                 " mergetTable %d " +
+    //                 " terminatedServerTransactionsPendingAck %d  " +
+    //                 " forkedClientTransactionTable %d " +
+    //                 " pendingTransactions %d " , 
+    //                 clientTransactionTable.size(),
+    //                 serverTransactionTable.size(),
+    //                 mergeTable.size(),
+    //                 terminatedServerTransactionsPendingAck.size(),
+    //                 forkedClientTransactionTable.size(),
+    //                 pendingTransactions.size()
+    //         ));
+    // 	}
 
-        this.forkedClientTransactionTable.put(forkId, clientTransaction);
-    }
+    //     this.forkedClientTransactionTable.put(forkId, clientTransaction);
+    // }
 
-    public SIPClientTransaction getForkedTransaction(String transactionId) {
-        return this.forkedClientTransactionTable.get(transactionId);
+    // public void removeForkedClientTransaction(String forkId) {
+    //     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //         logger.logDebug("Removing forked client transaction : " + forkId);
+    //     }
+    //     SIPClientTransaction transaction = this.forkedClientTransactionTable.remove(forkId);
+    //     if(transaction != null) {            
+    //         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //             logger.logDebug(
+    //                     "Removing forked client transaction: " + transaction + 
+    //                         ", branchId=" + transaction.getBranchId() + 
+    //                         ", forkId = " + forkId);
+    //         }
+    //     }
+    // }
+
+    public SIPClientTransaction getForkedTransaction(String forkId, String branchId) {
+        if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+            logger.logDebug("Trying to find forked Transaction for forkId " + forkId + " branchId " + branchId);
+        }
+        SIPClientTransaction sipClientTransaction = (SIPClientTransaction) findTransaction(branchId.trim(), false);
+        if(sipClientTransaction == null) {
+            if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                logger.logDebug("Didn't Found Forked Transaction for branchID " + branchId +
+                    " clientTransactionTable " + clientTransactionTable);
+            }
+            return null;
+        } else {
+            if(sipClientTransaction.getForkId().equalsIgnoreCase(forkId)) {
+                if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                    logger.logDebug("Found forked Transaction " + sipClientTransaction + 
+                        " branchID " + sipClientTransaction.getBranchId() + " for forkId " + forkId);
+                }
+                return sipClientTransaction;
+            } else {
+                if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+                    logger.logDebug("Found Transaction for branchId " + branchId + 
+                        " but didn't match forkId " + forkId + 
+                        " transactionForkId:" + sipClientTransaction.getForkId());
+                }
+                return null;
+            }
+        }
+        // replaced with above code
+        // SIPClientTransaction sipClientTransaction = this.forkedClientTransactionTable.get(forkId);
+        // if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+        //     if(sipClientTransaction != null) {
+        //         logger.logDebug("Found forked Transaction " + sipClientTransaction + " branchID " + sipClientTransaction.getBranchId() + " for forkId " + forkId);
+        //     } else {
+        //         logger.logDebug("Didn't Found Forked Transaction for forkId " + forkId);
+        //     }
+        // }
+        // return sipClientTransaction;
     }
 
     /**

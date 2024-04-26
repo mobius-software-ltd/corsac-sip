@@ -1126,7 +1126,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 									peerAddress.getHostAddress(), peerPort, getTransport()));
 				}
 			}
-		}
+		}		
 	}
 
 	// Methods below Added for https://java.net/jira/browse/JSIP-483

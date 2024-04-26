@@ -63,8 +63,7 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
             // Sending the final response cancels the
             // pending response task.
             if (sipDialog != null && sipDialog.pendingReliableResponseAsBytes != null && sipResponse.isFinalResponse()) {
-                serverTransaction.sipStack.getTimer().cancel(sipDialog.provisionalResponseTask);
-                sipDialog.provisionalResponseTask = null;
+                sipDialog.stopReliableResponseTimer();                
             }
 
             // Dialog checks. These make sure that the response

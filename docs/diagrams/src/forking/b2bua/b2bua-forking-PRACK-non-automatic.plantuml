@@ -28,42 +28,33 @@ group PRACK Handling
 Alice -> B2BUA : PRACK (ToTag 12345)
 Alice -> B2BUA : PRACK (ToTag 54321)
 B2BUA -> Proxy : PRACK (ToTag 12345)
-Bob -> Proxy : 200 OK PRACK (ToTag 12345)
-Proxy -> B2BUA  : 200 OK PRACK (ToTag 12345)
-B2BUA -> Alice : 200 OK PRACK (ToTag 12345)
 B2BUA -> Proxy : PRACK (ToTag 54321)
 Proxy -> Bob : PRACK (ToTag 12345)
 Proxy -> Carol : PRACK (ToTag 54321)
+Bob -> Proxy : 200 OK PRACK (ToTag 12345)
+Proxy -> B2BUA  : 200 OK PRACK (ToTag 12345)
+B2BUA -> Alice : 200 OK PRACK (ToTag 12345)
 Carol -> Proxy : 200 OK PRACK (ToTag 54321)
 Proxy -> B2BUA  : 200 OK PRACK (ToTag 54321)
 B2BUA -> Alice : 200 OK PRACK (ToTag 54321)
 end group
 
 group UPDATE Handling
-Carol -> Proxy : UPDATE (ToTag 54321)
-Proxy -> B2BUA  : UPDATE (ToTag 54321)
-B2BUA -> Alice : UPDATE (ToTag 54321)
-Alice -> B2BUA : 200 OK UPDATE (ToTag 54321)
-B2BUA -> Proxy : 200 OK UPDATE (ToTag 54321)
-Proxy -> Carol : 200 OK UPDATE (ToTag 54321)
 Alice -> B2BUA : UPDATE (ToTag 12345)
 B2BUA -> Proxy : UPDATE (ToTag 12345)
-Proxy -> Carol : UPDATE (ToTag 12345)
-Carol -> Proxy : 200 OK UPDATE (ToTag 12345)
+Proxy -> Bob : UPDATE (ToTag 12345)
+Alice -> B2BUA : UPDATE (ToTag 54321)
+B2BUA -> Proxy : UPDATE (ToTag 54321)
+Proxy -> Carol : UPDATE (ToTag 54321)
+Bob -> Proxy : 200 OK UPDATE (ToTag 12345)
 Proxy -> B2BUA  : 200 OK UPDATE (ToTag 12345)
 B2BUA -> Alice : 200 OK UPDATE (ToTag 12345)
+Carol -> Proxy : 200 OK UPDATE (ToTag 54321)
+Proxy -> B2BUA  : 200 OK UPDATE (ToTag 54321)
+B2BUA -> Alice : 200 OK UPDATE (ToTag 54321)
 end group
 
-Alice <--> Carol : 1 minute wait for Carol to answer
-Carol -> Proxy : 200 OK (ToTag 54321)
-Proxy -> B2BUA  : 200 OK (ToTag 54321)
-B2BUA -> B2BUA : Forked Dialog 2 Confirmed 
-B2BUA -> Alice : 200 OK (ToTag 54321)
-Alice -> B2BUA : ACK (ToTag 54321)
-B2BUA -> Proxy : ACK (ToTag 54321)
-Proxy -> Carol : ACK (ToTag 54321)
-Alice <--> Carol : Media RTP
-group CANCEL Handling
+alt CANCEL Handling
 Alice -> B2BUA : CANCEL (ToTag 12345)
 B2BUA -> Proxy : CANCEL (ToTag 12345)
 Proxy -> Bob : CANCEL (ToTag 12345)
@@ -76,7 +67,18 @@ B2BUA -> Alice : 487 Request Terminated (ToTag 12345)
 Alice -> B2BUA : ACK (ToTag 12345)
 B2BUA -> Proxy : ACK (ToTag 12345)
 Proxy -> Bob : ACK (ToTag 12345)
-end group
+else Call Completed
+Alice <--> Carol : 1 minute wait for Carol to answer
+Carol -> Proxy : 200 OK (ToTag 54321)
+Proxy -> B2BUA  : 200 OK (ToTag 54321)
+B2BUA -> B2BUA : Forked Dialog 2 Confirmed 
+B2BUA -> Alice : 200 OK (ToTag 54321)
+Alice -> B2BUA : ACK (ToTag 54321)
+B2BUA -> Proxy : ACK (ToTag 54321)
+Proxy -> Carol : ACK (ToTag 54321)
+Alice <--> Carol : Media RTP
+end
+
 Alice <--> Carol : Call Completed
 Alice -> B2BUA : BYE (ToTag 54321)
 B2BUA -> Proxy : BYE (ToTag 54321)

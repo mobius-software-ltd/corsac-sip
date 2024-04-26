@@ -20,14 +20,11 @@ package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
 
-import javax.sip.header.ExpiresHeader;
-
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.SipListenerExt;
-import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.message.SIPRequest;
 
 public class ClientTransactionOutgoingMessageTask implements SIPTask {
@@ -63,22 +60,7 @@ public class ClientTransactionOutgoingMessageTask implements SIPTask {
         // }
         // Only map this after the fist request is sent out.
         clientTransaction.isMapped = true;
-        // Time extracted from the Expires header.
-        int expiresTime = -1;
-
-        if (sipRequest.getHeader(ExpiresHeader.NAME) != null) {
-            Expires expires = (Expires) sipRequest.getHeader(ExpiresHeader.NAME);
-            expiresTime = expires.getExpires();
-        }
-        // This is a User Agent. The user has specified an Expires time. Start a timer
-        // which will check if the tx is terminated by that time.
-        if (clientTransaction.getDefaultDialog() != null && clientTransaction.isInviteTransaction() && expiresTime != -1
-                && clientTransaction.expiresTimerTask == null) {
-            clientTransaction.expiresTimerTask = new ExpiresTimerTask(clientTransaction);
-            // josemrecio - https://java.net/jira/browse/JSIP-467
-            clientTransaction.sipStack.getTimer().schedule(clientTransaction.expiresTimerTask, Long.valueOf(expiresTime) * 1000L);
-
-        }
+        
         try {
             clientTransaction.sendMessage(sipRequest);
             /**

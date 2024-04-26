@@ -244,7 +244,7 @@ public class EventScanner implements Runnable {
                 if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                     logger
                             .logDebug(
-                                    "Calling listener "
+                                    "Calling listener " + sipListener + " for "
                                             + sipRequest.getFirstLine());
                     logger.logDebug(
                             "Calling listener " + eventWrapper.transaction);

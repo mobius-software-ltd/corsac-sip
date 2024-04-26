@@ -171,7 +171,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  */
 public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPServerTransaction {
     private static final long serialVersionUID = 1L;
-    private static final String TIMER_J_NAME = "TimerJ";
+    public static final String TIMER_J_NAME = "TimerJ";
 
     private static StackLogger logger = CommonLogger.getLogger(SIPServerTransaction.class);    
 
@@ -180,7 +180,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     // Real RequestInterface to pass messages to
     private transient ServerRequestInterface requestOf;
 
-    private SIPDialog dialog;
+    protected SIPDialog dialog;
     // jeand needed because we nullify the dialog ref early and keep only the
     // dialogId to save on mem and help GC
     protected String dialogId;
@@ -188,14 +188,13 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     // the unacknowledged SIPResponse
 
     protected boolean retransmissionAlertEnabled;
-
     protected RetransmissionAlertTimerTask retransmissionAlertTimerTask;
 
     protected boolean isAckSeen;
 
-    private SIPClientTransaction pendingSubscribeTransaction;
+    protected SIPClientTransaction pendingSubscribeTransaction;
 
-    private SIPServerTransaction inviteTransaction;
+    protected SIPServerTransaction inviteTransaction;
 
     // Experimental.
     // private static boolean interlockProvisionalResponses = true;
@@ -206,14 +205,14 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
     // jeand we nullify the last response fast to save on mem and help GC, but we
     // keep only the information needed
-    private byte[] lastResponseAsBytes;
-    private String lastResponseHost;
-    private int lastResponsePort;
-    private String lastResponseTransport;
+    protected byte[] lastResponseAsBytes;
+    protected String lastResponseHost;
+    protected int lastResponsePort;
+    protected String lastResponseTransport;
 
-    private int lastResponseStatusCode;
+    protected int lastResponseStatusCode;
 
-    private HostPort originalRequestSentBy;
+    protected HostPort originalRequestSentBy;
     protected String originalRequestFromTag;
 
     // Table of early dialogs for B2BUA Use case
@@ -230,6 +229,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
         protected SendTrying() {
             super(SendTrying.class.getSimpleName());
+
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
                 logger.logDebug("scheduled timer for " + SIPServerTransactionImpl.this);
 
@@ -267,64 +267,6 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 return originalRequestCallId;
             }
         }
-    }
-
-    class SIPServerTransactionTimer extends SIPStackTimerTask {
-
-        public SIPServerTransactionTimer() {
-            super(SIPServerTransactionTimer.class.getSimpleName());
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("TransactionTimer() : " + getTransactionId());
-            }
-        }
-
-        public void runTask() {
-            // If the transaction has terminated,
-            if (isTerminated()) {
-                // Keep the transaction hanging around in the transaction table
-                // to catch the incoming ACK -- this is needed for tcp only.
-                // Note that the transaction record is actually removed in
-                // the connection linger timer.
-                try {
-                    sipStack.getTimer().cancel(this);
-                } catch (IllegalStateException ex) {
-                    if (!sipStack.isAlive())
-                        return;
-                }
-
-                // Oneshot timer that garbage collects the SeverTransaction
-                // after a scheduled amount of time. The linger timer allows
-                // the client side of the tx to use the same connection to
-                // send an ACK and prevents a race condition for creation
-                // of new server tx
-                SIPStackTimerTask myTimer = new LingerTimer();
-
-                if (sipStack.getConnectionLingerTimer() != 0) {
-                    sipStack.getTimer().schedule(myTimer, sipStack.getConnectionLingerTimer() * 1000);
-                } else {
-                    myTimer.runTask();
-                }
-            } else {
-                // Add to the fire list -- needs to be moved
-                // outside the synchronized block to prevent
-                // deadlock.
-                fireTimer();
-            }
-            if (originalRequest != null) {
-                originalRequest.cleanUp();
-            }
-        }
-
-        @Override
-        public String getId() {
-            Request request = getRequest();
-            if (request != null && request instanceof SIPRequest) {
-                return ((SIPRequest) request).getCallIdHeader().getCallId();
-            } else {
-                return originalRequestCallId;
-            }
-        }
-
     }
 
     /**
@@ -432,6 +374,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             this.startTransactionTimer();
         }
     }
+
+
+    protected SIPServerTransactionImpl() {}
 
     /**
      * Creates a new server transaction.
@@ -1402,7 +1347,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             }
         }
         SIPDialog retval = null;
-        SIPDialog earlyDialog = earlyUACDialogTable.get(earlyUACDialogId);
+        SIPDialog earlyDialog = getEarlyUACDialog(earlyUACDialogId);
         if (earlyDialog != null) { 
             // If the dialog is already there then just return it and set the ToTag of the response
             // to the one of the dialog.
@@ -1418,7 +1363,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // to the one of the dialog.
             newResponse.setToTag(Utils.getInstance().generateTag());
             String earlyUASDialogId = newResponse.getDialogId(true);            
-            retval = new SIPDialog(this);            
+            retval = sipStack.createNewDialog(this, dialog.getDialogId(), true);            
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createForkedUASDialog early Dialog not found : earlyDialogId="
                         + earlyUASDialogId + " created one " + retval);
@@ -1429,8 +1374,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // can match the responses coming from UAC Side and 
             // mid dialog requests coming from UAS Side
             // earlyUASDialogTable.put(earlyUASDialogId, retval);
-            earlyUACDialogTable.put(earlyUACDialogId, retval);
-            sipStack.earlyDialogTable.put(dialog.getDialogId(), retval);
+            storeEarlyUACDialog(earlyUACDialogId, retval);
+            // done as part of CreateNewDialog now
+            // sipStack.earlyDialogTable.put(dialog.getDialogId(), retval);
             if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
                 logger.logDebug("createForkedUASDialog added early Dialog earlyDialogId="
                         + earlyUASDialogId + " original dialog Id " + dialog.getDialogId() + " created one " + retval + " to sip stack erarl dialog table");
@@ -1442,6 +1388,18 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
         return retval;
 
+    }
+
+    protected void storeEarlyUACDialog(String earlyUACDialogId, SIPDialog retval) {
+        earlyUACDialogTable.put(earlyUACDialogId, retval);
+    }
+
+    protected SIPDialog getEarlyUACDialog(String earlyUACDialogId) {
+        return earlyUACDialogTable.get(earlyUACDialogId);
+    }
+
+    protected void removeEarlyUACDialog(String earlyUACDialogId) {
+        earlyUACDialogTable.remove(earlyUACDialogId);
     }
 
     /**
@@ -1490,18 +1448,17 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         if (getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL)
                 || getMethod().equalsIgnoreCase(Request.ACK)) {
             if (this.transactionTimerStarted.compareAndSet(false, true)) {
+                // Do not schedule when the stack is not alive.
                 if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                    // The timer is set to null when the Stack is
-                    // shutting down.
-                    SIPStackTimerTask myTimer = new SIPServerTransactionTimer();
-                    // Do not schedule when the stack is not alive.
-                    if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                        sipStack.getTimer().scheduleWithFixedDelay(myTimer, baseTimerInterval, baseTimerInterval);
-                    }
-                    myTimer = null;
+                    scheduleTransactionTimer();
                 }
             }
         }
+    }
+
+    protected void scheduleTransactionTimer() {
+        transactionTimer = new SIPServerTransactionTimer(this);
+        sipStack.getTimer().scheduleWithFixedDelay(transactionTimer, baseTimerInterval, baseTimerInterval);
     }
 
     /**
@@ -1515,36 +1472,19 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 }
                 // The timer is set to null when the Stack is
                 // shutting down.
-                SIPStackTimerTask task = new SIPStackTimerTask(TIMER_J_NAME) {
-
-                    public void runTask() {
-                        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                            logger.logDebug("executing TransactionTimerJ() : " + getTransactionId());
-                        }
-                        fireTimeoutTimer();
-                        cleanUp();
-                        if (originalRequest != null) {
-                            originalRequest.cleanUp();
-                        }
-                    }
-
-                    @Override
-                    public String getId() {
-                        Request request = getRequest();
-                        if (request != null && request instanceof SIPRequest) {
-                            return ((SIPRequest) request).getCallIdHeader().getCallId();
-                        } else {
-                            return originalRequestCallId;
-                        }
-                    }
-                };
                 if (time > 0) {
-                    sipStack.getTimer().schedule(task, time * T1 * baseTimerInterval);
+                    scheduleTransactionTimerJ(time);
                 } else {
-                    task.runTask();
+                    SIPStackTimerTask transactionTimerJ = new SIPServerTransactionTimerJ(this);
+                    transactionTimerJ.runTask();
                 }
             }
         }
+    }
+
+    protected void scheduleTransactionTimerJ(long time) {
+        SIPStackTimerTask transactionTimerJ = new SIPServerTransactionTimerJ(this);
+        sipStack.getTimer().schedule(transactionTimerJ, time * T1 * baseTimerInterval);
     }
 
     /**

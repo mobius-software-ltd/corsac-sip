@@ -25,14 +25,14 @@
  */
 package gov.nist.javax.sip.parser;
 
-import gov.nist.core.InternalErrorHandler;
-import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
-import gov.nist.javax.sip.stack.timers.SipTimer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
+
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimer;
 
 /**
  * Input class for the pipelined parser. Buffer all bytes read from the socket
@@ -91,9 +91,9 @@ public class Pipeline extends InputStream {
         	this.isCancelled = true;
         	this.pipeline = null;
         	super.cleanUpBeforeCancel();
-        }
-        
+        }       
     }
+    
 
     class Buffer {
         byte[] bytes;
