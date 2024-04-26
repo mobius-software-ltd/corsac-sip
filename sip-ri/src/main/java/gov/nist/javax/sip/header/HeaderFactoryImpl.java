@@ -90,6 +90,8 @@ import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.header.WarningHeader;
 
 import gov.nist.javax.sip.address.GenericURI;
+import gov.nist.javax.sip.header.extensions.Diversion;
+import gov.nist.javax.sip.header.extensions.DiversionHeader;
 // extension headers - pmusgrave
 import gov.nist.javax.sip.header.extensions.Join;
 import gov.nist.javax.sip.header.extensions.JoinHeader;
@@ -1797,7 +1799,7 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
     
 
     /**
-     * Create and return a references header.
+     * Create and return a Target Dialog header.
      * 
      * @param callId
      * @return
@@ -1812,6 +1814,21 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
     	        t.setCallId(callId);
     	        return t;
     }
+    
+    /**
+     * Create and return a Diversion header.
+     * 
+     * @param address
+     * @return
+     * @throws ParseException
+     */
+    public DiversionHeader createDiversionHeader(Address address) throws ParseException {
+		 if (address == null)
+	            throw new NullPointerException("Address shouldn't be null or empty");
+	       Diversion d = new Diversion();
+	        d.setAddress(address);
+	        return d;
+	}
    
     //////////////////////////////////////////////////////////
     // Constructor
@@ -1823,7 +1840,4 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
         stripAddressScopeZones
             = Boolean.getBoolean("gov.nist.core.STRIP_ADDR_SCOPES");
     }
-
-
-
 }

@@ -44,16 +44,5 @@
 		classpathref="project.class.path"
 	/>
      </target>
-    <target name="shootistlog" description= "Show the  log" >
-        <java classname="tools.tracesviewer.TracesViewer" fork="true">
-	  <arg name="-server_file" value="shootistlog.txt" />
-	</java>
-     </target>
-    <target name="shootmelog" description= "Show the  log" >
-        <java classname="tools.tracesviewer.TracesViewer" fork="true">
-	  <arg name="-server_file" value="shootmelog.txt" />
-	</java>
-     </target>
-	
 
 </project>

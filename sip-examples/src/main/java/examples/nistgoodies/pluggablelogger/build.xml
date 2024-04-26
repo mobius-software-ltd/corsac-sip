@@ -26,11 +26,5 @@
 		<delete file="shootistlog.txt" />
 		<java classname="examples.nistgoodies.pluggablelogger.Shootist" fork="true" classpathref="project.class.path" />
 	</target>
-	<target name="shootmelog" description="Show the  log">
-		<java classpathref="project.class.path" classname="tools.tracesviewer.TracesViewer" fork="true">
-			<arg value="-server_file" />
-			<arg value="shootmelog.txt" />
-		</java>
-	</target>
 
 </project>

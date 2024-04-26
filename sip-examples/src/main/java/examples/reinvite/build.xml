@@ -26,18 +26,6 @@
 		<delete file="shootistlog.txt" />
 		<java classname="examples.reinvite.Shootist" fork="true" classpathref="project.class.path" />
 	</target>
-	<target name="shootistlog" description="Show the  log">
-		<java classname="tools.tracesviewer.TracesViewer" fork="true" classpathref="project.class.path">
-			<arg value="-server_file" />
-			<arg value="shootistlog.txt" />
-		</java>
-	</target>
-	<target name="shootmelog" description="Show the  log">
-		<java classname="tools.tracesviewer.TracesViewer" fork="true">
-			<arg value="-server_file" />
-			<arg value="shootmelog.txt" />
-		</java>
-	</target>
 	<target name="clean" description="clean the logs">
 		<delete failonerror="false" >
 		  <fileset  dir = "." includes="*log.txt" />

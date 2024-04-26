@@ -56,14 +56,6 @@
 		</java>
 	</target>
         
-        
-        	
-	<target name="controllerlog" description="Show the notifier log">
-		<java classname="tools.tracesviewer.TracesViewer" classpathref="project.class.path" fork="true">
-			<arg value="-server_file" />
-			<arg value="controllerlog.txt" />
-		</java>
-	</target>
 
 	<target name="clean" description="clean the logs">
 		<delete failonerror="false">
