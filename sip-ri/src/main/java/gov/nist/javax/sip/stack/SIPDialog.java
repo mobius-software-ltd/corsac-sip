@@ -284,7 +284,7 @@ public class SIPDialog implements DialogExt {
     protected boolean sequenceNumberValidation = true;
 
     // List of event listeners for this dialog
-    private transient Set<SIPDialogEventListener> eventListeners;
+    protected transient Set<SIPDialogEventListener> eventListeners;
     // added for Issue 248 :
     // https://jain-sip.dev.java.net/issues/show_bug.cgi?id=248
     // private transient Semaphore timerTaskLock = new Semaphore(1);
