@@ -1607,6 +1607,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   @Override
   public SIPDialog getDialog(String dialogId) {
     SIPDialog retval = null;
+    // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+    //   logger.logDebug("Trying to find " + dialogId + " in ctx " + this + 
+    //     " with tx id " + getTransactionId() + " in local sip dialogs " + sipDialogs.toString());
+    // }
     if (sipDialogs != null && sipDialogs.contains(dialogId)) {
       retval = this.sipStack.getDialog(dialogId);
       if (retval == null) {
@@ -1641,6 +1645,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     }
     if (this.defaultDialog == null && defaultDialogId == null) {
       this.defaultDialog = sipDialog;
+      // if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+      //   logger.logDebug("defaultDialog set to : " + defaultDialog + 
+      //     " with dialog Id = " + sipDialog.getDialogId() + 
+      //     " earlyDialogId = " + sipDialog.getEarlyDialogId());
       // We only deal with Forked INVITEs.
       String requestForkId = ((SIPRequest)getRequest()).getForkId();
       setForkId(requestForkId);

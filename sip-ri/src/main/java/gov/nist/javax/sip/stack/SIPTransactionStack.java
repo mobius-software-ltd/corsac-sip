@@ -1888,6 +1888,10 @@ public abstract class SIPTransactionStack implements
             }
         }
 
+        if(currentTransaction != null && currentTransaction.getMessageChannel() == null) {
+            currentTransaction.setEncapsulatedChannel(responseMessageChannel);
+        } 
+
         // Aquire the sem -- previous request may still be processing.
         // boolean acquired = currentTransaction.acquireSem();
         // Set ths transaction's encapsulated response interface
