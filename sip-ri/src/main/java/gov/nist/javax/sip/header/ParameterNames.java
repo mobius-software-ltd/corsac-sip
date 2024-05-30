@@ -173,5 +173,10 @@ public interface ParameterNames {
 	public static final String COUNTER = "counter";
 	public static final String PRIVACY = "privacy";
 	public static final String SCREEN = "screen";
+	
+	//Support for RFC 4412 @MukhaValeriia
+	  public static final String NAMESPACE = "namespace";
+	  public static final String PRIORITY = "priority";
+	
 
 }

@@ -170,6 +170,9 @@ public interface TokenTypes {
     public static final int TARGET_DIALOG = START + 99;
     //Mukha Valeriia: RFC 5806 Support
     public static final int DIVERSION = START + 100;
+  //Mukha Valeriia: RFC 4412 Support
+    public static final int ACCEPT_RESOURCE_PRIORITY= START + 101;
+    public static final int RESOURCE_PRIORITY= START + 102;
 
     public static final int ALPHA = LexerCore.ALPHA;
     public static final int DIGIT = LexerCore.DIGIT;

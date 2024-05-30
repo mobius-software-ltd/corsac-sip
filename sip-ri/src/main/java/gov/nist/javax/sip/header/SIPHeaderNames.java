@@ -120,6 +120,9 @@ public interface SIPHeaderNames {
     //Valeriia Mukha support 
     public static final String TARGET_DIALOG = TargetDialogHeader.NAME; //53
 	public static final String DIVERSION = Diversion.NAME; //54
+	public static final String RESOURCE_PRIORITY = ResourcePriority.NAME; //55
+	public static final String ACCEPT_RESOURCE_PRIORITY = AcceptResourcePriority.NAME; //56
+	
 
 }
 
