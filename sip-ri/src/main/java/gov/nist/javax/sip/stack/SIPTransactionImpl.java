@@ -1009,15 +1009,11 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     public int getViaPort() {
         return this.getViaHeader().getPort();
     }
-
     /**
      * @see gov.nist.javax.sip.stack.SIPTransaction#doesCancelMatchTransaction(gov.nist.javax.sip.message.SIPRequest)
      */
     @Override
     public boolean doesCancelMatchTransaction(SIPRequest requestToTest) {
-
-        // List of Via headers in the message to test
-//        ViaList viaHeaders;
         // Topmost Via header in the list
         Via topViaHeader;
         // Branch code in the topmost Via header
@@ -1027,73 +1023,38 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
         transactionMatches = false;
         final SIPRequest origRequest = getOriginalRequest();
-        if (origRequest == null
-                || this.getMethod().equals(Request.CANCEL))
+        if (origRequest == null || this.getMethod().equals(Request.CANCEL)) {
             return false;
+        }
+
         // Get the topmost Via header and its branch parameter
         topViaHeader = requestToTest.getTopmostVia();
         if (topViaHeader != null) {
-
-//            topViaHeader = (Via) viaHeaders.getFirst();
             messageBranch = topViaHeader.getBranch();
             if (messageBranch != null) {
-
-                // If the branch parameter exists but
-                // does not start with the magic cookie,
+                // If the branch parameter exists but does not start with the magic cookie,
                 if (!messageBranch.toLowerCase().startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
-
-                    // Flags this as old
-                    // (RFC2543-compatible) client
-                    // version
-                    messageBranch = null;
-
+                    // If the branch does not start with the magic cookie, it's not a valid branch
+                    return false;
                 }
-
             }
 
             // If a new branch parameter exists,
             if (messageBranch != null && this.getBranch() != null) {
-
-                // If the branch equals the branch in
-                // this message,
+                // If the branch equals the branch in this message,
                 if (getBranch().equalsIgnoreCase(messageBranch)
-                        && topViaHeader.getSentBy().equals(
-                                origRequest.getTopmostVia().getSentBy())) {
+                        && topViaHeader.getSentBy().equals(origRequest.getTopmostVia().getSentBy())) {
                     transactionMatches = true;
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        logger.logDebug("returning  true");
+                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                        logger.logDebug("returning true");
+                    }
                 }
-
-            } else {
-                // If this is an RFC2543-compliant message,
-                // If RequestURI, To tag, From tag,
-                // CallID, CSeq number, and top Via
-                // headers are the same,
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                    logger.logDebug("testing against "
-                            + origRequest);
-
-                if (origRequest.getRequestURI().equals(
-                        requestToTest.getRequestURI())
-                        && origRequest.getTo().equals(
-                                requestToTest.getTo())
-                        && origRequest.getFrom().equals(
-                                requestToTest.getFrom())
-                        && origRequest.getCallId().getCallId().equals(
-                                requestToTest.getCallId().getCallId())
-                        && origRequest.getCSeq().getSeqNumber() == requestToTest
-                                .getCSeq().getSeqNumber()
-                        && topViaHeader.equals(origRequest.getTopmostVia())) {
-
-                    transactionMatches = true;
-                }
-
             }
-
         }
 
         return transactionMatches;
     }
+
 
     /**
      * @see gov.nist.javax.sip.stack.SIPTransaction#setRetransmitTimer(int)

@@ -940,9 +940,6 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
      */
     public String getTransactionId() {
         Via topVia = getTopmostVia();
-//        if (!this.getViaHeaders().isEmpty()) {
-//            topVia = (Via) this.getViaHeaders().getFirst();
-//        }
         // Have specified a branch Identifier so we can use it to identify
         // the transaction. BranchId is not case sensitive.
         // Branch Id prefix is not case sensitive.
@@ -959,38 +956,10 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
                 return topVia.getBranch().toLowerCase();
             }
         } else {
-            // Old style client so construct the transaction identifier
-            // from various fields of the request.
-            StringBuilder retval = new StringBuilder();
-            From from = (From) this.getFrom();
-            // String hpFrom = from.getUserAtHostPort();
-            // retval.append(hpFrom).append(":");
-            if (from != null && from.hasTag()) {
-                retval.append(from.getTag()).append("-");
-            }
-            // String hpTo = to.getUserAtHostPort();
-            // retval.append(hpTo).append(":");
-            if (this.callIdHeader != null) {
-                String cid = this.callIdHeader.getCallId();
-                retval.append(cid).append("-");
-            }
-            if (cSeqHeader != null) {
-                retval.append(this.cSeqHeader.getSequenceNumber()).append("-").append(
-                        this.cSeqHeader.getMethod());
-            }
-            if (topVia != null) {
-                retval.append("-").append(topVia.getSentBy().encode());
-                if (!topVia.getSentBy().hasPort()) {
-                    retval.append("-").append(5060);
-                }
-            }
-            if (getCSeq() != null && this.getCSeq().getMethod().equals(Request.CANCEL)) {
-                retval.append(Request.CANCEL);
-            }
-            return retval.toString().toLowerCase().replace(":", "-").replace("@", "-")
-                    + Utils.getSignature();
+            throw new IllegalStateException("Branch ID is required for transaction ID generation.");
         }
     }
+
 
     /**
      * Override the hashcode method ( see issue # 55 ) Note that if you try to

@@ -165,18 +165,6 @@ public class Via
     public NameValueList getViaParms() {
         return parameters;
     }
-
-    /**
-     * Accessor for the comment field.
-     * @return comment field.
-     * @deprecated RFC 2543 support feature.
-     */
-    public String getComment() {
-        return comment;
-    }
-
-
-
     /** port of the Via Header.
      * @return true if Port exists.
      */
@@ -237,15 +225,6 @@ public class Via
      */
     public void setSentBy(HostPort s) {
         sentBy = s;
-    }
-
-    /**
-     * Set the comment member
-     * @param c String to set.
-     * @deprecated This is an RFC 2543 feature.
-     */
-    public void setComment(String c) {
-        comment = c;
     }
 
     /** Encode the body of this header (the stuff that follows headerName).

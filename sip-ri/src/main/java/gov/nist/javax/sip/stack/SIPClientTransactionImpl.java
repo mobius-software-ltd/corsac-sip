@@ -490,50 +490,35 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       MessageChannel sourceChannel,
       SIPDialog dialog) {
 
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-          logger.logDebug("processing " + transactionResponse.getFirstLine() + "current state = "
+      if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+          logger.logDebug("processing " + transactionResponse.getFirstLine() + " current state = "
               + getState());
           logger.logDebug("dialog = " + dialog);
-        }
-    // If the state has not yet been assigned then this is a
-    // spurious response.
+      }
+      // If the state has not yet been assigned then this is a spurious response.
+      if (getInternalState() < 0)
+          return;
 
-    if (getInternalState() < 0)
-      return;
+      // Ignore 1xx
+      if ((TransactionState._COMPLETED == this.getInternalState()
+          || TransactionState._TERMINATED == this.getInternalState())
+          && transactionResponse.getStatusCode() / 100 == 1) {
+          return;
+      }
 
-    // Ignore 1xx
-    if ((TransactionState._COMPLETED == this.getInternalState()
-        || TransactionState._TERMINATED == this.getInternalState())
-        && transactionResponse.getStatusCode() / 100 == 1) {
-      return;
-    }
+      this.lastResponse = transactionResponse;
 
-    
-
-    this.lastResponse = transactionResponse;
-
-    /*
-     * JvB: this is now duplicate with code in the other processResponse
-     * 
-     * if (dialog != null && transactionResponse.getStatusCode() != 100 &&
-     * (transactionResponse.getTo().getTag() != null || sipStack
-     * .isRfc2543Supported())) { //
-     * add the route before you process the response. dialog.setLastResponse(this,
-     * transactionResponse); this.setDialog(dialog,
-     * transactionResponse.getDialogId(false)); }
-     */
-
-    try {
-      if (isInviteTransaction())
-        inviteClientTransaction(transactionResponse, sourceChannel, dialog);
-      else
-        nonInviteClientTransaction(transactionResponse, sourceChannel, dialog);
-    } catch (IOException ex) {
-      if (logger.isLoggingEnabled())
-        logger.logException(ex);
-      this.setState(TransactionState._TERMINATED);
-      raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
-    }
+      try {
+          if (isInviteTransaction())
+              inviteClientTransaction(transactionResponse, sourceChannel, dialog);
+          else
+              nonInviteClientTransaction(transactionResponse, sourceChannel, dialog);
+      } catch (IOException ex) {
+          if (logger.isLoggingEnabled())
+              logger.logException(ex);
+          this.setState(TransactionState._TERMINATED);
+          raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
+      }
   }
 
   /**
@@ -1497,115 +1482,113 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   @Override
   public void processResponse(SIPResponse sipResponse, MessageChannel incomingChannel) {
 
-    int code = sipResponse.getStatusCode();
-    boolean isRetransmission = !responsesReceived.add(Integer.valueOf(code));
-    if (code > 100 && code < 200 && isRetransmission) {
-      if (lastResponse != null && !sipResponse.equals(lastResponse)) {
-        isRetransmission = false;
+      int code = sipResponse.getStatusCode();
+      boolean isRetransmission = !responsesReceived.add(Integer.valueOf(code));
+      if (code > 100 && code < 200 && isRetransmission) {
+          if (lastResponse != null && !sipResponse.equals(lastResponse)) {
+              isRetransmission = false;
+          }
       }
-    }
 
-    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-      logger.logDebug("marking response as retransmission " + isRetransmission + " for ctx " + this);
-    }
-    sipResponse.setRetransmission(isRetransmission);
-
-    // If a dialog has already been created for this response,
-    // pass it up.
-    SIPDialog dialog = null;
-    String method = sipResponse.getCSeq().getMethod();
-    String dialogId = sipResponse.getDialogId(false);
-    if (method.equals(Request.CANCEL) && lastRequest != null) {
-      // JvB for CANCEL: use invite CT in CANCEL request to get dialog
-      // (instead of stripping tag)
-      SIPClientTransaction ict = (SIPClientTransaction) lastRequest.getInviteTransaction();
-      if (ict != null) {
-        dialog = ict.getDefaultDialog();
+      if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+          logger.logDebug("marking response as retransmission " + isRetransmission + " for ctx " + this);
       }
-    } else {
-      dialog = this.getDialog(dialogId);
-    }
+      sipResponse.setRetransmission(isRetransmission);
 
-    // JvB: Check all conditions required for creating a new Dialog
-    if (dialog == null) {
-      if ((code > 100 && code < 300)
-          /* skip 100 (may have a to tag */
-          && (sipResponse.getToTag() != null || sipStack.isRfc2543Supported())
-          && SIPTransactionStack.isDialogCreatingMethod(method)) {
+      // If a dialog has already been created for this response,
+      // pass it up.
+      SIPDialog dialog = null;
+      String method = sipResponse.getCSeq().getMethod();
+      String dialogId = sipResponse.getDialogId(false);
+      if (method.equals(Request.CANCEL) && lastRequest != null) {
+          // JvB for CANCEL: use invite CT in CANCEL request to get dialog
+          // (instead of stripping tag)
+          SIPClientTransaction ict = (SIPClientTransaction) lastRequest.getInviteTransaction();
+          if (ict != null) {
+              dialog = ict.getDefaultDialog();
+          }
+      } else {
+          dialog = this.getDialog(dialogId);
+      }
 
-        /*
-         * Dialog cannot be found for the response. This must be a forked response. no
-         * dialog assigned to this response but a default dialog has been assigned. Note
-         * that if automatic dialog support is configured then a default dialog is
-         * always
-         * created.
-         */
+      // Check all conditions required for creating a new Dialog
+      if (dialog == null) {
+          if (code > 100 && code < 300 && sipResponse.getTo().getTag() != null && SIPTransactionStack.isDialogCreatingMethod(method)) {
 
-        // synchronized (this) {
-        /*
-         * We need synchronization here because two responses may compete for the
-         * default dialog simultaneously
-         */
-        if (defaultDialog != null) {
-          if (sipResponse.getFromTag() != null) {
-            String defaultDialogId = defaultDialog.getDialogId();
-            if (defaultDialog.getLastResponseMethod() == null
-                || (method.equals(Request.SUBSCRIBE)
-                    && defaultDialog.getLastResponseMethod().equals(Request.NOTIFY)
-                    && defaultDialogId.equals(dialogId))) {
-              // The default dialog has not been claimed yet.
-              defaultDialog.setLastResponse(this, sipResponse);
-              dialog = defaultDialog;
-            } else {
               /*
-               * check if we have created one previously (happens in the case of
-               * REINVITE processing. JvB: should not happen, this.defaultDialog
-               * should then get set in Dialog#sendRequest line 1662
+               * Dialog cannot be found for the response. This must be a forked response. no
+               * dialog assigned to this response but a default dialog has been assigned. Note
+               * that if automatic dialog support is configured then a default dialog is
+               * always
+               * created.
                */
 
-              dialog = sipStack.getDialog(dialogId);
-              if (dialog == null) {
-                if (defaultDialog.isAssigned()) {
-                  /*
-                   * Nop we dont have one. so go ahead and allocate a new
-                   * one.
-                   */
-                  dialog = sipStack.createDialog(this, sipResponse);
-                  dialog.setOriginalDialog(defaultDialog);
-                }
-              }
+              // synchronized (this) {
+              /*
+               * We need synchronization here because two responses may compete for the
+               * default dialog simultaneously
+               */
+              if (defaultDialog != null) {
+                  if (sipResponse.getFrom().getTag() != null) {
+                      String defaultDialogId = defaultDialog.getDialogId();
+                      if (defaultDialog.getLastResponseMethod() == null
+                              || (method.equals(Request.SUBSCRIBE)
+                                  && defaultDialog.getLastResponseMethod().equals(Request.NOTIFY)
+                                  && defaultDialogId.equals(dialogId))) {
+                          // The default dialog has not been claimed yet.
+                          defaultDialog.setLastResponse(this, sipResponse);
+                          dialog = defaultDialog;
+                      } else {
+                          /*
+                           * check if we have created one previously (happens in the case of
+                           * REINVITE processing. JvB: should not happen, this.defaultDialog
+                           * should then get set in Dialog#sendRequest line 1662
+                           */
 
-            }
-            if (dialog != null) {
-              this.setDialog(dialog, dialog.getDialogId());
-            } else {
-              logger.logError("dialog is unexpectedly null", new NullPointerException());
-            }
+                          dialog = sipStack.getDialog(dialogId);
+                          if (dialog == null) {
+                              if (defaultDialog.isAssigned()) {
+                                  /*
+                                   * Nop we dont have one. so go ahead and allocate a new
+                                   * one.
+                                   */
+                                  dialog = sipStack.createDialog(this, sipResponse);
+                                  dialog.setOriginalDialog(defaultDialog);
+                              }
+                          }
+
+                      }
+                      if (dialog != null) {
+                          this.setDialog(dialog, dialog.getDialogId());
+                      } else {
+                          logger.logError("dialog is unexpectedly null", new NullPointerException());
+                      }
+                  } else {
+                      throw new RuntimeException("Response without from-tag");
+                  }
+              } else {
+                  // Need to create a new Dialog, this becomes default
+                  // JvB: not sure if this ever gets executed
+                  if (sipStack.isAutomaticDialogSupportEnabled) {
+                      dialog = sipStack.createDialog(this, sipResponse);
+                      this.setDialog(dialog, dialog.getDialogId());
+                  }
+              }
+              // } // synchronized
           } else {
-            throw new RuntimeException("Response without from-tag");
+              dialog = defaultDialog;
           }
-        } else {
-          // Need to create a new Dialog, this becomes default
-          // JvB: not sure if this ever gets executed
-          if (sipStack.isAutomaticDialogSupportEnabled) {
-            dialog = sipStack.createDialog(this, sipResponse);
-            this.setDialog(dialog, dialog.getDialogId());
-          }
-        }
-        // } // synchronized
       } else {
-        dialog = defaultDialog;
+          // Test added to make sure the retrans flag is correct on forked responses
+          // this will avoid setting the last response on the dialog and change its state
+          // before it is passed to the dialog filter layer where it is done as well
+          if (TransactionState._TERMINATED != getInternalState()) {
+              dialog.setLastResponse(this, sipResponse);
+          }
       }
-    } else {
-      // Test added to make sure the retrans flag is correct on forked responses
-      // this will avoid setting the last response on the dialog and chnage its state
-      // before it is passed to the dialogfilter layer where it is done as well
-      if (TransactionState._TERMINATED != getInternalState()) {
-        dialog.setLastResponse(this, sipResponse);
-      }
-    }
-    this.processResponse(sipResponse, incomingChannel, dialog);
+      this.processResponse(sipResponse, incomingChannel, dialog);
   }
+
 
   /*
    * (non-Javadoc)

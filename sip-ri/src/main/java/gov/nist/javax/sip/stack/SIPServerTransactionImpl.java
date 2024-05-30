@@ -478,13 +478,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     @Override
     public boolean isMessagePartOfTransaction(SIPMessage messageToTest) {
 
-        // List of Via headers in the message to test
-        // ViaList viaHeaders;
-
         // Flags whether the select message is part of this transaction
         boolean transactionMatches = false;
         final String method = messageToTest.getCSeq().getMethod();
         SIPRequest origRequest = getOriginalRequest();
+
         // Invite Server transactions linger in the terminated state in the
         // transaction
         // table and are matched to compensate for
@@ -495,106 +493,41 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             final Via topViaHeader = messageToTest.getTopmostVia();
             if (topViaHeader != null) {
 
-                // topViaHeader = (Via) viaHeaders.getFirst();
                 // Branch code in the topmost Via header
                 String messageBranch = topViaHeader.getBranch();
                 if (messageBranch != null) {
 
-                    // If the branch parameter exists but
-                    // does not start with the magic cookie,
-                    if (!messageBranch.toLowerCase().startsWith(
-                            SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
-
-                        // Flags this as old
-                        // (RFC2543-compatible) client
-                        // version
-                        messageBranch = null;
-
+                    // If the branch parameter exists but does not start with the magic cookie,
+                    if (!messageBranch.toLowerCase().startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
+                        // If the branch does not start with the magic cookie, it's not a valid branch
+                        return false;
                     }
-
                 }
 
                 // If a new branch parameter exists,
                 if (messageBranch != null && this.getBranch() != null) {
                     if (method.equals(Request.CANCEL)) {
-                        // Cancel is handled as a special case because it
-                        // shares the same same branch id of the invite
-                        // that it is trying to cancel.
+                        // Cancel is handled as a special case because it shares the same branch id of the invite that it is trying to cancel.
                         transactionMatches = this.getMethod().equals(Request.CANCEL)
                                 && getBranch().equalsIgnoreCase(messageBranch)
-                                && topViaHeader.getSentBy().equals(
-                                        origRequest.getTopmostVia()
-                                                .getSentBy());
+                                && topViaHeader.getSentBy().equals(origRequest.getTopmostVia().getSentBy());
 
                     } else {
-                        // Matching server side transaction with only the
-                        // branch parameter.
+                        // Matching server side transaction with only the branch parameter.
                         if (origRequest != null) {
                             transactionMatches = getBranch().equalsIgnoreCase(messageBranch)
-                                    && topViaHeader.getSentBy().equals(
-                                            origRequest.getTopmostVia()
-                                                    .getSentBy());
+                                    && topViaHeader.getSentBy().equals(origRequest.getTopmostVia().getSentBy());
                         } else {
                             transactionMatches = getBranch().equalsIgnoreCase(messageBranch)
                                     && topViaHeader.getSentBy().equals(originalRequestSentBy);
                         }
-
                     }
-
-                } else {
-                    // force the reparsing only on non RFC 3261 messages
-                    origRequest = (SIPRequest) getRequest();
-
-                    // This is an RFC2543-compliant message; this code is here
-                    // for backwards compatibility.
-                    // It is a weak check.
-                    // If RequestURI, To tag, From tag, CallID, CSeq number, and
-                    // top Via headers are the same, the
-                    // SIPMessage matches this transaction. An exception is for
-                    // a CANCEL request, which is not deemed
-                    // to be part of an otherwise-matching INVITE transaction.
-                    String originalFromTag = origRequest.getFromTag();
-
-                    String thisFromTag = messageToTest.getFrom().getTag();
-
-                    boolean skipFrom = (originalFromTag == null || thisFromTag == null);
-
-                    String originalToTag = origRequest.getToTag();
-
-                    String thisToTag = messageToTest.getTo().getTag();
-
-                    boolean skipTo = (originalToTag == null || thisToTag == null);
-                    boolean isResponse = (messageToTest instanceof SIPResponse);
-                    // Issue #96: special case handling for a CANCEL request -
-                    // the CSeq method of the original request must
-                    // be CANCEL for it to have a chance at matching.
-                    if (messageToTest.getCSeq().getMethod().equalsIgnoreCase(Request.CANCEL)
-                            && !origRequest.getCSeq().getMethod().equalsIgnoreCase(
-                                    Request.CANCEL)) {
-                        transactionMatches = false;
-                    } else if ((isResponse || origRequest.getRequestURI().equals(
-                            ((SIPRequest) messageToTest).getRequestURI()))
-                            && (skipFrom || originalFromTag != null && originalFromTag.equalsIgnoreCase(thisFromTag))
-                            && (skipTo || originalToTag != null && originalToTag.equalsIgnoreCase(thisToTag))
-                            && origRequest.getCallId().getCallId().equalsIgnoreCase(
-                                    messageToTest.getCallId().getCallId())
-                            && origRequest.getCSeq().getSeqNumber() == messageToTest
-                                    .getCSeq().getSeqNumber()
-                            && ((!messageToTest.getCSeq().getMethod().equals(Request.CANCEL)) ||
-                                    getMethod().equals(messageToTest.getCSeq().getMethod()))
-                            && topViaHeader.equals(origRequest.getTopmostVia())) {
-
-                        transactionMatches = true;
-                    }
-
                 }
-
             }
-
         }
         return transactionMatches;
-
     }
+
 
     /**
      * @see gov.nist.javax.sip.stack.SIPServerTransaction#map()

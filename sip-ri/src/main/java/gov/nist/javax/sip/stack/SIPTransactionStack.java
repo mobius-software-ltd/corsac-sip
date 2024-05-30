@@ -357,13 +357,6 @@ public abstract class SIPTransactionStack implements
     // Max time that a Non INVITE tx is allowed to live in the stack. Default is infinity
     protected int maxTxLifetimeNonInvite;
 
-    // A flag that indicates whether or not RFC 2543 clients are fully
-    // supported.
-    // If this is set to true, then To tag checking on the Dialog layer is
-    // disabled in a few places - resulting in possible breakage of forked
-    // dialogs.
-    protected boolean rfc2543Supported = true;
-
     // / Provides a mechanism for applications to check the health of threads in
     // the stack
     protected ThreadAuditor threadAuditor = null;
@@ -1304,81 +1297,38 @@ public abstract class SIPTransactionStack implements
      * @return the transaction object corresponding to the request or null if no
      *         such mapping exists.
      */
-    public SIPTransaction findTransaction(SIPMessage sipMessage,
-            boolean isServer) {
+    public SIPTransaction findTransaction(SIPMessage sipMessage, boolean isServer) {
         SIPTransaction retval = null;
         try {
-            if (isServer) {
-                Via via = sipMessage.getTopmostVia();
-                if (via.getBranch() != null) {
-                    String key = sipMessage.getTransactionId();
-
+            Via via = sipMessage.getTopmostVia();
+            if (via.getBranch() != null) {
+                String key = sipMessage.getTransactionId();
+                if (isServer) {
                     retval = (SIPTransaction) serverTransactionTable.get(key);
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        logger
-                                .logDebug(
-                                        "serverTx: looking for key " + key
-                                                + " existing="
-                                + serverTransactionTable);
-                    if (key
-                            .startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
+                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                        logger.logDebug("serverTx: looking for key " + key + " existing=" + serverTransactionTable);
+                    }
+                    if (key.startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
                         return retval;
                     }
-
-                }
-                // Need to scan the table for old style transactions (RFC 2543
-                // style)
-                Iterator<SIPServerTransaction> it = serverTransactionTable
-                        .values().iterator();
-                while (it.hasNext()) {
-                    SIPServerTransaction sipServerTransaction = (SIPServerTransaction) it
-                            .next();
-                    if (sipServerTransaction
-                            .isMessagePartOfTransaction(sipMessage)) {
-                        retval = sipServerTransaction;
-                        return retval;
+                } else {
+                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                        logger.logDebug("clientTx: looking for key " + key);
                     }
-                }
-
-            } else {
-                Via via = sipMessage.getTopmostVia();
-                if (via.getBranch() != null) {
-                    String key = sipMessage.getTransactionId();
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        logger.logDebug(
-                                "clientTx: looking for key " + key);
                     retval = (SIPTransaction) clientTransactionTable.get(key);
-                    if (key
-                            .startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
-                        return retval;
-                    }
-
-                }
-                // Need to scan the table for old style transactions (RFC 2543
-                // style). This is terribly slow but we need to do this
-                // for backasswords compatibility.
-                Iterator<SIPClientTransaction> it = clientTransactionTable
-                        .values().iterator();
-                while (it.hasNext()) {
-                    SIPClientTransaction clientTransaction = (SIPClientTransaction) it
-                            .next();
-                    if (clientTransaction
-                            .isMessagePartOfTransaction(sipMessage)) {
-                        retval = clientTransaction;
+                    if (key.startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
                         return retval;
                     }
                 }
-
             }
         } finally {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug(
-                        "findTransaction: returning  : " + retval);
+                logger.logDebug("findTransaction: returning  : " + retval);
             }
         }
         return retval;
-
     }
+
 
     public SIPTransaction findTransaction(String transactionId, boolean isServer) {
         if(isServer) {
@@ -2957,11 +2907,6 @@ public abstract class SIPTransactionStack implements
      */
     public int getActiveClientTransactionCount() {
         return activeClientTransactionCount.get();
-    }
-
-    public boolean isRfc2543Supported() {
-
-        return this.rfc2543Supported;
     }
 
     public boolean isCancelClientTransactionChecked() {

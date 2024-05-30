@@ -3255,273 +3255,144 @@ public class SIPDialog implements DialogExt {
      * @param sipResponse
      *            -- the last response to set.
      */
-    public void setLastResponse(SIPTransaction transaction,
-            SIPResponse sipResponse) {
+    public void setLastResponse(SIPTransaction transaction, SIPResponse sipResponse) {
         this.callIdHeader = sipResponse.getCallId();
         final int statusCode = sipResponse.getStatusCode();
         if (statusCode == 100) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                logger
-                        .logDebug(
-                                "Invalid status code - 100 in setLastResponse - ignoring");
+                logger.logDebug("Invalid status code - 100 in setLastResponse - ignoring");
             return;
         }
 
-        if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        	logger.logStackTrace();
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logStackTrace();
         }
-        // this.lastResponse = sipResponse;
         try {
             this.lastResponseStatusCode = Integer.valueOf(statusCode);
             // Issue 378 : http://java.net/jira/browse/JSIP-378
             // Cloning the via header to avoid race condition and be modified
-            this.lastResponseTopMostVia = (Via) sipResponse.getTopmostVia().clone();            
+            this.lastResponseTopMostVia = (Via) sipResponse.getTopmostVia().clone();
             String cseqMethod = sipResponse.getCSeqHeader().getMethod();
             this.lastResponseMethod = cseqMethod;
             long responseCSeqNumber = sipResponse.getCSeq().getSeqNumber();
-            
+
             boolean is100ClassResponse = statusCode / 100 == 1;
             boolean is200ClassResponse = statusCode / 100 == 2;
-            
+
             this.lastResponseCSeqNumber = responseCSeqNumber;
-            if(Request.INVITE.equals(cseqMethod)) {
-            	this.lastInviteResponseCSeqNumber = responseCSeqNumber;
-            	this.lastInviteResponseCode = statusCode;
+            if (Request.INVITE.equals(cseqMethod)) {
+                this.lastInviteResponseCSeqNumber = responseCSeqNumber;
+                this.lastInviteResponseCode = statusCode;
             }
-            if (sipResponse.getToTag() != null ) {
+            if (sipResponse.getToTag() != null) {
                 this.lastResponseToTag = sipResponse.getToTag();
             }
-            if ( sipResponse.getFromTag() != null ) {
+            if (sipResponse.getFromTag() != null) {
                 this.lastResponseFromTag = sipResponse.getFromTag();
             }
             if (transaction != null) {
-                this.lastResponseDialogId = sipResponse.getDialogId(transaction
-                        .isServerTransaction());
+                this.lastResponseDialogId = sipResponse.getDialogId(transaction.isServerTransaction());
             }
             this.setAssigned();
             // Adjust state of the Dialog state machine.
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug(
-                        "sipDialog: setLastResponse:" + this
-                                + " lastResponse = "
-                                + this.lastResponseStatusCode 
-                                + " response " + sipResponse.toString()
-                                + " topMostViaHeader " + lastResponseTopMostVia);
+                logger.logDebug("sipDialog: setLastResponse:" + this + " lastResponse = " + this.lastResponseStatusCode + " response " + sipResponse.toString() + " topMostViaHeader " + lastResponseTopMostVia);
             }
             if (this.getState() == DialogState.TERMINATED) {
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    logger
-                            .logDebug(
-                                    "sipDialog: setLastResponse -- dialog is terminated - ignoring ");
+                    logger.logDebug("sipDialog: setLastResponse -- dialog is terminated - ignoring ");
                 }
                 // Capture the OK response for later use in createAck
                 // This is handy for late arriving OK's that we want to ACK.
-                if (cseqMethod.equals(Request.INVITE)
-                        && statusCode == 200) {
-
-                    this.lastInviteOkReceived = Math.max(
-                    		responseCSeqNumber, this.lastInviteOkReceived);
+                if (cseqMethod.equals(Request.INVITE) && statusCode == 200) {
+                    this.lastInviteOkReceived = Math.max(responseCSeqNumber, this.lastInviteOkReceived);
                 }
                 return;
             }
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logStackTrace();
-                logger.logDebug(
-                        "cseqMethod = " + cseqMethod);
-                logger.logDebug(
-                        "dialogState = " + this.getState());
-                logger.logDebug(
-                        "method = " + this.getMethod());
-                logger
-                        .logDebug("statusCode = " + statusCode);
-                logger.logDebug(
-                        "transaction = " + transaction);
+                logger.logDebug("cseqMethod = " + cseqMethod);
+                logger.logDebug("dialogState = " + this.getState());
+                logger.logDebug("method = " + this.getMethod());
+                logger.logDebug("statusCode = " + statusCode);
+                logger.logDebug("transaction = " + transaction);
             }
 
-            // JvB: don't use "!this.isServer" here
-            // note that the transaction can be null for forked
-            // responses.
             if (transaction == null || transaction instanceof ClientTransaction) {
                 if (SIPTransactionStack.isDialogCreatingMethod(cseqMethod)) {
-                    // Make a final tag assignment.
                     if (getState() == null && is100ClassResponse) {
-                        /*
-                         * Guard aginst slipping back into early state from
-                         * confirmed state.
-                         */
-                        // Was (sipResponse.getToTag() != null ||
-                        // sipStack.rfc2543Supported)
                         setState(SIPDialog.EARLY_STATE);
-                        if ((sipResponse.getToTag() != null || sipStack.rfc2543Supported)
-                                && this.getRemoteTag() == null) {
+                        if (sipResponse.getToTag() != null && this.getRemoteTag() == null) {
                             setRemoteTag(sipResponse.getToTag());
                             this.setDialogId(sipResponse.getDialogId(false));
                             sipStack.putDialog(this);
                             this.addRoute(sipResponse);
                         }
-                    } else if (getState() != null
-                            && getState().equals(DialogState.EARLY)
-                            && is100ClassResponse) {
-                        /*
-                         * This case occurs for forked dialog responses. The To
-                         * tag can change as a result of the forking. The remote
-                         * target can also change as a result of the forking.
-                         */
-                        if (cseqMethod.equals(getMethod())
-                                && transaction != null
-                                && (sipResponse.getToTag() != null || sipStack.rfc2543Supported)) {
+                    } else if (getState() != null && getState().equals(DialogState.EARLY) && is100ClassResponse) {
+                        if (cseqMethod.equals(getMethod()) && transaction != null && sipResponse.getToTag() != null) {
                             setRemoteTag(sipResponse.getToTag());
                             this.setDialogId(sipResponse.getDialogId(false));
                             sipStack.putDialog(this);
                             this.addRoute(sipResponse);
                         }
                     } else if (is200ClassResponse) {
-                        // This is a dialog creating method (such as INVITE).
-                        // 2xx response -- set the state to the confirmed
-                        // state. To tag is MANDATORY for the response.
-
-                        // Only do this if method equals initial request!
-                        if (logger.isLoggingEnabled(
-                                LogWriter.TRACE_DEBUG)) {
-                            logger
-                                    .logDebug(
-                                            "pendingRouteUpdateOn202Response : "
-                                                    + this.pendingRouteUpdateOn202Response);
-                        }
-                        if (cseqMethod.equals(getMethod())
-                                && (sipResponse.getToTag() != null || sipStack.rfc2543Supported)
-                                && (this.getState() != DialogState.CONFIRMED || (this
-                                        .getState() == DialogState.CONFIRMED
-                                        && cseqMethod
-                                                .equals(Request.SUBSCRIBE)
-                                        && this.pendingRouteUpdateOn202Response && 
-                                is200ClassResponse))) {
+                        if (cseqMethod.equals(getMethod()) && sipResponse.getToTag() != null && (this.getState() != DialogState.CONFIRMED || (this.getState() == DialogState.CONFIRMED && cseqMethod.equals(Request.SUBSCRIBE) && this.pendingRouteUpdateOn202Response && is200ClassResponse))) {
                             if (this.getState() != DialogState.CONFIRMED) {
                                 setRemoteTag(sipResponse.getToTag());
-                                this
-                                        .setDialogId(sipResponse
-                                                .getDialogId(false));
+                                this.setDialogId(sipResponse.getDialogId(false));
                                 sipStack.putDialog(this);
                                 this.addRoute(sipResponse);
                                 this.setState(CONFIRMED_STATE);
                             }
 
-                            /*
-                             * Note: Subscribe NOTIFY processing. The route set
-                             * is computed only after we get the 202 response
-                             * but the NOTIFY may come in before we get the 202
-                             * response. So we need to update the route set
-                             * after we see the 202 despite the fact that the
-                             * dialog is in the CONFIRMED state. We do this only
-                             * on the dialog forming SUBSCRIBE an not a
-                             * resubscribe.
-                             */
-
-                            if (cseqMethod.equals(Request.SUBSCRIBE)
-                                    && is200ClassResponse
-                                    && this.pendingRouteUpdateOn202Response) {
+                            if (cseqMethod.equals(Request.SUBSCRIBE) && is200ClassResponse && this.pendingRouteUpdateOn202Response) {
                                 setRemoteTag(sipResponse.getToTag());
                                 this.addRoute(sipResponse);
                                 this.pendingRouteUpdateOn202Response = false;
                             }
                         }
 
-                        // Capture the OK response for later use in createAck
                         if (cseqMethod.equals(Request.INVITE)) {
-                            this.lastInviteOkReceived = Math.max(responseCSeqNumber,
-                                    this.lastInviteOkReceived);
-                            if(getState() != null && getState().getValue() == SIPDialog.CONFIRMED_STATE && transaction != null) {
-                            	// http://java.net/jira/browse/JSIP-444 Honor Target Refresh on Response
-                            	// Contribution from francoisjoseph levee (Orange Labs)
-                            	doTargetRefresh(sipResponse);
+                            this.lastInviteOkReceived = Math.max(responseCSeqNumber, this.lastInviteOkReceived);
+                            if (getState() != null && getState().getValue() == SIPDialog.CONFIRMED_STATE && transaction != null) {
+                                doTargetRefresh(sipResponse);
                             }
                         }
 
-                    } else if (statusCode >= 300
-                            && statusCode <= 699
-                            && (getState() == null || (cseqMethod
-                                    .equals(getMethod()) && getState()
-                                    .getValue() == SIPDialog.EARLY_STATE))) {
-                        /*
-                         * This case handles 3xx, 4xx, 5xx and 6xx responses.
-                         * RFC 3261 Section 12.3 - dialog termination.
-                         * Independent of the method, if a request outside of a
-                         * dialog generates a non-2xx final response, any early
-                         * dialogs created through provisional responses to that
-                         * request are terminated.
-                         */
+                    } else if (statusCode >= 300 && statusCode <= 699 && (getState() == null || (cseqMethod.equals(getMethod()) && getState().getValue() == SIPDialog.EARLY_STATE))) {
                         setState(SIPDialog.TERMINATED_STATE);
                     }
 
-                    /*
-                     * This code is in support of "proxy" servers that are
-                     * constructed as back to back user agents. This could be a
-                     * dialog in the middle of the call setup path somewhere.
-                     * Hence the incoming invite has record route headers in it.
-                     * The response will have additional record route headers.
-                     * However, for this dialog only the downstream record route
-                     * headers matter. Ideally proxy servers should not be
-                     * constructed as Back to Back User Agents. Remove all the
-                     * record routes that are present in the incoming INVITE so
-                     * you only have the downstream Route headers present in the
-                     * dialog. Note that for an endpoint - you will have no
-                     * record route headers present in the original request so
-                     * the loop will not execute.
-                     */
-                    if (this.getState() != DialogState.CONFIRMED
-                            && this.getState() != DialogState.TERMINATED) {
+                    if (this.getState() != DialogState.CONFIRMED && this.getState() != DialogState.TERMINATED) {
                         if (getOriginalRequestRecordRouteHeaders() != null) {
-                            ListIterator<RecordRoute> it = getOriginalRequestRecordRouteHeaders()
-                                    .listIterator(
-                                            getOriginalRequestRecordRouteHeaders()
-                                                    .size());
+                            ListIterator<RecordRoute> it = getOriginalRequestRecordRouteHeaders().listIterator(getOriginalRequestRecordRouteHeaders().size());
                             while (it.hasPrevious()) {
                                 RecordRoute rr = (RecordRoute) it.previous();
                                 Route route = (Route) routeList.getFirst();
-                                if (route != null
-                                        && rr.getAddress().equals(
-                                                route.getAddress())) {
+                                if (route != null && rr.getAddress().equals(route.getAddress())) {
                                     routeList.removeFirstItem();
-                                } else
+                                } else {
                                     break;
+                                }
                             }
                         }
                     }
 
-                } else if (cseqMethod.equals(Request.NOTIFY)
-                        && (this.getMethod().equals(Request.SUBSCRIBE) || this
-                                .getMethod().equals(Request.REFER))
-                        && is200ClassResponse
-                        && this.getState() == null) {
-                    // This is a notify response.
+                } else if (cseqMethod.equals(Request.NOTIFY) && (this.getMethod().equals(Request.SUBSCRIBE) || this.getMethod().equals(Request.REFER)) && is200ClassResponse && this.getState() == null) {
                     this.setDialogId(sipResponse.getDialogId(true));
                     sipStack.putDialog(this);
                     this.setState(SIPDialog.CONFIRMED_STATE);
 
-                } else if (cseqMethod.equals(Request.BYE)
-                        && is200ClassResponse && isTerminatedOnBye()) {
-                    // Dialog will be terminated when the transction is
-                    // terminated.
+                } else if (cseqMethod.equals(Request.BYE) && is200ClassResponse && isTerminatedOnBye()) {
                     setState(SIPDialog.TERMINATED_STATE);
                 }
             } else {
-                // Processing Server Dialog.
-
-                if (cseqMethod.equals(Request.BYE)
-                        && is200ClassResponse && this.isTerminatedOnBye()) {
-                    /*
-                     * Only transition to terminated state when 200 OK is
-                     * returned for the BYE. Other status codes just result in
-                     * leaving the state in COMPLETED state.
-                     */
+                if (cseqMethod.equals(Request.BYE) && is200ClassResponse && this.isTerminatedOnBye()) {
                     this.setState(SIPDialog.TERMINATED_STATE);
                 } else {
                     boolean doPutDialog = false;
 
-                    if (getLocalTag() == null
-                            && sipResponse.getTo().getTag() != null
-                            && SIPTransactionStack.isDialogCreatingMethod(cseqMethod)
-                            && cseqMethod.equals(getMethod())) {
+                    if (getLocalTag() == null && sipResponse.getTo().getTag() != null && SIPTransactionStack.isDialogCreatingMethod(cseqMethod) && cseqMethod.equals(getMethod())) {
                         setLocalTag(sipResponse.getTo().getTag());
                         doPutDialog = true;
                     }
@@ -3529,57 +3400,23 @@ public class SIPDialog implements DialogExt {
                     if (!is200ClassResponse) {
                         if (is100ClassResponse) {
                             if (doPutDialog) {
-
                                 setState(SIPDialog.EARLY_STATE);
                                 this.setDialogId(sipResponse.getDialogId(true));
                                 sipStack.putDialog(this);
                             }
                         } else {
-                            /*
-                             * RFC 3265 chapter 3.1.4.1 "Non-200 class final
-                             * responses indicate that no subscription or dialog
-                             * has been created, and no subsequent NOTIFY
-                             * message will be sent. All non-200 class" +
-                             * responses (with the exception of "489", described
-                             * herein) have the same meanings and handling as
-                             * described in SIP"
-                             */
-                            // Bug Fix by Jens tinfors
-                            // see
-                            // https://jain-sip.dev.java.net/servlets/ReadMsg?list=users&msgNo=797
-                            if (statusCode == 489
-                                    && (cseqMethod
-                                            .equals(Request.NOTIFY) || cseqMethod
-                                            .equals(Request.SUBSCRIBE))) {
-                                if (logger
-                                        .isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                                    logger
-                                            .logDebug(
-                                                    "RFC 3265 : Not setting dialog to TERMINATED for 489");
+                            if (statusCode == 489 && (cseqMethod.equals(Request.NOTIFY) || cseqMethod.equals(Request.SUBSCRIBE))) {
+                                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                                    logger.logDebug("RFC 3265 : Not setting dialog to TERMINATED for 489");
                             } else {
-                                // baranowb: simplest fix to
-                                // https://jain-sip.dev.java.net/issues/show_bug.cgi?id=175
-                                // application is responsible for terminating in
-                                // this case
-                                // see rfc 5057 for better explanation
-                                if (!this.isReInvite()
-                                        && getState() != DialogState.CONFIRMED) {
+                                if (!this.isReInvite() && getState() != DialogState.CONFIRMED) {
                                     this.setState(SIPDialog.TERMINATED_STATE);
                                 }
                             }
                         }
 
                     } else {
-
-                        /*
-                         * JvB: RFC4235 says that when sending 2xx on UAS side,
-                         * state should move to CONFIRMED
-                         */
-                        if (this.dialogState <= SIPDialog.EARLY_STATE
-                                && (cseqMethod.equals(Request.INVITE)
-                                        || cseqMethod
-                                                .equals(Request.SUBSCRIBE) || cseqMethod
-                                        .equals(Request.REFER))) {
+                        if (this.dialogState <= SIPDialog.EARLY_STATE && (cseqMethod.equals(Request.INVITE) || cseqMethod.equals(Request.SUBSCRIBE) || cseqMethod.equals(Request.REFER))) {
                             this.setState(SIPDialog.CONFIRMED_STATE);
                         }
 
@@ -3587,43 +3424,27 @@ public class SIPDialog implements DialogExt {
                             this.setDialogId(sipResponse.getDialogId(true));
                             sipStack.putDialog(this);
                         }
-                        
                     }
                 }
-
             }
         } finally {
-            if (sipResponse.getCSeq().getMethod().equals(Request.INVITE) &&
-                    transaction != null && transaction instanceof ClientTransaction && this.getState() != DialogState.TERMINATED) {
-                // this.acquireTimerTaskSem();
-                // try {
-                    if (this.getState() == DialogState.EARLY) {
-                        if (this.earlyStateTimerTask != null) {
-                            sipStack.getTimer()
-                                    .cancel(this.earlyStateTimerTask);
-                        }
-                        
-                        this.earlyStateTimerTask = new EarlyStateTimerTask();
-                        logger.logDebug(
-                                "EarlyStateTimerTask " + earlyStateTimerTask + " created "
-                                        + this.earlyDialogTimeout * 1000);
-                        if (sipStack.getTimer() != null && sipStack.getTimer().isStarted() ) {
-                        	sipStack.getTimer().schedule(this.earlyStateTimerTask,
-                                this.earlyDialogTimeout * 1000);
-                        }
-                    } else {
-                        if (this.earlyStateTimerTask != null) {
-                            logger.logDebug(
-                                "EarlyStateTimerTask " + earlyStateTimerTask + " cancelled");
-                            sipStack.getTimer()
-                                    .cancel(this.earlyStateTimerTask);
-                            this.earlyStateTimerTask = null;
-                        }
-
+            if (sipResponse.getCSeq().getMethod().equals(Request.INVITE) && transaction != null && transaction instanceof ClientTransaction && this.getState() != DialogState.TERMINATED) {
+                if (this.getState() == DialogState.EARLY) {
+                    if (this.earlyStateTimerTask != null) {
+                        sipStack.getTimer().cancel(this.earlyStateTimerTask);
                     }
-                // } finally {
-                //     this.releaseTimerTaskSem();
-                // }
+                    this.earlyStateTimerTask = new EarlyStateTimerTask();
+                    logger.logDebug("EarlyStateTimerTask " + earlyStateTimerTask + " created " + this.earlyDialogTimeout * 1000);
+                    if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
+                        sipStack.getTimer().schedule(this.earlyStateTimerTask, this.earlyDialogTimeout * 1000);
+                    }
+                } else {
+                    if (this.earlyStateTimerTask != null) {
+                        logger.logDebug("EarlyStateTimerTask " + earlyStateTimerTask + " cancelled");
+                        sipStack.getTimer().cancel(this.earlyStateTimerTask);
+                        this.earlyStateTimerTask = null;
+                    }
+                }
             }
         }
 

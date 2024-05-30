@@ -52,7 +52,7 @@ public class ViaParser extends HeaderParser {
      * a parser for the essential part of the via header.
      */
     @SuppressWarnings("deprecation")
-	private void parseVia(Via v) throws ParseException {
+    private void parseVia(Via v) throws ParseException {
         // The protocol
         lexer.match(TokenTypes.ID);
         Token protocolName = lexer.getNextToken();
@@ -84,7 +84,7 @@ public class ViaParser extends HeaderParser {
 
         // sent-By
         HostNameParser hnp = new HostNameParser(this.getLexer());
-        HostPort hostPort = hnp.hostPort( true );
+        HostPort hostPort = hnp.hostPort(true);
         v.setSentBy(hostPort);
 
         // Ignore blanks
@@ -132,10 +132,8 @@ public class ViaParser extends HeaderParser {
                     comment.append(ch);
                     lexer.consume(1);
                 }
-            }
-            v.setComment(comment.toString());
-        }
-
+            } 
+         }
     }
 
     /**
@@ -257,3 +255,4 @@ public class ViaParser extends HeaderParser {
      */
 
 }
+
