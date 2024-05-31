@@ -922,16 +922,11 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
     /**
      * Generate (compute) a transaction ID for this SIP message.
      *
-     * @return A string containing the concatenation of various portions of the
-     * From,To,Via and RequestURI portions of this message as specified in RFC
-     * 2543: All responses to a request contain the same values in the Call-ID,
+     * @return A string containing the branch ID from the topmost Via header.
+     * Responses to a request contain the same values in the Call-ID,
      * CSeq, To, and From fields (with the possible addition of a tag in the To
      * field (section 10.43)). This allows responses to be matched with
-     * requests. Incorporates a bug fix for a bug sent in by Gordon Ledgard of
-     * IPera for generating transactionIDs when no port is present in the via
-     * header. Incorporates a bug fix for a bug report sent in by Chris Mills of
-     * Nortel Networks (converts to lower case when returning the transaction
-     * identifier).
+     * requests.
      *
      * @return a string that can be used as a transaction identifier for this
      * message. This can be used for matching responses and requests (i.e. an
@@ -940,55 +935,22 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
      */
     public String getTransactionId() {
         Via topVia = getTopmostVia();
-//        if (!this.getViaHeaders().isEmpty()) {
-//            topVia = (Via) this.getViaHeaders().getFirst();
-//        }
-        // Have specified a branch Identifier so we can use it to identify
-        // the transaction. BranchId is not case sensitive.
-        // Branch Id prefix is not case sensitive.
-        if (topVia != null
-                && topVia.getBranch() != null
-                && topVia.getBranch().toUpperCase().startsWith(
-                        SIPConstants.BRANCH_MAGIC_COOKIE_UPPER_CASE)) {
+
+        // Ensure topVia and branch are not null and start with the magic cookie.
+        if (topVia != null &&
+                topVia.getBranch() != null &&
+                topVia.getBranch().toUpperCase().startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_UPPER_CASE)) {
+            
             // Bis 09 compatible branch assignment algorithm.
-            // implies that the branch id can be used as a transaction
-            // identifier.
+            // Implies that the branch id can be used as a transaction identifier.
             if (this.getCSeq().getMethod().equals(Request.CANCEL)) {
                 return (topVia.getBranch() + ":" + this.getCSeq().getMethod()).toLowerCase();
             } else {
                 return topVia.getBranch().toLowerCase();
             }
         } else {
-            // Old style client so construct the transaction identifier
-            // from various fields of the request.
-            StringBuilder retval = new StringBuilder();
-            From from = (From) this.getFrom();
-            // String hpFrom = from.getUserAtHostPort();
-            // retval.append(hpFrom).append(":");
-            if (from != null && from.hasTag()) {
-                retval.append(from.getTag()).append("-");
-            }
-            // String hpTo = to.getUserAtHostPort();
-            // retval.append(hpTo).append(":");
-            if (this.callIdHeader != null) {
-                String cid = this.callIdHeader.getCallId();
-                retval.append(cid).append("-");
-            }
-            if (cSeqHeader != null) {
-                retval.append(this.cSeqHeader.getSequenceNumber()).append("-").append(
-                        this.cSeqHeader.getMethod());
-            }
-            if (topVia != null) {
-                retval.append("-").append(topVia.getSentBy().encode());
-                if (!topVia.getSentBy().hasPort()) {
-                    retval.append("-").append(5060);
-                }
-            }
-            if (getCSeq() != null && this.getCSeq().getMethod().equals(Request.CANCEL)) {
-                retval.append(Request.CANCEL);
-            }
-            return retval.toString().toLowerCase().replace(":", "-").replace("@", "-")
-                    + Utils.getSignature();
+            // Since RFC 2543 support is removed, throw an exception if the branch ID is missing or invalid.
+            throw new RuntimeException("Invalid message! Cannot compute transaction ID without a valid branch ID.");
         }
     }
 
@@ -1005,6 +967,7 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
             return this.callIdHeader.getCallId().hashCode();
         }
     }
+
 
     /**
      * Return true if this message has a body.

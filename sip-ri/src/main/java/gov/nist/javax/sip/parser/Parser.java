@@ -109,15 +109,14 @@ public abstract class Parser extends ParserCore implements TokenTypes {
      *
      * @author JvB
      */
-    public static final void checkToken( String token ) throws ParseException {
-
-        if (token == null || token.length()==0 ) {
-            throw new ParseException("null or empty token", -1 );
+    public static final void checkToken(String token) throws ParseException {
+        if (token == null || token.length() == 0) {
+            throw new ParseException("null or empty token", -1);
         } else {
             // JvB: check that it is a valid token
-            for ( int i=0; i<token.length(); ++i ) {
-                if ( !LexerCore.isTokenChar( token.charAt(i) )) {
-                    throw new ParseException( "Invalid character(s) in string (not allowed in 'token')", i );
+            for (int i = 0; i < token.length(); ++i) {
+                if (!LexerCore.isTokenChar(token.charAt(i))) {
+                    throw new ParseException("Invalid character(s) in string (not allowed in 'token')", i);
                 }
             }
         }
@@ -169,12 +168,12 @@ public abstract class Parser extends ParserCore implements TokenTypes {
  * CVS:   then name the system in this line, otherwise delete it.
  * CVS: Submitted by:
  * CVS:   If this code has been contributed to the project by someone else; i.e.,
- * CVS:   they sent us a patch or a set of diffs, then include their name/email
- * CVS:   address here. If this is your work then delete this line.
+ *   they sent us a patch or a set of diffs, then include their name/email
+ *   address here. If this is your work then delete this line.
  * CVS: Reviewed by:
- * CVS:   If we are doing pre-commit code reviews and someone else has
- * CVS:   reviewed your changes, include their name(s) here.
- * CVS:   If you have not had it reviewed then delete this line.
+ *   If we are doing pre-commit code reviews and someone else has
+ *   reviewed your changes, include their name(s) here.
+ *   If you have not had it reviewed then delete this line.
  *
  * Revision 1.5  2006/06/19 06:47:27  mranga
  * javadoc fixups
@@ -210,11 +209,12 @@ public abstract class Parser extends ParserCore implements TokenTypes {
  * CVS:   then name the system in this line, otherwise delete it.
  * CVS: Submitted by:
  * CVS:   If this code has been contributed to the project by someone else; i.e.,
- * CVS:   they sent us a patch or a set of diffs, then include their name/email
- * CVS:   address here. If this is your work then delete this line.
+ *   they sent us a patch or a set of diffs, then include their name/email
+ *   address here. If this is your work then delete this line.
  * CVS: Reviewed by:
- * CVS:   If we are doing pre-commit code reviews and someone else has
- * CVS:   reviewed your changes, include their name(s) here.
- * CVS:   If you have not had it reviewed then delete this line.
+ *   If we are doing pre-commit code reviews and someone else has
+ *   reviewed your changes, include their name(s) here.
+ *   If you have not had it reviewed then delete this line.
  *
  */
+
