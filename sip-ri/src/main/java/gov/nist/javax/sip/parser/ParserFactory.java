@@ -26,12 +26,14 @@
 package gov.nist.javax.sip.parser;
 import gov.nist.core.InternalErrorHandler;
 import gov.nist.javax.sip.header.SIPHeaderNamesCache;
+import gov.nist.javax.sip.header.extensions.AcceptResourcePriority;
 import gov.nist.javax.sip.header.extensions.Diversion;
 import gov.nist.javax.sip.header.extensions.Join;
 import gov.nist.javax.sip.header.extensions.MinSE;
 import gov.nist.javax.sip.header.extensions.References;
 import gov.nist.javax.sip.header.extensions.ReferredBy;
 import gov.nist.javax.sip.header.extensions.Replaces;
+import gov.nist.javax.sip.header.extensions.ResourcePriority;
 import gov.nist.javax.sip.header.extensions.SessionExpires;
 import gov.nist.javax.sip.header.extensions.TargetDialog;
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
@@ -54,12 +56,14 @@ import gov.nist.javax.sip.header.ims.SecurityClientHeader;
 import gov.nist.javax.sip.header.ims.SecurityServerHeader;
 import gov.nist.javax.sip.header.ims.SecurityVerifyHeader;
 import gov.nist.javax.sip.header.ims.ServiceRouteHeader;
+import gov.nist.javax.sip.parser.extensions.AcceptResourcePriorityParser;
 import gov.nist.javax.sip.parser.extensions.DiversionParser;
 import gov.nist.javax.sip.parser.extensions.JoinParser;
 import gov.nist.javax.sip.parser.extensions.MinSEParser;
 import gov.nist.javax.sip.parser.extensions.ReferencesParser;
 import gov.nist.javax.sip.parser.extensions.ReferredByParser;
 import gov.nist.javax.sip.parser.extensions.ReplacesParser;
+import gov.nist.javax.sip.parser.extensions.ResourcePriorityParser;
 import gov.nist.javax.sip.parser.extensions.SessionExpiresParser;
 import gov.nist.javax.sip.parser.extensions.TargetDialogParser;
 import gov.nist.javax.sip.parser.ims.PAccessNetworkInfoParser;
@@ -396,7 +400,10 @@ public class ParserFactory {
         parserTable.put(TargetDialog.NAME.toLowerCase(), TargetDialogParser.class);
         //per RFC5806 (Mukha Valeriia)
         parserTable.put(Diversion.NAME.toLowerCase(), DiversionParser.class);
-        
+        //per RFC5806 (Mukha Valeriia)
+        parserTable.put(AcceptResourcePriority.NAME.toLowerCase(), AcceptResourcePriorityParser.class);
+        parserTable.put(ResourcePriority.NAME.toLowerCase(), ResourcePriorityParser.class);
+
         
     }
 

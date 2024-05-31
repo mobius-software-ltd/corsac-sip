@@ -25,7 +25,9 @@
 */
 package gov.nist.javax.sip.header;
 import gov.nist.core.PackageNames;
+import gov.nist.javax.sip.header.extensions.AcceptResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.DiversionHeader;
+import gov.nist.javax.sip.header.extensions.ResourcePriorityHeader;
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfo;
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
 import gov.nist.javax.sip.header.ims.PAssertedIdentity;
@@ -201,6 +203,8 @@ public class NameMap implements SIPHeaderNames, PackageNames {
         //Mukha Valeriia
         putNameMap(TARGET_DIALOG, "TargetDialog");
         putNameMap(DiversionHeader.NAME, "Diversion");
+        putNameMap(AcceptResourcePriorityHeader.NAME, "AcceptResourcePriority");
+        putNameMap(ResourcePriorityHeader.NAME, "ResourcePriority");
         
         // IMS Specific headers.
 
