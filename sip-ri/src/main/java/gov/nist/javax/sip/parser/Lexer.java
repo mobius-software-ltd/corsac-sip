@@ -26,12 +26,14 @@
 package gov.nist.javax.sip.parser;
 
 import gov.nist.core.LexerCore;
+import gov.nist.javax.sip.header.extensions.AcceptResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.DiversionHeader;
 import gov.nist.javax.sip.header.extensions.JoinHeader;
 import gov.nist.javax.sip.header.extensions.MinSEHeader;
 import gov.nist.javax.sip.header.extensions.ReferencesHeader;
 import gov.nist.javax.sip.header.extensions.ReferredByHeader;
 import gov.nist.javax.sip.header.extensions.ReplacesHeader;
+import gov.nist.javax.sip.header.extensions.ResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.SessionExpiresHeader;
 import gov.nist.javax.sip.header.extensions.TargetDialogHeader;
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
@@ -388,6 +390,9 @@ public class Lexer extends LexerCore {
                 addKeyword(TargetDialogHeader.NAME,TokenTypes.TARGET_DIALOG);
                 //added for rfc5806
                 addKeyword(DiversionHeader.NAME,TokenTypes.DIVERSION);
+              //added for rfc4412
+                addKeyword(AcceptResourcePriorityHeader.NAME,TokenTypes.ACCEPT_RESOURCE_PRIORITY);
+                addKeyword(ResourcePriorityHeader.NAME,TokenTypes.RESOURCE_PRIORITY);
                 // end //
 
 

@@ -90,6 +90,8 @@ import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.header.WarningHeader;
 
 import gov.nist.javax.sip.address.GenericURI;
+import gov.nist.javax.sip.header.extensions.AcceptResourcePriority;
+import gov.nist.javax.sip.header.extensions.AcceptResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.Diversion;
 import gov.nist.javax.sip.header.extensions.DiversionHeader;
 // extension headers - pmusgrave
@@ -102,6 +104,8 @@ import gov.nist.javax.sip.header.extensions.ReferredBy;
 import gov.nist.javax.sip.header.extensions.ReferredByHeader;
 import gov.nist.javax.sip.header.extensions.Replaces;
 import gov.nist.javax.sip.header.extensions.ReplacesHeader;
+import gov.nist.javax.sip.header.extensions.ResourcePriority;
+import gov.nist.javax.sip.header.extensions.ResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.SessionExpires;
 import gov.nist.javax.sip.header.extensions.SessionExpiresHeader;
 import gov.nist.javax.sip.header.extensions.TargetDialog;
@@ -1830,6 +1834,25 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
 	        return d;
 	}
    
+
+    @Override
+    public ResourcePriorityHeader createResourcePriorityHeader(String namespace, String priority) throws ParseException {
+        if (namespace == null || priority == null) {
+            throw new ParseException("Namespace and Priority cannot be null", 0);
+        }
+        ResourcePriority resourcePriority = new ResourcePriority(namespace, priority);
+        return resourcePriority;
+    }
+
+    @Override
+    public AcceptResourcePriorityHeader createAcceptResourcePriorityHeader(String namespace, String priority) throws ParseException {
+        if (namespace == null || priority == null) {
+            throw new ParseException("Namespace and Priority cannot be null", 0);
+        }
+        AcceptResourcePriority acceptResourcePriority = new AcceptResourcePriority(namespace, priority);
+        return acceptResourcePriority;
+    }
+    
     //////////////////////////////////////////////////////////
     // Constructor
     //////////////////////////////////////////////////////////
