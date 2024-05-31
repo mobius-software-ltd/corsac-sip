@@ -3164,14 +3164,13 @@ public class SIPDialog implements DialogExt {
         final int statusCode = sipResponse.getStatusCode();
         if (statusCode == 100) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                logger
-                        .logDebug(
-                                "Invalid status code - 100 in setLastResponse - ignoring");
+                logger.logDebug(
+                        "Invalid status code - 100 in setLastResponse - ignoring");
             return;
         }
 
-        if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-        	logger.logStackTrace();
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logStackTrace();
         }
         // this.lastResponse = sipResponse;
         try {
@@ -3188,18 +3187,17 @@ public class SIPDialog implements DialogExt {
             
             this.lastResponseCSeqNumber = responseCSeqNumber;
             if(Request.INVITE.equals(cseqMethod)) {
-            	this.lastInviteResponseCSeqNumber = responseCSeqNumber;
-            	this.lastInviteResponseCode = statusCode;
+                this.lastInviteResponseCSeqNumber = responseCSeqNumber;
+                this.lastInviteResponseCode = statusCode;
             }
-            if (sipResponse.getToTag() != null ) {
+            if (sipResponse.getToTag() != null) {
                 this.lastResponseToTag = sipResponse.getToTag();
             }
-            if ( sipResponse.getFromTag() != null ) {
+            if (sipResponse.getFromTag() != null) {
                 this.lastResponseFromTag = sipResponse.getFromTag();
             }
             if (transaction != null) {
-                this.lastResponseDialogId = sipResponse.getDialogId(transaction
-                        .isServerTransaction());
+                this.lastResponseDialogId = sipResponse.getDialogId(transaction.isServerTransaction());
             }
             this.setAssigned();
             // Adjust state of the Dialog state machine.
@@ -3213,9 +3211,8 @@ public class SIPDialog implements DialogExt {
             }
             if (this.getState() == DialogState.TERMINATED) {
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    logger
-                            .logDebug(
-                                    "sipDialog: setLastResponse -- dialog is terminated - ignoring ");
+                    logger.logDebug(
+                            "sipDialog: setLastResponse -- dialog is terminated - ignoring ");
                 }
                 // Capture the OK response for later use in createAck
                 // This is handy for late arriving OK's that we want to ACK.
@@ -3223,22 +3220,17 @@ public class SIPDialog implements DialogExt {
                         && statusCode == 200) {
 
                     this.lastInviteOkReceived = Math.max(
-                    		responseCSeqNumber, this.lastInviteOkReceived);
+                            responseCSeqNumber, this.lastInviteOkReceived);
                 }
                 return;
             }
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger.logStackTrace();
-                logger.logDebug(
-                        "cseqMethod = " + cseqMethod);
-                logger.logDebug(
-                        "dialogState = " + this.getState());
-                logger.logDebug(
-                        "method = " + this.getMethod());
-                logger
-                        .logDebug("statusCode = " + statusCode);
-                logger.logDebug(
-                        "transaction = " + transaction);
+                logger.logDebug("cseqMethod = " + cseqMethod);
+                logger.logDebug("dialogState = " + this.getState());
+                logger.logDebug("method = " + this.getMethod());
+                logger.logDebug("statusCode = " + statusCode);
+                logger.logDebug("transaction = " + transaction);
             }
 
             // JvB: don't use "!this.isServer" here
@@ -3252,11 +3244,8 @@ public class SIPDialog implements DialogExt {
                          * Guard aginst slipping back into early state from
                          * confirmed state.
                          */
-                        // Was (sipResponse.getToTag() != null ||
-                        // sipStack.rfc2543Supported)
                         setState(SIPDialog.EARLY_STATE);
-                        if ((sipResponse.getToTag() != null || sipStack.rfc2543Supported)
-                                && this.getRemoteTag() == null) {
+                        if (sipResponse.getToTag() != null && this.getRemoteTag() == null) {
                             setRemoteTag(sipResponse.getToTag());
                             this.setDialogId(sipResponse.getDialogId(false));
                             sipStack.putDialog(this);
@@ -3272,7 +3261,7 @@ public class SIPDialog implements DialogExt {
                          */
                         if (cseqMethod.equals(getMethod())
                                 && transaction != null
-                                && (sipResponse.getToTag() != null || sipStack.rfc2543Supported)) {
+                                && sipResponse.getToTag() != null) {
                             setRemoteTag(sipResponse.getToTag());
                             this.setDialogId(sipResponse.getDialogId(false));
                             sipStack.putDialog(this);
@@ -3286,13 +3275,12 @@ public class SIPDialog implements DialogExt {
                         // Only do this if method equals initial request!
                         if (logger.isLoggingEnabled(
                                 LogWriter.TRACE_DEBUG)) {
-                            logger
-                                    .logDebug(
-                                            "pendingRouteUpdateOn202Response : "
-                                                    + this.pendingRouteUpdateOn202Response);
+                            logger.logDebug(
+                                    "pendingRouteUpdateOn202Response : "
+                                            + this.pendingRouteUpdateOn202Response);
                         }
                         if (cseqMethod.equals(getMethod())
-                                && (sipResponse.getToTag() != null || sipStack.rfc2543Supported)
+                                && sipResponse.getToTag() != null
                                 && (this.getState() != DialogState.CONFIRMED || (this
                                         .getState() == DialogState.CONFIRMED
                                         && cseqMethod
@@ -3301,9 +3289,7 @@ public class SIPDialog implements DialogExt {
                                 is200ClassResponse))) {
                             if (this.getState() != DialogState.CONFIRMED) {
                                 setRemoteTag(sipResponse.getToTag());
-                                this
-                                        .setDialogId(sipResponse
-                                                .getDialogId(false));
+                                this.setDialogId(sipResponse.getDialogId(false));
                                 sipStack.putDialog(this);
                                 this.addRoute(sipResponse);
                                 this.setState(CONFIRMED_STATE);
@@ -3334,9 +3320,9 @@ public class SIPDialog implements DialogExt {
                             this.lastInviteOkReceived = Math.max(responseCSeqNumber,
                                     this.lastInviteOkReceived);
                             if(getState() != null && getState().getValue() == SIPDialog.CONFIRMED_STATE && transaction != null) {
-                            	// http://java.net/jira/browse/JSIP-444 Honor Target Refresh on Response
-                            	// Contribution from francoisjoseph levee (Orange Labs)
-                            	doTargetRefresh(sipResponse);
+                                // http://java.net/jira/browse/JSIP-444 Honor Target Refresh on Response
+                                // Contribution from francoisjoseph levee (Orange Labs)
+                                doTargetRefresh(sipResponse);
                             }
                         }
 
@@ -3451,14 +3437,10 @@ public class SIPDialog implements DialogExt {
                             // see
                             // https://jain-sip.dev.java.net/servlets/ReadMsg?list=users&msgNo=797
                             if (statusCode == 489
-                                    && (cseqMethod
-                                            .equals(Request.NOTIFY) || cseqMethod
-                                            .equals(Request.SUBSCRIBE))) {
-                                if (logger
-                                        .isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                                    logger
-                                            .logDebug(
-                                                    "RFC 3265 : Not setting dialog to TERMINATED for 489");
+                                    && (cseqMethod.equals(Request.NOTIFY) || cseqMethod.equals(Request.SUBSCRIBE))) {
+                                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                                    logger.logDebug(
+                                            "RFC 3265 : Not setting dialog to TERMINATED for 489");
                             } else {
                                 // baranowb: simplest fix to
                                 // https://jain-sip.dev.java.net/issues/show_bug.cgi?id=175
@@ -3514,6 +3496,7 @@ public class SIPDialog implements DialogExt {
 
     }
 
+    
     /**
      * Start the retransmit timer.
      * 

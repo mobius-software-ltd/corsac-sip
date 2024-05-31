@@ -470,17 +470,6 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
     this.lastResponse = transactionResponse;
 
-    /*
-     * JvB: this is now duplicate with code in the other processResponse
-     * 
-     * if (dialog != null && transactionResponse.getStatusCode() != 100 &&
-     * (transactionResponse.getTo().getTag() != null || sipStack
-     * .isRfc2543Supported())) { //
-     * add the route before you process the response. dialog.setLastResponse(this,
-     * transactionResponse); this.setDialog(dialog,
-     * transactionResponse.getDialogId(false)); }
-     */
-
     try {
       if (isInviteTransaction())
         inviteClientTransaction(transactionResponse, sourceChannel, dialog);
@@ -1480,9 +1469,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
     // JvB: Check all conditions required for creating a new Dialog
     if (dialog == null) {
-      if ((code > 100 && code < 300)
+      if (code > 100 && code < 300
           /* skip 100 (may have a to tag */
-          && (sipResponse.getToTag() != null || sipStack.isRfc2543Supported())
+          && sipResponse.getToTag() != null
           && SIPTransactionStack.isDialogCreatingMethod(method)) {
 
         /*

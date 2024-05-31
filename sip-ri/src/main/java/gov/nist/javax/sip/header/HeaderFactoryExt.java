@@ -2,11 +2,13 @@ package gov.nist.javax.sip.header;
 
 import java.text.ParseException;
 
+import gov.nist.javax.sip.header.extensions.AcceptResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.DiversionHeader;
 import gov.nist.javax.sip.header.extensions.JoinHeader;
 import gov.nist.javax.sip.header.extensions.ReferencesHeader;
 import gov.nist.javax.sip.header.extensions.ReferredByHeader;
 import gov.nist.javax.sip.header.extensions.ReplacesHeader;
+import gov.nist.javax.sip.header.extensions.ResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.SessionExpiresHeader;
 import gov.nist.javax.sip.header.extensions.TargetDialogHeader;
 import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
@@ -306,6 +308,29 @@ public interface HeaderFactoryExt extends HeaderFactory {
      * @return the newly created Diversion header.
      */
     public DiversionHeader createDiversionHeader(Address address) throws ParseException;
+    
+    /**
+     * Create a ResourcePriority header.
+     * 
+     * @param namespace -- the namespace of the priority.
+     * @param priority -- the priority value.
+     * 
+     * @return the newly created ResourcePriority header.
+     * @throws ParseException if there is an error parsing the header
+     */
+    public ResourcePriorityHeader createResourcePriorityHeader(String namespace, String priority) throws ParseException;
+
+    /**
+     * Create an AcceptResourcePriority header.
+     * 
+     * @param namespace -- the namespace of the accepted priority.
+     * @param priority -- the accepted priority value.
+     * 
+     * @return the newly created AcceptResourcePriority header.
+     * @throws ParseException if there is an error parsing the header
+     */
+    public AcceptResourcePriorityHeader createAcceptResourcePriorityHeader(String namespace, String priority) throws ParseException;
+
     /**
      * Create a header from a string. The string is assumed to be in the 
      * name:value format. The trailing CRLF (if any ) will be stripped
