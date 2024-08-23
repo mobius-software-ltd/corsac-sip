@@ -1,10 +1,14 @@
 package gov.nist.javax.sip.parser.extensions;
 
-import gov.nist.javax.sip.header.*;
+import java.text.ParseException;
+
+import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.extensions.AcceptResourcePriority;
 import gov.nist.javax.sip.header.extensions.AcceptResourcePriorityHeader;
-import gov.nist.javax.sip.parser.*;
-import java.text.ParseException;
+import gov.nist.javax.sip.header.extensions.Resource;
+import gov.nist.javax.sip.parser.Lexer;
+import gov.nist.javax.sip.parser.ParametersParser;
+import gov.nist.javax.sip.parser.TokenTypes;
 
 /**
  * Parser for Accept-Resource-Priority header.
@@ -40,8 +44,7 @@ public class AcceptResourcePriorityParser extends ParametersParser {
     // testing case
     public static void main(String args[]) throws ParseException {
         String[] acceptResourcePriorityStrings = {
-                "Accept-Resource-Priority: ets.0",
-                "Accept-Resource-Priority: wps.2"
+                "Accept-Resource-Priority: ets.0 , wps.2"                
         };
 
         for (int i = 0; i < acceptResourcePriorityStrings.length; i++) {
@@ -50,8 +53,8 @@ public class AcceptResourcePriorityParser extends ParametersParser {
             System.out.println("Parsing => " + acceptResourcePriorityStrings[i]);
             
             System.out.print("encoded = " + arpHeader.encode() + "==> ");
-            System.out.println("namespace: " + arpHeader.getNamespace() + " priority="
-                    + arpHeader.getPriority());
+            for(Resource resource : arpHeader.getResources())
+            	System.out.println("namespace: " + resource.getNamespace() + " priority=" + resource.getResource());
         }
     }
 }

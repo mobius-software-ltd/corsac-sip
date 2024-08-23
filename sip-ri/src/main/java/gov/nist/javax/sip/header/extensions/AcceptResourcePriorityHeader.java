@@ -1,46 +1,28 @@
 package gov.nist.javax.sip.header.extensions;
 
 import java.text.ParseException;
+import java.util.List;
+
 import javax.sip.header.Header;
-import javax.sip.header.Parameters;
 
-public interface AcceptResourcePriorityHeader extends Parameters, Header {
+public interface AcceptResourcePriorityHeader extends Header {
     
     /**
-     * Sets the Namespace of the AcceptResourcePriorityHeader. The Namespace parameter 
-     * specifies the namespace of the accepted priority value.
+     * Sets the Resources of the AcceptResourcePriorityHeader. The resources parameter 
+     * specifies the resources of the accepted priority value.
      *
-     * @param namespace - the string value of the Namespace of this AcceptResourcePriorityHeader
+     * @param namespace - the list of the Resource of this AcceptResourcePriorityHeader
      * @throws ParseException which signals that an error has been reached
-     * unexpectedly while parsing the namespace value.
+     * unexpectedly while parsing the resource value.
      */
-    public void setNamespace(String namespace) throws ParseException;
+    public void setResources(List<Resource> resources) throws ParseException;
 
     /**
-     * Returns the Namespace of AcceptResourcePriorityHeader. The Namespace parameter 
-     * specifies the namespace of the accepted priority value.
+     * Returns the Resources of AcceptResourcePriorityHeader.
      *
-     * @return the String value of the Namespace of this AcceptResourcePriorityHeader
+     * @return the list of the Resources of this AcceptResourcePriorityHeader
      */
-    public String getNamespace();
-    
-    /**
-     * Sets the Priority of the AcceptResourcePriorityHeader. The Priority parameter 
-     * specifies the accepted priority value within the given namespace.
-     *
-     * @param priority - the string value of the Priority of this AcceptResourcePriorityHeader
-     * @throws ParseException which signals that an error has been reached
-     * unexpectedly while parsing the priority value.
-     */
-    public void setPriority(String priority) throws ParseException;
-
-    /**
-     * Returns the Priority of AcceptResourcePriorityHeader. The Priority parameter 
-     * specifies the accepted priority value within the given namespace.
-     *
-     * @return the String value of the Priority of this AcceptResourcePriorityHeader
-     */
-    public String getPriority();
+    public List<Resource> getResources();
     
     /**
      * Encode the header into a string.

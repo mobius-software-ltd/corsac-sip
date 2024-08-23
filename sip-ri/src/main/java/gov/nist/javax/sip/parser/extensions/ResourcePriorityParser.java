@@ -1,10 +1,14 @@
 package gov.nist.javax.sip.parser.extensions;
 
-import gov.nist.javax.sip.header.*;
+import java.text.ParseException;
+
+import gov.nist.javax.sip.header.SIPHeader;
+import gov.nist.javax.sip.header.extensions.Resource;
 import gov.nist.javax.sip.header.extensions.ResourcePriority;
 import gov.nist.javax.sip.header.extensions.ResourcePriorityHeader;
-import gov.nist.javax.sip.parser.*;
-import java.text.ParseException;
+import gov.nist.javax.sip.parser.Lexer;
+import gov.nist.javax.sip.parser.ParametersParser;
+import gov.nist.javax.sip.parser.TokenTypes;
 
 /**
  * Parser for Resource-Priority header.
@@ -40,8 +44,7 @@ public class ResourcePriorityParser extends ParametersParser {
     // testing case
     public static void main(String args[]) throws ParseException {
         String[] resourcePriorityStrings = {
-                "Resource-Priority: ets.0",
-                "Resource-Priority: wps.2"
+                "Resource-Priority: ets.0, wps.2"
         };
 
         for (int i = 0; i < resourcePriorityStrings.length; i++) {
@@ -50,8 +53,8 @@ public class ResourcePriorityParser extends ParametersParser {
             System.out.println("Parsing => " + resourcePriorityStrings[i]);
             
             System.out.print("encoded = " + rpHeader.encode() + "==> ");
-            System.out.println("namespace: " + rpHeader.getNamespace() + " priority="
-                    + rpHeader.getPriority());
+            for(Resource resource : rpHeader.getResources())
+            	System.out.println("namespace: " + resource.getNamespace() + " priority=" + resource.getResource());
         }
     }
 }

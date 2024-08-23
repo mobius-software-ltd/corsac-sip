@@ -1,18 +1,21 @@
 package gov.nist.javax.sip.header.extensions;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.sip.header.ExtensionHeader;
-import gov.nist.javax.sip.header.*;
+
+import gov.nist.javax.sip.header.SIPHeader;
 
 /**
  * SIP Accept-Resource-Priority header implementation.
  */
-public class AcceptResourcePriority extends ParametersHeader implements ExtensionHeader, AcceptResourcePriorityHeader {
+public class AcceptResourcePriority extends SIPHeader implements ExtensionHeader, AcceptResourcePriorityHeader {
 
     private static final long serialVersionUID = 1L;
 
-    private String namespace;
-    private String priority;
+    private List<Resource> resources;
 
     public static final String NAME = "Accept-Resource-Priority"; // Ensure the correct header name
 
@@ -24,15 +27,13 @@ public class AcceptResourcePriority extends ParametersHeader implements Extensio
     }
 
     /**
-     * Constructor with namespace and priority.
+     * Constructor.
      *
-     * @param namespace the namespace to set
-     * @param priority the priority to set
+     * @param resources the resources to set
      */
-    public AcceptResourcePriority(String namespace, String priority) throws IllegalArgumentException {
+    public AcceptResourcePriority(List<Resource> resources) throws IllegalArgumentException {
         super(NAME); // Ensure the superclass is properly initialized
-        this.namespace = namespace;
-        this.priority = priority;
+        this.resources = resources;
     }
 
     /**
@@ -40,52 +41,37 @@ public class AcceptResourcePriority extends ParametersHeader implements Extensio
      * @return String encoded body part of the header.
      */
     public StringBuilder encodeBody(StringBuilder retval) {
-        if (namespace == null || priority == null)
+        if (resources == null || resources.size()==0)
             return retval;
         else {
-            retval.append(namespace).append('.').append(priority);
-            if (!parameters.isEmpty()) {
-                retval.append(SEMICOLON);
-                parameters.encode(retval);
-            }
+        	Boolean isFirst=true;
+        	for(Resource currResource:resources) {
+        		if(!isFirst)
+        			retval.append(COMMA);
+        			
+        		retval.append(currResource.encode()); 
+        		isFirst = false;
+        	}
             return retval;
         }
     }
 
     /**
-     * Get the namespace.
+     * Get the resources.
      *
-     * @return the namespace
+     * @return the resources
      */
-    public String getNamespace() {
-        return namespace;
+    public List<Resource> getResources() {
+        return resources;
     }
 
     /**
-     * Set the namespace.
+     * Set the resources.
      *
-     * @param namespace the namespace to set
+     * @param resources to set
      */
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
-
-    /**
-     * Get the priority.
-     *
-     * @return the priority
-     */
-    public String getPriority() {
-        return priority;
-    }
-
-    /**
-     * Set the priority.
-     *
-     * @param priority the priority to set
-     */
-    public void setPriority(String priority) {
-        this.priority = priority;
+    public void setResources(List<Resource> resources) {
+        this.resources = resources;
     }
 
     @Override
@@ -102,25 +88,18 @@ public class AcceptResourcePriority extends ParametersHeader implements Extensio
     public void decodeBody(String body) throws ParseException {
         try {
             // Split the body by semicolon to extract parameters
-            String[] parts = body.split(";");
-            String[] acceptResourcePriority = parts[0].split("\\.");
+            String[] parts = body.split(",");
+            for(String currPart:parts) {
+            	String[] acceptResourcePriority = currPart.split("\\.");
 
-            if (acceptResourcePriority.length != 2) {
-                throw new ParseException("Invalid Accept-Resource-Priority header format", 0);
-            }
+            	if (acceptResourcePriority.length != 2) {
+            		throw new ParseException("Invalid Accept-Resource-Priority header format", 0);
+            	}
 
-            this.namespace = acceptResourcePriority[0].trim();
-            this.priority = acceptResourcePriority[1].trim();
-
-            // Parse additional parameters if they exist
-            for (int i = 1; i < parts.length; i++) {
-                String param = parts[i].trim();
-                int equalIndex = param.indexOf('=');
-                if (equalIndex != -1) {
-                    String paramName = param.substring(0, equalIndex).trim();
-                    String paramValue = param.substring(equalIndex + 1).trim();
-                    this.setParameter(paramName, paramValue);
-                }
+            	if(resources==null)
+            		resources = new ArrayList<Resource>();
+            	
+            	this.resources.add(new Resource(acceptResourcePriority[0].trim(), acceptResourcePriority[1].trim()));
             }
         } catch (Exception e) {
             throw new ParseException("Error parsing Accept-Resource-Priority header: " + e.getMessage(), 0);

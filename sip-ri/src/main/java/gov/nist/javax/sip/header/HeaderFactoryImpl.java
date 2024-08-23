@@ -104,6 +104,7 @@ import gov.nist.javax.sip.header.extensions.ReferredBy;
 import gov.nist.javax.sip.header.extensions.ReferredByHeader;
 import gov.nist.javax.sip.header.extensions.Replaces;
 import gov.nist.javax.sip.header.extensions.ReplacesHeader;
+import gov.nist.javax.sip.header.extensions.Resource;
 import gov.nist.javax.sip.header.extensions.ResourcePriority;
 import gov.nist.javax.sip.header.extensions.ResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.SessionExpires;
@@ -1830,20 +1831,22 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
    
 
     @Override
-    public ResourcePriorityHeader createResourcePriorityHeader(String namespace, String priority) throws ParseException {
-        if (namespace == null || priority == null) {
-            throw new ParseException("Namespace and Priority cannot be null", 0);
+    public ResourcePriorityHeader createResourcePriorityHeader(List<Resource> resource) throws ParseException {
+        if (resource == null || resource.size()==0) {
+            throw new ParseException("Resource cannot be null or empty", 0);
         }
-        ResourcePriority resourcePriority = new ResourcePriority(namespace, priority);
+        	
+        ResourcePriority resourcePriority = new ResourcePriority(resource);
         return resourcePriority;
     }
 
     @Override
-    public AcceptResourcePriorityHeader createAcceptResourcePriorityHeader(String namespace, String priority) throws ParseException {
-        if (namespace == null || priority == null) {
-            throw new ParseException("Namespace and Priority cannot be null", 0);
+    public AcceptResourcePriorityHeader createAcceptResourcePriorityHeader(List<Resource> resource) throws ParseException {
+    	if (resource == null || resource.size()==0) {
+            throw new ParseException("Resource cannot be null or empty", 0);
         }
-        AcceptResourcePriority acceptResourcePriority = new AcceptResourcePriority(namespace, priority);
+        	
+        AcceptResourcePriority acceptResourcePriority = new AcceptResourcePriority(resource);
         return acceptResourcePriority;
     }
     

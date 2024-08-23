@@ -1,6 +1,12 @@
 package gov.nist.javax.sip.header;
 
 import java.text.ParseException;
+import java.util.List;
+
+import javax.sip.InvalidArgumentException;
+import javax.sip.address.Address;
+import javax.sip.header.Header;
+import javax.sip.header.HeaderFactory;
 
 import gov.nist.javax.sip.header.extensions.AcceptResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.DiversionHeader;
@@ -8,6 +14,7 @@ import gov.nist.javax.sip.header.extensions.JoinHeader;
 import gov.nist.javax.sip.header.extensions.ReferencesHeader;
 import gov.nist.javax.sip.header.extensions.ReferredByHeader;
 import gov.nist.javax.sip.header.extensions.ReplacesHeader;
+import gov.nist.javax.sip.header.extensions.Resource;
 import gov.nist.javax.sip.header.extensions.ResourcePriorityHeader;
 import gov.nist.javax.sip.header.extensions.SessionExpiresHeader;
 import gov.nist.javax.sip.header.extensions.TargetDialogHeader;
@@ -31,11 +38,6 @@ import gov.nist.javax.sip.header.ims.SecurityClientHeader;
 import gov.nist.javax.sip.header.ims.SecurityServerHeader;
 import gov.nist.javax.sip.header.ims.SecurityVerifyHeader;
 import gov.nist.javax.sip.header.ims.ServiceRouteHeader;
-
-import javax.sip.InvalidArgumentException;
-import javax.sip.address.Address;
-import javax.sip.header.Header;
-import javax.sip.header.HeaderFactory;
 
 /**
  * Header factory extensions. These will be included in the next release of
@@ -307,24 +309,22 @@ public interface HeaderFactoryExt extends HeaderFactory {
     /**
      * Create a ResourcePriority header.
      * 
-     * @param namespace -- the namespace of the priority.
-     * @param priority -- the priority value.
+     * @param resource -- the list of resources.
      * 
      * @return the newly created ResourcePriority header.
      * @throws ParseException if there is an error parsing the header
      */
-    public ResourcePriorityHeader createResourcePriorityHeader(String namespace, String priority) throws ParseException;
+    public ResourcePriorityHeader createResourcePriorityHeader(List<Resource> resource) throws ParseException;
 
     /**
      * Create an AcceptResourcePriority header.
      * 
-     * @param namespace -- the namespace of the accepted priority.
-     * @param priority -- the accepted priority value.
+     * @param resource -- the list of resources.
      * 
      * @return the newly created AcceptResourcePriority header.
      * @throws ParseException if there is an error parsing the header
      */
-    public AcceptResourcePriorityHeader createAcceptResourcePriorityHeader(String namespace, String priority) throws ParseException;
+    public AcceptResourcePriorityHeader createAcceptResourcePriorityHeader(List<Resource> resource) throws ParseException;
 
     /**
      * Create a header from a string. The string is assumed to be in the 
