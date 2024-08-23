@@ -60,7 +60,7 @@ public class AllowEventsParser extends HeaderParser {
     /**
      * parse the AllowEvents String header
      * @return SIPHeader (AllowEventsList object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
 

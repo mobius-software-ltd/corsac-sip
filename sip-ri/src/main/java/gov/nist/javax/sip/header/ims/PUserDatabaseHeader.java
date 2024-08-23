@@ -36,9 +36,9 @@ import javax.sip.header.Parameters;
  * major value for this header, as per RFC 4457.
  * This value is the Database name. The DB here refers
  * to the IMS HSS. The DB name is encoded as a URI, delimited
- * by the < and > signs. There may be generic parameters for
+ * by the &lt; and &gt; signs. There may be generic parameters for
  * this header encoded as URI parameters. They also lie between
- * the < and > delimiters. However, this URI is neither a SIP URI
+ * the &lt; and &gt; delimiters. However, this URI is neither a SIP URI
  * nor a TEL URI. It is a DIAMETER AAA URI.The value of this AAA URI
  * is consumed by the S-CSCF. The S-CSCF can cache the value of the
  * HSS received in this header,thus optimizing the IMS registration

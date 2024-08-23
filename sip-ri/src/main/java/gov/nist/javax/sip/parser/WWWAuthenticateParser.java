@@ -58,7 +58,7 @@ public class WWWAuthenticateParser extends ChallengeParser {
     /**
      * parse the String message
      * @return SIPHeader (WWWAuthenticate object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
         if (debug)

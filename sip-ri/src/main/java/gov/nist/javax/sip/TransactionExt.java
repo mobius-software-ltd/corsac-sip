@@ -49,22 +49,21 @@ public interface TransactionExt extends Transaction {
      * Return the Cipher Suite that was used for the SSL handshake. 
      * 
      * @return     Returns the cipher suite in use by the session which was produced by the handshake.
-     * @throw UnsupportedOperationException if this is not a secure client transaction.
+     * @throws UnsupportedOperationException if this is not a secure client transaction.
      */
     public String getCipherSuite() throws UnsupportedOperationException;
     
     /**
      * Get the certificate(s) that were sent to the peer during handshaking.
      *@return the certificate(s) that were sent to the peer during handshaking.
-     *@throw UnsupportedOperationException if this is not a secure client transaction.
+     *@throws UnsupportedOperationException if this is not a secure client transaction.
      * 
      */
    Certificate[] getLocalCertificates() throws UnsupportedOperationException;
     
     /**
      * @return the identity of the peer which was identified as part of defining the session.
-     * @throws SSLPeerUnverifiedException 
-     * @throw UnsupportedOperationException if this is not a secure client transaction.
+     * @throws SSLPeerUnverifiedException if this is not a secure client transaction.
      */
    Certificate[]  getPeerCertificates() throws SSLPeerUnverifiedException;
    
@@ -88,7 +87,7 @@ public interface TransactionExt extends Transaction {
     * If set to true it will release all references that it no longer needs. This will include the reference to the
     * Request, Response, Dialogs, Any unused timers etc. This will significantly reduce memory
     * consumption under high load
-    * @param releaseReferences 
+    * @param releaseReferenceStrategy 
     * 
     * @since 2.0
     */
@@ -125,7 +124,6 @@ public interface TransactionExt extends Transaction {
    
    /**
     * Sets the value of Timer D (in ms)
-    * @param interval value of Timer D (in ms)
     * 
     * @since 2.0
     */

@@ -25,7 +25,7 @@ public interface Version extends Field{
     
     /** Sets the version.
      * @param value the - new version value.
-     * @throws SdpException if the value is <=0
+     * @throws SdpException if the value is less then or equal to 0
      */    
     public void setVersion(int value)
                 throws SdpException;

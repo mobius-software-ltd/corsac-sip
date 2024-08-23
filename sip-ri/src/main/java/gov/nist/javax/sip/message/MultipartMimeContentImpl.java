@@ -114,7 +114,6 @@ public class MultipartMimeContentImpl implements MultipartMimeContent {
   /**
    * unpack a multipart mime packet and set a list of content packets.
    * 
-   * @return -- an iterator of Content blocks.
    * 
    */
   public void createContentList(String body) throws ParseException {

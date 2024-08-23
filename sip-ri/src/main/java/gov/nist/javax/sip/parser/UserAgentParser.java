@@ -67,7 +67,7 @@ public class UserAgentParser extends HeaderParser {
      * user agents tend to be very bad about specifying the user agent according to RFC.
      *
      * @return SIPHeader (UserAgent object)
-     * @throws SIPParseException
+     * @throws ParseException
      *             if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {

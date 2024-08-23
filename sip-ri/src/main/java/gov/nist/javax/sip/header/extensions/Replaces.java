@@ -14,7 +14,7 @@ import javax.sip.header.ExtensionHeader;
  * Replaces SIPHeader.
  * ToDo: add support for early-only flag.
  *
- * @author P, Musgrave <pmusgrave@mkcnetworks.com>  <br/>
+ * @author P, Musgrave mailto:pmusgrave@mkcnetworks.com
  *
  * @version JAIN-SIP-1.2
  *

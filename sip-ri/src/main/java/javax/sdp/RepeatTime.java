@@ -16,9 +16,9 @@ package javax.sdp;
  * Quoting from RFC 2327:
  *
  *     For example, if a session is active at 10am on Monday and 11am on Tuesday for
- *     one hour each week for three months, then the <start time> in the corresponding
+ *     one hour each week for three months, then the &lt;lt;start time&gt; in the corresponding
  *     "t=" field would be the NTP representation of 10am on the first Monday, the
- *     <repeat interval> would be 1 week, the <active duration> would be 1 hour, and
+ *     &lt;repeat interval&gt; would be 1 week, the &lt;active duration&gt; would be 1 hour, and
  *     the offsets would be zero and 25 hours. The corresponding "t=" field stop time
  *     would be the NTP representation of the end of the last session three months later.
  *     By default all fields are in seconds, so the "r=" and "t=" fields might be:
@@ -43,7 +43,7 @@ public interface RepeatTime extends Field {
     
     /** Set the "repeat interval" in seconds.
      * @param repeatInterval the "repeat interval" in seconds.
-     * @throws SdpException if repeatInterval is <0
+     * @throws SdpException if repeatInterval is less then 0
      */    
     public void setRepeatInterval(int repeatInterval)
                        throws SdpException;
@@ -57,7 +57,7 @@ public interface RepeatTime extends Field {
     
     /** Sets the "active duration" in seconds.
      * @param activeDuration the "active duration" in seconds.
-     * @throws SdpException if the active duration is <0
+     * @throws SdpException if the active duration is less then 0
      */    
     public void setActiveDuration(int activeDuration)
                        throws SdpException;

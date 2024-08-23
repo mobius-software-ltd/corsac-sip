@@ -119,7 +119,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  *                                                     V                     |
  *                                               +-----------+               |
  *                                               |           |               |
- *                                               | Terminated|<--------------+
+ *                                               | Terminated|&lt;--------------+
  *                                               |           |
  *                                               +-----------+
  *                      
@@ -161,7 +161,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  *                                                         V                         |
  *                                   NOTE:           +-----------+                   |
  *                                                   |           |                   |
- *                               transitions         | Terminated|<------------------+
+ *                               transitions         | Terminated|&lt;------------------+
  *                               labeled with        |           |
  *                               the event           +-----------+
  *                               over the action

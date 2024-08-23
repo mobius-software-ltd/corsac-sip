@@ -585,11 +585,11 @@ public abstract class GenericObject implements Serializable, Cloneable {
      * Does depth-first descent of the structure and
      * recursively prints all non-private objects pointed to
      * by this object.
-     * <bf>
+     * <br>
      * Warning - the following generic string routine will
      * bomb (go into infinite loop) if there are any circularly linked
      * structures so if you have these, they had better be private!
-     * </bf>
+     * <br>
      * We dont have to worry about such things for our structures
      *(we never use circular linked structures).
      */

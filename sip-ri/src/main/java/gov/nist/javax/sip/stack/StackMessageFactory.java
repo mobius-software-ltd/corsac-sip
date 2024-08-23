@@ -52,7 +52,7 @@ public interface StackMessageFactory {
      * channel.
      *
      * @param sipRequest is the incoming request.
-     * @param serverTransaction is the message channel on which this request was
+     * @param sipTransaction is the message channel on which this request was
      *  received.
      */
     public ServerRequestInterface newSIPServerRequest(
@@ -63,7 +63,7 @@ public interface StackMessageFactory {
      * Generate a new server response for the stack.
      *
      * @param sipResponse is the incoming response.
-     * @param serverTransaction is the message channel on which the response was
+     * @param msgChannel is the message channel on which the response was
      * received.
      */
     public ServerResponseInterface newSIPServerResponse(

@@ -9,9 +9,10 @@ import java.util.TimerTask;
 import java.util.Set;
 
 /**
+ * <p>
  * This example demonstrates how an application can monitor the SIP Stack
  * for leaked dialogs and transactions.
- * <p/>
+ * </p>
  * This code is in the public domain.
  *
  * @author R. Borba (Natural Convergence)

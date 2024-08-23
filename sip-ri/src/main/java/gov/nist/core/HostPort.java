@@ -137,7 +137,7 @@ public final class HostPort extends GenericObject {
     }
 
     /** Return the internet address corresponding to the host.
-     *@throws java.net.UnkownHostException if host name cannot be resolved.
+     *@throws java.net.UnknownHostException if host name cannot be resolved.
      *@return the inet address for the host.
      */
     public InetAddress getInetAddress() throws java.net.UnknownHostException {

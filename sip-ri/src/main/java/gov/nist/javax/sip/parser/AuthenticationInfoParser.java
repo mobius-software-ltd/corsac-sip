@@ -59,7 +59,7 @@ public class AuthenticationInfoParser extends ParametersParser {
     /**
      * parse the AuthenticationInfo String header
      * @return SIPHeader (AuthenticationInfoList object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
 

@@ -36,7 +36,7 @@ import javax.sip.header.HeaderAddress;
  * P-Profile-Key            = "P-Profile-Key" HCOLON {name-addr / addr-spec}
  *                          *{ SEMI generic-param }
  *
- * Eg: P-Profile-Key: <sip:chatroom-!.*!@example.com>
+ * Eg: P-Profile-Key: &lt;sip:chatroom-!.*!@example.com&gt;
  *
  */
 public interface PProfileKeyHeader extends HeaderAddress, Header{

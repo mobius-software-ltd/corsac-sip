@@ -34,8 +34,8 @@ import java.text.ParseException;
  *
  * @version JAIN-SDP-PUBLIC-RELEASE $Revision: 1.8 $ $Date: 2009-07-17 18:57:18 $
  *
- * @author Olivier Deruelle <deruelle@antd.nist.gov>
- * @author M. Ranganathan <mranga@antd.nist.gov> <br/>
+ * @author Olivier Deruelle
+ * @author M. Ranganathan <br/>
  *
  *
  *

@@ -111,7 +111,8 @@ import java.text.ParseException;
  * highlighted in italic. Class status codes (x00, i.e. 100) are are highlighted
  * in bold.
  * </p>
- * <table BORDER WIDTH="75%" >
+ * <table style="width:75%;" >
+ * <caption>Statuses</caption>
  * <tr>
  * <td><b>Class</b></td>
  * <td><b>Code</b></td>
@@ -119,84 +120,96 @@ import java.text.ParseException;
  * <tr>
  * <td>PROVISIONAL (1xx)</td>
  * <td>
- * <LI><b>TRYING - 100</b></LI>
- * <LI>RINGING - 180</LI>
- * <LI>CALL_IS_BEING_FORWARDED - 181</LI>
- * <LI>QUEUED - 182</LI>
+ * <ul>
+ * <li><b>TRYING - 100</b></li>
+ * <li>RINGING - 180</li>
+ * <li>CALL_IS_BEING_FORWARDED - 181</li>
+ * <li>QUEUED - 182</li>
  * <li>SESSION_PROGRESS - 183</li>
+ * </ul>
  * </td>
  * </tr>
  * <tr>
  * <td>SUCCESS (2xx)</td>
  * <td>
- * <LI><b>OK - 200</b></LI>
- * <LI><i>ACCEPTED - 202 (Extension RFC3265)</i></LI>
+ * <ul>
+ * <li><b>OK - 200</b></li>
+ * <li><i>ACCEPTED - 202 (Extension RFC3265)</i></li>
+ * </ul>
  * </td>
  * </tr>
  * <tr>
  * <td>REDIRECTION (3xx)</td>
  * <td>
- * <LI><b>MULTIPLE_CHOICES - 300</b></LI>
- * <LI>MOVED_PERMANENTLY - 301</LI>
- * <LI>MOVED_TEMPORARILY - 302</LI>
- * <LI>USE_PROXY - 305</LI>
- * <LI>ALTERNATIVE_SERVICE - 380</LI>
+ * <ul>
+ * <li><b>MULTIPLE_CHOICES - 300</b></li>
+ * <li>MOVED_PERMANENTLY - 301</li>
+ * <li>MOVED_TEMPORARILY - 302</li>
+ * <li>USE_PROXY - 305</li>
+ * <li>ALTERNATIVE_SERVICE - 380</li>
+ * </ul>
  * </td>
  * </tr>
  * <tr>
  * <td>CLIENT_ERROR (4xx)</td>
  * <td>
- * <LI><b>BAD_REQUEST - 400</b></LI>
- * <LI>UNAUTHORIZED - 401</LI>
- * <LI>PAYMENT_REQUIRED - 402</LI>
- * <LI>FORBIDDEN - 403</LI>
- * <LI>NOT_FOUND - 404</LI>
- * <LI>METHOD_NOT_ALLOWED - 405</LI>
- * <LI>NOT_ACCEPTABLE - 406</LI>
- * <LI>PROXY_AUTHENTICATION_REQUIRED - 407</LI>
- * <LI>REQUEST_TIMEOUT - 408</LI>
- * <LI>GONE - 410</LI>
- * <LI><i>CONDITIONAL_REQUEST_FAILED - 412 (Extension RFC3909)<i>
- * <LI>REQUEST_ENTITY_TOO_LARGE - 413
- * <LI>REQUEST_URI_TOO_LONG - 414
- * <LI>UNSUPPORTED_MEDIA_TYPE - 415</LI>
- * <LI>UNSUPPORTED_URI_SCHEME - 416
- * <LI>BAD_EXTENSION - 420</LI>
- * <LI>EXTENSION_REQUIRED - 421
- * <LI>INTERVAL_TOO_BRIEF - 423
- * <LI>TEMPORARILY_UNAVAILABLE - 480</LI>
- * <LI>CALL_OR_TRANSACTION_DOES_NOT_EXIST - 481</LI>
- * <LI>LOOP_DETECTED - 482</LI>
- * <LI>TOO_MANY_HOPS - 483</LI>
- * <LI>ADDRESS_INCOMPLETE - 484</LI>
- * <LI>AMBIGUOUS - 485</LI>
- * <LI>BUSY_HERE - 486</LI>
- * <LI>REQUEST_TERMINATED - 487
- * <LI>NOT_ACCEPTABLE_HERE - 488
- * <LI><i>BAD EVENT - 489 (Extension RFC3265)<i></LI>
- * <LI>REQUEST_PENDING - 491
- * <LI>UNDECIPHERABLE - 493
+ * <ul>
+ * <li><b>BAD_REQUEST - 400</b></li>
+ * <li>UNAUTHORIZED - 401</li>
+ * <li>PAYMENT_REQUIRED - 402</li>
+ * <li>FORBIDDEN - 403</li>
+ * <li>NOT_FOUND - 404</li>
+ * <li>METHOD_NOT_ALLOWED - 405</li>
+ * <li>NOT_ACCEPTABLE - 406</li>
+ * <li>PROXY_AUTHENTICATION_REQUIRED - 407</li>
+ * <li>REQUEST_TIMEOUT - 408</li>
+ * <li>GONE - 410</li>
+ * <li><i>CONDITIONAL_REQUEST_FAILED - 412 (Extension RFC3909)</i></li>
+ * <li>REQUEST_ENTITY_TOO_LARGE - 413M</li>
+ * <li>REQUEST_URI_TOO_LONG - 414</li>
+ * <li>UNSUPPORTED_MEDIA_TYPE - 415</li>
+ * <li>UNSUPPORTED_URI_SCHEME - 416
+ * <li>BAD_EXTENSION - 420</li>
+ * <li>EXTENSION_REQUIRED - 421</li>
+ * <li>INTERVAL_TOO_BRIEF - 423</li>
+ * <li>TEMPORARILY_UNAVAILABLE - 480</li>
+ * <li>CALL_OR_TRANSACTION_DOES_NOT_EXIST - 481</li>
+ * <li>LOOP_DETECTED - 482</li>
+ * <li>TOO_MANY_HOPS - 483</li>
+ * <li>ADDRESS_INCOMPLETE - 484</li>
+ * <li>AMBIGUOUS - 485</li>
+ * <li>BUSY_HERE - 486</li>
+ * <li>REQUEST_TERMINATED - 487</li>
+ * <li>NOT_ACCEPTABLE_HERE - 488</li>
+ * <li><i>BAD EVENT - 489 (Extension RFC3265)</i></li>
+ * <li>REQUEST_PENDING - 491</li>
+ * <li>UNDECIPHERABLE - 493</li>
+ * </ul>
  * </td>
  * </tr>
  * <tr>
  * <td>SERVER_ERROR (5xx)</td>
  * <td>
- * <LI><b>SERVER_INTERNAL_ERROR - 500</b></LI>
- * <LI>NOT_IMPLEMENTED - 501</LI>
- * <LI>BAD_GATEWAY - 502</LI>
- * <LI>SERVICE_UNAVAILABLE - 503</LI>
- * <LI>SERVER_TIMEOUT - 504</LI>
- * <LI>VERSION_NOT_SUPPORTED - 505</LI>
- * <LI>MESSAGE_TOO_LARGE - 513
+ * <ul>
+ * <li><b>SERVER_INTERNAL_ERROR - 500</b></li>
+ * <li>NOT_IMPLEMENTED - 501</li>
+ * <li>BAD_GATEWAY - 502</li>
+ * <li>SERVICE_UNAVAILABLE - 503</li>
+ * <li>SERVER_TIMEOUT - 504</li>
+ * <li>VERSION_NOT_SUPPORTED - 505</li>
+ * <li>MESSAGE_TOO_LARGE - 513
+ * </ul>
  * </td>
  * </tr>
  * <tr>
  * <td>GLOBAL_ERROR (6xx)</td>
  * <td>
- * <LI><b>BUSY_EVERYWHERE - 600</b></LI>
- * <LI>DECLINE - 603</LI>
- * <LI>DOES_NOT_EXIST_ANYWHERE - 604</LI>
- * <LI>SESSION_NOT_ACCEPTABLE - 606</LI>
+ * <ul>
+ * <li><b>BUSY_EVERYWHERE - 600</b></li>
+ * <li>DECLINE - 603</li>
+ * <li>DOES_NOT_EXIST_ANYWHERE - 604</li>
+ * <li>SESSION_NOT_ACCEPTABLE - 606</li>
+ * </ul>
  * </td>
  * </tr>
  * </table>

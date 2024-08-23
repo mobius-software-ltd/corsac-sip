@@ -110,7 +110,7 @@ public final class Diversion
    /**
     * Sets the Reason parameter of the Diversion header.
     *
-    * @param diversion-reason parameter value to set
+    * @param r parameter value to set
     * @throws ParseException if the provided parameter is invalid
     */
    public void setReason(String r) throws ParseException {
@@ -136,7 +136,7 @@ public final class Diversion
    /**
     * Sets the diversion-limit parameter of the Diversion header.
     *
-    * @param limit The diversion-limit value as a positive integer.
+    * @param l The diversion-limit value as a positive integer.
     * @throws IllegalArgumentException if the provided limit is not a positive integer.
  * @throws ParseException 
     */
@@ -186,7 +186,7 @@ public final class Diversion
    /**
     * Sets the diversion-counter parameter of the Diversion header.
     *
-    * @param counter The diversion-counter value as a positive integer.
+    * @param c The diversion-counter value as a positive integer.
     * @throws IllegalArgumentException if the provided counter is not a positive integer.
  * @throws ParseException 
     */
@@ -247,7 +247,7 @@ public final class Diversion
    /**
     * Sets the diversion-privacy parameter of the Diversion header.
     *
-    * @param reason diversion-privacy parameter value to set
+    * @param p diversion-privacy parameter value to set
     * @throws ParseException if the provided parameter is invalid
     */
    public void setPrivacy(String p) throws ParseException {
@@ -286,7 +286,7 @@ public final class Diversion
    /**
     * Sets the diversion-screen parameter of the Diversion header.
     *
-    * @param reason diversion-privacy parameter value to set
+    * @param s screen parameter value to set
     * @throws ParseException if the provided parameter is invalid
     */
    public void setScreen(String s) throws ParseException {

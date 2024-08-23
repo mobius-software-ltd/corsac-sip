@@ -1469,8 +1469,6 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
      * Creates a new P-Associated-URI header based on the supplied address
      * @param assocURI - Address
      * @return newly created P-Associated-URI header
-     * @throws NullPointerException if the supplied address is null
-     * @throws ParseException
      */
     public PAssociatedURIHeader createPAssociatedURIHeader(Address assocURI)
     {
@@ -1490,8 +1488,6 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
      * P-Called-Party-ID header
      * @param address - Address
      * @return newly created P-Called-Party-ID header
-     * @throws NullPointerException
-     * @throws ParseException
      */
     public PCalledPartyIDHeader createPCalledPartyIDHeader(Address address)
     {
@@ -1595,8 +1591,6 @@ public class HeaderFactoryImpl implements HeaderFactoryExt {
      * PATH header
      * @param address - Address
      * @return newly created Path header
-     * @throws NullPointerException
-     * @throws ParseException
      */
     public PathHeader createPathHeader(Address address)
     {

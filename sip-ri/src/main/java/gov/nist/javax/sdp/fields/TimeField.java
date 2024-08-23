@@ -34,7 +34,7 @@ import java.util.*;
 * Time Field.
 *@version  JSR141-PUBLIC-REVIEW (subject to change).
 *
-*@author Olivier Deruelle <deruelle@antd.nist.gov>
+*@author Olivier Deruelle
 *@author M. Ranganathan
 *
 *Bug Report contributed by Brian J. Collins.

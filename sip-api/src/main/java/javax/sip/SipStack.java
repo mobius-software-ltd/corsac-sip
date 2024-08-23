@@ -27,8 +27,10 @@
  */
 package javax.sip;
 
+import java.util.Iterator;
+import java.util.Properties;
+
 import javax.sip.address.Router;
-import java.util.*;
 
 /**
  * This interface represents the management interface of a SIP stack
@@ -62,7 +64,7 @@ import java.util.*;
  * defines a stack configuration mechanism using java.util.Properties, therefore
  * this constructor must also accept a properties argument:
  * <p>
- * <center>public SipStackImpl(Properties properties) {} </center>
+ * public SipStackImpl(Properties properties) {}
  * <p>
  * The following table documents the static configuration properties which can
  * be set for an implementation of a SipStack. This specification doesn't
@@ -70,16 +72,15 @@ import java.util.*;
  * understood by the underlying implementation. In order to change these
  * properties after a SipStack has been initialized the SipStack must be deleted
  * and recreated:
- * <p>
- * <center><table border="1" bordercolorlight="#FFFFFF"
- * bordercolordark="#000000" width="98%" cellpadding="3" cellspacing="0">
- * <p class="title">
  * </p>
- * <tr bgcolor="#CCCCCC">
- * <th align="left" valign="top">
+ * <p>
+ * <table style="border:4px solid; border-color:#FFFFFF #FFFFFF #000000 #000000;width:98%;border-collapse: separate; border-spacing: 3px;">
+ * <caption>Properties</caption>
+ * <tr style="background-color:#CCCCCC">
+ * <th style="text-align: left" valign="top">
  * <p class="table">
  * <strong><strong>SipStack Property </strong> </strong></th>
- * <th align="left" valign="top"></a>
+ * <th style="text-align: left" valign="top">
  * <p class="table">
  * <strong>Description </strong>
  * </p>
@@ -87,12 +88,12 @@ import java.util.*;
  * </tr>
  *
  * <tr>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * javax.sip.IP_ADDRESS
  * </p>
  * </td>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * <b>Deprecated v1.2.</b> It is recommended in this specification that the IP
  * Address should be set using the enhanced ListeningPoint architecture,
@@ -109,12 +110,12 @@ import java.util.*;
  * </tr>
  *
  * <tr>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * javax.sip.STACK_NAME
  * </p>
  * </td>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * Sets a user friendly name to identify the underlying stack implementation to
  * the property value i.e. NISTv1.2. The stack name property should contain no
@@ -123,12 +124,12 @@ import java.util.*;
  * </td>
  * </tr>
  * <tr>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * javax.sip.OUTBOUND_PROXY
  * </p>
  * </td>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * Sets the outbound proxy of the SIP Stack.  The  fromat
  * for this string is "ipaddress:port/transport" i.e.
@@ -138,12 +139,12 @@ import java.util.*;
  * </tr>
  *
  * <tr>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * javax.sip.ROUTER_PATH
  * </p>
  * </td>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * Sets the fully qualified classpath to the application supplied Router object
  * that determines how to route messages when the stack cannot make a routing
@@ -158,12 +159,12 @@ import java.util.*;
  * </tr>
  *
  * <tr>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * javax.sip.EXTENSION_METHODS
  * </p>
  * </td>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * This configuration value informs the underlying implementation of supported
  * extension methods that create new dialog's. This list must not include methods
@@ -179,10 +180,10 @@ import java.util.*;
  * </tr>
  *
  * <tr>
- *  <td align="left" valign="top">
+ *  <td style="text-align: left" valign="top">
  *      <p class="table">javax.sip.RETRANSMISSION_FILTER</p>
  *  </td>
- *  <td align="left" valign="top">
+ *  <td style="text-align: left" valign="top">
  *      <p class="table"><b>Deprecated v1.2.</b> Applications can request
  *              retransmission alerts from the
  *              {@link ServerTransaction#enableRetransmissionAlerts()}.
@@ -216,28 +217,27 @@ import java.util.*;
  * </tr>
  *
  * <tr>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * javax.sip.AUTOMATIC_DIALOG_SUPPORT
  * </p>
  * </td>
- * <td align="left" valign="top">This property specifies the defined values
+ * <td style="text-align: left" valign="top">This property specifies the defined values
  * 'ON' and 'OFF'. The default value is 'ON'. The default behavior represents a
  * common mode of stack operation and allows the construction of simple user
- * agents. This property is optional. This is summarized as:</li>
+ * agents. This property is optional. This is summarized as:
  * <ul>
  * <li>A dialog gets created on a dialog creating transaction.</li>
- * <li> The first respose having both a From and a To tag creates the transaction.
+ * <li> The first respose having both a From and a To tag creates the transaction.</li>
  * <li>The first 2xx response to the transaction will drive the dialog to the
  * CONFIRMED state.</li>
- * </ul>
  * </ul>
  * <blockquote>The ability to turn of dialog support is motivated by dialog free
  * servers (such as proxy servers) that do not want to pay the overhead of the
  * dialog layer and user agents that may want to create multiple dialogs for a
  * single INVITE (as a result of forking by proxy servers). The following
  * behavior is defined when the configuration parameter is set to 'OFF'.
- * <ul type="circle">
+ * <ul style="list-style-type:circle;">
  * <li>The application is responsible to create the Dialog if desired.</li>
  * <li>The application may create a Dialog and associate it with a response
  * (provisional or final) of a dialog creating request.&nbsp;</li>
@@ -248,12 +248,12 @@ import java.util.*;
  * </tr>
  *
  * <tr>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * javax.sip.FORKABLE_EVENTS
  * </p>
  * </td>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  *  Comma separated list of events for which the implementation should expect forked
  *  SUBSCRIBE dialogs. Each element of this list must have the syntax packagename.eventname
@@ -285,27 +285,26 @@ import java.util.*;
  * </tr>
  *
  * <tr>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
  * javax.sip.USE_ROUTER_FOR_ALL_URIS
  * </p>
  * </td>
- * <td align="left" valign="top">
+ * <td style="text-align: left" valign="top">
  * <p class="table">
- * If set to <it>true</it> then the application installed
+ * If set to <i>true</i> then the application installed
  * Router is consulted for ALL routing decisions (ie. both out of dialog SIP and non-SIP request
  * URI's -- identitcal to the behavior supported in v1.1 of this specification). If set to
- * <it>false</it> the user installed router will only be consulted for routing of Non-SIP URIs.
+ * <i>false</i> the user installed router will only be consulted for routing of Non-SIP URIs.
  * Implementations may thus provide support for sophisticated operations such as DNS lookup
  * for SIP URI's  using the proceedures defined in RFC 3263
  * (support for RFC 3263 is not mandatory for this specification). This property is optional.
- * The default value for this parameter is <it>true</it>.
+ * The default value for this parameter is <i>true</i>.
  * <p>
  * <b>Since v1.2.</b>
  * </td>
  * </tr>
- *
- * </table> </center>
+ * </table>
  *
  * @see SipFactory
  * @see SipProvider
@@ -374,7 +373,7 @@ public interface SipStack {
      *            the port of the new ListeningPoint.
      * @param transport
      *            the transport of the new ListeningPoint.
-     * @throws TansportNotSupportedException
+     * @throws TransportNotSupportedException
      *             if the specified transport is not supported by this SipStack.
      * @throws InvalidArgumentException
      *             if the specified port is invalid.
@@ -382,7 +381,7 @@ public interface SipStack {
      * @deprecated Since v1.2. This has been replaced by
      *  {@link SipStack#createListeningPoint(String, int, String)  }
      * For backwards compatibility with v1.1 implementations should support this method.
-     * Implementations should throw <it>TransportNotSupportedException</it>
+     * Implementations should throw <i>TransportNotSupportedException</i>
      * if the Properties specified during stack creation do not include an IP Address.
      */
     public ListeningPoint createListeningPoint(int port, String transport)
@@ -396,7 +395,7 @@ public interface SipStack {
      * have different dialogs for each IP address.
      *
      * @return ListeningPoint that uses the IP address port and transport.
-     * @throws SipException if the Listening point cannot be created for any reason or if the
+     * @throws TransportNotSupportedException if the Listening point cannot be created for any reason or if the
      * stack has specified a default IP address that differs from the IP address specified
      * for this method.
      * @throws InvalidArgumentException

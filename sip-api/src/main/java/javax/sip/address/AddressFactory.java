@@ -86,8 +86,8 @@ public interface AddressFactory {
      * Creates an Address with the new address string value. The address 
      * string is parsed in order to create the new Address instance. 
      * Valid arguments obey the syntax for <code>name-addr</code> tokens in 
-     * RFC3261, for example "Bob <sip:bob@biloxi.com>".  It is recommended to 
-     * use the to use the name-addr form containing '<' '>' to avoid confusion 
+     * RFC3261, for example "Bob &lt;sip:bob@biloxi.com&gt;".  It is recommended to 
+     * use the to use the name-addr form containing '&lt;' '&gt;' to avoid confusion 
      * of URI parameters. As a special case, the 
      * string argument "*" creates a wildcard Address object with the property 
      * that <code>((SipURI)Address.getURI()).getUser()</code> returns a 

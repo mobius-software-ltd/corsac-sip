@@ -126,11 +126,11 @@ public class MergedSystemProperties extends Properties {
 
 
     /**
-     * Determines whether <tt>key</tt> is already present here. .
+     * Determines whether <i>key</i> is already present here. .
      *
      * @param key the key that we are looking for.
      *
-     * @return <tt>true</tt> <tt>key</tt> is a known property and <tt>false</tt>
+     * @return <i>true</i> <i>key</i> is a known property and <i>false</i>
      * otherwise.
      */
     @Override

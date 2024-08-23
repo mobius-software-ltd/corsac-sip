@@ -174,7 +174,7 @@ public final class Accept
     /**
      * Set the q value
      * @param qValue float to set
-     * @throws IllegalArgumentException if qValue is <0.0 or >1.0
+     * @throws IllegalArgumentException if qValue is less then 0.0 or greater then 1.0
      */
     public void setQValue(float qValue) throws InvalidArgumentException {
         if (qValue == -1)

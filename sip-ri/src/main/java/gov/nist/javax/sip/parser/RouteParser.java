@@ -54,7 +54,7 @@ public class RouteParser extends AddressParametersParser {
 
     /** parse the String message and generate the Route List Object
      * @return SIPHeader the Route List object
-     * @throws SIPParseException if errors occur during the parsing
+     * @throws ParseException if errors occur during the parsing
      */
     public SIPHeader parse() throws ParseException {
         RouteList routeList = new RouteList();

@@ -1505,7 +1505,7 @@ public abstract class SIPTransactionStack implements
      * so that a duplicate transaction is not created if a second request is
      * recieved while the first one is being processed.
      *
-     * @param requestReceived
+     * @param transactionId
      * @return -- the pending transaction or null if no such transaction exists.
      */
     public SIPServerTransaction findPendingTransaction(
@@ -3228,7 +3228,6 @@ public abstract class SIPTransactionStack implements
      * Size of the receive UDP buffer. This property affects performance under
      * load. Bigger buffer is better under load.
      *
-     * @return
      */
     public void setReceiveUdpBufferSize(int receiveUdpBufferSize) {
         this.receiveUdpBufferSize = receiveUdpBufferSize;
@@ -3256,7 +3255,6 @@ public abstract class SIPTransactionStack implements
      * Size of the send UDP buffer. This property affects performance under
      * load. Bigger buffer is better under load.
      *
-     * @return
      */
     public void setSendUdpBufferSize(int sendUdpBufferSize) {
         this.sendUdpBufferSize = sendUdpBufferSize;
@@ -3605,7 +3603,7 @@ public abstract class SIPTransactionStack implements
     }
 
     /**
-    * Find suitable MessageProcessor and calls it's {@link MessageProcessor#setKeepAliveTimeout(String, int, long)} method passing
+    * Find suitable MessageProcessor and calls it's {@link ConnectionOrientedMessageProcessor#setKeepAliveTimeout(String, int, long)} method passing
     * peerAddress and peerPort as arguments.
     *
     * @param myAddress - server ip address
@@ -3613,7 +3611,7 @@ public abstract class SIPTransactionStack implements
     * @param transport - transport
     * @param peerAddress - peerAddress
     * @param peerPort - peerPort
-    * @return result of invocation of {@link MessageProcessor#setKeepAliveTimeout(String, int, long)} if MessageProcessor was found
+    * @return result of invocation of {@link ConnectionOrientedMessageProcessor#setKeepAliveTimeout(String, int, long)} if MessageProcessor was found
     */
     public boolean setKeepAliveTimeout(String myAddress, int myPort, String transport, String peerAddress,
                                        int peerPort, long keepAliveTimeout) {
@@ -3639,7 +3637,7 @@ public abstract class SIPTransactionStack implements
     }
 
     /**
-     * Find suitable MessageProcessor and calls it's {@link MessageProcessor#closeReliableConnection(String, int)}
+     * Find suitable MessageProcessor and calls it's {@link ConnectionOrientedMessageProcessor#closeReliableConnection(String, int)}
      * method passing peerAddress and peerPort as arguments.
      *
      * @param myAddress - server ip address

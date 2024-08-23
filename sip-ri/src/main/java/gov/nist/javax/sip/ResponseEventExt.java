@@ -37,7 +37,6 @@ public class ResponseEventExt extends ResponseEvent {
     /**
      * Set true if this is a forked response.
      * 
-     * @return true if the response event is for a forked response.
      */
     public void setForkedResponse(boolean forked) {
         this.isForked = forked;
@@ -107,7 +106,6 @@ public class ResponseEventExt extends ResponseEvent {
     /**
      * Get the remote IP addr. from which request was received.
      * 
-     * @return remoteIp address from where request was received.
      */
 
     public void setRemoteIpAddress(String remoteIpAddress) {

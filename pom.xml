@@ -81,9 +81,9 @@
 
     <properties>
         <log4j2.version>2.19.0</log4j2.version>
-		<junit.version>4.8.2</junit.version>
+		<junit.version>4.12</junit.version>
         <version.netty>4.1.63.Final</version.netty>
-        <version.mobius-timers>1.0.0-29</version.mobius-timers>
+        <version.mobius-timers>1.0.0-31</version.mobius-timers>
         <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
         <!-- IDEs has a problem when we use late binding with @ in the surefire arg line.
         Therefore we set this empty property here-->
@@ -306,7 +306,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.0.0</version>
+				<version>3.8.0</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>                        

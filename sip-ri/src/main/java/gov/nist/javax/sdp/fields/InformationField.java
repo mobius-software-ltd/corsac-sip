@@ -33,7 +33,7 @@ import javax.sdp.*;
 /** Information field implementation
 *@version  JSR141-PUBLIC-REVIEW (subject to change)
 *
-*@author Oliver Deruelle <deruelle@antd.nist.gov>
+*@author Oliver Deruelle mailto: deruelle@antd.nist.gov
 *@author M. Ranganathan   <br/>
 */
 

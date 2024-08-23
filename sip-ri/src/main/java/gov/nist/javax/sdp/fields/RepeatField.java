@@ -36,7 +36,7 @@ import javax.sdp.*;
 *
 *@version  JSR141-PUBLIC-REVIEW (subject to change).
 *
-*@author Olivier Deruelle <deruelle@antd.nist.gov>
+*@author Olivier Deruelle
 *@author M. Ranganathan   <br/>
 *
 *
@@ -84,7 +84,7 @@ public class RepeatField extends SDPField implements javax.sdp.RepeatTime {
 
     /** Set the "repeat interval" in seconds.
      * @param repeatInterval the "repeat interval" in seconds.
-     * @throws SdpException if repeatInterval is <0
+     * @throws SdpException if repeatInterval is  less then or equal to 0
      */
     public void setRepeatInterval(int repeatInterval) throws SdpException {
         if (repeatInterval < 0)
@@ -110,7 +110,7 @@ public class RepeatField extends SDPField implements javax.sdp.RepeatTime {
 
     /** Sets the "active duration" in seconds.
      * @param activeDuration the "active duration" in seconds.
-     * @throws SdpException if the active duration is <0
+     * @throws SdpException if the active duration is less then 0
      */
     public void setActiveDuration(int activeDuration) throws SdpException {
         if (activeDuration < 0)

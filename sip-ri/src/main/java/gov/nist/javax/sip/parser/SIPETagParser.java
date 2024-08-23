@@ -61,7 +61,7 @@ public class SIPETagParser extends HeaderParser {
     /**
      * parse the String header
      * @return SIPHeader (Priority object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
 

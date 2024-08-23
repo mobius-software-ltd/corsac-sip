@@ -62,7 +62,7 @@ public class ContentEncodingParser extends HeaderParser {
     /**
      * parse the ContentEncodingHeader String header
      * @return SIPHeader (ContentEncodingList object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
 

@@ -319,7 +319,6 @@ public  class CallAnalyzer {
 	 * Enter a traced zone by the name of metricReference for the current thread. This puts the enter timestamp
 	 * and all lost call calculations will be based on this timestamp
 	 * 
-	 * @param threadId
 	 * @param metricReference
 	 */
 	public void enter(MetricReference metricReference) {
@@ -331,7 +330,6 @@ public  class CallAnalyzer {
 	 * Leave a traced zone by the name of metricReference for the specified thread. This puts the timestamp in
 	 * inactive mode. No more analysis will be done on this thread.
 	 * 
-	 * @param threadId
 	 * @param metricReference
 	 */
 	public void leave(MetricReference metricReference) {

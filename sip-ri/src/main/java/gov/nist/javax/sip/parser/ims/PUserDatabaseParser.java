@@ -46,7 +46,7 @@ import gov.nist.javax.sip.parser.TokenTypes;
  *                    *( SEMI generic-param )
  * database        = LAQUOT DiameterURI RAQUOT
  *
- * Eg: P-User-Database: <aaa://host.example.com;transport=tcp>
+ * Eg: P-User-Database: &lt;aaa://host.example.com;transport=tcp&gt;
  *
  */
 public class PUserDatabaseParser extends ParametersParser {

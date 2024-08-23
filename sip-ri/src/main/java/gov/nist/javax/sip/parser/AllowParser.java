@@ -59,7 +59,7 @@ public class AllowParser extends HeaderParser {
     /**
      * parse the Allow String header
      * @return SIPHeader (AllowList object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
 

@@ -62,7 +62,7 @@ public class SupportedParser extends HeaderParser {
     /**
      * parse the String message
      * @return SIPHeader (Supported object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
         SupportedList supportedList = new SupportedList();

@@ -26,7 +26,7 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
     /**
      * Constructor with CallIdentifier.
      *
-     * @param cid CallIdentifier to set
+     * @param callId CallIdentifier to set
      */
     public TargetDialog(String callId) throws IllegalArgumentException {
         super(NAME);
@@ -93,7 +93,7 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
     /**
      * Sets the local tag of the Target-Dialog header.
      *
-     * @param localTag the local tag value to set
+     * @param t the local tag value to set
      * @throws ParseException if the provided localTag is invalid
      */
     public void setLocalTag(String t) throws ParseException {
@@ -129,7 +129,7 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
     /**
      * Sets the remote tag of the Target-Dialog header.
      *
-     * @param remoteTag the remote tag value to set
+     * @param t the remote tag value to set
      * @throws ParseException if the provided remoteTag is invalid
      */
     public void setRemoteTag(String t) throws ParseException {
@@ -161,7 +161,6 @@ public class TargetDialog extends ParametersHeader implements ExtensionHeader, T
      * Parses the header string into Call-Id, local tag, remote tag, and parameters.
      *
      * @param body the header string to parse
-     * @throws ParseException if the header string cannot be parsed
      */
     public void decodeBody(String body) {
         try {

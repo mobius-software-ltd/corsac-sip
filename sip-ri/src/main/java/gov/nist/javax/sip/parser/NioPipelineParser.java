@@ -357,8 +357,8 @@ public class NioPipelineParser {
      * @param sipMessageListener
      *            Message listener which has methods that get called back from
      *            the parser when a parse is complete
-     * @param in
-     *            Input stream from which to read the input.
+     * @param maxMessageSize
+     *            Maximum size of allowed message
      * @param debug
      *            Enable/disable tracing or lexical analyser switch.
      */
@@ -379,8 +379,8 @@ public class NioPipelineParser {
      * @param mhandler
      *            a SIPMessageListener implementation that provides the message
      *            handlers to handle correctly and incorrectly parsed messages.
-     * @param in
-     *            An input stream to read messages from.
+     * @param maxMsgSize
+     *            Maximum size of allowed message
      */
 
     public NioPipelineParser(SIPTransactionStack sipStack, SIPMessageListener mhandler,

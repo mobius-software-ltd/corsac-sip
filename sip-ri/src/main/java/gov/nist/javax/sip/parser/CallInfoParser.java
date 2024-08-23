@@ -59,7 +59,7 @@ public class CallInfoParser  extends ParametersParser{
     /**
      * parse the CallInfo String header
      * @return SIPHeader (CallInfoList object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
         

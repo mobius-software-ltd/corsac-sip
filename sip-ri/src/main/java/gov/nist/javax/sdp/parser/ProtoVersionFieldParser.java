@@ -34,7 +34,7 @@ import java.text.*;
  *
  * @version JAIN-SDP-PUBLIC-RELEASE $Revision: 1.5 $ $Date: 2009-07-17 18:57:17 $
  *
- * @author Olivier Deruelle <deruelle@antd.nist.gov>
+ * @author Olivier Deruelle
  * @author M. Ranganathan
  *
  *

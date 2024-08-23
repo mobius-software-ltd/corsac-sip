@@ -530,7 +530,6 @@ public class SipUri extends GenericURI implements SipURIExt{
      * "at" sign make up the user-info.
      *
      * @param uname The new String value of the user.
-     * @throws ParseException which signals that an error has been reached
      * unexpectedly while parsing the user value.
      */
     public void setUser(String uname) {

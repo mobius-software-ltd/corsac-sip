@@ -56,7 +56,6 @@ public interface MessageFactoryExt extends MessageFactory {
      * 
      * @since 2.0
      * 
-     * @throws NullPointerException, IllegalArgumentException
      */
     public MultipartMimeContent createMultipartMimeContent(ContentTypeHeader multipartMimeContentTypeHeader,
             String[] contentType, 

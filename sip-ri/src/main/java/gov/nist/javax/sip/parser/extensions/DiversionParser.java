@@ -25,7 +25,7 @@ public class DiversionParser extends AddressParametersParser {
 
     /** parse the String message and generate the Diversion List Object
      * @return SIPHeader the Diversion List object
-     * @throws SIPParseException if errors occur during the parsing
+     * @throws ParseException if errors occur during the parsing
      */
     public SIPHeader parse() throws ParseException {
         DiversionList retval = new DiversionList();

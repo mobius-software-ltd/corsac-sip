@@ -38,7 +38,7 @@ import javax.sip.address.URI;
  * header field by untrusted elements.
  * <p>
  * For Example:<br>
- * <code>Alert-Info: <http://jcp.org/yeeha.wav></code>
+ * <code>Alert-Info: &lt;http://jcp.org/yeeha.wav&gt;</code>
  *
 * @author BEA Systems, NIST
  * @version 1.2

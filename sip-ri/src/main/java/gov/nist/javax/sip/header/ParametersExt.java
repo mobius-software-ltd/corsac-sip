@@ -32,7 +32,6 @@ import javax.sip.header.Parameters;
  * will be included in the next spec release.
  * 
  * @author jean.deruelle@gmail.com
- * @ since 2.0
  */
 public interface ParametersExt extends Parameters {
     /**

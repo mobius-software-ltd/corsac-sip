@@ -63,7 +63,7 @@ public class RAckParser extends HeaderParser {
     /**
      * parse the String message
      * @return SIPHeader (RAck object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
 

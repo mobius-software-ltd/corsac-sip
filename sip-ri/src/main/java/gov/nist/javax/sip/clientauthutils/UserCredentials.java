@@ -3,8 +3,8 @@ package gov.nist.javax.sip.clientauthutils;
 /**
 * The class is used whenever user credentials for a particular realm (site
 * server or service) are necessary
-* @author Emil Ivov <emcho@dev.java.net>
-* @author M. Ranganathan <mranga@dev.java.net>
+* @author Emil Ivov mailto:emcho@dev.java.net
+* @author M. Ranganathan mailto:mranga@dev.java.net
 * @version 1.0
 */
 

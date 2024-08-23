@@ -298,7 +298,7 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
      * Get A dialog identifier constructed from this messsage. This is an id
      * that can be used to identify dialogs.
      *
-     * @param isServerTransaction is a flag that indicates whether this is a
+     * @param isServer is a flag that indicates whether this is a
      * server transaction.
      */
     public final String getDialogId(boolean isServer) {

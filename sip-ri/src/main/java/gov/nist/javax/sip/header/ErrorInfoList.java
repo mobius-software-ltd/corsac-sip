@@ -48,7 +48,7 @@ import javax.sip.header.*;
 *
 *
 *
-*       Error-Info  =  "Error-Info" ":" # ( "<" URI ">" *( ";" generic-param ))
+*       Error-Info  =  "Error-Info" ":" # ( "&lt;" URI "&gt;" *( ";" generic-param ))
 *</pre>
 *
 */

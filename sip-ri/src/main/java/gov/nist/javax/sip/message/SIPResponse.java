@@ -286,7 +286,7 @@ public class SIPResponse
 
     /** set the status code.
      *@param statusCode is the status code to set.
-     *@throws IlegalArgumentException if invalid status code.
+     *@throws ParseException if invalid status code.
      */
     public void setStatusCode(int statusCode) throws ParseException {
 

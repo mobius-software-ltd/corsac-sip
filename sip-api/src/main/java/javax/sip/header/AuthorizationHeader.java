@@ -145,9 +145,9 @@ public interface AuthorizationHeader extends Parameters, Header {
      * @return the URI representing the URI information, null if value is
      * not set.
      *
-     * @note The syntax allows also non-URI strings, though it is not commonly
-     *       used with SIP. To avoid parsing the string and treat it as opaque, 
-     *       applications should use getParameter("uri") instead of this method
+     * The syntax allows also non-URI strings, though it is not commonly
+     * used with SIP. To avoid parsing the string and treat it as opaque, 
+     * applications should use getParameter("uri") instead of this method
      */
     public URI getURI();     
     

@@ -58,7 +58,7 @@ public class ReplyToParser extends AddressParametersParser {
     /**
      * parse the String message and generate the ReplyTo List Object
      * @return SIPHeader the ReplyTo List object
-     * @throws SIPParseException if errors occur during the parsing
+     * @throws ParseException if errors occur during the parsing
      */
     public SIPHeader parse() throws ParseException {
         ReplyTo replyTo = new ReplyTo();

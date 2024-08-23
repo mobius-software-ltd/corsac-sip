@@ -55,7 +55,7 @@ public interface Transaction extends Serializable{
      * 
      * <ul>
      * <li>If the stack is configured with the AUTOMATIC_DIALOG_SUPPORT property set to
-     * </it>ON</it> ( default behavior ) then the following behavior is defined:
+     * <i>ON</i> ( default behavior ) then the following behavior is defined:
      * <ul>
      * <li>If the transaction is associated with an existing Dialog or could result
      * in a Dialog being created in the future (ie. the stack is configured
@@ -67,7 +67,7 @@ public interface Transaction extends Serializable{
      * an existing dialog, then the implementation must return null when the
      * application issues getDialog on the transaction.
      * </ul>
-     * <li>If the stack is configured with AUTOMATIC_DIALOG property set to </it>OFF</it>
+     * <li>If the stack is configured with AUTOMATIC_DIALOG property set to <i>OFF</i>
      * then the stack does not automatically create a Dialog for a transaction nor does 
      * it maintain an association between dialog and transaction on behalf of the
      * application. Hence this method will return null.

@@ -48,7 +48,7 @@ import gov.nist.javax.sip.parser.URLParser;
  * Louis Pasteur University - Strasbourg - France<br/>
  *
  */
-public class AddressFactoryImpl implements AddressFactoryEx {
+public class AddressFactoryImpl implements AddressFactoryExt {
     public static final Pattern SCHEME_PATTERN = Pattern.compile("\\p{Alpha}[[{\\p{Alpha}][\\p{Digit}][\\+][-][\\.]]*");
     
     /** Creates a new instance of AddressFactoryImpl
@@ -74,7 +74,6 @@ public class AddressFactoryImpl implements AddressFactoryEx {
      * @param displayName - the new string value of the display name of the
      * address. A <code>null</code> value does not set the display name.
      * @param uri - the new URI value of the address.
-     * @throws ParseException which signals that an error has been reached
      * unexpectedly while parsing the displayName value.
      */
     public javax.sip.address.Address createAddress(
@@ -180,7 +179,7 @@ public class AddressFactoryImpl implements AddressFactoryEx {
      * not be included in the phoneNumber string argument. If scheme is not present, it will be added.
      *
      * @param uri - the new string value of the phoneNumber.
-     * @throws URISyntaxException if the URI string is malformed.
+     * @throws ParseException if the URI string is malformed.
      */
     public javax.sip.address.TelURL createTelURL(String uri)
         throws ParseException {
@@ -209,7 +208,7 @@ public class AddressFactoryImpl implements AddressFactoryEx {
      * returned may or may not be a SipURI or TelURL cast as a URI.
      *
      * @param uri - the new string value of the URI.
-     * @throws URISyntaxException if the URI string is malformed.
+     * @throws ParseException if the URI string is malformed.
      */
 
     public javax.sip.address.URI createURI(String uri) throws ParseException {

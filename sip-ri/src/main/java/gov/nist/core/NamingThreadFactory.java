@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Thread factory which names threads by "pool-<basename>-thread-n".
+ * Thread factory which names threads by "pool-&lt;basename&gt;-thread-n".
  * This is a replacement for Executors.defaultThreadFactory() to be able to identify pools.
  * Optionally a delegate thread factory can be given which creates the Thread
  * object itself, if no delegate has been given, Executors.defaultThreadFactory is used.

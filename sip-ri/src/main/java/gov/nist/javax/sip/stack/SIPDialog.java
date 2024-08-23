@@ -818,8 +818,6 @@ public class SIPDialog implements DialogExt {
      *            - the transaction started with the SUBSCRIBE that we sent
      * @param notifyST
      *            - the ServerTransaction created for an incoming NOTIFY
-     * @return -- a new dialog created from the subscribe original SUBSCRIBE
-     *         transaction.
      * 
      * 
      */
@@ -4322,7 +4320,7 @@ public class SIPDialog implements DialogExt {
 
     /**
      * In case of forking scenarios, set the original dialog that had been forked
-     * @param defaultDialog
+     * @param originalDialog
      */
     public void setOriginalDialog(SIPDialog originalDialog) {
       this.originalDialog = originalDialog;

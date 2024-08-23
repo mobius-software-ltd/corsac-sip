@@ -111,7 +111,7 @@ public class Warning extends SIPHeader implements WarningHeader {
     /**
      * Sets code of WarningHeader
      * @param code int to set
-     * @throws SipParseException if code is not accepted by implementation
+     * @throws InvalidArgumentException if code is not accepted by implementation
      */
     public void setCode(int code) throws InvalidArgumentException {
         if (code >99  && code < 1000) { // check this is a 3DIGIT code

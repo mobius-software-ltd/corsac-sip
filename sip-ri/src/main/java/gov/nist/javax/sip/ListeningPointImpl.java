@@ -109,7 +109,7 @@ public class ListeningPointImpl implements gov.nist.javax.sip.ListeningPointExt 
 
     /**
      * Get the key for this strucut
-     * @return  get the host
+     * @return a string that is used as a key
      */
     protected String getKey() {
         return makeKey(this.getIPAddress(), port, transport);
@@ -119,8 +119,8 @@ public class ListeningPointImpl implements gov.nist.javax.sip.ListeningPointExt 
      * Set the sip provider for this structure.
      * @param sipProvider provider to set
      */
-    public void setSipProvider(SipProviderImpl sipProviderImpl) {
-        this.sipProvider = sipProviderImpl;
+    public void setSipProvider(SipProviderImpl sipProvider) {
+        this.sipProvider = sipProvider;
     }
 
     /**

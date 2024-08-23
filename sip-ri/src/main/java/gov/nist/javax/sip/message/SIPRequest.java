@@ -755,7 +755,6 @@ Caused by: java.text.ParseException: Scheme for contact should be sips:sip:proxy
      * @return A CANCEL SIPRequest constructed according to RFC3261 section 9.1
      * 
      * @throws SipException
-     * @throws ParseException
      */
     public SIPRequest createCancelRequest() throws SipException {
 

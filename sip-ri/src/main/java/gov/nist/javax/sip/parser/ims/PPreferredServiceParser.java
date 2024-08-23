@@ -75,7 +75,7 @@ public class PPreferredServiceParser extends HeaderParser {
      *  valid service identifier if it merely defines who is responsible"
      *
      * TODO: PLEASE VALIDATE MY UNDERSTANDING OF THE ABOVE TEXT :)
-     * @ranga: Please validate my understanding of the above text in the draft :)
+     * ranga: Please validate my understanding of the above text in the draft :)
      *         This last para is a little ambiguous.I will only check that atleast
      *         1 sub-service or 1 sub-application is present in the URN declaration.
      *         If not, I throw an exception. I thought of not throwing an exception

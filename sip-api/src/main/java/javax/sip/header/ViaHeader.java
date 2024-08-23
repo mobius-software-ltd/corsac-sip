@@ -165,7 +165,7 @@ public interface ViaHeader extends Parameters, Header {
      * parameter.
      *
      * @param port - the new integer value of the port of this ViaHeader
-     * @throws InvalidArgumentException when the port value is not -1 and <1 or >65535
+     * @throws InvalidArgumentException when the port value is not -1 and less then 1 or greater then 65535
      */
     public void setPort(int port) throws InvalidArgumentException;     
 
@@ -298,7 +298,7 @@ public interface ViaHeader extends Parameters, Header {
      * See <a href = "http://www.ietf.org/rfc/rfc3581.txt">RFC3581</a>
      *
      *
-     * @throws InvalidArgumentException if rport value is an illegal integer ( <=0 ).
+     * @throws InvalidArgumentException if rport value is an illegal integer ( less then or equal to 0 ).
      * @since v1.2
      */
     public void setRPort() throws InvalidArgumentException;     

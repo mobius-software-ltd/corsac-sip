@@ -28,7 +28,7 @@ public class ReferencesParser extends ParametersParser {
     /**
      * parse the String message
      * @return SIPHeader (ReasonParserList object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
        

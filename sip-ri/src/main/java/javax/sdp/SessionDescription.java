@@ -111,7 +111,7 @@ public interface SessionDescription extends Serializable, Cloneable{
     /** Returns an email address to contact for further information about the session. 
      * This corresponds to the e= field of the SDP data.
      * @param create boolean to set
-     * @throws SdpException
+     * @throws SdpParseException
      * @return the email address.
      */    
     public Vector<EmailField> getEmails(boolean create)

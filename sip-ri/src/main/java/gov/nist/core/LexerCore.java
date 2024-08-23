@@ -317,7 +317,7 @@ public class LexerCore extends StringTokenizer {
     /**
      * JvB: utility function added to validate tokens
      *
-     * @see RFC3261 section 25.1:
+     * RFC3261 section 25.1:
      * token       =  1*(alphanum / "-" / "." / "!" / "%" / "*"
                      / "_" / "+" / "`" / "'" / "~" )
 

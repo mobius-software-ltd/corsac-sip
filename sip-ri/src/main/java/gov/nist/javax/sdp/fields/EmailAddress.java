@@ -33,7 +33,7 @@ import gov.nist.core.*;
 *
 *@version  JSR141-PUBLIC-REVIEW (subject to change)
 *
-*@author Oliver Deruelle <deruelle@antd.nist.gov>
+*@author Oliver Deruelle mailto: deruelle@antd.nist.gov
 *@author M. Ranganathan   <br/>
 *
 *
@@ -66,7 +66,7 @@ public class EmailAddress extends SDPObject {
     /**
      *  Get the string encoded version of this object
      * @since v1.0
-     * Here, we implement only the "displayName <email>" form
+     * Here, we implement only the "displayName &lt;email&gt;" form
      * and not the "email (displayName)" form
      */
     public String encode() {

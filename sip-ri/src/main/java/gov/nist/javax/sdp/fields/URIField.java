@@ -34,7 +34,7 @@ import java.net.*;
 /** Implementation of URI field.
 *@version  JSR141-PUBLIC-REVIEW (subject to change).
 *
-*@author Olivier Deruelle <deruelle@antd.nist.gov>
+*@author Olivier Deruelle
 *@author M. Ranganathan   <br/>
 *
 *

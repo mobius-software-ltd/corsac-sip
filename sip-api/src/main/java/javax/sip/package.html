@@ -5,12 +5,12 @@
 <ul>
        <li>Application Developer View:<br>
      The application developer is concerned with implementing the 
-  <it> SipListener </it> interface. This Interface defines the methods required by applications 
+  <i> SipListener </i> interface. This Interface defines the methods required by applications 
   to receive and process messages from a vendors SIP stack. 
- <href ="SipEvent.html"> 
+  <a href="SipEvent.html">
      A SipProvider receives messages from the underlying SIP 
      network, which in turn encapsulates these messages as Events and passes 
-     them  to its registered SipListener.</href> 
+     them  to its registered SipListener.</a> 
      An application must register with
      a  SipProvider to listen for Events by implementing the 
      SipListener interface.
@@ -23,8 +23,7 @@
    however the two most important interfaces 
   from the architecture point of view are the <a href="SipStack.html">SipStack</a> 
   and the <a href="SipProvider.html">SipProvider</a> interfaces.<br></li>
-                   
-  <ul>
+      
          <li>                                        
       <p>SipStack - This interface can be viewed as the stack management interface
   of the architecture. The SipStack interface encapsulates the dynamic 
@@ -40,14 +39,12 @@ management characteristics
   within the architecture. This interface defines the methods that allow
   an application implementing the SipListener to register with the SipProvider
   to recieve incoming requests and responses. The methods defined &nbsp;to
- send SIP messages are also defined within the SipProvider<href
- ="message/Message.html"> interface.              </href><br>
+ send SIP messages are also defined within the SipProvider<a href
+ ="message/Message.html"> interface.              </a><br>
                  </p>
       </li>
        
   </ul>
-     
-</ul>
         <b>Messaging model:</b><br>
 The architecture specifies that outgoing messages are sent via the
 SipProvider and can either be of type <a href="message/Request.html">Request

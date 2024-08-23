@@ -34,7 +34,7 @@ import javax.sdp.*;
 *
 *@version  JSR141-PUBLIC-REVIEW (subject to change).
 *
-*@author Olivier Deruelle <deruelle@antd.nist.gov>
+*@author Olivier Deruelle
 *@author M. Ranganathan   <br/>
 *
 *
@@ -96,7 +96,7 @@ public class PhoneField extends SDPField implements javax.sdp.Phone {
     /**
      *  Get the string encoded version of this object
      * @since v1.0
-     * Here, we implement only the "name <phoneNumber>" form
+     * Here, we implement only the "name &lt;phoneNumber&gt;" form
      * and not the "phoneNumber (name)" form
      */
     public String encode() {

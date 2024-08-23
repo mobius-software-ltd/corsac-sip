@@ -43,7 +43,7 @@ package gov.nist.javax.sip.header.ims;
  * registration-state-param   = "regstate" EQUAL "unreg" / "reg"
  * orig-cdiv                  = "orig-cdiv"
  * 
- * Eg: P-Served-User: <sip:aayush@rancore.com>; sescase=orig; regstate=reg
+ * Eg: P-Served-User: &lt;sip:aayush@rancore.com&gt; sescase=orig; regstate=reg
  *
  * Added RFC 8498 support
  */

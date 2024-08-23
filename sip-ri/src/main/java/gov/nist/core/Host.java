@@ -44,12 +44,8 @@ import java.net.*;
  * @version 1.2
  *
  * @author M. Ranganathan
- * @author Emil Ivov <emil_ivov@yahoo.com> IPV6 Support. <br/>
- *
- *
- *
-
- * Marc Bednarek <bednarek@nist.gov> (Bugfixes).<br/>
+ * @author Emil Ivov mailto:emil_ivov@yahoo.com
+ * @author Marc Bednarek mailto:bednarek@nist.gov
  *
  */
 public class Host extends GenericObject {
@@ -280,7 +276,7 @@ public class Host extends GenericObject {
      * Caches the inet address returned from dns lookup to avoid
      * lookup delays.
      *
-     *@throws UnkownHostexception when the host name cannot be resolved.
+     *@throws java.net.UnknownHostException when the host name cannot be resolved.
      */
     public InetAddress getInetAddress() throws java.net.UnknownHostException {
         if (hostname == null)

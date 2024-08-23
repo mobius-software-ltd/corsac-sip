@@ -63,7 +63,7 @@ public interface DialogExt extends Dialog {
    * Request, Transactions, Any unused timers etc. This will significantly reduce memory
    * consumption under high load
    * 
-   * @param releaseReferences
+   * @param releaseReferencesStrategy
    * 
    * @since 2.0
    */
@@ -89,7 +89,7 @@ public interface DialogExt extends Dialog {
   public boolean isForked();
 
   /**
-   * @see {@link #isForked()}
+   * see {@link #isForked()}
    * 
    * @return The original dialog.
    */

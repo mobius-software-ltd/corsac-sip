@@ -137,14 +137,14 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * integration with logging frameworks and for custom formatting of log records.
  * </b> Log valid incoming messages here. If this is left null AND the
  * TRACE_LEVEL is above INFO (or TRACE) then the messages are printed to stdout.
- * <font color=red> Mail this to us with bug reports. </font></li>
+ * <span style="color:red"> Mail this to us with bug reports. </span></li>
  *
  * <li><b>gov.nist.javax.sip.DEBUG_LOG = fileName </b> <b> Use of this property
  * is still supported but deprecated. Please use gov.nist.javax.sip.STACK_LOGGER
  * and gov.nist.javax.sip.SERVER_LOGGER for integration with logging frameworks
  * and for custom formatting of log records. </b> <br/>
- * Where the debug log goes. <font color=red> Mail this to us with bug reports.
- * </font></li>
+ * Where the debug log goes. <span style="color:red"> Mail this to us with bug reports.
+ * </span></li>
  *
  * <li><b>gov.nist.javax.sip.LOG_MESSAGE_CONTENT = true|false </b><br/>
  * Set true if you want to capture content into the log. Default is false. A bad
@@ -172,9 +172,9 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  *
  * <li><b>gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING = [true|false] </b>
  * <br/>
- * Default is <it>true</it>. This is also settable on a per-provider basis. This
+ * Default is <i>true</i>. This is also settable on a per-provider basis. This
  * flag is set to true by default. When set
- * to <it>false</it> the following behaviors are enabled:
+ * to <i>false</i> the following behaviors are enabled:
  * <ul>
  *
  * <li>Turn off Merged requests Loop Detection:<br/>
@@ -188,10 +188,10 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * </ul>
  *
  * <li><b>gov.nist.javax.sip.IS_BACK_TO_BACK_USER_AGENT = [true|false] </b> <br/>
- * Default is <it>false</it> This property controls a setting on the Dialog
+ * Default is <i>false</i> This property controls a setting on the Dialog
  * objects that the stack manages. Pure B2BUA applications should set this flag
- * to <it>true</it>. This property can also be set on a per-dialog basis.
- * Setting this to <it>true</it> imposes serialization on re-INVITE and makes
+ * to <i>true</i>. This property can also be set on a per-dialog basis.
+ * Setting this to <i>true</i> imposes serialization on re-INVITE and makes
  * the sending of re-INVITEs asynchronous. The sending of re-INVITE is
  * controlled as follows : If the previous in-DIALOG request was an invite
  * ClientTransaction then the next re-INVITEs that uses the dialog will wait
@@ -306,10 +306,10 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  *
  * <li><b>gov.nist.javax.sip.DELIVER_TERMINATED_EVENT_FOR_ACK = [true|false]</b>
  * <br/>
- * Default is <it>false</it>. ACK Server Transaction is a Pseuedo-transaction.
+ * Default is <i>false</i>. ACK Server Transaction is a Pseuedo-transaction.
  * If you want termination notification on ACK transactions (so all server
  * transactions can be handled uniformly in user code during cleanup), then set
- * this flag to <it>true</it>.</li>
+ * this flag to <i>true</i>.</li>
  *
  * <li><b>gov.nist.javax.sip.READ_TIMEOUT = integer </b> <br/>
  * This is relevant for incoming TCP connections to prevent starvation at the
@@ -324,7 +324,7 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * This is relevant for outgoing TCP connections to prevent long Thread blocks.
  * This defines the timeout in milliseconds the stack will wait to open
  * a TCP connection before giving up.Default value is 10000</li>
- *  *
+ * 
  * <li><b>gov.nist.javax.sip.NETWORK_LAYER = classpath </b> <br/>
  * This is an EXPERIMENTAL property (still under active devlopment). Defines a
  * network layer that allows a client to have control over socket allocations
@@ -371,10 +371,10 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * <li><b>gov.nist.javax.sip.NIO_BLOCKING_MODE = String </b> <br/>
  * Defines the blocking mode for the NioMessageFactory. By default it will be set
  * as "BLOCKING". Set to "NONBLOCKING" for nonBlocking connect behavior
- * </li> *
+ * </li>
  *
  * <li><b>gov.nist.javax.sip.stack.USE_DIRECT_BUFFERS = [true|false]</b> <br/>
- * Default is <it>true</it> If set to <it>false</it>, the NIO stack won't use direct buffers.
+ * Default is <i>true</i> If set to <i>false</i>, the NIO stack won't use direct buffers.
  * As Direct buffers reside outside of the heap memory, they can lead to unforeseen out of memory exceptions
  * as seen in http://java.net/jira/browse/JSIP-430. This flag allows to use non direct buffers for better memory
  * monitoring and management.
@@ -382,17 +382,17 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  *
  * <li><b>gov.nist.javax.sip.COMPUTE_CONTENT_LENGTH_FROM_MESSAGE_BODY =
  * [true|false] </b> <br/>
- * Default is <it>false</it> If set to <it>true</it>, when you are creating a
- * message from a <it>String</it>, the MessageFactory will compute the content
+ * Default is <i>false</i> If set to <i>true</i>, when you are creating a
+ * message from a <i>String</i>, the MessageFactory will compute the content
  * length from the message content and ignore the provided content length
  * parameter in the Message. Otherwise, it will use the content length supplied
  * and generate a parse exception if the content is truncated.
  *
  * <li><b>gov.nist.javax.sip.CANCEL_CLIENT_TRANSACTION_CHECKED = [true|false]
  * </b> <br/>
- * Default is <it>true</it>. This flag is added in support of load balancers or
+ * Default is <i>true</i>. This flag is added in support of load balancers or
  * failover managers where you may want to cancel ongoing transactions from a
- * different stack than the original stack. If set to <it>false</it> then the
+ * different stack than the original stack. If set to <i>false</i> then the
  * CANCEL client transaction is not checked for the existence of the INVITE or
  * the state of INVITE when you send the CANCEL request. Hence you can CANCEL an
  * INVITE from a different stack than the INVITE. You can also create a CANCEL
@@ -401,10 +401,10 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * flag to true ( default ) enables you to avoid common protocol errors.</li>
  *
  * <li><b>gov.nist.javax.sip.IS_BACK_TO_BACK_USER_AGENT = [true|false] </b> <br/>
- * Default is <it>false</it> This property controls a setting on the Dialog
+ * Default is <i>false</i> This property controls a setting on the Dialog
  * objects that the stack manages. Pure B2BUA applications should set this flag
- * to <it>true</it>. This property can also be set on a per-dialog basis.
- * Setting this to <it>true</it> imposes serialization on re-INVITE and makes
+ * to <i>true</i>. This property can also be set on a per-dialog basis.
+ * Setting this to <i>true</i> imposes serialization on re-INVITE and makes
  * the sending of re-INVITEs asynchronous. The sending of re-INVITE is
  * controlled as follows : If the previous in-DIALOG request was an invite
  * ClientTransaction then the next re-INVITEs that uses the dialog will wait
@@ -415,14 +415,14 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  *
  *
  * <li><b>gov.nist.javax.sip.RECEIVE_UDP_BUFFER_SIZE = int </b> <br/>
- * Default is <it>8*1024</it>. This property control the size of the UDP buffer
+ * Default is <i>8*1024</i>. This property control the size of the UDP buffer
  * used for SIP messages. Under load, if the buffer capacity is overflown the
  * messages are dropped causing retransmissions, further increasing the load and
  * causing even more retransmissions. Good values to this property for servers
  * is a big number in the order of 8*8*1024.</li>
  *
  * <li><b>gov.nist.javax.sip.SEND_UDP_BUFFER_SIZE = int </b> <br/>
- * Default is <it>8*1024</it>. This property control the size of the UDP buffer
+ * Default is <i>8*1024</i>. This property control the size of the UDP buffer
  * used for SIP messages. Under load, if the buffer capacity is overflown the
  * messages are dropped causing retransmissions, further increasing the load and
  * causing even more retransmissions. Good values to this property for servers
@@ -470,12 +470,12 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * </li>
  *
  * <li><b>gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY = [true|false] </b> <br/>
- * Default is <it>false</it>. This flag is added to allow Sip Listeners to
+ * Default is <i>false</i>. This flag is added to allow Sip Listeners to
  * receive all NOTIFY requests including those that are not part of a valid
  * dialog.</li>
  *
  * <li><b>gov.nist.javax.sip.REJECT_STRAY_RESPONSES = [true|false] </b> Default
- * is <it>false</it> A flag that checks responses to test whether the response
+ * is <i>false</i> A flag that checks responses to test whether the response
  * corresponds to a via header that was previously generated by us. Note that
  * setting this flag implies that the stack will take control over setting the
  * VIA header for Sip Requests sent through the stack. The stack will attach a
@@ -530,10 +530,10 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * </li>
  * <li><b>gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS=boolean</b>
  * A property that specify wether to patch websocket client with .invalid address
- * <ul>
+ * </li>
  * <li><b>gov.nist.javax.sip.ALWAYS_ADD_RPORT=boolean</b>
  * A property that specify wether to putch the rport if the peer packet source port is different than the via header one
- * <ul>
+ * </li>
  * <li><b>gov.nist.javax.sip.LINGER_TIMER=int</b>
  *  A property that will specify for how many seconds the Dialog and Transaction structures will stay in memory before the stack releases them</li>
  *
@@ -605,7 +605,7 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  *
  *
  * <li><b>javax.net.ssl.keyStore = fileName </b> <br/>
- * Default is <it>NULL</it>. If left undefined the keyStore and trustStore will
+ * Default is <i>NULL</i>. If left undefined the keyStore and trustStore will
  * be left to the java runtime defaults. If defined, any TLS sockets created
  * (client and server) will use the key store provided in the fileName. The
  * trust store will default to the same store file. A password must be provided
@@ -2014,9 +2014,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	 *
 	 * <b>NOTE: This function must be called before adding a TLS listener</b>
 	 *
-	 * @param String
-	 *            [] The new set of ciphers to support.
-	 * @return
+	 * @param newCipherSuites The new set of ciphers to support.
 	 *
 	 */
 	public void setEnabledCipherSuites(String[] newCipherSuites) {
@@ -2047,9 +2045,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	 *
 	 * <b>NOTE: This function must be called before creating a TLSMessageChannel.</b>
 	 *
-	 * @param String
-	 *            [] The new set of protocols to use for outgoing TLS connections.
-	 * @return
+	 * @param newProtocols The new set of protocols to use for outgoing TLS connections.
 	 *
 	 */
 	public void setEnabledProtocols(String[] newProtocols) {

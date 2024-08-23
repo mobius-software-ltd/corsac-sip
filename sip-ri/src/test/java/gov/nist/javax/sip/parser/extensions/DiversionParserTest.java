@@ -35,9 +35,9 @@ public class DiversionParserTest extends ParserTestCase {
 	        assertNotNull(diversion);
 
 	        assertEquals("busy", diversion.getReason());
-	        assertEquals("4", diversion.getLimit());
+	        assertEquals(Integer.valueOf(4), diversion.getLimit());
 	        assertEquals("conditionally", diversion.getPrivacy());
-	        assertEquals("2", diversion.getCounter());
+	        assertEquals(Integer.valueOf(2), diversion.getCounter());
 	        assertEquals("yes", diversion.getScreen());
 
 	        // Test for a random parameter

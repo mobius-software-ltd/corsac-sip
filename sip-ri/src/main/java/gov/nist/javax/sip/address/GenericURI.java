@@ -66,7 +66,7 @@ public class GenericURI extends NetObject implements javax.sip.address.URI {
 
     /** Constructor given the URI string
      * @param uriString The imbedded URI string.
-     * @throws java.net.URISyntaxException When there is a syntaz error in the imbedded URI.
+     * @throws ParseException When there is a syntaz error in the imbedded URI.
      */
     public GenericURI(String uriString) throws ParseException {
         try {

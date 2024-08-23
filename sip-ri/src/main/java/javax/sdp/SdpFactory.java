@@ -13,11 +13,11 @@ import java.text.*;
  * SdpFactory can be used to construct a SessionDescription object
  * programmatically. The SdpFactory can also be used to construct a
  * SessionDescription based on the contents of a String. Acknowledgement: Bugs
- * reported by Brian J. Collins <bjcollins@rockwellcollins.com>. and by Majdi
- * Abuelbassal <majdi.abuelbassal@bbumail.com>. Please refer to IETF RFC 2327
+ * reported by Brian J. Collins mailto:bjcollins@rockwellcollins.com. and by Majdi
+ * Abuelbassal mailto:majdi.abuelbassal@bbumail.com. Please refer to IETF RFC 2327
  * for a description of SDP.
  *
- * @author Olivier Deruelle <olivier.deruelle@nist.gov>
+ * @author Olivier Deruelle
  * @author M. Ranganathan
  *
  *

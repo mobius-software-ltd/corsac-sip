@@ -68,7 +68,7 @@ public class WarningParser extends HeaderParser {
      * parse the String message
      *
      * @return SIPHeader (WarningList object)
-     * @throws SIPParseException
+     * @throws ParseException
      *             if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {

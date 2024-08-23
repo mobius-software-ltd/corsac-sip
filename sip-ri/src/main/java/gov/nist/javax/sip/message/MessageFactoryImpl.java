@@ -799,7 +799,7 @@ public class MessageFactoryImpl implements MessageFactoryExt {
      * This header is applied to all Messages created from this Factory object except those
      * that take String for an argument and create Message from the given String.
      *
-     * @param userAgent -- the user agent header to set.
+     * @param server -- the server header to set.
      *
      * @since 2.0
      */

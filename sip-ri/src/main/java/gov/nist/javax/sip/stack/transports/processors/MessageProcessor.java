@@ -127,9 +127,9 @@ public abstract class MessageProcessor  {
      * Initializes this MessageProcessor. Needed for extensions
      * that use classloading
      * 
-     * @param ipAddress2
+     * @param ipAddress
      * @param transactionStack
-     * @param port2
+     * @param port
      */
 	public final void initialize( InetAddress ipAddress, int port,
 			SIPTransactionStack transactionStack ) {

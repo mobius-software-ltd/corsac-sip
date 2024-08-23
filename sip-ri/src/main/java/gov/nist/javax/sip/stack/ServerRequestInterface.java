@@ -50,7 +50,7 @@ public interface ServerRequestInterface {
 
     /**
      * Process the message.  This incorporates a feature request
-     * by Salvador Rey Calatayud <salreyca@TELECO.UPV.ES>
+     * by Salvador Rey Calatayud mailto:salreyca@TELECO.UPV.ES
      * @param sipRequest is the incoming SIP Request.
      * @param  incomingChannel is the incoming message channel (parameter
      * added in response to a request by Salvador Rey Calatayud.)

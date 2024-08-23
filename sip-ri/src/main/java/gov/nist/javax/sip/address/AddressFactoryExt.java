@@ -27,14 +27,14 @@ import javax.sip.address.AddressFactory;
  * @author baranowb
  * @version 1.2
  */
-public interface AddressFactoryEx extends AddressFactory {
+public interface AddressFactoryExt extends AddressFactory {
 
 	/**
 	 * Creates SipURI instance from passed string. 
 	 * 
 	 * @param sipUri
 	 *            - uri encoded string, it has form of:
-	 *            <sips|sip>:username@host[:port]. NOTE: in case of IPV6, host must be
+	 *            &lt;sips|sip&gt;:username@host[:port]. NOTE: in case of IPV6, host must be
 	 *            enclosed within [].
 	 * @throws ParseException if the URI string is malformed. 
 	 */

@@ -60,7 +60,7 @@ public class ContentLanguageParser extends HeaderParser {
     /**
      * parse the ContentLanguageHeader String header
      * @return SIPHeader (ContentLanguageList object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
 

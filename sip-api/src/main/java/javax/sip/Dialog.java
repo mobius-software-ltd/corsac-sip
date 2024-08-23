@@ -585,7 +585,7 @@ public interface Dialog extends Serializable {
      *            the CSeq number to be placed in the ACK request.
      * @return The newly created ACK request message.
      * @throws InvalidArgumentException
-     *             if there is a problem with the supplied cseq ( for example <=
+     *             if there is a problem with the supplied cseq ( for example &lt;=
      *             0 ).
      * @throws SipException
      *             if the cseq does not relate to a previously sent INVITE or if

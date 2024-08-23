@@ -37,7 +37,7 @@ import javax.sdp.SdpParseException;
 *
 *@version  JSR141-PUBLIC-REVIEW (subject to change).
 *
-*@author Olivier Deruelle <deruelle@antd.nist.gov>
+*@author Olivier Deruelle
 *@author M. Ranganathan   <br/>
 *
 *
@@ -176,7 +176,7 @@ public class OriginField extends SDPField implements javax.sdp.Origin {
 
     /** Sets the unique identity of the session.
      * @param id  the session id.
-     * @throws SdpException if the id is <0
+     * @throws SdpException if the id is less then 0
      */
     public void setSessionId(long id) throws SdpException {
         if (id < 0)
@@ -186,7 +186,7 @@ public class OriginField extends SDPField implements javax.sdp.Origin {
     }
 
     /** Returns the unique version of the session.
-     * @throws SdpException
+     * @throws SdpParseException
      * @return the session version.
      */
     public long getSessionVersion() throws SdpParseException {
@@ -195,7 +195,7 @@ public class OriginField extends SDPField implements javax.sdp.Origin {
 
     /** Sets the unique version of the session.
      * @param version  the session version.
-     * @throws SdpException if the version is <0
+     * @throws SdpException if the version is less then 0
      */
     public void setSessionVersion(long version) throws SdpException {
         if (version < 0)

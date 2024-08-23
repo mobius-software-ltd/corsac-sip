@@ -150,7 +150,7 @@ public class DefaultRouter implements Router {
      *       if ( nextHop.hasLrParam() ) {
      *           // OK, use it
      *       } else {
-     *           nextHop = fixStrictRouting( req );        <--- Here, make the modifications as per RFC3261
+     *           nextHop = fixStrictRouting( req );        &lt;--- Here, make the modifications as per RFC3261
      *       }
      *   } else {
      *       // error: non-SIP URI not allowed in Route headers

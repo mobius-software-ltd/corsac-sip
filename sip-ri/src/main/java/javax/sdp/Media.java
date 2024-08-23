@@ -94,7 +94,7 @@ public interface Media extends Field {
      * Each element in this Vector will be an String value which matches one of
      * the a=rtpmap: attribute fields of the media description.
      * @param create to set
-     * @throws SdpException
+     * @throws SdpParseException
      * @return the Vector.
      */    
     public Vector<String> getMediaFormats(boolean create)

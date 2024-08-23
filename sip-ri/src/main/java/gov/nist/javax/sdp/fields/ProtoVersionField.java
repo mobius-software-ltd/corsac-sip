@@ -34,7 +34,7 @@ import javax.sdp.*;
 *
 *@version  JSR141-PUBLIC-REVIEW (subject to change).
 *
-*@author Olivier Deruelle <deruelle@antd.nist.gov>
+*@author Olivier Deruelle
 *@author M. Ranganathan   <br/>
 *
 *
@@ -73,7 +73,7 @@ public class ProtoVersionField extends SDPField implements javax.sdp.Version {
 
     /** Sets the version.
      * @param value the - new version value.
-     * @throws SdpException if the value is <=0
+     * @throws SdpException if the value is less then or equal to 0
      */
     public void setVersion(int value) throws SdpException {
         if (value < 0)

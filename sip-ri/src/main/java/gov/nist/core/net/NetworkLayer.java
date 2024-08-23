@@ -61,7 +61,7 @@ public interface NetworkLayer {
 
     /**
      * Creates an SSL server with the specified port, listen backlog, and local IP address to bind to.
-     * Added by Daniel J. Martinez Manzano <dani@dif.um.es>
+     * Added by Daniel J. Martinez Manzano mailto:dani@dif.um.es
      *
      * @param port
      * @param backlog
@@ -114,7 +114,7 @@ public interface NetworkLayer {
 
     /**
      * Creates a stream SSL socket and connects it to the specified port number at the specified IP address.
-     * Added by Daniel J. Martinez Manzano <dani@dif.um.es>
+     * Added by Daniel J. Martinez Manzano mailto: dani@dif.um.es
      *
      * @param address
      * @param port
@@ -124,7 +124,7 @@ public interface NetworkLayer {
 
     /**
      * Creates a stream SSL socket and connects it to the specified port number at the specified IP address.
-     * Added by Daniel J. Martinez Manzano <dani@dif.um.es>
+     * Added by Daniel J. Martinez Manzano mailto: dani@dif.um.es
      *
      * @param address
      * @param port

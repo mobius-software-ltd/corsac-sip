@@ -53,7 +53,7 @@ import gov.nist.javax.sip.address.GenericURI;
  * p-aso-uri-spec    = name-addr *(SEMI ai-param)
  * ai-param          = generic-param
  * name-addr         =   [display-name] angle-addr
- * angle-addr        =   [CFWS] "<" addr-spec ">" [CFWS] / obs-angle-addr
+ * angle-addr        =   [CFWS] "&lt;" addr-spec "&gt;" [CFWS] / obs-angle-addr
  * </pre>
  *
  * @author Miguel Freitas (IT) PT-Inovacao

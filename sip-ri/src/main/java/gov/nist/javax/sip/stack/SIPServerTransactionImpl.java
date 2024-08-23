@@ -80,7 +80,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  *                                                   send response+-----------+
  *                                                       +--------|           |--------+101-199 from TU
  *                                                       |        | Proceeding|        |send response
- *                                                       +------->|           |<-------+
+ *                                                       +------->|           |&lt;-------+
  *                                                                |           |          Transport Err.
  *                                                                |           |          Inform TU
  *                                                                |           |--------------->
@@ -93,7 +93,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  *                                                   send response+-----------+ send response  |
  *                                                       +--------|           |--------+       |
  *                                                       |        | Completed |        |       |
- *                                                       +------->|           |<-------+       |
+ *                                                       +------->|           |&lt;-------+       |
  *                                                                +-----------+                |
  *                                                                   |     |                   |
  *                                                               ACK |     |                   |
@@ -112,7 +112,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  *                                                                      V                      |
  *                                                                +-----------+                |
  *                                                                |           |                |
- *                                                                | Terminated|<---------------+
+ *                                                                | Terminated|&lt;---------------+
  *                                                                |           |
  *                                                                +-----------+
  *
@@ -1041,7 +1041,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     // so this method is used to resend the last response either as a response or
     // byte array depending on if it has been nullified
     /**
-     * @see gov.nist.javax.sip.stack.SIPServerTransaction#resendLastResponseAsBytes()
+     * @see resendLastResponseAsBytes(byte[] lastResponseAsBytes)
      */
     @Override
     public void resendLastResponse() throws IOException {
@@ -1324,7 +1324,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      * Create a Forked Dialog for a given a server tx and response 
      * in the context of B2BUA UAS Forking.
      *
-     * @param transaction
+     * @param clientResponse
      * @param newResponse
      * @return
      */

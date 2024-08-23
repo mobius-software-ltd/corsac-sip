@@ -57,13 +57,13 @@ public interface Origin extends Field {
     
     /** Sets the unique identity of the session.
      * @param id  the session id.
-     * @throws SdpException if the id is <0
+     * @throws SdpException if the id is less then 0
      */    
     public void setSessionId(long id)
                   throws SdpException;
     
     /** Returns the unique version of the session.
-     * @throws SdpException
+     * @throws SdpParseException
      * @return the session version.
      */    
     public long getSessionVersion()
@@ -71,7 +71,7 @@ public interface Origin extends Field {
     
     /** Sets the unique version of the session.
      * @param version  the session version.
-     * @throws SdpException if the version is <0
+     * @throws SdpException if the version is less then 0
      */    
     public void setSessionVersion(long version)
                        throws SdpException;

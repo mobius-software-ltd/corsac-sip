@@ -39,7 +39,7 @@ import javax.sip.message.Response;
  * 
  * It is useful for congestion control or header re-writing.
  * 
- * @author Vladimir Ralev <vralev@redhat.com>
+ * @author Vladimir Ralev mailto:vralev@redhat.com
  *
  */
 public interface SIPMessageValve {

@@ -108,7 +108,6 @@ public interface HeaderFactoryExt extends HeaderFactory {
      * @return newly created P-Associated-URI header
      * @throws NullPointerException
      *             if the supplied address is null
-     * @throws ParseException
      */
     public PAssociatedURIHeader createPAssociatedURIHeader(Address assocURI);
 
@@ -118,9 +117,7 @@ public interface HeaderFactoryExt extends HeaderFactory {
      * @param address -
      *            Address
      * @return newly created P-Called-Party-ID header
-     * @throws NullPointerException
-     * @throws ParseException
-     */
+    */
     public PCalledPartyIDHeader createPCalledPartyIDHeader(Address address);
 
     /**
@@ -169,8 +166,6 @@ public interface HeaderFactoryExt extends HeaderFactory {
      * PATH header
      * @param address - Address
      * @return newly created Path header
-     * @throws NullPointerException
-     * @throws ParseException
      */
     public PathHeader createPathHeader(Address address);
 
@@ -241,7 +236,7 @@ public interface HeaderFactoryExt extends HeaderFactory {
      * Create a P-User-Database header.
      * 
      * @return the newly created P-User-Database header
-     * @param the database name, that may be an IP:port or a domain name.
+     * @param databaseName the database name, that may be an IP:port or a domain name.
      */
     public PUserDatabaseHeader createPUserDatabaseHeader(String databaseName);
 
@@ -301,7 +296,7 @@ public interface HeaderFactoryExt extends HeaderFactory {
     /**
      * Create a Diversion header.
      * 
-     * @param URI -- the diverted URI.
+     * @param address -- the diverted URI.
      * 
      * @return the newly created Diversion header.
      */

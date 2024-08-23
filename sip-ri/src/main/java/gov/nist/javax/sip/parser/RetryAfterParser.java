@@ -62,7 +62,7 @@ public class RetryAfterParser extends HeaderParser {
     /**
      * parse the String message
      * @return SIPHeader (RetryAfter object)
-     * @throws SIPParseException if the message does not respect the spec.
+     * @throws ParseException if the message does not respect the spec.
      */
     public SIPHeader parse() throws ParseException {
 

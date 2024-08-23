@@ -34,7 +34,7 @@ import java.util.*;
 *    Media field SDP header.
 *@version  JSR141-PUBLIC-REVIEW (subject to change).
 *
-*@author Olivier Deruelle <deruelle@antd.nist.gov>
+*@author Olivier Deruelle
 *@author M. Ranganathan   <br/>
 *
 *
@@ -180,7 +180,7 @@ public class MediaField extends SDPField implements Media {
      * Each element in this Vector will be an String value which matches one of
      * the a=rtpmap: attribute fields of the media description.
      * @param create to set
-     * @throws SdpException
+     * @throws SdpParseException
      * @return the Vector.
      */
     public Vector<String> getMediaFormats(boolean create) throws SdpParseException {

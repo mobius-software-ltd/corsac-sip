@@ -22,7 +22,7 @@ import java.util.*;
  *
  * This is the referee
  *
- * @see RFC3515 http://www.ietf.org/rfc/rfc3515.txt
+ * RFC3515 http://www.ietf.org/rfc/rfc3515.txt
  *
  * @author Jeroen van Bemmel
  */

@@ -108,7 +108,7 @@ public interface ToHeader extends HeaderAddress, Parameters, Header {
      * however whan acting as a UAS the To "tag" is assigned by the application.
      * That is the tag assignment for outbound responses for messages in a
      * dialog is only the responsibility of the application for the first
-     * outbound response. If AUTOMATIC_DIALOG_SUPPORT is set to <it>on</it>
+     * outbound response. If AUTOMATIC_DIALOG_SUPPORT is set to <i>on</i>
      * (default behavior) then, after dialog establishment, the stack will take care
      * of the tag assignment. Null is acceptable as a tag value. Supplying null
      * for the tag results in a header without a tag.

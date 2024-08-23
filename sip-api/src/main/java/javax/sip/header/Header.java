@@ -55,14 +55,13 @@ import java.io.Serializable;
  *<b>Header Handling</b>:<br>
  * Any SIP header whose grammar is of the form:
  * <br>
- * <center>header  =  "header-name" HCOLON header-value *(COMMA header-value)
- * </center>
+ * header  =  "header-name" HCOLON header-value *(COMMA header-value)
  * <br>
  * allows for combining header fields of the same name into a comma-separated
  * list. In this specification each Header object has a single value or attribute pair. 
  * For example a Header whose grammer is of the form:
  * <br> 
- * <center>Allow: Invite, Bye;</center>
+ * Allow: Invite, Bye;
  * <br>
  * would be represented in a SIP message with two AllowHeader objects each 
  * containing a single attribute, Invite and Bye respectively. Implementations 

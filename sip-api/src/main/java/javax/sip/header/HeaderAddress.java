@@ -28,8 +28,8 @@ import javax.sip.address.Address;
  * values for any header that contains a Address value. 
  * <p>
  * When the header field value contains a display name encapsulated in the
- * Address, the URI including all URI parameters is enclosed in "<" and ">".
- * If no "<" and ">" are present, all parameters after the URI are header
+ * Address, the URI including all URI parameters is enclosed in "&lt;" and "&gt;".
+ * If no "&lt;" and "&gt;" are present, all parameters after the URI are header
  * parameters, not URI parameters. The display name can be tokens, or a
  * quoted string, if a larger character set is desired.
  *

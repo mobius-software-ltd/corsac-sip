@@ -55,7 +55,6 @@ public interface SipURIExt extends SipURI {
     /**
      * Sets the <code>lr</code> parameter.
      *
-     * @param value -- the lr param value.
      *
      * @since 2.0
      */
@@ -67,7 +66,7 @@ public interface SipURIExt extends SipURI {
      * pname             =  1*paramchar
      * pvalue            =  1*paramchar
      * paramchar         =  param-unreserved / unreserved / escaped
-     * param-unreserved  =  "[" / "]" / "/" / ":" / "&" / "+" / "$"
+     * param-unreserved  =  "[" / "]" / "/" / ":" / "&amp;" / "+" / "$"
      * @param name
      * @param value contains chars not escaped following RFC3261 rules
      */

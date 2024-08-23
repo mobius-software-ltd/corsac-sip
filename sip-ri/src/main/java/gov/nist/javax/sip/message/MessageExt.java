@@ -53,7 +53,6 @@ public interface MessageExt extends Message {
      * then the list will have a single element in it. 
      * 
      * @since v2.0
-     * @param Message message
      * @throws ParseException if the content type is multipart mime but the content
      *  is not properly encoded.
      *  

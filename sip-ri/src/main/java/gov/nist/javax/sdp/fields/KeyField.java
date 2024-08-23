@@ -37,7 +37,7 @@ import javax.sdp.*;
 *
 *@version  JSR141-PUBLIC-REVIEW (subject to change)
 *
-*@author Oliver Deruelle <deruelle@antd.nist.gov>
+*@author Oliver Deruelle mailto: deruelle@antd.nist.gov
 *@author M. Ranganathan   <br/>
 */
 public class KeyField extends SDPField implements javax.sdp.Key {

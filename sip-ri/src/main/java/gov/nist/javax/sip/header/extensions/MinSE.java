@@ -19,7 +19,7 @@ import javax.sip.header.ExtensionHeader;
  *
  * @version JAIN-SIP-1.1 $Revision: 1.5 $ $Date: 2010-05-06 14:07:56 $
  *
- * @author P. Musgrave <pmusgrave@newheights.com>  <br/>
+ * @author P. Musgrave mailto:pmusgrave@newheights.com
  *
  */
 public class MinSE
