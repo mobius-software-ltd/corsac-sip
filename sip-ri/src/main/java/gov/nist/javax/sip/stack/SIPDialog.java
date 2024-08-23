@@ -3250,11 +3250,8 @@ public class SIPDialog implements DialogExt {
                          * Guard aginst slipping back into early state from
                          * confirmed state.
                          */
-                        // Was (sipResponse.getToTag() != null ||
-                        // sipStack.rfc2543Supported)
                         setState(SIPDialog.EARLY_STATE);
-                        if ((sipResponse.getToTag() != null || sipStack.rfc2543Supported)
-                                && this.getRemoteTag() == null) {
+                        if (sipResponse.getToTag() != null && this.getRemoteTag() == null) {
                             setRemoteTag(sipResponse.getToTag());
                             this.setDialogId(sipResponse.getDialogId(false));
                             sipStack.putDialog(this);
@@ -3269,8 +3266,7 @@ public class SIPDialog implements DialogExt {
                          * target can also change as a result of the forking.
                          */
                         if (cseqMethod.equals(getMethod())
-                                && transaction != null
-                                && (sipResponse.getToTag() != null || sipStack.rfc2543Supported)) {
+                                && transaction != null && sipResponse.getToTag() != null) {
                             setRemoteTag(sipResponse.getToTag());
                             this.setDialogId(sipResponse.getDialogId(false));
                             sipStack.putDialog(this);
@@ -3290,7 +3286,7 @@ public class SIPDialog implements DialogExt {
                                                     + this.pendingRouteUpdateOn202Response);
                         }
                         if (cseqMethod.equals(getMethod())
-                                && (sipResponse.getToTag() != null || sipStack.rfc2543Supported)
+                                && sipResponse.getToTag() != null
                                 && (this.getState() != DialogState.CONFIRMED || (this
                                         .getState() == DialogState.CONFIRMED
                                         && cseqMethod

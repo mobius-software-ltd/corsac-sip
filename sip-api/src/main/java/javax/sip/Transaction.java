@@ -123,8 +123,8 @@ public interface Transaction extends Serializable{
     /**
      * Returns a unique branch identifer that identifies this transaction. The
      * branch identifier is used in the ViaHeader. The uniqueness property of 
-     * the branch ID parameter to facilitate its use as a transaction ID, was 
-     * not part of RFC 2543. The branch ID inserted by an element compliant 
+     * the branch ID parameter to facilitate its use as a transaction ID. 
+     * The branch ID inserted by an element compliant 
      * with the RFC3261 specification MUST always begin with the characters 
      * "z9hG4bK". These 7 characters are used as a magic cookie, so that 
      * servers receiving the request can determine that the branch ID was 

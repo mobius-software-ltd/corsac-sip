@@ -89,14 +89,6 @@ public class Via
      */
     protected HostPort sentBy;
 
-    /**
-     * comment field
-     *
-     * JvB note: RFC3261 does not allow a comment to appear in Via headers, and this
-     * is not accessible through the API. Suggest removal
-     */
-    protected String comment;
-
     /** Default constructor
     */
     public Via() {
@@ -166,15 +158,6 @@ public class Via
         return parameters;
     }
 
-    /**
-     * Accessor for the comment field.
-     * @return comment field.
-     * @deprecated RFC 2543 support feature.
-     */
-    public String getComment() {
-        return comment;
-    }
-
 
 
     /** port of the Via Header.
@@ -184,24 +167,10 @@ public class Via
         return (getSentBy()).hasPort();
     }
 
-    /** comment of the Via Header.
-     *
-     * @return false if comment does not exist and true otherwise.
-     */
-    public boolean hasComment() {
-        return comment != null;
-    }
-
     /** remove the port.
      */
     public void removePort() {
         sentBy.removePort();
-    }
-
-    /** remove the comment field.
-     */
-    public void removeComment() {
-        comment = null;
     }
 
     /** set the Protocol Version
@@ -239,15 +208,6 @@ public class Via
         sentBy = s;
     }
 
-    /**
-     * Set the comment member
-     * @param c String to set.
-     * @deprecated This is an RFC 2543 feature.
-     */
-    public void setComment(String c) {
-        comment = c;
-    }
-
     /** Encode the body of this header (the stuff that follows headerName).
      * A.K.A headerValue.
      */
@@ -262,9 +222,6 @@ public class Via
         if (!parameters.isEmpty()) {
             buffer.append(SEMICOLON);
             parameters.encode(buffer);
-        }
-        if (comment != null) {
-            buffer.append(SP).append(LPAREN).append(comment).append(RPAREN);
         }
         return buffer;
     }

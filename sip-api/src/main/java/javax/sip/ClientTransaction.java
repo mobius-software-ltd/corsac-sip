@@ -102,8 +102,7 @@ public interface ClientTransaction extends Transaction {
      * Note that both the transaction corresponding to the original request and
      * the CANCEL transaction will complete independently.  However, a UAC
      * canceling a request cannot rely on receiving a 487 (Request Terminated)
-     * response for the original request, as an RFC 2543 compliant UAS will
-     * not generate such a response. Therefore if there is no final response for
+     * response for the original request. Therefore if there is no final response for
      * the original request the application will receieve a TimeoutEvent with
      * {@link javax.sip.Timeout#TRANSACTION} and the client should then consider the
      * original transaction cancelled.

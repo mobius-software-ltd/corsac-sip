@@ -136,7 +136,6 @@ public abstract class Parser extends ParserCore implements TokenTypes {
  * Obtained from:
  * Submitted by:
  * Reviewed by:   mranga
- * rfc 2543 transaction matching. fix for MESSAGE request type parsing.
  * CVS: ----------------------------------------------------------------------
  * CVS: Issue number:
  * CVS:   If this change addresses one or more issues,

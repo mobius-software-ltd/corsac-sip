@@ -474,8 +474,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
      * JvB: this is now duplicate with code in the other processResponse
      * 
      * if (dialog != null && transactionResponse.getStatusCode() != 100 &&
-     * (transactionResponse.getTo().getTag() != null || sipStack
-     * .isRfc2543Supported())) { //
+     * (transactionResponse.getTo().getTag() != null) { //
      * add the route before you process the response. dialog.setLastResponse(this,
      * transactionResponse); this.setDialog(dialog,
      * transactionResponse.getDialogId(false)); }
@@ -1482,7 +1481,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     if (dialog == null) {
       if ((code > 100 && code < 300)
           /* skip 100 (may have a to tag */
-          && (sipResponse.getToTag() != null || sipStack.isRfc2543Supported())
+          && sipResponse.getToTag() != null
           && SIPTransactionStack.isDialogCreatingMethod(method)) {
 
         /*

@@ -923,15 +923,14 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
      * Generate (compute) a transaction ID for this SIP message.
      *
      * @return A string containing the concatenation of various portions of the
-     * From,To,Via and RequestURI portions of this message as specified in RFC
-     * 2543: All responses to a request contain the same values in the Call-ID,
-     * CSeq, To, and From fields (with the possible addition of a tag in the To
-     * field (section 10.43)). This allows responses to be matched with
-     * requests. Incorporates a bug fix for a bug sent in by Gordon Ledgard of
-     * IPera for generating transactionIDs when no port is present in the via
-     * header. Incorporates a bug fix for a bug report sent in by Chris Mills of
-     * Nortel Networks (converts to lower case when returning the transaction
-     * identifier).
+     * From,To,Via and RequestURI portions of this message: All responses to a request 
+     * contain the same values in the Call-ID,CSeq, To, and From fields (with the 
+     * possible addition of a tag in the To field (section 10.43)). This allows 
+     * responses to be matched with requests. Incorporates a bug fix for a bug sent 
+     * in by Gordon Ledgard of IPera for generating transactionIDs when no port is 
+     * present in the via header. Incorporates a bug fix for a bug report sent in by 
+     * Chris Mills of Nortel Networks (converts to lower case when returning the 
+     * transaction identifier).
      *
      * @return a string that can be used as a transaction identifier for this
      * message. This can be used for matching responses and requests (i.e. an

@@ -1042,21 +1042,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
 //            topViaHeader = (Via) viaHeaders.getFirst();
             messageBranch = topViaHeader.getBranch();
-            if (messageBranch != null) {
-
-                // If the branch parameter exists but
-                // does not start with the magic cookie,
-                if (!messageBranch.toLowerCase().startsWith(SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
-
-                    // Flags this as old
-                    // (RFC2543-compatible) client
-                    // version
-                    messageBranch = null;
-
-                }
-
-            }
-
+            
             // If a new branch parameter exists,
             if (messageBranch != null && this.getBranch() != null) {
 
@@ -1070,32 +1056,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
                         logger.logDebug("returning  true");
                 }
 
-            } else {
-                // If this is an RFC2543-compliant message,
-                // If RequestURI, To tag, From tag,
-                // CallID, CSeq number, and top Via
-                // headers are the same,
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                    logger.logDebug("testing against "
-                            + origRequest);
-
-                if (origRequest.getRequestURI().equals(
-                        requestToTest.getRequestURI())
-                        && origRequest.getTo().equals(
-                                requestToTest.getTo())
-                        && origRequest.getFrom().equals(
-                                requestToTest.getFrom())
-                        && origRequest.getCallId().getCallId().equals(
-                                requestToTest.getCallId().getCallId())
-                        && origRequest.getCSeq().getSeqNumber() == requestToTest
-                                .getCSeq().getSeqNumber()
-                        && topViaHeader.equals(origRequest.getTopmostVia())) {
-
-                    transactionMatches = true;
-                }
-
             }
-
         }
 
         return transactionMatches;

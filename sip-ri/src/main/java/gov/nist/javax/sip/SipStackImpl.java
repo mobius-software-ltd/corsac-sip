@@ -1407,10 +1407,6 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
                         this.cipherSuites = newCipherSuites;
 		}
 
-		super.rfc2543Supported = configurationProperties.getProperty(
-				"gov.nist.javax.sip.RFC_2543_SUPPORT_ENABLED", "false")
-				.equalsIgnoreCase("true");
-
 		super.setPatchWebSocketHeaders(Boolean.parseBoolean(configurationProperties.getProperty(
 				"gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS", "true")));
 

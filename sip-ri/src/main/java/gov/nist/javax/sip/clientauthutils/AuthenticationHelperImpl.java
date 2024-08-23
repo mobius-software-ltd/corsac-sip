@@ -214,7 +214,7 @@ public class AuthenticationHelperImpl implements AuthenticationHelper {
 
 
             /* Resolve this to the next hop based on the previous lookup. If we are not using
-             * lose routing (RFC2543) then just attach hop as a maddr param.
+             * lose routing then just attach hop as a maddr param.
              */
             if (!looseRouting && challengedRequest.getRouteHeaders() == null ) {
                 Hop hop   = ((SIPClientTransaction) challengedTransaction).getNextHop();

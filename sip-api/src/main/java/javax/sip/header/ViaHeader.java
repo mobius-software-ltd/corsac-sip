@@ -44,13 +44,9 @@ import javax.sip.InvalidArgumentException;
  * have the same branch ID as the INVITE whose response it acknowledges.
  * <p>
  * The uniqueness property of the branch ID parameter, to facilitate its use as
- * a transaction ID, was not part of RFC 2543. The branch ID inserted by an
+ * a transaction ID. The branch ID inserted by an
  * element compliant with this specification MUST always begin with the
- * characters "z9hG4bK". These 7 characters are used as a magic cookie (7 is
- * deemed sufficient to ensure that an older RFC 2543 implementation would not
- * pick such a value), so that servers receiving the request can determine that
- * the branch ID was constructed in the fashion described by this specification
- * (that is, globally unique). Beyond this requirement, the precise format of
+ * characters "z9hG4bK". Beyond this requirement, the precise format of
  * the branch token is implementation-defined. JSIP defines a convenience 
  * function to generate unique branch identifiers at 
  * {@link javax.sip.Transaction#getBranchId()}

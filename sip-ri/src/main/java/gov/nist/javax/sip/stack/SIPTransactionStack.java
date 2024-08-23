@@ -357,13 +357,6 @@ public abstract class SIPTransactionStack implements
     // Max time that a Non INVITE tx is allowed to live in the stack. Default is infinity
     protected int maxTxLifetimeNonInvite;
 
-    // A flag that indicates whether or not RFC 2543 clients are fully
-    // supported.
-    // If this is set to true, then To tag checking on the Dialog layer is
-    // disabled in a few places - resulting in possible breakage of forked
-    // dialogs.
-    protected boolean rfc2543Supported = true;
-
     // / Provides a mechanism for applications to check the health of threads in
     // the stack
     protected ThreadAuditor threadAuditor = null;
@@ -1367,20 +1360,7 @@ public abstract class SIPTransactionStack implements
                         return retval;
                     }
 
-                }
-                // Need to scan the table for old style transactions (RFC 2543
-                // style)
-                Iterator<SIPServerTransaction> it = getAllServerTransactions().iterator();
-                while (it.hasNext()) {
-                    SIPServerTransaction sipServerTransaction = (SIPServerTransaction) it
-                            .next();
-                    if (sipServerTransaction
-                            .isMessagePartOfTransaction(sipMessage)) {
-                        retval = sipServerTransaction;
-                        return retval;
-                    }
-                }
-
+                }                
             } else {
                 Via via = sipMessage.getTopmostVia();
                 if (via.getBranch() != null) {
@@ -1394,21 +1374,7 @@ public abstract class SIPTransactionStack implements
                         return retval;
                     }
 
-                }
-                // Need to scan the table for old style transactions (RFC 2543
-                // style). This is terribly slow but we need to do this
-                // for backasswords compatibility.
-                Iterator<SIPClientTransaction> it = getAllClientTransactions().iterator();
-                while (it.hasNext()) {
-                    SIPClientTransaction clientTransaction = (SIPClientTransaction) it
-                            .next();
-                    if (clientTransaction
-                            .isMessagePartOfTransaction(sipMessage)) {
-                        retval = clientTransaction;
-                        return retval;
-                    }
-                }
-
+                }                
             }
         } finally {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -3068,11 +3034,6 @@ public abstract class SIPTransactionStack implements
      */
     public int getActiveClientTransactionCount() {
         return activeClientTransactionCount.get();
-    }
-
-    public boolean isRfc2543Supported() {
-
-        return this.rfc2543Supported;
     }
 
     public boolean isCancelClientTransactionChecked() {

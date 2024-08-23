@@ -104,38 +104,7 @@ public class ViaParser extends HeaderParser {
             }
             v.setParameter(nameValue);
             this.lexer.SPorHT();
-        }
-
-        //
-        // JvB Note: RFC3261 does not allow a comment in Via headers anymore
-        //
-        if (lexer.lookAhead(0) == '(') {
-            this.lexer.selectLexer("charLexer");
-            lexer.consume(1);
-            StringBuilder comment = new StringBuilder();
-            while (true) {
-                char ch = lexer.lookAhead(0);
-                if (ch == ')') {
-                    lexer.consume(1);
-                    break;
-                } else if (ch == '\\') {
-                    // Escaped character
-                    Token tok = lexer.getNextToken();
-                    comment.append(tok.getTokenValue());
-                    lexer.consume(1);
-                    tok = lexer.getNextToken();
-                    comment.append(tok.getTokenValue());
-                    lexer.consume(1);
-                } else if (ch == '\n') {
-                    break;
-                } else {
-                    comment.append(ch);
-                    lexer.consume(1);
-                }
-            }
-            v.setComment(comment.toString());
-        }
-
+        }        
     }
 
     /**
