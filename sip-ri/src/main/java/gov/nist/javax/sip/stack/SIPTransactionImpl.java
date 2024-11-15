@@ -147,7 +147,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     protected transient SIPStackTimerTask timeoutTimer;
     protected transient SIPStackTimerTask retransmissionTimer;
-    protected transient int timeoutTickCount;
+    protected transient boolean timeoutTimerEnabled;
     protected AtomicBoolean timeoutTimerStarted = new AtomicBoolean(false);
     protected AtomicBoolean retransmissionTimerStarted = new AtomicBoolean(false);
 
@@ -658,6 +658,13 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         }
     }
 
+    protected void setTimeoutTimerActive() {
+    	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+            logger.logDebug("settingTimeoutTimerActive " + this);
+
+    	this.timeoutTimerEnabled = true;
+    }
+    
     /**
      * Enables a timeout event to occur for this transaction after the number of
      * ticks passed to this method.
@@ -670,19 +677,16 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             logger.logDebug("enableTimeoutTimer " + this
                     + " tickCount " + tickCount);
 
-        startTimeoutTimer(tickCount);
-    }
-    
-    protected void startTimeoutTimer(int tickCount) {
-    	this.timeoutTickCount = tickCount;
         if(timeoutTimer!=null) {
         	getSIPStack().getTimer().cancel(timeoutTimer);
         	timeoutTimer = null;
         }
         
-        timeoutTimer = getTimeoutTimer();
-        if(timeoutTimer!=null)
-        	getSIPStack().getTimer().schedule(timeoutTimer,tickCount*getBaseTimerInterval());
+        if(timeoutTimerEnabled) {
+        	timeoutTimer = getTimeoutTimer();
+        	if(timeoutTimer!=null)
+        		getSIPStack().getTimer().schedule(timeoutTimer,tickCount*getBaseTimerInterval());
+        }
     }
 
     /**
@@ -823,19 +827,16 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         // that was specified when the transaction was
         // created. Bug was noted by Bruce Evangelder
         // soleo communications.
-        try {
-        	final RawMessageChannel channel = (RawMessageChannel) encapsulatedChannel;
-            //check for self routing
-            MessageProcessor messageProcessor = sipStack.findMessageProcessor(this.getPeerAddress(), this.getPeerPort(), this.getPeerProtocol());
-            if(messageProcessor != null) {
-                sipStack.selfRouteMessage(channel, messageToSend);                
-            } else {
-                encapsulatedChannel.sendMessage(messageToSend,
-                    this.getPeerInetAddress(), this.getPeerPort());
-            }        
-        } finally {
-            this.enableTimeoutTimer(T1);
-        }
+    	this.setTimeoutTimerActive();
+    	final RawMessageChannel channel = (RawMessageChannel) encapsulatedChannel;
+        //check for self routing
+        MessageProcessor messageProcessor = sipStack.findMessageProcessor(this.getPeerAddress(), this.getPeerPort(), this.getPeerProtocol());
+        if(messageProcessor != null) {
+            sipStack.selfRouteMessage(channel, messageToSend);                
+        } else {
+            encapsulatedChannel.sendMessage(messageToSend,
+                this.getPeerInetAddress(), this.getPeerPort());
+        } 
     }    
 
     /**

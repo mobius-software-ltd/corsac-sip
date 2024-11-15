@@ -1352,7 +1352,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       {
         // synchronized (transactionTimerLock) {
         if (!transactionTimerCancelled.get()) {
-        	enableTimeoutTimer(T1);
+        	setTimeoutTimerActive();
         }
         // }
       }
