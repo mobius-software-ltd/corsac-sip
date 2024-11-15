@@ -385,6 +385,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         }
 
       }
+      
+      this.startTransactionTimer();
+      
       try {
 
         // Send the message to the server
@@ -433,9 +436,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
           int expiresSec = expires.getExpires();
           expiresTime = System.currentTimeMillis() + expiresSec * 1000L;
 
-      }      
-      this.startTransactionTimer();
-
+      }           
     }
 
   }
