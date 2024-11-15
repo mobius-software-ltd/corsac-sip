@@ -215,10 +215,6 @@ public class SIPDialog implements DialogExt {
 
     protected transient AtomicLong nextSeqno;
 
-    protected transient int retransmissionTicksLeft;
-
-    protected transient int prevRetransmissionTicks;
-
     protected long originalLocalSequenceNumber;
 
     // This is for debugging only.
@@ -2695,27 +2691,6 @@ public class SIPDialog implements DialogExt {
     }
 
     /**
-     * Return yes if the last response is to be retransmitted.
-     */
-    protected boolean toRetransmitFinalResponse(int T2) {
-        if (--retransmissionTicksLeft == 0) {
-            if (2 * prevRetransmissionTicks <= T2)
-                this.retransmissionTicksLeft = 2 * prevRetransmissionTicks;
-            else
-                this.retransmissionTicksLeft = prevRetransmissionTicks;
-            this.prevRetransmissionTicks = retransmissionTicksLeft;
-            return true;
-        } else
-            return false;
-
-    }
-
-    protected void setRetransmissionTicks() {
-        this.retransmissionTicksLeft = 1;
-        this.prevRetransmissionTicks = 1;
-    }
-
-    /**
      * Resend the last ack.
      */
     public void resendAck() throws SipException {
@@ -2784,8 +2759,6 @@ public class SIPDialog implements DialogExt {
                 scheduleDialogTimer(transaction);
             }
         }
-
-        this.setRetransmissionTicks();
     }
 
     /**
@@ -2800,13 +2773,11 @@ public class SIPDialog implements DialogExt {
     }
 
     protected void scheduleDialogTimer(SIPServerTransaction transaction) {
-        this.timerTask = new SIPDialogTimerTask(this);
+        this.timerTask = new SIPDialogTimerTask(this, transaction.getTimerT2(), transaction.getBaseTimerInterval());
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug(
                 "Executing DialogTimerTask " + timerTask + " with fixed delay and period of " + transaction.getBaseTimerInterval());
-        sipStack.getTimer().scheduleWithFixedDelay(timerTask,
-            transaction.getBaseTimerInterval(),
-            transaction.getBaseTimerInterval());
+        sipStack.getTimer().schedule(timerTask,transaction.getBaseTimerInterval());
     }
 
     protected void stopDialogTimer() {
@@ -2820,9 +2791,17 @@ public class SIPDialog implements DialogExt {
                         "Cancelled Dialog Timer " + timerTask);
             }                    
             this.getStack().getTimer().cancel(timerTask);
+            timerTask = null;
         }
     }
 
+    protected void rescheduleDialogTimer(long baseInterval,SIPServerTransaction transaction) {
+    	if(timerTask!=null)
+    		this.getStack().getTimer().cancel(timerTask);
+    	
+    	scheduleDialogTimer(transaction);
+    }
+    
     /*
      * (non-Javadoc) Retransmissions of the reliable provisional response cease
      * when a matching PRACK is received by the UA core. PRACK is like any other
@@ -4335,8 +4314,7 @@ public class SIPDialog implements DialogExt {
 
     protected void startReliableResponseTimer(SIPServerTransactionImpl serverTransaction) {
         provisionalResponseTask = new ProvisionalResponseTask(this, serverTransaction);
-        sipStack.getTimer().scheduleWithFixedDelay(provisionalResponseTask, 0,
-                SIPTransactionStack.BASE_TIMER_INTERVAL);    
+        sipStack.getTimer().schedule(provisionalResponseTask, SIPTransactionStack.BASE_TIMER_INTERVAL);    
     }
     
     protected void stopReliableResponseTimer() {

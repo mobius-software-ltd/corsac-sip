@@ -14,19 +14,27 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
     private static final long serialVersionUID = 1L;
     protected SIPDialog dialog;
     protected int nRetransmissions;
-
-    public SIPDialogTimerTask(SIPDialog sipDialog) {
+    protected int timerT2;
+    protected long baseTimerInterval;
+    
+    public SIPDialogTimerTask(SIPDialog sipDialog,int timerT2,long baseTimerInterval) {
         	super(SIPDialogTimerTask.class.getSimpleName());
             this.dialog = sipDialog;
             nRetransmissions = 0;
-         }
+            this.timerT2 = timerT2;
+            this.baseTimerInterval = baseTimerInterval;
+    }
 
     public void runTask() {
         // If I ACK has not been seen on Dialog,
         // resend last response.
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Running dialog timer");
-        nRetransmissions++;
+        if(nRetransmissions==0)
+        	nRetransmissions = 1;
+        else
+        	nRetransmissions *= 2;
+        
         SIPServerTransaction transaction = (SIPServerTransaction) 
             dialog.getStack().findTransaction(getTaskName(), true);
         /*
@@ -57,9 +65,7 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
                 try {
 
                     // resend the last response.
-                    if (dialog.toRetransmitFinalResponse(transaction.getTimerT2())) {
-                        transaction.resendLastResponse();
-                    }
+                    transaction.resendLastResponse();
                 } catch (IOException ex) {
 
                     dialog.raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError,
@@ -67,18 +73,11 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
                             transaction.getPeerPort(), transaction
                                     .getPeerProtocol());
 
-                } finally {
-                    // Need to fire the timer so
-                    // transaction will eventually
-                    // time out whether or not
-                    // the IOException occurs
-                    // Note that this firing also
-                    // drives Listener timeout.
+                } finally {                    
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                         logger.logDebug(
                                 "resend 200 response from " + dialog);
                     }
-                    transaction.fireTimer();
                 }
             }
         }
@@ -87,10 +86,14 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
         // confirmed state or ack seen if retransmit filter on.
         if (dialog.isAckSeen() || dialog.dialogState == SIPDialog.TERMINATED_STATE) {
             dialog.ongoingTransactionId = null;
-            dialog.stopDialogTimer();
-
+            dialog.stopDialogTimer();            
         }
-
+        else {
+        	if (nRetransmissions <= timerT2)
+        		dialog.getStack().getTimer().schedule(this,nRetransmissions*baseTimerInterval);
+            else
+            	dialog.getStack().getTimer().schedule(this,timerT2*baseTimerInterval);        	
+        }
     }
 
     @Override

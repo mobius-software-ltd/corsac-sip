@@ -139,8 +139,7 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
 
                 serverTransaction.retransmissionAlertTimerTask = new RetransmissionAlertTimerTask(serverTransaction, dialogId);
                 serverTransaction.sipStack.retransmissionAlertTransactions.put(dialogId, serverTransaction);
-                serverTransaction.sipStack.getTimer().scheduleWithFixedDelay(serverTransaction.retransmissionAlertTimerTask, 0,
-                        SIPTransactionStack.BASE_TIMER_INTERVAL);
+                serverTransaction.sipStack.getTimer().schedule(serverTransaction.retransmissionAlertTimerTask, SIPTransactionStack.BASE_TIMER_INTERVAL);
                 // retransmissionAlertTimerTask.runTask();
             }
 

@@ -35,14 +35,12 @@ public class ProvisionalResponseTask extends SIPStackTimerTask {
     protected SIPServerTransactionImpl serverTransaction;
     protected SIPDialog sipDialog;
     protected int ticks;
-    protected int ticksLeft;     
-
+    
     public ProvisionalResponseTask(SIPDialog sipDialog, SIPServerTransactionImpl serverTransaction) {
         super(ProvisionalResponseTask.class.getSimpleName());
         this.serverTransaction = serverTransaction;
         this.sipDialog = sipDialog;
         ticks = SIPTransactionImpl.T1;
-        ticksLeft = ticks;
     }
 
     public void runTask() {                
@@ -70,41 +68,35 @@ public class ProvisionalResponseTask extends SIPStackTimerTask {
             sipDialog.stopReliableResponseTimer();
 
         } else {
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug("ProvisionalResponseTask ticksLeft " + ticksLeft);
+        	try {
+                serverTransaction.resendLastResponseAsBytes(
+                    sipDialog.pendingReliableResponseAsBytes);
+            } catch (IOException e) {
+                if (logger.isLoggingEnabled())
+                    logger.logException(e);
+                // serverTransaction.setState(TransactionState._TERMINATED);
+                serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
             }
-            ticksLeft--;
-            if (ticksLeft == -1) {
-                try {
-                    serverTransaction.resendLastResponseAsBytes(
-                        sipDialog.pendingReliableResponseAsBytes);
-                } catch (IOException e) {
-                    if (logger.isLoggingEnabled())
-                        logger.logException(e);
-                    // serverTransaction.setState(TransactionState._TERMINATED);
-                    serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
+            
+            ticks = 2 * ticks;
+            // timer H MUST be set to fire in 64*T1 seconds for all transports. Timer H
+            // determines when the server
+            // transaction abandons retransmitting the response
+            if (ticks >= SIPTransactionImpl.TIMER_H) {
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug("canceling ProvisionalResponseTask");
                 }
-                
-                ticksLeft = 2 * ticks;
-                ticks = ticksLeft;
-                // timer H MUST be set to fire in 64*T1 seconds for all transports. Timer H
-                // determines when the server
-                // transaction abandons retransmitting the response
-                if (ticksLeft >= SIPTransactionImpl.TIMER_H) {
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                        logger.logDebug("canceling ProvisionalResponseTask");
-                    }
-                    sipDialog.stopReliableResponseTimer();
-                    // If a reliable provisional response is retransmitted for 64*T1 seconds
-                    // without reception of a corresponding PRACK, the UAS SHOULD reject the
-                    // original request with a 5xx response. This should be done at app level
-                    serverTransaction.setState(TransactionState._TERMINATED);
-                    serverTransaction.fireTimeoutTimer();
-                }
+                sipDialog.stopReliableResponseTimer();
+                // If a reliable provisional response is retransmitted for 64*T1 seconds
+                // without reception of a corresponding PRACK, the UAS SHOULD reject the
+                // original request with a 5xx response. This should be done at app level
+                serverTransaction.setState(TransactionState._TERMINATED);
+                serverTransaction.fireTimeoutTimer();
             }
-
+            else {
+            	serverTransaction.getSIPStack().getTimer().schedule(this, ticks * SIPTransactionStack.BASE_TIMER_INTERVAL);   
+            }
         }
-
     }
 
     @Override
@@ -123,13 +115,5 @@ public class ProvisionalResponseTask extends SIPStackTimerTask {
 
     public void setTicks(int ticks) {
         this.ticks = ticks;
-    }
-
-    public int getTicksLeft() {
-        return ticksLeft;
-    }
-
-    public void setTicksLeft(int ticksLeft) {
-        this.ticksLeft = ticksLeft;
     }
 }

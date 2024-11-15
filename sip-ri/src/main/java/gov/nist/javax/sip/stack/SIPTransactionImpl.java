@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,7 +49,6 @@ import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.IOExceptionEventExt;
 import gov.nist.javax.sip.IOExceptionEventExt.Reason;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
-import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.address.AddressFactoryImpl;
 import gov.nist.javax.sip.header.Via;
@@ -147,8 +145,10 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     // Underlying channel being used to send messages for this transaction
     protected transient MessageChannel encapsulatedChannel;
 
-    protected transient SIPStackTimerTask transactionTimer;
-    protected AtomicBoolean transactionTimerStarted = new AtomicBoolean(false);
+    protected transient SIPStackTimerTask timeoutTimer;
+    protected transient SIPStackTimerTask retransmissionTimer;
+    protected AtomicBoolean timeoutTimerStarted = new AtomicBoolean(false);
+    protected AtomicBoolean retransmissionTimerStarted = new AtomicBoolean(false);
 
     // Transaction branch ID
     protected String branch;
@@ -158,15 +158,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     // Current transaction state
     protected int currentState = -1;
-
-    // Number of ticks the retransmission timer was set to last
-    protected transient int retransmissionTimerLastTickCount;
-
-    // Number of ticks before the message is retransmitted
-    protected transient int retransmissionTimerTicksLeft;
-
-    // Number of ticks before the transaction times out
-    protected AtomicInteger timeoutTimerTicksLeft=new AtomicInteger(-1);
 
     // List of event listeners for this transaction
     protected transient Set<SIPTransactionEventListener> eventListeners;
@@ -638,24 +629,32 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      *            occurs.
      */
     protected void enableRetransmissionTimer(int tickCount) {
-        // For INVITE Client transactions, double interval each time
+    	// For INVITE Client transactions, double interval each time
         if (isInviteTransaction() && (this instanceof SIPClientTransaction)) {
-            retransmissionTimerTicksLeft = tickCount;
+            
         } else {
             // non-INVITE transactions and 3xx-6xx responses are capped at T2
-            retransmissionTimerTicksLeft = Math.min(tickCount,
+        	tickCount = Math.min(tickCount,
                     getTimerT2());
-        }
-        retransmissionTimerLastTickCount = retransmissionTimerTicksLeft;
-    }
+        }  
 
+        if(retransmissionTimer!=null) {
+        	sipStack.getTimer().cancel(retransmissionTimer);
+        }
+        
+        retransmissionTimer = new SIPTransactionRetransmissionTimerTask(this, tickCount);
+        sipStack.getTimer().schedule(retransmissionTimer, tickCount * getBaseTimerInterval());
+    }
 
     /**
      * @see gov.nist.javax.sip.stack.SIPTransaction#disableRetransmissionTimer()
      */
     @Override
     public void disableRetransmissionTimer() {
-        retransmissionTimerTicksLeft = -1;
+    	if(retransmissionTimer!=null) {
+        	sipStack.getTimer().cancel(retransmissionTimer);
+        	retransmissionTimer = null;
+        }
     }
 
     /**
@@ -668,12 +667,16 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     protected void enableTimeoutTimer(int tickCount) {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("enableTimeoutTimer " + this
-                    + " tickCount " + tickCount + " currentTickCount = "
-                    + timeoutTimerTicksLeft);
+                    + " tickCount " + tickCount);
 
-        timeoutTimerTicksLeft.set(tickCount);
+        if(timeoutTimer!=null) {
+        	getSIPStack().getTimer().cancel(timeoutTimer);
+        }
+        
+        SIPStackTimerTask stackTimer = getTimeoutTimer();
+        if(stackTimer!=null)
+        	getSIPStack().getTimer().schedule(stackTimer,tickCount*getBaseTimerInterval());
     }
-
 
     /**
      * @see gov.nist.javax.sip.stack.SIPTransaction#disableTimeoutTimer()
@@ -681,40 +684,12 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     @Override
     public void disableTimeoutTimer() {
     	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) logger.logDebug("disableTimeoutTimer " + this);
-        timeoutTimerTicksLeft.set(-1);
-    }
-
-
-    /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#fireTimer()
-     */
-    @Override
-    public void fireTimer() {
-        // If the timeout timer is enabled,
-    	if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("fireTimer " + this + 
-                " timeoutTimerTicksLeft = " + timeoutTimerTicksLeft +
-                " retransmissionTimerTicksLeft = " + retransmissionTimerTicksLeft);
-        }
-        if (timeoutTimerTicksLeft.get() != -1) {
-            // Count down the timer, and if it has run out,
-            if (timeoutTimerTicksLeft.decrementAndGet() == 0) {
-                fireTimeoutTimer();
-            }
-        }
-
-        // If the retransmission timer is enabled,
-        if (retransmissionTimerTicksLeft != -1) {
-            // Count down the timer, and if it has run out,
-            if (--retransmissionTimerTicksLeft == 0) {
-                // Enable this timer to fire again after
-                // twice the original time
-                enableRetransmissionTimer(retransmissionTimerLastTickCount * 2);
-                // Fire the timeout timer
-                fireRetransmissionTimer();
-            }
+    	if(timeoutTimer!=null) {
+        	getSIPStack().getTimer().cancel(timeoutTimer);
+        	timeoutTimer = null;
         }
     }
+
 
     /**
      * @see gov.nist.javax.sip.stack.SIPTransaction#isTerminated()
@@ -852,7 +827,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
                     this.getPeerInetAddress(), this.getPeerPort());
             }        
         } finally {
-            this.startTransactionTimer();
+            this.enableTimeoutTimer(T1);
         }
     }    
 
@@ -1071,7 +1046,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         if (retransmitTimer <= 0)
             throw new IllegalArgumentException(
                     "Retransmit timer must be positive!");
-        if (this.transactionTimerStarted.get())
+        if (this.retransmissionTimerStarted.get() || this.timeoutTimerStarted.get())
             throw new IllegalStateException(
                     "Transaction timer is already started");
         baseTimerInterval = retransmitTimer;
@@ -1612,18 +1587,18 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 		}
 	}
 
-    protected void stopTransactionTimer() {
+    protected void stopTimeoutTimer() {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("stopping TransactionTimer : " + getTransactionId());
         }
-        if (transactionTimer != null) {
+        if (timeoutTimer != null) {
             try {
-                sipStack.getTimer().cancel(transactionTimer);
+                sipStack.getTimer().cancel(timeoutTimer);
             } catch (IllegalStateException ex) {
                 if (!sipStack.isAlive())
                     return;
             } finally {
-                transactionTimer = null;
+            	timeoutTimer = null;
             }
         }
     }

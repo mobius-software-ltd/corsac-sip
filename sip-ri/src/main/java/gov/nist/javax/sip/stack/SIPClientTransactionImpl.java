@@ -630,10 +630,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   // to wait for TIMER_K
   // * 500 ms
   private void startTimerK(long time) {
-    if (transactionTimerStarted.get() && timerKStarted.compareAndSet(false, true)) {
+    if (timeoutTimerStarted.get() && timerKStarted.compareAndSet(false, true)) {
       // synchronized (transactionTimerLock) {
       if (!transactionTimerCancelled.get()) {
-        stopTransactionTimer();
+        stopTimeoutTimer();
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
           logger.logDebug("starting TransactionTimerK() : " + getTransactionId() + " time "
               + time);
@@ -1345,27 +1345,22 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    * Start the timer task.
    */
   public void startTransactionTimer() {
-    if (this.transactionTimerStarted.compareAndSet(false, true)) {
+    if (this.timeoutTimerStarted.compareAndSet(false, true)) {
       if (sipStack.getTimer() != null)
       // Fix for http://code.google.com/p/jain-sip/issues/detail?id=10
       // && transactionTimerLock != null)
       {
         // synchronized (transactionTimerLock) {
         if (!transactionTimerCancelled.get()) {
-          scheduleTransactionTimer();
+        	enableTimeoutTimer(T1);
         }
         // }
       }
     }
   }
 
-  protected void scheduleTransactionTimer() {
-    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug("Start transaction timer : " + getTransactionId());
-    transactionTimer = new SIPClientTransactionTimer(this);
-    sipStack.getTimer().scheduleWithFixedDelay(transactionTimer,
-        baseTimerInterval,
-        baseTimerInterval);
+  public SIPStackTimerTask getTimeoutTimer() {
+	  return new SIPClientTransactionTimer(this);	    
   }
 
   /*
@@ -1381,7 +1376,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   @Override
   public void terminate() {
     this.setState(TransactionState._TERMINATED);
-    if (!transactionTimerStarted.get()) {
+    if (!timeoutTimerStarted.get()) {
       // if no transaction timer was started just remove the tx without firing a
       // transaction
       // terminated event
@@ -1818,7 +1813,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       }
       responsesReceived.clear();
       respondTo = null;
-      transactionTimer = null;
+      timeoutTimer = null;
       lastResponse = null;
       // transactionTimerLock = null;
       // transactionTimerStarted = null;

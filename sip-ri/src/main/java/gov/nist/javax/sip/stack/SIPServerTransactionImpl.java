@@ -46,7 +46,6 @@ import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
-import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.Expires;
@@ -371,7 +370,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
             lastResponse = null;
         } finally {
-            this.startTransactionTimer();
+            this.enableTimeoutTimer(T1);
         }
     }
 
@@ -754,7 +753,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 throw e;
             }
         } finally {
-            this.startTransactionTimer();
+            this.enableTimeoutTimer(T1);
         }
     }
 
@@ -832,7 +831,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                         cleanUpOnTimer();
                         this.setState(TransactionState._TERMINATED);
                         if (this.getDialog() != null)
-                            ((SIPDialog) this.getDialog()).setRetransmissionTicks();
+                            ((SIPDialog) this.getDialog()).rescheduleDialogTimer(getBaseTimerInterval(), this);
                     } else {
                         // This an error final response.
                         this.setState(TransactionState._COMPLETED);
@@ -875,7 +874,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     cleanUpOnTimer();
                     this.setState(TransactionState._TERMINATED);
                     if (this.getDialog() != null)
-                        ((SIPDialog) this.getDialog()).setRetransmissionTicks();
+                        ((SIPDialog) this.getDialog()).rescheduleDialogTimer(getBaseTimerInterval(), this);
 
                 } else if (300 <= statusCode && statusCode <= 699) {
 
@@ -1377,31 +1376,28 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     }
 
     /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#startTransactionTimer()
+     * @see gov.nist.javax.sip.stack.SIPTransaction#startTimeoutTimer()
      */
     @Override
-    public void startTransactionTimer() {
+    public SIPStackTimerTask getTimeoutTimer() {
         if (getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL)
                 || getMethod().equalsIgnoreCase(Request.ACK)) {
-            if (this.transactionTimerStarted.compareAndSet(false, true)) {
+            if (this.timeoutTimerStarted.compareAndSet(false, true)) {
                 // Do not schedule when the stack is not alive.
                 if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                    scheduleTransactionTimer();
+                	return new SIPServerTimeoutTimer(this);
                 }
             }
         }
+        
+        return null;
     }
-
-    protected void scheduleTransactionTimer() {
-        transactionTimer = new SIPServerTransactionTimer(this);
-        sipStack.getTimer().scheduleWithFixedDelay(transactionTimer, baseTimerInterval, baseTimerInterval);
-    }
-
+    
     /**
      * Start the timer task.
      */
     protected void startTransactionTimerJ(long time) {
-        if (this.transactionTimerStarted.compareAndSet(false, true)) {
+        if (this.timeoutTimerStarted.compareAndSet(false, true)) {
             if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                     logger.logDebug("starting TransactionTimerJ() : " + getTransactionId() + " time " + time);
@@ -1513,7 +1509,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             this.retransmissionAlertTimerTask = null;
 
         }
-        if (!transactionTimerStarted.get()) {
+        if (!timeoutTimerStarted.get()) {
             // if no transaction timer was started just remove the tx without firing a
             // transaction terminated event
             testAndSetTransactionTerminatedEvent();
@@ -1664,7 +1660,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     + "] or method is not ACK[" + this.getMethod() + "]");
         }
 
-        this.startTransactionTimer();
+        this.enableTimeoutTimer(T1);
     }
 
     // jeand cleanup the state of the stx to help GC

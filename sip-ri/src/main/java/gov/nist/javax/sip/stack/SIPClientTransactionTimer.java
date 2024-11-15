@@ -29,7 +29,7 @@ public class SIPClientTransactionTimer extends SIPStackTimerTask {
         if (clientTransaction.isTerminated()) {
 
             try {
-                clientTransaction.stopTransactionTimer();
+                clientTransaction.stopTimeoutTimer();
 
             } catch (IllegalStateException ex) {
                 if (!clientTransaction.getSIPStack().isAlive())
@@ -54,10 +54,8 @@ public class SIPClientTransactionTimer extends SIPStackTimerTask {
             // If this transaction has not
             // terminated,
             // Fire the transaction timer.
-            clientTransaction.fireTimer();
-
+            clientTransaction.fireTimeoutTimer();
         }
-
     }
 
     @Override

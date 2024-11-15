@@ -31,7 +31,6 @@ class RetransmissionAlertTimerTask extends SIPStackTimerTask {
     String serverTransactionId;        
     String dialogId;  
     int ticks;
-    int ticksLeft; 
     SIPServerTransactionImpl serverTransaction;
 
     public RetransmissionAlertTimerTask(SIPServerTransactionImpl serverTransaction, String dialogId) {
@@ -40,18 +39,14 @@ class RetransmissionAlertTimerTask extends SIPStackTimerTask {
         this.dialogId = dialogId;  
         this.serverTransaction = serverTransaction;
         this.ticks = SIPTransactionImpl.T1;
-        this.ticksLeft = this.ticks;
         // Fix from http://java.net/jira/browse/JSIP-443
         // by mitchell.c.ackerman
     }
 
     public void runTask() {        
-        this.ticksLeft--;
-        if (this.ticksLeft == -1) {
-            serverTransaction.fireRetransmissionTimer();
-            this.ticksLeft = 2 * this.ticks;
-        }
-
+    	serverTransaction.fireRetransmissionTimer();
+        this.ticks = 2 * this.ticks;
+        serverTransaction.sipStack.getTimer().schedule(this, this.ticks * SIPTransactionStack.BASE_TIMER_INTERVAL);
     }
 
     @Override

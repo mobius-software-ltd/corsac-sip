@@ -8,12 +8,12 @@ import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
-public class SIPServerTransactionTimer extends SIPStackTimerTask {
+public class SIPServerTimeoutTimer extends SIPStackTimerTask {
     private static StackLogger logger = CommonLogger.getLogger(SIPServerTransaction.class);    
     private SIPServerTransactionImpl serverTransaction;
 
-    public SIPServerTransactionTimer(SIPServerTransactionImpl sipServerTransaction) {
-        super(SIPServerTransactionTimer.class.getSimpleName());
+    public SIPServerTimeoutTimer(SIPServerTransactionImpl sipServerTransaction) {
+        super(SIPServerTimeoutTimer.class.getSimpleName());
         this.serverTransaction = sipServerTransaction;
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("TransactionTimer() : " + serverTransaction.getTransactionId());
@@ -27,7 +27,7 @@ public class SIPServerTransactionTimer extends SIPStackTimerTask {
             // to catch the incoming ACK -- this is needed for tcp only.
             // Note that the transaction record is actually removed in
             // the connection linger timer.
-            serverTransaction.stopTransactionTimer();
+            serverTransaction.stopTimeoutTimer();
 
             // Oneshot timer that garbage collects the SeverTransaction
             // after a scheduled amount of time. The linger timer allows
@@ -46,7 +46,7 @@ public class SIPServerTransactionTimer extends SIPStackTimerTask {
             // Add to the fire list -- needs to be moved
             // outside the synchronized block to prevent
             // deadlock.
-            serverTransaction.fireTimer();
+            serverTransaction.fireTimeoutTimer();
         }
         if (serverTransaction.originalRequest != null) {
             serverTransaction.originalRequest.cleanUp();
