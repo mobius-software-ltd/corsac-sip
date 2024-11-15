@@ -1340,6 +1340,18 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       sipStack.decrementActiveClientTransactionCount();
     }
     super.setState(newState);
+    
+    if(newState == TransactionState._TERMINATED) {
+    	try {
+            stopTimeoutTimer();
+
+        } catch (IllegalStateException ex) {
+            if (!getSIPStack().isAlive())
+                return;
+        }
+
+        cleanUpOnTerminated();
+    }
   }
 
   /**

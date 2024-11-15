@@ -55,6 +55,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
+import gov.nist.javax.sip.stack.SIPTransactionImpl.LingerTimer;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
@@ -189,6 +190,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     protected boolean retransmissionAlertEnabled;
     protected RetransmissionAlertTimerTask retransmissionAlertTimerTask;
 
+    protected transient LingerTimer lingerTimer;
+    
     protected boolean isAckSeen;
 
     protected SIPClientTransaction pendingSubscribeTransaction;
@@ -1366,7 +1369,30 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
 
         super.setState(newState);
+        
+        if (newState == TransactionState._TERMINATED) {
+        	// Keep the transaction hanging around in the transaction table
+            // to catch the incoming ACK -- this is needed for tcp only.
+            // Note that the transaction record is actually removed in
+            // the connection linger timer.
+            stopTimeoutTimer();
 
+            if(lingerTimer!=null) {
+	            // Oneshot timer that garbage collects the SeverTransaction
+	            // after a scheduled amount of time. The linger timer allows
+	            // the client side of the tx to use the same connection to
+	            // send an ACK and prevents a race condition for creation
+	            // of new server tx
+            	lingerTimer = new LingerTimer();
+	
+	            SIPTransactionStack sipStack = getSIPStack();
+	            if (sipStack.getConnectionLingerTimer() != 0) {
+	                sipStack.getTimer().schedule(lingerTimer, sipStack.getConnectionLingerTimer() * 1000);
+	            } else {
+	            	lingerTimer.runTask();
+	            }
+            }
+        }
     }
 
     /**
