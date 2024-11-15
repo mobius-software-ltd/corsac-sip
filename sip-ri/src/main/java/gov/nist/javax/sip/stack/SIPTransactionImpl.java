@@ -147,6 +147,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     protected transient SIPStackTimerTask timeoutTimer;
     protected transient SIPStackTimerTask retransmissionTimer;
+    protected transient int timeoutTickCount;
     protected AtomicBoolean timeoutTimerStarted = new AtomicBoolean(false);
     protected AtomicBoolean retransmissionTimerStarted = new AtomicBoolean(false);
 
@@ -669,13 +670,19 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             logger.logDebug("enableTimeoutTimer " + this
                     + " tickCount " + tickCount);
 
+        startTimeoutTimer(tickCount);
+    }
+    
+    protected void startTimeoutTimer(int tickCount) {
+    	this.timeoutTickCount = tickCount;
         if(timeoutTimer!=null) {
         	getSIPStack().getTimer().cancel(timeoutTimer);
+        	timeoutTimer = null;
         }
         
-        SIPStackTimerTask stackTimer = getTimeoutTimer();
-        if(stackTimer!=null)
-        	getSIPStack().getTimer().schedule(stackTimer,tickCount*getBaseTimerInterval());
+        timeoutTimer = getTimeoutTimer();
+        if(timeoutTimer!=null)
+        	getSIPStack().getTimer().schedule(timeoutTimer,tickCount*getBaseTimerInterval());
     }
 
     /**

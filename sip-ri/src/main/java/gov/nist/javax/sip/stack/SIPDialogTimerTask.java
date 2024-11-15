@@ -46,6 +46,7 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
          * be terminated.
          */
 
+        logger.logDebug(getId());
         if (nRetransmissions > dialog.getStack().getAckTimeoutFactor()
                 * SIPTransaction.T1) {
             if (dialog.getSipProvider().getSipListener() != null
