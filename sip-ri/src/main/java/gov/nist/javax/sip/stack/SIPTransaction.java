@@ -25,17 +25,6 @@
  */
 package gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.ReleaseReferencesStrategy;
-import gov.nist.javax.sip.SipProviderImpl;
-import gov.nist.javax.sip.TransactionExt;
-import gov.nist.javax.sip.IOExceptionEventExt.Reason;
-import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.message.SIPMessage;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
-import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
@@ -45,6 +34,18 @@ import javax.sip.Dialog;
 import javax.sip.TransactionState;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+
+import gov.nist.javax.sip.IOExceptionEventExt.Reason;
+import gov.nist.javax.sip.ReleaseReferencesStrategy;
+import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.TransactionExt;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
+import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 
 public interface SIPTransaction extends TransactionExt {
 
@@ -553,20 +554,14 @@ public interface SIPTransaction extends TransactionExt {
   void raiseErrorEvent(int errorEventID);
 
   /**
-   * Fired after each timer tick. Checks the retransmission and timeout timers
-   * of this transaction, and fired these events if necessary.
-   */
-  void fireTimer();
-
-  /**
    * A shortcut way of telling if we are a server transaction.
    */
   boolean isServerTransaction();
 
   /**
-   * Start the timer that runs the transaction state machine.
+   * Start the timeout timer.
    */
-  void startTransactionTimer();
+  SIPStackTimerTask getTimeoutTimer();
 
   /**
    * Called by the transaction stack when a retransmission timer fires. This retransmits the

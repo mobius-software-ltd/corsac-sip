@@ -332,28 +332,29 @@ public class StackTimerTest extends TestCase {
             @Override
             public void runTask () {
                 try {
-                    if(concurrentRun.get() <= 0) {  
-                        concurrentRun.addAndGet(1);                      
+                	concurrentRun.addAndGet(1);                      
+                    if(concurrentRun.get() == 1) {  
                         Request byeRequest = this.dialog.createRequest(Request.BYE);
                         ClientTransaction ct = sipProvider.getNewClientTransaction(byeRequest);
                         dialog.sendRequest(ct);
                         byeSent.set(true);
                         System.out.println("BYE sent");                                                
-                        ((SipStackExt)sipStack).getStackTimer().scheduleWithFixedDelay(this, 0, 100);
+                        ((SipStackExt)sipStack).getStackTimer().schedule(this, 100);
                     } else {                                                
-                        if(concurrentRun.get() == 1) { 
-                            concurrentRun.addAndGet(1);
+                        if(concurrentRun.get() == 2) { 
                             System.out.println("Increased concurrent Run " + concurrentRun.get());                                                       
                             Thread.sleep(300);
                             if(concurrentRun.get() > 2) {
                                 fail("Concurrent run detected " + concurrentRun);
                             }
+                            ((SipStackExt)sipStack).getStackTimer().schedule(this, 100);
                         } else {
-                            concurrentRun.addAndGet(1);
                             System.out.println("concurrent Run " + concurrentRun.get());
                             if(concurrentRun.get() >= 5) {
                                 ((SipStackExt)sipStack).getStackTimer().cancel(this);
                             }
+                            else
+                            	((SipStackExt)sipStack).getStackTimer().schedule(this, 100);                            
                         }
                         
                     }

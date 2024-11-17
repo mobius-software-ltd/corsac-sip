@@ -46,7 +46,6 @@ import gov.nist.core.LogWriter;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
-import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.Expires;
@@ -56,6 +55,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
+import gov.nist.javax.sip.stack.SIPTransactionImpl.LingerTimer;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
@@ -190,6 +190,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     protected boolean retransmissionAlertEnabled;
     protected RetransmissionAlertTimerTask retransmissionAlertTimerTask;
 
+    protected transient LingerTimer lingerTimer;
+    
     protected boolean isAckSeen;
 
     protected SIPClientTransaction pendingSubscribeTransaction;
@@ -280,99 +282,97 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("sipServerTransaction::sendResponse " + transactionResponse.getFirstLine());
         }
-        try {
-            // RFC18.2.2. Sending Responses
-            // The server transport uses the value of the top Via header field
-            // in
-            // order
-            // to determine where to send a response.
-            // It MUST follow the following process:
-            // If the "sent-protocol" is a reliable transport
-            // protocol such as TCP or SCTP,
-            // or TLS over those, the response MUST be
-            // sent using the existing connection
-            // to the source of the original request
-            // that created the transaction, if that connection is still open.
-            if (isReliable() && !sipStack.isPatchReceivedRport()) {
-                // https://github.com/RestComm/load-balancer/issues/59
-                // we want possibility use Active-Active mode for LB, if one from LBs
-                // will be shutdown than we can't use
-                // existing channel instead of we
-                // should open new channel based on via header
-                getMessageChannel().sendMessage(transactionResponse);
-            } else {
-                Via via = transactionResponse.getTopmostVia();
-                String transport = via.getTransport();
-                if (transport == null)
-                    throw new IOException("missing transport!");
-                // @@@ hagai Symmetric NAT support
-                int port = via.getRPort();
-                if (port == -1)
-                    port = via.getPort();
-                if (port == -1) {
-                    if (transport.equalsIgnoreCase("TLS"))
-                        port = 5061;
-                    else
-                        port = 5060;
-                }
-
-                // Otherwise, if the Via header field value contains a
-                // "maddr" parameter, the response MUST be forwarded to
-                // the address listed there, using the port indicated in
-                // "sent-by",
-                // or port 5060 if none is present. If the address is a
-                // multicast
-                // address, the response SHOULD be sent using
-                // the TTL indicated in the "ttl" parameter, or with a
-                // TTL of 1 if that parameter is not present.
-                String host = null;
-                if (via.getMAddr() != null) {
-                    host = via.getMAddr();
-                } else {
-                    // Otherwise (for unreliable unicast transports),
-                    // if the top Via has a "received" parameter, the response
-                    // MUST
-                    // be sent to the
-                    // address in the "received" parameter, using the port
-                    // indicated
-                    // in the
-                    // "sent-by" value, or using port 5060 if none is specified
-                    // explicitly.
-                    host = via.getParameter(Via.RECEIVED);
-                    if (host == null) {
-                        // Otherwise, if it is not receiver-tagged, the response
-                        // MUST be
-                        // sent to the address indicated by the "sent-by" value,
-                        // using the procedures in Section 5
-                        // RFC 3263 PROCEDURE TO BE DONE HERE
-                        host = via.getHost();
-                    }
-                }
-
-                Hop hop = sipStack.addressResolver.resolveAddress(new HopImpl(host, port,
-                        transport));
-
-                MessageChannel messageChannel = ((SIPTransactionStack) getSIPStack())
-                        .createRawMessageChannel(this.getSipProvider().getListeningPoint(
-                                hop.getTransport()).getIPAddress(), this.getPort(), hop);
-                if (messageChannel != null) {
-                    messageChannel.sendMessage(transactionResponse);
-                    lastResponseHost = host;
-                    lastResponsePort = port;
-                    lastResponseTransport = transport;
-                } else {
-                    throw new IOException("Could not create a message channel for " + hop + " with source IP:Port " +
-                            this.getSipProvider().getListeningPoint(
-                                    hop.getTransport()).getIPAddress()
-                            + ":" + this.getPort());
-                }
-
+        
+        this.setTimeoutTimerActive();
+        // RFC18.2.2. Sending Responses
+        // The server transport uses the value of the top Via header field
+        // in
+        // order
+        // to determine where to send a response.
+        // It MUST follow the following process:
+        // If the "sent-protocol" is a reliable transport
+        // protocol such as TCP or SCTP,
+        // or TLS over those, the response MUST be
+        // sent using the existing connection
+        // to the source of the original request
+        // that created the transaction, if that connection is still open.
+        if (isReliable() && !sipStack.isPatchReceivedRport()) {
+            // https://github.com/RestComm/load-balancer/issues/59
+            // we want possibility use Active-Active mode for LB, if one from LBs
+            // will be shutdown than we can't use
+            // existing channel instead of we
+            // should open new channel based on via header
+            getMessageChannel().sendMessage(transactionResponse);
+        } else {
+            Via via = transactionResponse.getTopmostVia();
+            String transport = via.getTransport();
+            if (transport == null)
+                throw new IOException("missing transport!");
+            // @@@ hagai Symmetric NAT support
+            int port = via.getRPort();
+            if (port == -1)
+                port = via.getPort();
+            if (port == -1) {
+                if (transport.equalsIgnoreCase("TLS"))
+                    port = 5061;
+                else
+                    port = 5060;
             }
-            lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
-            lastResponse = null;
-        } finally {
-            this.startTransactionTimer();
+
+            // Otherwise, if the Via header field value contains a
+            // "maddr" parameter, the response MUST be forwarded to
+            // the address listed there, using the port indicated in
+            // "sent-by",
+            // or port 5060 if none is present. If the address is a
+            // multicast
+            // address, the response SHOULD be sent using
+            // the TTL indicated in the "ttl" parameter, or with a
+            // TTL of 1 if that parameter is not present.
+            String host = null;
+            if (via.getMAddr() != null) {
+                host = via.getMAddr();
+            } else {
+                // Otherwise (for unreliable unicast transports),
+                // if the top Via has a "received" parameter, the response
+                // MUST
+                // be sent to the
+                // address in the "received" parameter, using the port
+                // indicated
+                // in the
+                // "sent-by" value, or using port 5060 if none is specified
+                // explicitly.
+                host = via.getParameter(Via.RECEIVED);
+                if (host == null) {
+                    // Otherwise, if it is not receiver-tagged, the response
+                    // MUST be
+                    // sent to the address indicated by the "sent-by" value,
+                    // using the procedures in Section 5
+                    // RFC 3263 PROCEDURE TO BE DONE HERE
+                    host = via.getHost();
+                }
+            }
+
+            Hop hop = sipStack.addressResolver.resolveAddress(new HopImpl(host, port,
+                    transport));
+
+            MessageChannel messageChannel = ((SIPTransactionStack) getSIPStack())
+                    .createRawMessageChannel(this.getSipProvider().getListeningPoint(
+                            hop.getTransport()).getIPAddress(), this.getPort(), hop);
+            if (messageChannel != null) {
+                messageChannel.sendMessage(transactionResponse);
+                lastResponseHost = host;
+                lastResponsePort = port;
+                lastResponseTransport = transport;
+            } else {
+                throw new IOException("Could not create a message channel for " + hop + " with source IP:Port " +
+                        this.getSipProvider().getListeningPoint(
+                                hop.getTransport()).getIPAddress()
+                        + ":" + this.getPort());
+            }
+
         }
+        lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
+        lastResponse = null;
     }
 
 
@@ -692,69 +692,65 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         final SIPResponse transactionResponse = (SIPResponse) messageToSend;
         // Status code of the response being sent to the client
         final int statusCode = transactionResponse.getStatusCode();
+        setTimeoutTimerActive();
         try {
+            // Provided we have set the banch id for this we set the BID for
+            // the
+            // outgoing via.
+            if (originalRequestBranch != null)
+                transactionResponse.getTopmostVia().setBranch(this.getBranch());
+            else
+                transactionResponse.getTopmostVia().removeParameter(ParameterNames.BRANCH);
 
-            try {
-                // Provided we have set the banch id for this we set the BID for
-                // the
-                // outgoing via.
-                if (originalRequestBranch != null)
-                    transactionResponse.getTopmostVia().setBranch(this.getBranch());
-                else
-                    transactionResponse.getTopmostVia().removeParameter(ParameterNames.BRANCH);
+            // Make the topmost via headers match identically for the
+            // transaction rsponse.
+            if (!originalRequestHasPort)
+                transactionResponse.getTopmostVia().removePort();
+        } catch (ParseException ex) {
+            logger.logError("UnexpectedException", ex);
+            throw new IOException("Unexpected exception");
+        }
 
-                // Make the topmost via headers match identically for the
-                // transaction rsponse.
-                if (!originalRequestHasPort)
-                    transactionResponse.getTopmostVia().removePort();
-            } catch (ParseException ex) {
-                logger.logError("UnexpectedException", ex);
-                throw new IOException("Unexpected exception");
+        // Method of the response does not match the request used to
+        // create the transaction - transaction state does not change.
+        if (!transactionResponse.getCSeq().getMethod().equals(
+                getMethod())) {
+            sendResponse(transactionResponse);
+            return;
+        }
+
+        if (!checkStateTimers(statusCode)) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("checkStateTimers returned false -- not sending message");
             }
+            return;
+        }
 
-            // Method of the response does not match the request used to
-            // create the transaction - transaction state does not change.
-            if (!transactionResponse.getCSeq().getMethod().equals(
-                    getMethod())) {
-                sendResponse(transactionResponse);
-                return;
+        try {
+            // Send the message to the client.
+            // Record the last message sent out.
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                        "sendMessage : tx = " + this + " getState = " + this.getState());
             }
+            lastResponse = transactionResponse;
+            lastResponseStatusCode = transactionResponse.getStatusCode();
 
-            if (!checkStateTimers(statusCode)) {
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    logger.logDebug("checkStateTimers returned false -- not sending message");
-                }
-                return;
-            }
-
-            try {
-                // Send the message to the client.
-                // Record the last message sent out.
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    logger.logDebug(
-                            "sendMessage : tx = " + this + " getState = " + this.getState());
-                }
+            this.sendResponse(transactionResponse);
+            if(sipStack.getMaxForkTime() > 0) {
+                // https://github.com/mobius-software-ltd/corsac-sip/issues/1
+                // needed for forking B2BUA UAS support
                 lastResponse = transactionResponse;
-                lastResponseStatusCode = transactionResponse.getStatusCode();
-
-                this.sendResponse(transactionResponse);
-                if(sipStack.getMaxForkTime() > 0) {
-                    // https://github.com/mobius-software-ltd/corsac-sip/issues/1
-                    // needed for forking B2BUA UAS support
-                    lastResponse = transactionResponse;
-                }
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                    logger.logDebug(
-                            "messageSent : tx = " + this + " lastResponse = " + lastResponse);
-                }
-            } catch (IOException e) {
-
-                this.setState(TransactionState._TERMINATED);
-                this.collectionTime = 0;
-                throw e;
             }
-        } finally {
-            this.startTransactionTimer();
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug(
+                        "messageSent : tx = " + this + " lastResponse = " + lastResponse);
+            }
+        } catch (IOException e) {
+
+            this.setState(TransactionState._TERMINATED);
+            this.collectionTime = 0;
+            throw e;
         }
     }
 
@@ -832,7 +828,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                         cleanUpOnTimer();
                         this.setState(TransactionState._TERMINATED);
                         if (this.getDialog() != null)
-                            ((SIPDialog) this.getDialog()).setRetransmissionTicks();
+                            ((SIPDialog) this.getDialog()).rescheduleDialogTimer(getBaseTimerInterval(), this);
                     } else {
                         // This an error final response.
                         this.setState(TransactionState._COMPLETED);
@@ -875,7 +871,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     cleanUpOnTimer();
                     this.setState(TransactionState._TERMINATED);
                     if (this.getDialog() != null)
-                        ((SIPDialog) this.getDialog()).setRetransmissionTicks();
+                        ((SIPDialog) this.getDialog()).rescheduleDialogTimer(getBaseTimerInterval(), this);
 
                 } else if (300 <= statusCode && statusCode <= 699) {
 
@@ -1373,35 +1369,55 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
 
         super.setState(newState);
+        
+        if (newState == TransactionState._TERMINATED) {
+        	// Keep the transaction hanging around in the transaction table
+            // to catch the incoming ACK -- this is needed for tcp only.
+            // Note that the transaction record is actually removed in
+            // the connection linger timer.
+            stopTimeoutTimer();
 
-    }
-
-    /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#startTransactionTimer()
-     */
-    @Override
-    public void startTransactionTimer() {
-        if (getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL)
-                || getMethod().equalsIgnoreCase(Request.ACK)) {
-            if (this.transactionTimerStarted.compareAndSet(false, true)) {
-                // Do not schedule when the stack is not alive.
-                if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                    scheduleTransactionTimer();
-                }
+            if(lingerTimer==null) {
+	            // Oneshot timer that garbage collects the SeverTransaction
+	            // after a scheduled amount of time. The linger timer allows
+	            // the client side of the tx to use the same connection to
+	            // send an ACK and prevents a race condition for creation
+	            // of new server tx
+            	lingerTimer = new LingerTimer();
+	
+	            SIPTransactionStack sipStack = getSIPStack();
+	            if (sipStack.getConnectionLingerTimer() != 0) {
+	                sipStack.getTimer().schedule(lingerTimer, sipStack.getConnectionLingerTimer() * 1000);
+	            } else {
+	            	lingerTimer.runTask();
+	            }
             }
         }
     }
 
-    protected void scheduleTransactionTimer() {
-        transactionTimer = new SIPServerTransactionTimer(this);
-        sipStack.getTimer().scheduleWithFixedDelay(transactionTimer, baseTimerInterval, baseTimerInterval);
+    /**
+     * @see gov.nist.javax.sip.stack.SIPTransaction#startTimeoutTimer()
+     */
+    @Override
+    public SIPStackTimerTask getTimeoutTimer() {
+        if (getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL)
+                || getMethod().equalsIgnoreCase(Request.ACK)) {
+            if (this.timeoutTimerStarted.compareAndSet(false, true)) {
+                // Do not schedule when the stack is not alive.
+                if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
+                	return new SIPServerTimeoutTimer(this);
+                }
+            }
+        }
+        
+        return null;
     }
-
+    
     /**
      * Start the timer task.
      */
     protected void startTransactionTimerJ(long time) {
-        if (this.transactionTimerStarted.compareAndSet(false, true)) {
+        if (this.timeoutTimerStarted.compareAndSet(false, true)) {
             if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
                 if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                     logger.logDebug("starting TransactionTimerJ() : " + getTransactionId() + " time " + time);
@@ -1513,7 +1529,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             this.retransmissionAlertTimerTask = null;
 
         }
-        if (!transactionTimerStarted.get()) {
+        if (!timeoutTimerStarted.get()) {
             // if no transaction timer was started just remove the tx without firing a
             // transaction terminated event
             testAndSetTransactionTerminatedEvent();
@@ -1664,7 +1680,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     + "] or method is not ACK[" + this.getMethod() + "]");
         }
 
-        this.startTransactionTimer();
+        this.setTimeoutTimerActive();
     }
 
     // jeand cleanup the state of the stx to help GC

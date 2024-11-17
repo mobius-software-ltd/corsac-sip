@@ -26,19 +26,7 @@ public class SIPClientTransactionTimer extends SIPStackTimerTask {
                     ", isTerminated " + clientTransaction.isTerminated());
         }
         // If the transaction has terminated,
-        if (clientTransaction.isTerminated()) {
-
-            try {
-                clientTransaction.stopTransactionTimer();
-
-            } catch (IllegalStateException ex) {
-                if (!clientTransaction.getSIPStack().isAlive())
-                    return;
-            }
-
-            clientTransaction.cleanUpOnTerminated();
-
-        } else {
+        if (!clientTransaction.isTerminated()) {
             SipProviderImpl provider = clientTransaction.getSipProvider();
 
             // This is a User Agent. The user has specified an Expires time. Start a timer
@@ -54,10 +42,8 @@ public class SIPClientTransactionTimer extends SIPStackTimerTask {
             // If this transaction has not
             // terminated,
             // Fire the transaction timer.
-            clientTransaction.fireTimer();
-
+            clientTransaction.fireTimeoutTimer();
         }
-
     }
 
     @Override
