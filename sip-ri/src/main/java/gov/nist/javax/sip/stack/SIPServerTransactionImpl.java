@@ -1377,7 +1377,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // the connection linger timer.
             stopTimeoutTimer();
 
-            if(lingerTimer!=null) {
+            if(lingerTimer==null) {
 	            // Oneshot timer that garbage collects the SeverTransaction
 	            // after a scheduled amount of time. The linger timer allows
 	            // the client side of the tx to use the same connection to
