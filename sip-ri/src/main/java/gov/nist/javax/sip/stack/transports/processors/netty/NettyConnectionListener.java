@@ -70,6 +70,7 @@ public class NettyConnectionListener implements ChannelFutureListener {
         } else {
             Channel channel = ((ChannelFuture)channelFuture).channel();
             messageChannel.channel = channel;
+            messageChannel.channelId = channel.toString();
             messageChannel.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
             messageChannel.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();						
             
