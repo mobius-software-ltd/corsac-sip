@@ -1834,6 +1834,22 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     }
   }
 
+  /**
+   * @see gov.nist.javax.sip.stack.SIPTransaction#disableTimeoutTimer()
+   */
+  @Override
+  public void disableTimeoutTimer() {
+	  if (getDefaultDialog() != null && isInviteTransaction() && expiresTime != -1) {
+		  if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+		      logger.logDebug("Keeping timeout timer for expiration = " + this + " at expiration time " + expiresTime);
+		  }
+		  
+		  enableTimeoutTimer((int)((expiresTime - System.currentTimeMillis())/getBaseTimerInterval()));		  
+	  }
+	  else
+		  super.disableTimeoutTimer();	  
+  }
+  
   // jeand cleanup called after the ctx timer or the timer k has fired
   protected void cleanUpOnTerminated() {
     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
