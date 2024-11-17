@@ -675,15 +675,20 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     protected void enableTimeoutTimer(int tickCount) {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("enableTimeoutTimer " + this
-                    + " tickCount " + tickCount);
+                    + " tickCount " + tickCount + ",timeoutTimerEnabled " + timeoutTimerEnabled);
 
         if(timeoutTimer!=null) {
-        	getSIPStack().getTimer().cancel(timeoutTimer);
-        	timeoutTimer = null;
+        	getSIPStack().getTimer().cancel(timeoutTimer);        	
         }
         
         if(timeoutTimerEnabled) {
-        	timeoutTimer = getTimeoutTimer();
+        	if(timeoutTimer==null)
+        		timeoutTimer = getTimeoutTimer();
+        		
+        	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug("enableTimeoutTimer " + this
+                        + " timeoutTimer null " + (timeoutTimer==null));
+        	
         	if(timeoutTimer!=null)
         		getSIPStack().getTimer().schedule(timeoutTimer,tickCount*getBaseTimerInterval());
         }

@@ -104,7 +104,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	NettyConnectionListener nettyConnectionListener;
 
 	protected Channel channel;
-
+	protected String channelId;
 	protected SIPTransactionStack sipStack;
 	protected long lastActivityTimeStamp;
 
@@ -141,6 +141,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				((InetSocketAddress) channel.remoteAddress()).getPort(),
 				nettyStreamMessageProcessor);
 		this.channel = channel;
+		this.channelId = channel.toString();		
 		this.messageProcessor = nettyStreamMessageProcessor;
 		this.sipStack = nettyStreamMessageProcessor.getSIPStack();
 		isWebsocket = ListeningPointExt.WS.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport()) ||
@@ -1090,7 +1091,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 
 		@Override
 		public String getId() {
-			return channel.toString();
+			return channelId;
 		}
 
 		public void runTask() {
