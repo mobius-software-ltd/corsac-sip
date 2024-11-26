@@ -29,7 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -47,7 +46,6 @@ import javax.sip.TransactionState;
 import javax.sip.address.Address;
 import javax.sip.address.Hop;
 import javax.sip.address.SipURI;
-import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.EventHeader;
@@ -87,6 +85,7 @@ import gov.nist.javax.sip.header.ContactList;
 import gov.nist.javax.sip.header.Event;
 import gov.nist.javax.sip.header.From;
 import gov.nist.javax.sip.header.MaxForwards;
+import gov.nist.javax.sip.header.ProxyAuthorization;
 import gov.nist.javax.sip.header.RAck;
 import gov.nist.javax.sip.header.RSeq;
 import gov.nist.javax.sip.header.Reason;
@@ -257,7 +256,7 @@ public class SIPDialog implements DialogExt {
     protected Address remoteTarget;
     protected String remoteTargetStringified;
 
-    protected EventHeader eventHeader; // for Subscribe notify
+    protected Event eventHeader; // for Subscribe notify
 
     // Stores the last OK for the INVITE
     // Used in createAck.
@@ -280,7 +279,8 @@ public class SIPDialog implements DialogExt {
     protected boolean sequenceNumberValidation = true;
 
     // List of event listeners for this dialog
-    protected transient Set<SIPDialogEventListener> eventListeners;
+    //protected transient Set<SIPDialogEventListener> eventListeners;
+    
     // added for Issue 248 :
     // https://jain-sip.dev.java.net/issues/show_bug.cgi?id=248
     // private transient Semaphore timerTaskLock = new Semaphore(1);
@@ -302,7 +302,7 @@ public class SIPDialog implements DialogExt {
 
     protected boolean pendingRouteUpdateOn202Response;
 
-    protected ProxyAuthorizationHeader proxyAuthorizationHeader; // For
+    protected ProxyAuthorization proxyAuthorizationHeader; // For
                                                                  // subequent
                                                                  // requests.
 
@@ -695,7 +695,6 @@ public class SIPDialog implements DialogExt {
         localSequenceNumber = 0;
         remoteSequenceNumber = -1;
         this.sipProvider = provider;
-        eventListeners = new CopyOnWriteArraySet<SIPDialogEventListener>();
         this.dialogTerminatedEventDelivered = new AtomicBoolean(false);
         this.nextSeqno = new AtomicLong(0);
         this.earlyDialogTimeout = ((SIPTransactionStack) provider.getSipStack())
@@ -758,7 +757,6 @@ public class SIPDialog implements DialogExt {
                             + this.sipProvider.getListeningPoint().getPort());
             logger.logStackTrace();
         }
-        addEventListener(sipStack);
         releaseReferencesStrategy = sipStack.getReleaseReferencesStrategy();
     }
 
@@ -799,7 +797,6 @@ public class SIPDialog implements DialogExt {
             logger.logStackTrace();
         }
         this.isBackToBackUserAgent = sipStack.isBackToBackUserAgent;
-        addEventListener(sipStack);
         releaseReferencesStrategy = sipStack.getReleaseReferencesStrategy();
     }
     
@@ -881,10 +878,7 @@ public class SIPDialog implements DialogExt {
         // Error event to send to all listeners
         SIPDialogErrorEvent newErrorEvent;
         // Iterator through the list of listeners
-        Iterator<SIPDialogEventListener> listenerIterator;
-        // Next listener in the list
-        SIPDialogEventListener nextListener;
-
+        
         // Create the error event
         newErrorEvent = new SIPDialogErrorEvent(this, dialogTimeoutError);
         
@@ -893,18 +887,9 @@ public class SIPDialog implements DialogExt {
         // when a re-INVITE is being sent.
         newErrorEvent.setClientTransaction(clientTransaction);
 
-        // Loop through all listeners of this transaction
-        // synchronized (eventListeners) {
-            
-            listenerIterator = new CopyOnWriteArraySet<SIPDialogEventListener>(eventListeners).iterator();
-            while (listenerIterator.hasNext()) {
-                // Send the event to the next listener
-                nextListener = (SIPDialogEventListener) listenerIterator.next();
-                nextListener.dialogErrorEvent(newErrorEvent);
-            }
-        // }
-        // Clear the event listeners after propagating the error.
-        eventListeners.clear();
+        sipStack.dialogErrorEvent(newErrorEvent);
+        sipProvider.dialogErrorEvent(newErrorEvent);
+        
         // Errors always terminate a dialog except if a timeout has occured
         // because an ACK was not sent or received, then it is the
         // responsibility of the app to terminate
@@ -1372,27 +1357,7 @@ public class SIPDialog implements DialogExt {
 
     // /////////////////////////////////////////////////////////
     // Public methods
-    // /////////////////////////////////////////////////////////
-
-    /**
-     * Adds a new event listener to this dialog.
-     * 
-     * @param newListener
-     *            Listener to add.
-     */
-    public void addEventListener(SIPDialogEventListener newListener) {
-        eventListeners.add(newListener);
-    }
-
-    /**
-     * Removed an event listener from this dialog.
-     * 
-     * @param oldListener
-     *            Listener to remove.
-     */
-    public void removeEventListener(SIPDialogEventListener oldListener) {
-        eventListeners.remove(oldListener);
-    }
+    // /////////////////////////////////////////////////////////    
 
     /*
      * @see javax.sip.Dialog#setApplicationData()
@@ -1498,14 +1463,10 @@ public class SIPDialog implements DialogExt {
                 }
 
         }
-        if ( state == EARLY_STATE ) {
-            this.addEventListener(this.getSipProvider());
-        }
 
         this.dialogState = state;
         // Dialog is in terminated state set it up for GC.
         if (state == TERMINATED_STATE) {
-            this.removeEventListener(this.getSipProvider());
             if (sipStack.getTimer() != null && sipStack.getTimer().isStarted() ) { // may be null after shutdown
             	if(sipStack.getConnectionLingerTimer() > 0) {
                     sipStack.getTimer().schedule(new LingerTimer(),
@@ -1578,8 +1539,8 @@ public class SIPDialog implements DialogExt {
     }
     
     
-    public CSeqHeader getLastAckSentCSeq() {
-        return lastAckSent != null ? lastAckSent.getCSeq() : null;
+    public long getLastAckSentCSeq() {
+        return lastAckSent != null ? lastAckSent.getCSeq() : -1;
     }    
     public String getLastAckSentFromTag() {
         return lastAckSent != null ? lastAckSent.getFromTag() : null;
@@ -1588,29 +1549,44 @@ public class SIPDialog implements DialogExt {
         return lastAckSent != null ? lastAckSent.getDialogId() : null;
     }
     
-    protected final class ACKWrapper {
+    public final class ACKWrapper {
         String msgBytes;
         String fromTag;
         String dialogId;
-        CSeqHeader cSeq;
+        Long cSeq;
         ACKWrapper(SIPRequest req) {
             req.setTransaction(null); // null out the associated Tx (release memory)
             msgBytes = req.encode();
             fromTag=req.getFromTag();
             dialogId=req.getDialogId(false);
-            cSeq = req.getCSeq();
+            
+            if(req.getCSeq()!=null)
+            	cSeq = req.getCSeq().getSeqNumber();
         }
-
+        
+        public ACKWrapper(String msgBytes, String fromTag, String dialogId, Long cSeq) {
+            this.msgBytes = msgBytes;
+            this.fromTag = fromTag;
+            this.dialogId = dialogId;
+            this.cSeq = cSeq;
+        }
+        
         public String getFromTag() {
             return fromTag;
         }
 
-        public CSeqHeader getCSeq() {
+        public Long getCSeq() {
             return cSeq;
         }
+        
         public String getDialogId() {
                 return dialogId;
         }
+        
+        public String getMsgBytes() {
+        	return msgBytes;
+        }
+        
         public SIPRequest reparseRequest() {
             try {
                 return (SIPRequest) sipStack.getMessageParserFactory().createMessageParser(sipStack).parseSIPMessage(msgBytes.getBytes("UTF-8"),true,false,null);
@@ -1646,8 +1622,7 @@ public class SIPDialog implements DialogExt {
             if (lastAckSent == null) {
                 return false;
             } else {
-                return cseqNo <= this.getLastAckSentCSeq()
-                        .getSeqNumber();
+                return cseqNo <= this.getLastAckSentCSeq();
             }
         } else {
             return true;
@@ -1890,7 +1865,7 @@ public class SIPDialog implements DialogExt {
             // use on this dialog.
             storeFirstTransactionInfo(this, transaction);
             if (sipRequest.getMethod().equals(Request.SUBSCRIBE))
-                this.eventHeader = (EventHeader) sipRequest
+                this.eventHeader = (Event) sipRequest
                         .getHeader(EventHeader.NAME);
 
             this.setLocalParty(sipRequest);
@@ -2645,7 +2620,7 @@ public class SIPDialog implements DialogExt {
         SIPRequest dialogRequest = ((SIPClientTransaction) clientTransaction)
                 .getOriginalRequest();
 
-        this.proxyAuthorizationHeader = (ProxyAuthorizationHeader) dialogRequest
+        this.proxyAuthorizationHeader = (ProxyAuthorization) dialogRequest
                 .getHeader(ProxyAuthorizationHeader.NAME);
 
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
@@ -2773,11 +2748,18 @@ public class SIPDialog implements DialogExt {
     }
 
     protected void scheduleDialogTimer(SIPServerTransaction transaction) {
-        this.timerTask = new SIPDialogTimerTask(this, transaction.getTimerT2(), transaction.getBaseTimerInterval());
+        this.timerTask = new SIPDialogTimerTask(this, transaction, transaction.getTimerT2(), transaction.getBaseTimerInterval());
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug(
                 "Executing DialogTimerTask " + timerTask + " with fixed delay and period of " + transaction.getBaseTimerInterval());
         sipStack.getTimer().schedule(timerTask,transaction.getBaseTimerInterval());
+    }
+
+    protected void rescheduleDialogTimer(long baseInterval,SIPServerTransaction transaction) {
+    	if(timerTask==null)
+    		this.timerTask = new SIPDialogTimerTask(this, transaction, transaction.getTimerT2(), transaction.getBaseTimerInterval());
+        
+    	sipStack.getTimer().schedule(timerTask,baseInterval);
     }
 
     protected void stopDialogTimer() {
@@ -2793,13 +2775,6 @@ public class SIPDialog implements DialogExt {
             this.getStack().getTimer().cancel(timerTask);
             timerTask = null;
         }
-    }
-
-    protected void rescheduleDialogTimer(long baseInterval,SIPServerTransaction transaction) {
-    	if(timerTask!=null)
-    		this.getStack().getTimer().cancel(timerTask);
-    	
-    	scheduleDialogTimer(transaction);
     }
     
     /*
@@ -4046,7 +4021,7 @@ public class SIPDialog implements DialogExt {
      * @param eventHeader
      *            the eventHeader to set
      */
-    void setEventHeader(EventHeader eventHeader) {
+    void setEventHeader(Event eventHeader) {
         this.eventHeader = eventHeader;
     }    
 
@@ -4173,9 +4148,6 @@ public class SIPDialog implements DialogExt {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                 logger
                         .logDebug("dialog cleanup : " + getDialogId());
-            }            
-            if (eventListeners != null) {
-                eventListeners.clear();
             }
             // timerTaskLock = null;
             // ackSem = null;            
@@ -4315,6 +4287,10 @@ public class SIPDialog implements DialogExt {
     protected void startReliableResponseTimer(SIPServerTransactionImpl serverTransaction) {
         provisionalResponseTask = new ProvisionalResponseTask(this, serverTransaction);
         sipStack.getTimer().schedule(provisionalResponseTask, SIPTransactionStack.BASE_TIMER_INTERVAL);    
+    }
+    
+    protected void restartReliableResponseTimer(SIPServerTransactionImpl serverTransaction, int ticks) {
+        sipStack.getTimer().schedule(provisionalResponseTask, ticks * SIPTransactionStack.BASE_TIMER_INTERVAL);    
     }
     
     protected void stopReliableResponseTimer() {

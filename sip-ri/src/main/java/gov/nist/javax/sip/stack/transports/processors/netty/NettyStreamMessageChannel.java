@@ -770,8 +770,9 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 			}
 
 			// Stack could not create a new server request interface.
-			// maybe not enough resources.
-			ServerRequestInterface sipServerRequest = sipStack.newSIPServerRequest(sipRequest, this);
+			// maybe not enough resources.			
+			ServerRequestInterface sipServerRequest = sipStack.newSIPServerRequest(sipRequest, 
+					messageProcessor.getListeningPoint().getProvider(), this);
 
 			if (sipServerRequest != null) {
 				// try {

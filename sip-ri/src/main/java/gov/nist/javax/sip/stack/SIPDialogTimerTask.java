@@ -13,11 +13,12 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
     private static StackLogger logger = CommonLogger.getLogger(SIPDialogTimerTask.class);    
     private static final long serialVersionUID = 1L;
     protected SIPDialog dialog;
+    protected SIPServerTransaction transaction;
     protected int nRetransmissions;
     protected int timerT2;
     protected long baseTimerInterval;
     
-    public SIPDialogTimerTask(SIPDialog sipDialog,int timerT2,long baseTimerInterval) {
+    public SIPDialogTimerTask(SIPDialog sipDialog,SIPServerTransaction transaction, int timerT2,long baseTimerInterval) {
         	super(SIPDialogTimerTask.class.getSimpleName());
             this.dialog = sipDialog;
             nRetransmissions = 0;
@@ -35,8 +36,6 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
         else
         	nRetransmissions *= 2;
         
-        SIPServerTransaction transaction = (SIPServerTransaction) 
-            dialog.getStack().findTransaction(getTaskName(), true);
         /*
          * Issue 106. Section 13.3.1.4 RFC 3261 The 2xx response is passed
          * to the transport with an interval that starts at T1 seconds and
@@ -91,9 +90,9 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
         }
         else {
         	if (nRetransmissions <= timerT2)
-        		dialog.getStack().getTimer().schedule(this,nRetransmissions*baseTimerInterval);
+        		dialog.rescheduleDialogTimer(nRetransmissions*baseTimerInterval, transaction);
             else
-            	dialog.getStack().getTimer().schedule(this,timerT2*baseTimerInterval);        	
+            	dialog.rescheduleDialogTimer(timerT2*baseTimerInterval, transaction);        	
         }
     }
 

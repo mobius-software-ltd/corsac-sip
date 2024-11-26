@@ -47,6 +47,7 @@ import gov.nist.core.NameValueList;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SIPConstants;
+import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.address.AddressImpl;
@@ -243,8 +244,8 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    * @param newChannelToUse Channel to encapsulate.
    * @return the created client transaction.
    */
-  protected SIPClientTransactionImpl(SIPTransactionStack newSIPStack, MessageChannel newChannelToUse) {
-    super(newSIPStack, newChannelToUse);
+  protected SIPClientTransactionImpl(SIPTransactionStack newSIPStack, SipProviderImpl sipProvider, MessageChannel newChannelToUse) {
+    super(newSIPStack, sipProvider, newChannelToUse);
     // Create a random branch parameter for this transaction
     setBranch(Utils.getInstance().generateBranchId());
     this.setEncapsulatedChannel(newChannelToUse);
@@ -726,7 +727,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       boolean ackAlreadySent = false;
       // if (dialog != null && dialog.isAckSeen() && dialog.getLastAckSent() != null)
       if (dialog != null && dialog.isAckSent(transactionResponse.getCSeq().getSeqNumber())) {
-        if (dialog.getLastAckSentCSeq().getSeqNumber() == transactionResponse.getCSeq()
+        if (dialog.getLastAckSentCSeq() == transactionResponse.getCSeq()
             .getSeqNumber()
             && transactionResponse.getFromTag().equals(dialog.getLastAckSentFromTag())) {
           // the last ack sent corresponded to this response

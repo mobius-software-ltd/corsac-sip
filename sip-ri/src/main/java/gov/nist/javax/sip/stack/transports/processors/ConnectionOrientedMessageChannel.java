@@ -440,11 +440,11 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
                     this.sendMessage(resp, false);
                     throw new Exception("Bad CSeq method" + sipMessage + " method " + method);
                 }
-
+                
                 // Stack could not create a new server request interface.
                 // maybe not enough resources.
                 ServerRequestInterface sipServerRequest = sipStack
-                        .newSIPServerRequest(sipRequest, this);
+                        .newSIPServerRequest(sipRequest, messageProcessor.getListeningPoint().getProvider(), this);
                 
                 if (sipServerRequest != null) {
                     // try {

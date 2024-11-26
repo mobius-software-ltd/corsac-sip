@@ -269,7 +269,7 @@ final class SCTPMessageChannel extends MessageChannel
                         + this.getPort(), false, rxTime);
             }
             ServerRequestInterface sipServerRequest = sipStack
-                    .newSIPServerRequest(sipRequest, this);
+                    .newSIPServerRequest(sipRequest, messageProcessor.getListeningPoint().getProvider(), this);
             // Drop it if there is no request returned
             if (sipServerRequest == null) {
                 if (logger.isLoggingEnabled()) {

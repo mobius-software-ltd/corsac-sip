@@ -26,18 +26,16 @@ import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.sip.Dialog;
+import javax.sip.SipProvider;
 import javax.sip.TransactionState;
 import javax.sip.address.SipURI;
 import javax.sip.message.Request;
@@ -130,7 +128,8 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     // Parent stack for this transaction
     protected transient SIPTransactionStack sipStack;
-
+    protected transient SipProviderImpl sipProvider;
+    
     // Original request that is being handled by this transaction
     protected SIPRequest originalRequest;
     //jeand we nullify the originalRequest fast to save on mem and help GC
@@ -160,10 +159,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     // Current transaction state
     protected int currentState = -1;
 
-    // List of event listeners for this transaction
-    protected transient Set<SIPTransactionEventListener> eventListeners;
-
-
     // Counter for caching of connections.
     // Connection lingers for collectionTime
     // after the Transaction goes to terminated state.
@@ -173,10 +168,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     // aggressive flag to optimize eagerly
     protected ReleaseReferencesStrategy releaseReferencesStrategy;
-
-    // caching flags
-    protected Boolean isInviteTransaction = null;
-    protected Boolean dialogCreatingTransaction = null;
 
     // caching fork id
     protected String forkId = null;
@@ -338,7 +329,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     // May be required by the subclasses for in memory datagrid frameworks
     protected SIPTransactionImpl() {
-        eventListeners = new CopyOnWriteArraySet<SIPTransactionEventListener>();
     }
 
     /**
@@ -349,10 +339,11 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      * @param newEncapsulatedChannel
      *            Underlying channel for this transaction.
      */
-    protected SIPTransactionImpl(SIPTransactionStack newParentStack,
+    protected SIPTransactionImpl(SIPTransactionStack newParentStack, SipProviderImpl newSipProvider,
             MessageChannel newEncapsulatedChannel) {
 
         sipStack = newParentStack;
+        sipProvider = newSipProvider;
         // this.semaphore = new TransactionSemaphore();
 
         encapsulatedChannel = newEncapsulatedChannel;
@@ -371,12 +362,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
         disableRetransmissionTimer();
         disableTimeoutTimer();
-        eventListeners = new CopyOnWriteArraySet<SIPTransactionEventListener>();
-
-        // Always add the parent stack as a listener
-        // of this transaction
-        addEventListener(newParentStack);
-
+        
         releaseReferencesStrategy = sipStack.getReleaseReferencesStrategy();
         this.applicationData = new ConcurrentHashMap<String, Object>(10);
     }
@@ -480,10 +466,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public boolean isDialogCreatingTransaction() {
-        if (dialogCreatingTransaction == null) {
-        	dialogCreatingTransaction = Boolean.valueOf(isInviteTransaction() || getMethod().equals(Request.SUBSCRIBE) || getMethod().equals(Request.REFER));
-        }
-    	return dialogCreatingTransaction.booleanValue();
+        return Boolean.valueOf(isInviteTransaction() || getMethod().equals(Request.SUBSCRIBE) || getMethod().equals(Request.REFER));
     }
 
     /**
@@ -491,10 +474,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public boolean isInviteTransaction() {
-        if (isInviteTransaction == null) {
-        	isInviteTransaction = Boolean.valueOf(getMethod().equals(Request.INVITE));
-        }
-    	return isInviteTransaction.booleanValue();
+        return Boolean.valueOf(getMethod().equals(Request.INVITE));
     }
 
     /**
@@ -867,22 +847,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
     }
 
     /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#addEventListener(gov.nist.javax.sip.stack.SIPTransactionEventListener)
-     */
-    @Override
-    public void addEventListener(SIPTransactionEventListener newListener) {
-        eventListeners.add(newListener);
-    }
-
-    /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#removeEventListener(gov.nist.javax.sip.stack.SIPTransactionEventListener)
-     */
-    @Override
-    public void removeEventListener(SIPTransactionEventListener oldListener) {
-        eventListeners.remove(oldListener);
-    }
-
-    /**
      * @see gov.nist.javax.sip.stack.SIPTransaction#raiseErrorEvent(int)
      */
     @Override
@@ -890,30 +854,16 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
         // Error event to send to all listeners
         SIPTransactionErrorEvent newErrorEvent;
-        // Iterator through the list of listeners
-        Iterator<SIPTransactionEventListener> listenerIterator;
-        // Next listener in the list
-        SIPTransactionEventListener nextListener;
-
         // Create the error event
         newErrorEvent = new SIPTransactionErrorEvent(this, errorEventID);
 
-        // Loop through all listeners of this transaction
-        // synchronized (eventListeners) {
-            listenerIterator = eventListeners.iterator();
-            while (listenerIterator.hasNext()) {
-                // Send the event to the next listener
-                nextListener = (SIPTransactionEventListener) listenerIterator
-                        .next();
-                nextListener.transactionErrorEvent(newErrorEvent);
-            }
+        sipStack.transactionErrorEvent(newErrorEvent);
+        sipProvider.transactionErrorEvent(newErrorEvent);
         // }
         // Clear the event listeners after propagating the error.
         // Retransmit notifications are just an alert to the
         // application (they are not an error).
         if (errorEventID != SIPTransactionErrorEvent.TIMEOUT_RETRANSMIT) {
-            eventListeners.clear();
-
             // Errors always terminate a transaction
             this.setState(TransactionState._TERMINATED);
 
@@ -1146,8 +1096,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public SipProviderImpl getSipProvider() {
-
-        return this.getMessageProcessor().getListeningPoint().getProvider();
+        return sipProvider;
     }
 
     /**

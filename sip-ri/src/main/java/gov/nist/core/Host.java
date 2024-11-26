@@ -144,6 +144,13 @@ public class Host extends GenericObject {
         return hostname;
     }
 
+    /** get the address type field
+     * @return int
+     */
+    public int getAddressType() {
+    	return addressType;
+    }
+    
     /** get the Address field
      * @return String
      */

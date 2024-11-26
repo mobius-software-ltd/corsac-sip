@@ -346,7 +346,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 
             }
             final ServerRequestInterface sipServerRequest = sipStack
-                    .newSIPServerRequest(sipRequest, this);
+                    .newSIPServerRequest(sipRequest, messageProcessor.getListeningPoint().getProvider(), this);
             // Drop it if there is no request returned
             if (sipServerRequest == null) {
                 if (logger.isLoggingEnabled()) {

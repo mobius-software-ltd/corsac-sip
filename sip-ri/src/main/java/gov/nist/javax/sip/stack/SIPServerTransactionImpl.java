@@ -55,7 +55,6 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.IllegalTransactionStateException.Reason;
-import gov.nist.javax.sip.stack.SIPTransactionImpl.LingerTimer;
 import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
@@ -384,9 +383,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      * @param sipStack        Transaction stack this transaction belongs to.
      * @param newChannelToUse Channel to encapsulate.
      */
-    protected SIPServerTransactionImpl(SIPTransactionStack sipStack, MessageChannel newChannelToUse) {
+    protected SIPServerTransactionImpl(SIPTransactionStack sipStack, SipProviderImpl sipProvider, MessageChannel newChannelToUse) {
 
-        super(sipStack, newChannelToUse);
+        super(sipStack, sipProvider, newChannelToUse);
 
         // Only one outstanding request for a given server tx.
 

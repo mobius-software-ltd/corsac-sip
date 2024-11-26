@@ -575,7 +575,7 @@ public class UDPMessageChannel extends MessageChannel implements
 
             }
             final ServerRequestInterface sipServerRequest = sipStack
-                    .newSIPServerRequest(sipRequest, this);
+                    .newSIPServerRequest(sipRequest, messageProcessor.getListeningPoint().getProvider(), this);
             // Drop it if there is no request returned
             if (sipServerRequest == null) {
                 if (logger.isLoggingEnabled()) {

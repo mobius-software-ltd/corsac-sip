@@ -94,7 +94,7 @@ public class ProvisionalResponseTask extends SIPStackTimerTask {
                 serverTransaction.fireTimeoutTimer();
             }
             else {
-            	serverTransaction.getSIPStack().getTimer().schedule(this, ticks * SIPTransactionStack.BASE_TIMER_INTERVAL);   
+            	sipDialog.restartReliableResponseTimer(serverTransaction, ticks * SIPTransactionStack.BASE_TIMER_INTERVAL);   
             }
         }
     }

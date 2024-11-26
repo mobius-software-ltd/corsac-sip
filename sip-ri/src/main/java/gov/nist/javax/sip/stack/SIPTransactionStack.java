@@ -114,7 +114,7 @@ import gov.nist.javax.sip.stack.transports.processors.oio.TLSMessageProcessor;
  * @version 1.2 $Revision: 1.180 $ $Date: 2010-12-02 22:04:15 $
  */
 public abstract class SIPTransactionStack implements
-        SIPTransactionEventListener, SIPDialogEventListener {
+        SIPTransactionEventListener {
 	private static StackLogger logger = CommonLogger.getLogger(SIPTransactionStack.class);
     /*
      * Number of milliseconds between timer ticks (500).
@@ -1505,8 +1505,7 @@ public abstract class SIPTransactionStack implements
         }
         String mergeId = sipRequest.getMergeId();
         if (mergeId != null) {
-            SIPServerTransaction mergedTransaction = (SIPServerTransaction) this.mergeTable
-                    .get(mergeId);
+            SIPServerTransaction mergedTransaction = findMergedTransactionByMergeId(mergeId);
             if (mergedTransaction != null
                     && !mergedTransaction
                             .isMessagePartOfTransaction(sipRequest)) {
@@ -1621,7 +1620,7 @@ public abstract class SIPTransactionStack implements
      * @return A server transaction.
      */
     public ServerRequestInterface newSIPServerRequest(
-            SIPRequest requestReceived, MessageChannel requestMessageChannel) {
+            SIPRequest requestReceived, SipProviderImpl sipProvider,MessageChannel requestMessageChannel) {
         // Next transaction in the set
         SIPServerTransaction nextTransaction;
 
@@ -1704,7 +1703,7 @@ public abstract class SIPTransactionStack implements
                     logger.logDebug(
                             "No transaction found " + currentTransaction + " Creating new server transaction for request " + requestReceived);
                 }
-                currentTransaction = createServerTransaction(requestMessageChannel);
+                currentTransaction = createServerTransaction(sipProvider, requestMessageChannel);
                 if (currentTransaction != null) {
                     // currentTransaction.setPassToListener();
                     currentTransaction.setOriginalRequest(requestReceived);
@@ -1923,9 +1922,9 @@ public abstract class SIPTransactionStack implements
      * @param encapsulatedMessageChannel
      *            Message channel of the transport layer.
      */
-    public SIPClientTransaction createClientTransaction(SIPRequest sipRequest,
+    public SIPClientTransaction createClientTransaction(SIPRequest sipRequest, SipProviderImpl sipProvider,
             MessageChannel encapsulatedMessageChannel) {
-        SIPClientTransaction ct = createNewClientTransaction(sipRequest, encapsulatedMessageChannel);
+        SIPClientTransaction ct = createNewClientTransaction(sipRequest, sipProvider, encapsulatedMessageChannel);
         ct.setOriginalRequest(sipRequest);
         return ct;
     }
@@ -1937,13 +1936,13 @@ public abstract class SIPTransactionStack implements
      * @param encapsulatedMessageChannel
      *            Message channel of the transport layer.
      */
-    public SIPServerTransaction createServerTransaction(
+    public SIPServerTransaction createServerTransaction(SipProviderImpl sipProvider,
             MessageChannel encapsulatedMessageChannel) {
         // Issue 256 : be consistent with createClientTransaction, if
         // unlimitedServerTransactionTableSize is true,
         // a new Server Transaction is created no matter what
         if (unlimitedServerTransactionTableSize) {
-            return createNewServerTransaction(encapsulatedMessageChannel);
+            return createNewServerTransaction(sipProvider, encapsulatedMessageChannel);
         } else {
             float threshold = ((float) (getServerTransactionTableSize() - serverTransactionTableLowaterMark))
                     / ((float) (serverTransactionTableHighwaterMark - serverTransactionTableLowaterMark));
@@ -1951,7 +1950,7 @@ public abstract class SIPTransactionStack implements
             if (decision) {
                 return null;
             } else {
-                return createNewServerTransaction(encapsulatedMessageChannel);
+                return createNewServerTransaction(sipProvider, encapsulatedMessageChannel);
             }
 
         }
@@ -1964,9 +1963,9 @@ public abstract class SIPTransactionStack implements
      * @param encapsulatedMessageChannel
      *            Message channel of the transport layer.
      */
-    public SIPClientTransactionImpl createNewClientTransaction(SIPRequest sipRequest,
+    public SIPClientTransactionImpl createNewClientTransaction(SIPRequest sipRequest, SipProviderImpl sipProvider,
             MessageChannel encapsulatedMessageChannel) {
-        return new SIPClientTransactionImpl(this, encapsulatedMessageChannel);
+        return new SIPClientTransactionImpl(this, sipProvider, encapsulatedMessageChannel);
     }
 
     /**
@@ -1976,8 +1975,8 @@ public abstract class SIPTransactionStack implements
      * @param encapsulatedMessageChannel
      *            Message channel of the transport layer.
      */
-    public SIPServerTransactionImpl createNewServerTransaction(MessageChannel encapsulatedMessageChannel) {
-        return new SIPServerTransactionImpl(this, encapsulatedMessageChannel);
+    public SIPServerTransactionImpl createNewServerTransaction(SipProviderImpl sipProvider, MessageChannel encapsulatedMessageChannel) {
+        return new SIPServerTransactionImpl(this, sipProvider, encapsulatedMessageChannel);
     }
 
     /**

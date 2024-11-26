@@ -260,22 +260,6 @@ public interface SIPTransaction extends TransactionExt {
   public void sendMessage(SIPMessage messageToSend) throws IOException;
 
   /**
-   * Adds a new event listener to this transaction.
-   * 
-   * @param newListener
-   *          Listener to add.
-   */
-  public void addEventListener(SIPTransactionEventListener newListener);
-
-  /**
-   * Removed an event listener from this transaction.
-   * 
-   * @param oldListener
-   *          Listener to remove.
-   */
-  public void removeEventListener(SIPTransactionEventListener oldListener);
-
-  /**
    * Gets the dialog object of this Transaction object. This object returns
    * null if no dialog exists. A dialog only exists for a transaction when a
    * session is setup between a User Agent Client and a User Agent Server,

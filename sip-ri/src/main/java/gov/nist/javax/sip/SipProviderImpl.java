@@ -73,7 +73,6 @@ import gov.nist.javax.sip.stack.HopImpl;
 import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPDialog;
 import gov.nist.javax.sip.stack.SIPDialogErrorEvent;
-import gov.nist.javax.sip.stack.SIPDialogEventListener;
 import gov.nist.javax.sip.stack.SIPServerTransaction;
 import gov.nist.javax.sip.stack.SIPTransaction;
 import gov.nist.javax.sip.stack.SIPTransactionErrorEvent;
@@ -96,7 +95,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
  */
 
 public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
-        SIPTransactionEventListener, SIPDialogEventListener {
+        SIPTransactionEventListener {
 	private static StackLogger logger = CommonLogger.getLogger(SipProviderImpl.class);
     private SipListener sipListener;
 
@@ -321,9 +320,8 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         SIPClientTransaction ct = (SIPClientTransaction) sipStack
           .findCancelTransaction((SIPRequest) sipRequest, false);
         if (ct != null) {
-          SIPClientTransaction retval = sipStack.createClientTransaction(sipRequest, ct.getMessageChannel());
+          SIPClientTransaction retval = sipStack.createClientTransaction(sipRequest, this, ct.getMessageChannel());
           
-          ((SIPTransaction) retval).addEventListener(this);
           sipStack.addTransaction( retval);
           if (ct.getDialog() != null) {
               retval.setDialog((SIPDialog) ct.getDialog(), sipRequest.getDialogId(false));
@@ -406,7 +404,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
          MessageChannel messageChannel = sipStack
             .createMessageChannel(sipRequest, listeningPoint
                                 .getMessageProcessor(), hop);
-         SIPClientTransaction ct = sipStack.createClientTransaction(sipRequest, messageChannel);
+         SIPClientTransaction ct = sipStack.createClientTransaction(sipRequest, this, messageChannel);
         if (ct == null)
           throw new TransactionUnavailableException("Cound not create tx");
         ct.setNextHop(hop);
@@ -433,7 +431,6 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
         }
         
         // The provider is the event listener for all transactions.
-        ct.addEventListener(this);
         return ct;
       } catch (IOException ex) {
         
@@ -540,7 +537,6 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                 //     "Error sending provisional response");
                 // }
                 // So I can handle timeouts.
-                transaction.addEventListener(this);
                 if (isAutomaticDialogSupportEnabled()) {
                     // If automatic dialog support is enabled then
                     // this tx gets his own dialog.
@@ -632,7 +628,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
 
                         MessageChannel mc = (MessageChannel) sipRequest
                         .getMessageChannel();
-                        transaction = sipStack.createServerTransaction(mc);
+                        transaction = sipStack.createServerTransaction(this, mc);
                         if (transaction == null)
                             throw new TransactionUnavailableException(
                             "Transaction unavailable -- too many servrer transactions");
@@ -887,7 +883,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
                         "Cannot call this method after response is received!");
             }
         }
-        dialog.addEventListener(this);
+        
         return dialog;
 
     }
