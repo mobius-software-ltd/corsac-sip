@@ -13,10 +13,10 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
     private static StackLogger logger = CommonLogger.getLogger(SIPDialogTimerTask.class);    
     private static final long serialVersionUID = 1L;
     protected SIPDialog dialog;
-    protected SIPServerTransaction transaction;
     protected int nRetransmissions;
     protected int timerT2;
     protected long baseTimerInterval;
+    protected SIPServerTransaction transaction;
     
     public SIPDialogTimerTask(SIPDialog sipDialog,SIPServerTransaction transaction, int timerT2,long baseTimerInterval) {
         	super(SIPDialogTimerTask.class.getSimpleName());
@@ -24,6 +24,7 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
             nRetransmissions = 0;
             this.timerT2 = timerT2;
             this.baseTimerInterval = baseTimerInterval;
+            this.transaction = transaction;
     }
 
     public void runTask() {
