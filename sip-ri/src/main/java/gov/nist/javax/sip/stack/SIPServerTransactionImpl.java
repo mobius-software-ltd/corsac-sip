@@ -295,7 +295,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         // sent using the existing connection
         // to the source of the original request
         // that created the transaction, if that connection is still open.
-        if (isReliable() && !sipStack.isPatchReceivedRport()) {
+        // adding support for HA , in case message channel is null should use a new one
+        if (isReliable() && !sipStack.isPatchReceivedRport() && getMessageChannel()!=null) {
             // https://github.com/RestComm/load-balancer/issues/59
             // we want possibility use Active-Active mode for LB, if one from LBs
             // will be shutdown than we can't use
@@ -512,7 +513,10 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
     public void processRequest(SIPRequest transactionRequest, MessageChannel sourceChannel) {
         boolean toTu = false;
 
-        // Can only process a single request directed to the
+        //lets update the channel on request
+    	this.setEncapsulatedChannel(sourceChannel);
+    		  
+    	// Can only process a single request directed to the
         // transaction at a time. For a given server transaction
         // the listener sees only one event at a time.
 

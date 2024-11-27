@@ -452,7 +452,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
       MessageChannel sourceChannel,
       SIPDialog dialog) {
 
-    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+	//lets update the channel on response
+	this.setEncapsulatedChannel(sourceChannel);
+		  
+	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
       logger.logDebug("processing " + transactionResponse.getFirstLine() + "current state = "
           + getState());
       logger.logDebug("dialog = " + dialog);
@@ -1457,7 +1460,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
   @Override
   public void processResponse(SIPResponse sipResponse, MessageChannel incomingChannel) {
 
-    int code = sipResponse.getStatusCode();
+	//lets update the channel on response
+	this.setEncapsulatedChannel(incomingChannel);
+	  
+	int code = sipResponse.getStatusCode();
     boolean isRetransmission = !responsesReceived.add(Integer.valueOf(code));
     if (code > 100 && code < 200 && isRetransmission) {
       if (lastResponse != null && !sipResponse.equals(lastResponse)) {
