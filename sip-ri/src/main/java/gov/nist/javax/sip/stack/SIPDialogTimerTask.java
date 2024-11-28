@@ -37,6 +37,9 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
         else
         	nRetransmissions *= 2;
         
+        SIPServerTransaction transaction = (SIPServerTransaction) 
+                dialog.getStack().findTransaction(getTaskName(), true);
+        
         /*
          * Issue 106. Section 13.3.1.4 RFC 3261 The 2xx response is passed
          * to the transport with an interval that starts at T1 seconds and
