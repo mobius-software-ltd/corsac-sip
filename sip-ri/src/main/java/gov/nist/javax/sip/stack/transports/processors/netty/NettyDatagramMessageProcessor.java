@@ -36,6 +36,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
@@ -97,7 +98,10 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
     
     @Override
     public void start() throws IOException {
+    	start(new NettyDatagramChannelInitializer(this));
+    }
         
+    protected void start(ChannelInboundHandlerAdapter channelInitializer) throws IOException {
         Bootstrap connectionlessBootstrap = new Bootstrap();
         connectionlessBootstrap.option(ChannelOption.SO_SNDBUF, sipStack.getSendUdpBufferSize());
         connectionlessBootstrap.option(ChannelOption.SO_RCVBUF, sipStack.getReceiveUdpBufferSize());
@@ -108,7 +112,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
         connectionlessBootstrap.option(EpollChannelOption.SO_REUSEPORT, true);
         connectionlessBootstrap.option(EpollChannelOption.IP_RECVORIGDSTADDR, true);
         connectionlessBootstrap.option(EpollChannelOption.IP_FREEBIND, true);
-        connectionlessBootstrap.handler(new NettyDatagramChannelInitializer(this));
+        connectionlessBootstrap.handler(channelInitializer);
         connectionlessBootstrap.channel(nioOrEpollServerDatagramChannel());
         connectionlessBootstrap.group(eventLoopGroup);
         
@@ -133,7 +137,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
             } 
         }
     }
-        
+
     @Override
     public void stop() {
         for (final Channel channel : serverChannels) {

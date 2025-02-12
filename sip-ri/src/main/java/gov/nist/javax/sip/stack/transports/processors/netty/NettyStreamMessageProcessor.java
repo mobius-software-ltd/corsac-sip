@@ -42,6 +42,8 @@ import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
@@ -78,11 +80,10 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
     // and registers the accepted connection to the worker
     EventLoopGroup workerGroup;
 
-    NettyMessageHandler context;
     Channel channel;
 
-    SslContext sslServerContext;
-    SslContext sslClientContext;
+    protected SslContext sslServerContext;
+    protected SslContext sslClientContext;
 
     /**
      * Constructor.
@@ -242,6 +243,18 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
 
     @Override
     public void start() throws IOException {
+    	ChannelInitializer<?> initialHandler = null;
+    	 if (transport.equals(ListeningPoint.TLS) || transport.equals(ListeningPoint.TCP))
+             initialHandler = new NettyStreamChannelInitializer(this, sslServerContext);
+    	 else if (transport.equals(ListeningPointExt.WS) || transport.equals(ListeningPointExt.WSS))
+    		 initialHandler = new NettyWebsocketsChannelInitializer(this, sslServerContext);
+    	 else if (transport.equals(ListeningPoint.SCTP))
+    		 initialHandler = new NettySctpChannelInitializer(this);
+    	 
+    	 start(initialHandler);
+    }
+    
+    protected void start(ChannelInboundHandlerAdapter initialHandler) throws IOException {
         try {
             ServerBootstrap server = new ServerBootstrap();
             ;
@@ -249,14 +262,14 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
                     .handler(new LoggingHandler(LogLevel.DEBUG));
             if (transport.equals(ListeningPoint.TLS) || transport.equals(ListeningPoint.TCP)) {
                 server = server.channel(nioOrEpollServerSocketChannel());
-                server = server.childHandler(new NettyStreamChannelInitializer(this, sslServerContext));
+                server = server.childHandler(initialHandler);
                 server = server.option(ChannelOption.SO_RCVBUF, sipStack.getTcpSoRcvbuf());				
                 server = server.childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the
                                                                                // parent ServerChannel, which is
                                                                                // NioSocketChannel in this case
             } else if (transport.equals(ListeningPointExt.WS) || transport.equals(ListeningPointExt.WSS)) {
                 server = server.channel(nioOrEpollServerSocketChannel());
-                server = server.childHandler(new NettyWebsocketsChannelInitializer(this, sslServerContext));
+                server = server.childHandler(initialHandler);
                 // server = server.option(ChannelOption.SO_BACKLOG, 128); // for the NioServerSocketChannel that accepts
                                                                        // incoming connections.
                 server = server.childOption(ChannelOption.SO_KEEPALIVE, true); // for the Channels accepted by the
@@ -264,7 +277,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
                                                                                // NioSocketChannel in this case
             } else if (transport.equals(ListeningPoint.SCTP)) {
                 server = server.channel(NioSctpServerChannel.class);
-                server = server.childHandler(new NettySctpChannelInitializer(this));
+                server = server.childHandler(initialHandler);
                 server.childOption(SctpChannelOption.SCTP_NODELAY, sipStack.getSctpNodelay());
                 server.childOption(SctpChannelOption.SCTP_DISABLE_FRAGMENTS, sipStack.getSctpDisableFragments());
                 server.childOption(SctpChannelOption.SCTP_FRAGMENT_INTERLEAVE, sipStack.getSctpFragmentInterleave());
