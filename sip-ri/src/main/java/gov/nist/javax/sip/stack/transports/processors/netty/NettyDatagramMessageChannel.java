@@ -58,7 +58,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
     private static StackLogger logger = CommonLogger.getLogger(NettyDatagramMessageChannel.class);
 
     private final SIPTransactionStack sipStack;
-    private Channel channel;    
+    protected Channel channel;    
 
     private String myAddress;
 
