@@ -58,7 +58,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
     protected final List<Channel> serverChannels;
     
     // multithreaded event loop that handles incoming connection and I/O operations
-    EventLoopGroup eventLoopGroup;    
+    protected EventLoopGroup eventLoopGroup;    
     
     /**
     * Constructor.
