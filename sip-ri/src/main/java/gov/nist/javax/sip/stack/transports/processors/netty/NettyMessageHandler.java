@@ -65,6 +65,10 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         SIPMessage sipMessage = (SIPMessage) msg;
         Channel channel = ctx.channel();
         MessageChannel nettyMessageChannel = messageProcessor.createMessageChannel(channel);                 
+        if(nettyMessageChannel == null) {
+        	//we are not accepting this message
+        	return;
+        }
         
         // RFC5626 CRLF Keep Alive Support
         if (reliableTransport && sipMessage.isNullRequest()) {
