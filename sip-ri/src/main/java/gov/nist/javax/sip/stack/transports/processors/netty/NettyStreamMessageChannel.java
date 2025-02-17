@@ -23,6 +23,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.text.ParseException;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.sip.ListeningPoint;
@@ -133,7 +134,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 	protected boolean handshakeCompleted = false;
 	private boolean isWebsocket;
 	private boolean isSctp;
-
+	private AtomicReference<ChannelFuture> channelFuture = new AtomicReference<ChannelFuture>();
+	
 	protected NettyStreamMessageChannel(NettyStreamMessageProcessor nettyStreamMessageProcessor,
 			Channel channel) {
 		this(
@@ -398,13 +400,40 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				channel.close();
 			}
 			nettyConnectionListener.addPendingMessage(byteBuf);
-			ChannelFuture channelFuture = bootstrap.connect(this.peerAddress, this.peerPort);
-			channelFuture.addListener(nettyConnectionListener);
+			if(channelFuture.get()==null) {
+				ChannelFuture channelFuture = bootstrap.connect(this.peerAddress, this.peerPort);
+				channelFuture.addListener(nettyConnectionListener);
+			}
 		} else {
 			writeMessage(byteBuf);
 		}
 	}
 
+	protected ChannelFuture connect() {
+		if (channel == null || !channel.isActive()) {
+			if(channelFuture.get()!=null)
+				return channelFuture.get();
+			
+			// Take a cached socket to the destination,
+			// if none create a new one and cache it
+			if (channel != null) {
+				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+					logger.logDebug(
+							"Channel not active " + this.myAddress + ":" + this.myPort + ", trying to reconnect "
+									+ this.peerAddress + ":" + this.peerPort + " for this channel "
+									+ channel + " key " + getKey());
+				}
+				channel.close();
+			}
+			
+			channelFuture.set(bootstrap.connect(this.peerAddress, this.peerPort));
+			channelFuture.get().addListener(nettyConnectionListener);
+			return channelFuture.get();
+		}
+		
+		return null;
+	}
+	
 	protected void writeMessage(ByteBuf message) throws IOException {
 		// Commenting Blocking mode as it creates deadlock
 		// when sync() is called from the listener from channelhandler
