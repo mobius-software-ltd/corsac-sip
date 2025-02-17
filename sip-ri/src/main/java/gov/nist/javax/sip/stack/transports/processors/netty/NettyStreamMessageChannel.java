@@ -409,7 +409,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 		}
 	}
 
-	protected ChannelFuture connect() {
+	protected ChannelFuture connect(InetAddress localAddress) {
 		if (channel == null || !channel.isActive()) {
 			if(channelFuture.get()!=null)
 				return channelFuture.get();
@@ -426,6 +426,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements
 				channel.close();
 			}
 			
+			bootstrap.bind(localAddress, 0).awaitUninterruptibly();
 			channelFuture.set(bootstrap.connect(this.peerAddress, this.peerPort));
 			channelFuture.get().addListener(nettyConnectionListener);
 			return channelFuture.get();
