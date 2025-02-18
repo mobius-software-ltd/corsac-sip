@@ -140,9 +140,14 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
 
     @Override
     public void stop() {
+    	List<ChannelFuture> closeFutures = new ArrayList<ChannelFuture>();
         for (final Channel channel : serverChannels) {
+        	closeFutures.add(channel.close());    
+        }
+        
+        for (final ChannelFuture currFuture : closeFutures) {            
             try {
-                channel.closeFuture().await(1000);
+            	currFuture.await(1000L);	
             } catch (InterruptedException e) {
                 // e.printStackTrace();
                 if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
@@ -150,6 +155,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
                 }
             }
         }
+        
         serverChannels.clear();
         eventLoopGroup.shutdownGracefully();
     }

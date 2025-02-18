@@ -45,10 +45,12 @@ public class NettyConnectionListener implements ChannelFutureListener {
     private NettyStreamMessageChannel messageChannel;
     private SipStackImpl sipStack;
     private ConcurrentLinkedQueue<ByteBuf> pendingMessages;    
-
-    public NettyConnectionListener(NettyStreamMessageChannel nettyStreamMessageChannel) {
+    private ChannelFutureListener parentListener;
+    
+    public NettyConnectionListener(NettyStreamMessageChannel nettyStreamMessageChannel, ChannelFutureListener parentListener) {
         this.messageChannel = nettyStreamMessageChannel;
         this.sipStack = (SipStackImpl) messageChannel.sipStack;
+        this.parentListener = parentListener;
         pendingMessages = new ConcurrentLinkedQueue<ByteBuf>();        
     }
 
@@ -58,7 +60,7 @@ public class NettyConnectionListener implements ChannelFutureListener {
 
     @Override
     public void operationComplete(ChannelFuture channelFuture) throws Exception {
-        if (!channelFuture.isSuccess()) {																 
+    	if (!channelFuture.isSuccess()) {																 
             if(sipStack != null && sipStack.getMessageProcessorExecutor() != null) {
                 sipStack.getMessageProcessorExecutor().addTaskLast(
                     new NettyConnectionFailureThread(messageChannel, channelFuture) 
@@ -110,6 +112,9 @@ public class NettyConnectionListener implements ChannelFutureListener {
                 ByteBuf byteBuf = pendingMessages.remove();            
                 messageChannel.writeMessage(byteBuf);
             }                									
-        }            
+        }  
+    	
+    	if(parentListener!=null)
+    		parentListener.operationComplete(channelFuture);    	        
     }    
 }
