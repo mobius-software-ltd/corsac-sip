@@ -197,50 +197,19 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 			bootstrap = bootstrap.handler(nettyChannelInitializer).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
 					this.sipStack.getConnectionTimeout());
 		} else if (isWebsocket) {
-			nettyChannelInitializer = new NettyStreamChannelInitializer(nettyStreamMessageProcessor,
+			nettyChannelInitializer = new NettyWebsocketsChannelInitializer(nettyStreamMessageProcessor,
 					nettyStreamMessageProcessor.sslClientContext);
 
 			bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup).channel(nioOrEpollSocketChannel());
-
+			bootstrap = bootstrap.option(ChannelOption.SO_RCVBUF, sipStack.getTcpSoRcvbuf());
+			bootstrap = bootstrap.option(ChannelOption.SO_SNDBUF, sipStack.getTcpSoSndbuf());
+			
 			String uri = getTransport().toLowerCase() + "://" + inetAddress.getHostAddress() + ":" + port
 					+ "/websocket";
 			logger.logInfo("websocket URI: " + uri);
 
-			WebSocketDecoderConfig decoderConfig = WebSocketDecoderConfig.newBuilder().expectMaskedFrames(false)
-					.allowMaskMismatch(true).allowExtensions(true).maxFramePayloadLength(1048576).build();
-
-			// final WebSocketClientHandler handler =
-			// new WebSocketClientHandler(
-			// WebSocketClientHandshakerFactory.newHandshaker(
-			// new URI(uri),
-			// WebSocketVersion.V13,
-			// SUBPROTOCOL,
-			// true,
-			// new DefaultHttpHeaders(),
-			// decoderConfig.maxFramePayloadLength(),
-			// true,
-			// decoderConfig.allowMaskMismatch()));
-
-			bootstrap.handler(new LoggingHandler(LogLevel.DEBUG)).handler(new ChannelInitializer<SocketChannel>() {
-				@Override
-				protected void initChannel(SocketChannel ch) {
-					ChannelPipeline p = ch.pipeline();
-					if (nettyStreamMessageProcessor.sslClientContext != null) {
-						p.addLast(nettyStreamMessageProcessor.sslClientContext.newHandler(ch.alloc(),
-								inetAddress.getHostAddress(), port));
-					}
-					p.addLast(new NettyWebSocketFrameDecoder(nettyStreamMessageProcessor, decoderConfig));
-					// Encoder
-					p.addLast(new WebSocket13FrameEncoder(false));
-					// p.addLast(
-					// new HttpClientCodec(),
-					// new HttpObjectAggregator(65536),
-					// // WebSocketClientCompressionHandler.INSTANCE,
-					// handler);
-					p.addLast(new NettyMessageHandler(nettyStreamMessageProcessor));
-
-				}
-			});
+			bootstrap.handler(new LoggingHandler(LogLevel.DEBUG)).handler(nettyChannelInitializer).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
+					this.sipStack.getConnectionTimeout());
 		}
 		nettyConnectionListener = new NettyConnectionListener(this, parentListener);
 
