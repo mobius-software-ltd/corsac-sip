@@ -25,7 +25,6 @@
 */
 package gov.nist.javax.sip.address;
 
-import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.regex.Pattern;
 

@@ -79,7 +79,8 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
     // of the accepted connection once the boss accepts the connection
     // and registers the accepted connection to the worker
     EventLoopGroup workerGroup;
-
+    Boolean stopping = false;
+    
     Channel channel;
 
     protected SslContext sslServerContext;
@@ -312,12 +313,16 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
 
     @Override
     public void stop() {
+    	stopping = true;
         workerGroup.shutdownGracefully();
-        bossGroup.shutdownGracefully();
+        bossGroup.shutdownGracefully();        
     }
 
     @Override
     public boolean inUse() {
+    	if(stopping)
+    		return false;
+    	
         return !workerGroup.isTerminated();
     }
 

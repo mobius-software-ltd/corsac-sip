@@ -71,9 +71,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.sctp.SctpChannelOption;
@@ -82,8 +81,6 @@ import io.netty.channel.sctp.nio.NioSctpChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
-import io.netty.handler.codec.http.websocketx.WebSocketDecoderConfig;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
@@ -98,7 +95,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 	// private static final String SUBPROTOCOL = null;
 
 	Bootstrap bootstrap;
-	ChannelInitializer<? extends Channel> nettyChannelInitializer;
+	ChannelInboundHandlerAdapter nettyChannelInitializer;
 	NettyConnectionListener nettyConnectionListener;
 
 	protected Channel channel;
@@ -150,11 +147,12 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 
 	public NettyStreamMessageChannel(InetAddress inetAddress, int port,
 			NettyStreamMessageProcessor nettyStreamMessageProcessor) {
-		this(inetAddress, port, nettyStreamMessageProcessor, null);
+		this(inetAddress, port, nettyStreamMessageProcessor, null, getInitializer(nettyStreamMessageProcessor));
 	}
 
 	public NettyStreamMessageChannel(InetAddress inetAddress, int port,
-			NettyStreamMessageProcessor nettyStreamMessageProcessor, ChannelFutureListener parentListener) {
+			NettyStreamMessageProcessor nettyStreamMessageProcessor, ChannelFutureListener parentListener,
+			ChannelInboundHandlerAdapter nettyChannelInitializer) {
 
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 			logger.logDebug("NettyStreamMessageChannel: " + inetAddress.getHostAddress() + ":" + port + "/"
@@ -169,11 +167,10 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 		isSctp = ListeningPoint.SCTP.equalsIgnoreCase(nettyStreamMessageProcessor.getTransport());
 
 		bootstrap = new Bootstrap();
+		this.nettyChannelInitializer = nettyChannelInitializer;
 		if (!isWebsocket) {
 
 			if (isSctp) {
-				nettyChannelInitializer = new NettySctpChannelInitializer(nettyStreamMessageProcessor);
-
 				bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup).channel(NioSctpChannel.class);
 
 				bootstrap.option(SctpChannelOption.SCTP_NODELAY, sipStack.getSctpNodelay());
@@ -185,9 +182,6 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 				bootstrap.option(SctpChannelOption.SO_RCVBUF, sipStack.getSctpSoRcvbuf());
 				bootstrap.option(SctpChannelOption.SO_LINGER, sipStack.getSctpSoLinger());
 			} else {
-				nettyChannelInitializer = new NettyStreamChannelInitializer(nettyStreamMessageProcessor,
-						nettyStreamMessageProcessor.sslClientContext);
-
 				bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup).channel(nioOrEpollSocketChannel());
 				bootstrap = bootstrap.option(ChannelOption.SO_RCVBUF, sipStack.getTcpSoRcvbuf());
 				bootstrap = bootstrap.option(ChannelOption.SO_SNDBUF, sipStack.getTcpSoSndbuf());
@@ -197,19 +191,16 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 			bootstrap = bootstrap.handler(nettyChannelInitializer).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
 					this.sipStack.getConnectionTimeout());
 		} else if (isWebsocket) {
-			nettyChannelInitializer = new NettyWebsocketsChannelInitializer(nettyStreamMessageProcessor,
-					nettyStreamMessageProcessor.sslClientContext);
-
 			bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup).channel(nioOrEpollSocketChannel());
 			bootstrap = bootstrap.option(ChannelOption.SO_RCVBUF, sipStack.getTcpSoRcvbuf());
 			bootstrap = bootstrap.option(ChannelOption.SO_SNDBUF, sipStack.getTcpSoSndbuf());
-			
+
 			String uri = getTransport().toLowerCase() + "://" + inetAddress.getHostAddress() + ":" + port
 					+ "/websocket";
 			logger.logInfo("websocket URI: " + uri);
 
-			bootstrap.handler(new LoggingHandler(LogLevel.DEBUG)).handler(nettyChannelInitializer).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
-					this.sipStack.getConnectionTimeout());
+			bootstrap.handler(new LoggingHandler(LogLevel.DEBUG)).handler(nettyChannelInitializer)
+					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.sipStack.getConnectionTimeout());
 		}
 		nettyConnectionListener = new NettyConnectionListener(this, parentListener);
 
@@ -257,6 +248,23 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 	 */
 	public String getTransport() {
 		return messageProcessor.getTransport();
+	}
+
+	private static ChannelInboundHandlerAdapter getInitializer(NettyStreamMessageProcessor messageProcessor) {
+		Boolean isWebsocket = ListeningPointExt.WS.equalsIgnoreCase(messageProcessor.getTransport())
+				|| ListeningPointExt.WSS.equalsIgnoreCase(messageProcessor.getTransport());
+		Boolean isSctp = ListeningPoint.SCTP.equalsIgnoreCase(messageProcessor.getTransport());
+
+		if (!isWebsocket) {
+			if (isSctp) {
+				return new NettySctpChannelInitializer(messageProcessor);
+			} else
+				return new NettyStreamChannelInitializer(messageProcessor, messageProcessor.sslClientContext);
+		} else if (isWebsocket)
+			return new NettyWebsocketsChannelInitializer(messageProcessor,
+					messageProcessor.sslClientContext);
+
+		return null;
 	}
 
 	/**
@@ -371,7 +379,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 				bootstrap.localAddress(localAddress, 0);
 
 			connectingFuture = bootstrap.connect(this.peerAddress, this.peerPort);
-			connectingFuture.addListener(nettyConnectionListener);			
+			connectingFuture.addListener(nettyConnectionListener);
 		}
 	}
 
