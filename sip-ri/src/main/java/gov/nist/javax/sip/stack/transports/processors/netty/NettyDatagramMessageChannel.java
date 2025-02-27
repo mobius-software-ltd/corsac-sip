@@ -65,7 +65,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
     /**
      * Where we got the stuff from
      */
-    private InetAddress peerAddress;
+    protected InetAddress peerAddress;
 
     private int peerPacketSourcePort;
 
@@ -74,7 +74,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
     /**
      * Reciever port -- port of the destination.
      */
-    private int peerPort;
+    protected int peerPort;
 
     private String peerProtocol;
 
@@ -89,8 +89,8 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         this.myAddress = messageProcessor.getIpAddress().getHostAddress();
         this.myPort = messageProcessor.getPort();
         if(channel.remoteAddress() != null) {
-            this.peerAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress();
-            this.peerPort = ((InetSocketAddress) channel.remoteAddress()).getPort();
+            setPeerAddress(((InetSocketAddress) channel.remoteAddress()).getAddress());
+            setPeerPort(((InetSocketAddress) channel.remoteAddress()).getPort());
             this.peerProtocol = nettyUDPMessageProcessor.getTransport();
         }
         
@@ -101,8 +101,8 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
             InetAddress targetHost, int port) {
         this(channel, nettyUDPMessageProcessor);            
         
-        this.peerAddress = targetHost;
-        this.peerPort = port;        
+        setPeerAddress(targetHost);
+        setPeerPort(port);        
         this.peerProtocol = nettyUDPMessageProcessor.getTransport();
     }
 
@@ -114,24 +114,24 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         // shortcircuit processing.
         long time = System.currentTimeMillis();
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("sending new UDP message to: " + peerAddress.getHostAddress() + ":" + peerPort + "/" + peerProtocol);
+            logger.logDebug("sending new UDP message to: " + getPeerAddress() + ":" + getPeerPort() + "/" + peerProtocol);
         }
         //check for self routing
-        MessageProcessor messageProcessor = getSIPStack().findMessageProcessor(peerAddress.getHostAddress(), peerPort, peerProtocol);
+        MessageProcessor messageProcessor = getSIPStack().findMessageProcessor(getPeerAddress(), getPeerPort(), peerProtocol);
         if(messageProcessor != null) {
             RawMessageChannel messageChannel = (RawMessageChannel) messageProcessor.createMessageChannel(
-                    this.peerAddress, this.peerPort);
+                    this.getPeerInetAddress(), this.getPeerPort());
             getSIPStack().selfRouteMessage(messageChannel, sipMessage);
             return;            
         }
         try {
             ByteBuf byteBuf = Unpooled.wrappedBuffer(sipMessage.encodeAsBytes(this.getTransport()));
-            channel.writeAndFlush(new DatagramPacket(byteBuf, new InetSocketAddress(peerAddress, peerPort)));
+            channel.writeAndFlush(new DatagramPacket(byteBuf, new InetSocketAddress(getPeerInetAddress(), getPeerPort())));
 
             // we didn't run into problems while sending so let's set ports and
             // addresses before feeding the message to the loggers.
-            sipMessage.setRemoteAddress(peerAddress);
-            sipMessage.setRemotePort(peerPort);
+            sipMessage.setRemoteAddress(getPeerInetAddress());
+            sipMessage.setRemotePort(getPeerPort());
             sipMessage.setLocalPort(this.getPort());
             sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
         } catch (Exception ex) {
@@ -142,7 +142,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
             if (logger.isLoggingEnabled(
                     ServerLogger.TRACE_MESSAGES)
                     && !sipMessage.isNullRequest())
-                logMessage(sipMessage, peerAddress, peerPort, time);
+                logMessage(sipMessage, getPeerInetAddress(), getPeerPort(), time);
             else if (logger.isLoggingEnabled(
                     ServerLogger.TRACE_DEBUG))
                 logger.logDebug("Sent EMPTY Message");
@@ -251,14 +251,14 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         if (sipMessage instanceof SIPRequest) {
             Hop hop = sipStack.getAddressResolver().resolveAddress(topMostVia
                     .getHop());
-            this.peerPort = hop.getPort();
+            this.setPeerPort(hop.getPort());
             this.peerProtocol = topMostVia.getTransport();
             if(this.peerPacketSourceAddress == null || this.peerPacketSourcePort <= 0) {
                 this.peerPacketSourceAddress = sipMessage.getPeerPacketSourceAddress();
                 this.peerPacketSourcePort = sipMessage.getPeerPacketSourcePort();
             }
-            if(this.peerAddress == null) {
-                this.peerAddress = sipMessage.getRemoteAddress();
+            if(this.getPeerAddress() == null) {
+                this.setPeerAddress(sipMessage.getRemoteAddress());
             }
             try {
                 
@@ -279,9 +279,8 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
                 }
                 if (hasRPort
                         || !hop.getHost().equals(
-                                this.peerAddress.getHostAddress())) {
-                    topMostVia.setParameter(Via.RECEIVED, this.peerAddress
-                            .getHostAddress());
+                                this.getPeerAddress())) {
+                    topMostVia.setParameter(Via.RECEIVED, this.getPeerAddress());
                 }
 
                 if (hasRPort) {
@@ -300,10 +299,10 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
                 this.peerPacketSourcePort = sipMessage.getPeerPacketSourcePort();
             }
             if(sipMessage.getRemoteAddress() != null) {
-                this.peerAddress = sipMessage.getRemoteAddress();
+                this.setPeerAddress(sipMessage.getRemoteAddress());
             }
             if(sipMessage.getRemotePort() > 0) {
-                this.peerPort = sipMessage.getRemotePort();
+                this.setPeerPort(sipMessage.getRemotePort());
             }
             if(topMostVia.getTransport() != null) {
                 this.peerProtocol = topMostVia.getTransport();
@@ -315,10 +314,10 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 
     private void processSIPMessage(SIPMessage sipMessage) {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("received new UDP message from: " + this.peerAddress.getHostAddress() + ":" + this.peerPort + " msg: " + sipMessage);
+            logger.logDebug("received new UDP message from: " + this.getPeerAddress() + ":" + this.getPeerPort() + " msg: " + sipMessage);
         }
 
-        sipMessage.setRemoteAddress(this.peerAddress);
+        sipMessage.setRemoteAddress(this.getPeerInetAddress());
         sipMessage.setRemotePort(this.getPeerPort());
         sipMessage.setLocalPort(this.getPort());
         sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
@@ -471,6 +470,10 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         return peerAddress;
     }
 
+    protected void setPeerAddress(InetAddress peerAddress) {
+		this.peerAddress = peerAddress;
+	}
+    
     @Override
     public String getPeerProtocol() {
         return ListeningPoint.UDP;
@@ -481,6 +484,10 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
         return peerPort;
     }
 
+    protected void setPeerPort(int peerPort) {
+		this.peerPort = peerPort;
+	}
+    
     @Override
     public int getPeerPacketSourcePort() {
         return peerPacketSourcePort;
@@ -493,7 +500,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 
     @Override
     public String getKey() {
-        return getKey(peerAddress, peerPort, "UDP");
+        return getKey(getPeerInetAddress(), getPeerPort(), "UDP");
     }
 
     
