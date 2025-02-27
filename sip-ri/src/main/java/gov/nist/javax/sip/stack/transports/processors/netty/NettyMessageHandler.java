@@ -64,7 +64,7 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         
         SIPMessage sipMessage = (SIPMessage) msg;
         Channel channel = ctx.channel();
-        MessageChannel nettyMessageChannel = messageProcessor.createMessageChannel(channel);                 
+        MessageChannel nettyMessageChannel = messageProcessor.createMessageChannel(channel, sipMessage.getRemoteAddress(), sipMessage.getRemotePort());                 
         if(nettyMessageChannel == null) {
         	//we are not accepting this message
         	return;

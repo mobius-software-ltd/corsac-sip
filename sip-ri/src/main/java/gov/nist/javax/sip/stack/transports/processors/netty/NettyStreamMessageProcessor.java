@@ -194,7 +194,8 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
         return retval;
     }
 
-    public MessageChannel createMessageChannel(Channel channel) {
+    @Override    
+    public MessageChannel createMessageChannel(Channel channel, InetAddress remoteAddress,Integer remotePort) {
 
         InetSocketAddress socketAddress = ((InetSocketAddress) channel.remoteAddress());
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {

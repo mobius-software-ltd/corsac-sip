@@ -80,7 +80,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
     }
     
     @Override
-    public MessageChannel createMessageChannel(Channel channel) {
+    public MessageChannel createMessageChannel(Channel channel, InetAddress remoteAddress,Integer remotePort) {
         return new NettyDatagramMessageChannel(channel, this);
     }
 

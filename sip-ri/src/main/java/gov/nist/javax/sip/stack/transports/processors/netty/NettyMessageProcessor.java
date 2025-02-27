@@ -18,6 +18,8 @@
  */
 package gov.nist.javax.sip.stack.transports.processors.netty;
 
+import java.net.InetAddress;
+
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import io.netty.channel.Channel;
@@ -29,7 +31,7 @@ import io.netty.channel.Channel;
  */
 public interface NettyMessageProcessor {
 
-    public MessageChannel createMessageChannel(Channel channel);
+    public MessageChannel createMessageChannel(Channel channel, InetAddress remoteAddress, Integer port);
 
     public String getTransport();
     public SIPTransactionStack getSIPStack();
