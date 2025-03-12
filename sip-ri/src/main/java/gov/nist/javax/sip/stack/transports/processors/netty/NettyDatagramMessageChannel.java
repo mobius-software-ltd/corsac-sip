@@ -462,6 +462,9 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 
     @Override
     public String getPeerAddress() {
+    	if(peerAddress==null)
+    		return null;
+    	
         return peerAddress.getHostAddress();
     }
 
