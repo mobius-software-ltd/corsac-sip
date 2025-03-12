@@ -83,6 +83,7 @@
         <log4j2.version>2.19.0</log4j2.version>
 		<junit.version>4.12</junit.version>
         <version.netty>4.1.63.Final</version.netty>        
+        <compiler.plugin.version>3.8.1</compiler.plugin.version>
         <!-- IDEs has a problem when we use late binding with @ in the surefire arg line.
         Therefore we set this empty property here-->
         <jacocoArgLine />       
