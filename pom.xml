@@ -124,7 +124,6 @@
 							<source>1.8</source>
 							<target>1.8</target>
 							<debug>1.8</debug>
-							<encoding>ISO-8859-1</encoding>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -145,7 +144,6 @@
 							<source>11</source>
 							<target>11</target>
 							<debug>11</debug>
-							<encoding>ISO-8859-1</encoding>
 						</configuration>
 					</plugin>
 				</plugins>
