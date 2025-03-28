@@ -35,7 +35,6 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.sip.Dialog;
-import javax.sip.SipProvider;
 import javax.sip.TransactionState;
 import javax.sip.address.SipURI;
 import javax.sip.message.Request;

@@ -42,8 +42,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollDatagramChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 
 /**
@@ -59,6 +57,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
     
     // multithreaded event loop that handles incoming connection and I/O operations
     protected EventLoopGroup eventLoopGroup;    
+    Boolean localWorkerGroup = false;
     
     /**
     * Constructor.
@@ -67,10 +66,16 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
     */
     protected NettyDatagramMessageProcessor(InetAddress ipAddress,
             SIPTransactionStack sipStack, int port) throws IOException {
+    	this(ipAddress,sipStack,port,NettyMessageProcessorFactory.newNioOrEpollEventLoopGroup(sipStack.getThreadPoolSize()));
+    	localWorkerGroup = true;
+    }
+    
+    protected NettyDatagramMessageProcessor(InetAddress ipAddress,
+            SIPTransactionStack sipStack, int port,EventLoopGroup eventLoopGroup) throws IOException {
         super(ipAddress, port, ListeningPoint.UDP, sipStack);
 
         int threadPoolSize = sipStack.getThreadPoolSize();
-        eventLoopGroup = newNioOrEpollEventLoopGroup(threadPoolSize);
+        this.eventLoopGroup = eventLoopGroup;
         serverChannels = new ArrayList<>(threadPoolSize);
     }
     
@@ -157,7 +162,9 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
         }
         
         serverChannels.clear();
-        eventLoopGroup.shutdownGracefully();
+        
+        if(localWorkerGroup)
+        	eventLoopGroup.shutdownGracefully();
     }
     
     /**
@@ -195,14 +202,6 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
             logger.logWarning("EPoll is not enabled or supported on this platform, using NIO.");
             return DatagramChannel.class;
         }
-    }
-
-    public EventLoopGroup newNioOrEpollEventLoopGroup(int threads) {
-        if (Epoll.isAvailable()) {
-            return new EpollEventLoopGroup(threads);
-        } else {
-            return new NioEventLoopGroup(threads);
-        }
-    }
+    }    
 }
     

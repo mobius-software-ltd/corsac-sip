@@ -458,6 +458,8 @@ public abstract class SIPTransactionStack implements
     
     private long sslHandshakeTimeout = -1;
     
+    private boolean allowDialogOnDifferentProvider = false;
+
     private boolean sslRenegotiationEnabled = false;
 
     // SctpStandardSocketOptions
@@ -3668,6 +3670,14 @@ public abstract class SIPTransactionStack implements
 	 */
 	public void setMaxTxLifetimeNonInvite(int maxTxLifetimeNonInvite) {
 		this.maxTxLifetimeNonInvite = maxTxLifetimeNonInvite;
+	}
+	
+	public boolean isAllowDialogOnDifferentProvider() {
+		return allowDialogOnDifferentProvider;
+	}
+
+	public void setAllowDialogOnDifferentProvider(boolean allowDialogOnDifferentProvider) {
+		this.allowDialogOnDifferentProvider = allowDialogOnDifferentProvider;
 	}
 	
 	public boolean isSslRenegotiationEnabled() {

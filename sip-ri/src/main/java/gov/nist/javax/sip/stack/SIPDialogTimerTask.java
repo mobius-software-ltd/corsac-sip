@@ -55,6 +55,7 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
             if (dialog.getSipProvider().getSipListener() != null
                     && dialog.getSipProvider().getSipListener() instanceof SipListenerExt) {
                 dialog.raiseErrorEvent(SIPDialogErrorEvent.DIALOG_ACK_NOT_RECEIVED_TIMEOUT);
+                return;
             } else {
                 dialog.delete();
             }

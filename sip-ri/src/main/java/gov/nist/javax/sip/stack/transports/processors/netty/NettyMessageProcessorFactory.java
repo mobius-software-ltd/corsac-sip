@@ -28,6 +28,10 @@ import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessorFactory;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * Netty Based Message Processor Factory extending the default
@@ -101,4 +105,11 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                 }
         }
 
+        public static EventLoopGroup newNioOrEpollEventLoopGroup(int threads) {
+            if (Epoll.isAvailable()) {
+                return new EpollEventLoopGroup(threads);
+            } else {
+                return new NioEventLoopGroup(threads);
+            }
+        }
 }

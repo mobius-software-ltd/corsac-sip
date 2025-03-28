@@ -372,10 +372,8 @@ public class SIPDialog implements DialogExt {
                 raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, messageChannel.getHost(), messageChannel.getPort(), hop.getHost(), hop.getPort(), hop
                         .getTransport());
             }
-            if (dialogDeleteTask != null) {
-                getStack().getTimer().cancel(dialogDeleteTask);
-                dialogDeleteTask = null;
-            }
+            
+            cancelDialogDelete();            
         }
 
         @Override
@@ -3967,7 +3965,7 @@ public class SIPDialog implements DialogExt {
      * @param lastAckSent
      *            the lastAckSent to set
      */
-    private void setLastAckSent(SIPRequest lastAckSent) {
+    protected void setLastAckSent(SIPRequest lastAckSent) {
         this.lastAckSent = new ACKWrapper(lastAckSent);
     }
 
@@ -4322,6 +4320,13 @@ public class SIPDialog implements DialogExt {
             sipStack.getTimer()
                     .cancel(this.earlyStateTimerTask);
             this.earlyStateTimerTask = null;
+        }
+    }
+    
+    protected void cancelDialogDelete() {
+    	if (dialogDeleteTask != null) {
+            getStack().getTimer().cancel(dialogDeleteTask);
+            dialogDeleteTask = null;
         }
     }
 }

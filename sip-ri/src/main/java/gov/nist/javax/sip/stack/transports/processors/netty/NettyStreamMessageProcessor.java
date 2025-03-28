@@ -47,9 +47,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.SctpChannelOption;
 import io.netty.channel.sctp.nio.NioSctpServerChannel;
 import io.netty.channel.socket.ServerSocketChannel;
@@ -79,6 +77,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
     // of the accepted connection once the boss accepts the connection
     // and registers the accepted connection to the worker
     EventLoopGroup workerGroup;
+    Boolean localWorkerGroup = false;
     Boolean stopping = false;
     
     Channel channel;
@@ -93,11 +92,17 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
      */
     protected NettyStreamMessageProcessor(InetAddress ipAddress,
             SIPTransactionStack sipStack, int port, String transport) throws IOException {
+    	this(ipAddress, sipStack, port, transport, NettyMessageProcessorFactory.newNioOrEpollEventLoopGroup(1), NettyMessageProcessorFactory.newNioOrEpollEventLoopGroup(sipStack.getThreadPoolSize()));
+    	localWorkerGroup = true;        
+    }
+    
+    protected NettyStreamMessageProcessor(InetAddress ipAddress,
+            SIPTransactionStack sipStack, int port, String transport,EventLoopGroup bossgroup,EventLoopGroup workerGroup) throws IOException {
 
         super(ipAddress, port, transport, sipStack);
         this.messageChannels = new ConcurrentHashMap<String, NettyStreamMessageChannel>();
-        this.bossGroup = newNioOrEpollEventLoopGroup(1);
-        this.workerGroup = newNioOrEpollEventLoopGroup(sipStack.getThreadPoolSize());
+        this.bossGroup = bossgroup;
+        this.workerGroup = workerGroup;
         if (transport.equals(ListeningPoint.TLS)) {
             SecurityManagerProvider securityManagerProvider = sipStack.getSecurityManagerProvider();
             if (sipStack.getClientAuth() == ClientAuthType.DisabledAll) {
@@ -315,8 +320,11 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
     @Override
     public void stop() {
     	stopping = true;
-        workerGroup.shutdownGracefully();
-        bossGroup.shutdownGracefully();        
+    	
+    	if(localWorkerGroup) {	
+    		workerGroup.shutdownGracefully();
+    		bossGroup.shutdownGracefully();
+    	}
     }
 
     @Override
@@ -511,14 +519,6 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
         } else {
             logger.logWarning("EPoll is not enabled or supported on this platform, using NIO.");
             return NioServerSocketChannel.class;
-        }
-    }
-
-    public EventLoopGroup newNioOrEpollEventLoopGroup(int threads) {
-        if (Epoll.isAvailable() && !ListeningPoint.SCTP.equalsIgnoreCase(getTransport())) {
-            return new EpollEventLoopGroup(threads);
-        } else {
-            return new NioEventLoopGroup(threads);
         }
     }
 }

@@ -597,6 +597,8 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  *<li><b>gov.nist.javax.sip.RELIABLE_CONNECTION_KEEP_ALIVE_TIMEOUT</b> Value in seconds which is used as default keepalive timeout
  * (See also http://tools.ietf.org/html/rfc5626#section-4.4.1). Defaults to "infiinity" seconds (i.e. timeout event not delivered).</li>
  *
+ * <li><b>gov.nist.javax.sip.ALLOW_DIALOG_ON_DIFFERENT_PROVIDER = [true|false]</b> Default value is <b>false</b>. Whether to allow dialog continuation on different provider or not.</li>
+ *
  * <li><b>gov.nist.javax.sip.SSL_HANDSHAKE_TIMEOUT</b> Value in seconds which is used as default timeout for performing the SSL Handshake
  * This prevents bad clients of connecting without sending any data to block the server</li>
  *
@@ -1608,6 +1610,12 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 							"Bad configuration value for gov.nist.javax.sip.SIP_EVENT_INTERCEPTOR", e);
 			}
 		}
+
+		boolean allowDialogOnDifferentProvider = Boolean.parseBoolean(configurationProperties.getProperty(
+				"gov.nist.javax.sip.ALLOW_DIALOG_ON_DIFFERENT_PROVIDER",
+				"false"));
+
+		setAllowDialogOnDifferentProvider(allowDialogOnDifferentProvider);
 
 		boolean sslRenegotiationEnabled = Boolean.parseBoolean(configurationProperties.getProperty(
 				"gov.nist.javax.sip.SSL_RENEGOTIATION_ENABLED",

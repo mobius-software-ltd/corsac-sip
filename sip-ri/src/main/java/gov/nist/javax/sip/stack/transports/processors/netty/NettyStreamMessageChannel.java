@@ -748,6 +748,9 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 			}
 		} else {
 			SIPResponse sipResponse = (SIPResponse) sipMessage;
+			if (logger.isLoggingEnabled())
+				logger.logError("processing response >>> " + sipResponse);
+			
 			// JvB: dont do this
 			// if (sipResponse.getStatusCode() == 100)
 			// sipResponse.getTo().removeParameter("tag");
@@ -779,6 +782,10 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 					return;
 				}
 
+				if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+					NettyStreamMessageChannel.logger.logDebug(
+							"Delivering message to server response interface.");
+				
 				sipServerResponse.processResponse(sipResponse, this);
 				// } finally {
 				// if (sipServerResponse instanceof SIPTransaction

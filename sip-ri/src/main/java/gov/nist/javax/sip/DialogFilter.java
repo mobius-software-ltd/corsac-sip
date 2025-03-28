@@ -314,6 +314,9 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
     private SIPDialog checkIfSameDialog(SipProviderImpl sipProvider, SIPDialog dialog) {
         
         if (dialog != null && sipProvider != dialog.getSipProvider()) {
+        	if(sipStack.isAllowDialogOnDifferentProvider())
+        		return dialog;
+        	
             final Contact contact = dialog.getMyContactHeader();
             if (contact != null) {
                 SipUri contactUri = (SipUri) (contact.getAddress().getURI());
