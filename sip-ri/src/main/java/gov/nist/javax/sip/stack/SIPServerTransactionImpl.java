@@ -529,6 +529,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             logger.logDebug("tx state = " + this.getRealState());
         }
 
+        SIPResponse response = null;
         try {
 
             // If this is the first request for this transaction,
@@ -548,7 +549,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
 
                     // Has side-effect of setting
                     // state to "Proceeding"
-                    sendMessage(transactionRequest.createResponse(100, "Trying"));
+                	response = transactionRequest.createResponse(100, "Trying");
+                    sendMessage(response);
 
                 }
                 // If an invite transaction is ACK'ed while in
@@ -600,7 +602,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     // Resend the last response to
                     // the client
                     // Send the message to the client
-                    resendLastResponse();
+                	response = lastResponse;
+                	resendLastResponse();
                 } else if (transactionRequest.getMethod().equals(Request.ACK)) {
                     // This is passed up to the TU to suppress
                     // retransmission of OK
@@ -663,7 +666,8 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     // this.semRelease();
                     // send OK and just ignore the CANCEL.
                     try {
-                        this.sendMessage(transactionRequest.createResponse(Response.OK));
+                    	response = transactionRequest.createResponse(Response.OK);
+                        this.sendMessage(response);
                     } catch (IOException ex) {
                         // Transaction is already terminated
                         // just ignore the IOException.
@@ -681,14 +685,13 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             if (logger.isLoggingEnabled())
                 logger.logError("IOException ", e);
             // this.semRelease();
-            this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
+            this.raiseIOExceptionEvent(response, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
         } catch (MessageTooLongException e) {
             if (logger.isLoggingEnabled())
                 logger.logError("IOException ", e);
             // this.semRelease();
-            this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong);
+            this.raiseIOExceptionEvent(response, gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong);
         }
-
     }
 
     /**

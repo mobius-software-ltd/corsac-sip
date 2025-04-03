@@ -32,6 +32,7 @@ import java.util.List;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.sip.Dialog;
 import javax.sip.TransactionState;
+import javax.sip.message.Message;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -399,7 +400,7 @@ public interface SIPTransaction extends TransactionExt {
    * Exceptions that are attributable to this transaction.
    * 
    */
-  public void raiseIOExceptionEvent(Reason reason);
+  public void raiseIOExceptionEvent(Message message, Reason reason);
 
   /**
    * Set true to pass the request up to the listener. False otherwise.

@@ -96,7 +96,7 @@ public class SipProviderOutgoingRequestTask implements SIPTask {
                                 + " listeningPoints = " + sipProvider.listeningPoints);
                     }
                     IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(
-                        this, 
+                        sipRequest, this, 
                         gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionFailure, 
                         sipProvider.getListeningPoint(hop.getTransport()).getIPAddress(), 
                         sipProvider.getListeningPoint(hop.getTransport()).getPort(), 
@@ -118,7 +118,7 @@ public class SipProviderOutgoingRequestTask implements SIPTask {
                 }
 
                 IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(
-                    this, 
+                		sipRequest, this, 
                     gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionFailure, 
                     sipProvider.getListeningPoint(hop.getTransport()).getIPAddress(), 
                     sipProvider.getListeningPoint(hop.getTransport()).getPort(), 

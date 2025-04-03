@@ -854,7 +854,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
 		            			// making sure that we don't notify each listening point but only the one on which the timeout happened  
 		            			&& listeningPoint.getIPAddress().equalsIgnoreCase(myAddress) && listeningPoint.getPort() == myPort && 
 		            				listeningPoint.getTransport().equalsIgnoreCase(getTransport())) {
-		            		((SipListenerExt)sipListener).processIOException(new IOExceptionEventExt(nextProvider, Reason.KeepAliveTimeout, myAddress, myPort,
+		            		((SipListenerExt)sipListener).processIOException(new IOExceptionEventExt(null, nextProvider, Reason.KeepAliveTimeout, myAddress, myPort,
 		            				peerAddress.getHostAddress(), peerPort, getTransport()));
 		                }
 	                }
@@ -862,7 +862,7 @@ public abstract class ConnectionOrientedMessageChannel extends MessageChannel im
             } else {
 	            SipListener sipListener = sipStack.getSipListener();	            
 	            if(sipListener instanceof SipListenerExt) {
-	            	((SipListenerExt)sipListener).processIOException(new IOExceptionEventExt(this, Reason.KeepAliveTimeout, myAddress, myPort,
+	            	((SipListenerExt)sipListener).processIOException(new IOExceptionEventExt(null, this, Reason.KeepAliveTimeout, myAddress, myPort,
 	                    peerAddress.getHostAddress(), peerPort, getTransport()));
 	            }
             }

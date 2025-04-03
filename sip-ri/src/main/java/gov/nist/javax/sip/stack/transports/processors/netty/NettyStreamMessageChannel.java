@@ -1054,7 +1054,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 								&& listeningPoint.getPort() == myPort
 								&& listeningPoint.getTransport().equalsIgnoreCase(getTransport())) {
 							((SipListenerExt) sipListener)
-									.processIOException(new IOExceptionEventExt(nextProvider, Reason.KeepAliveTimeout,
+									.processIOException(new IOExceptionEventExt(null, nextProvider, Reason.KeepAliveTimeout,
 											myAddress, myPort, peerAddress.getHostAddress(), peerPort, getTransport()));
 						}
 					}
@@ -1063,7 +1063,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 				SipListener sipListener = sipStack.getSipListener();
 				if (sipListener instanceof SipListenerExt) {
 					((SipListenerExt) sipListener)
-							.processIOException(new IOExceptionEventExt(this, Reason.KeepAliveTimeout, myAddress,
+							.processIOException(new IOExceptionEventExt(null, this, Reason.KeepAliveTimeout, myAddress,
 									myPort, peerAddress.getHostAddress(), peerPort, getTransport()));
 				}
 			}
@@ -1122,7 +1122,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 					}
 				} else {
 					// 17.2.4 Handling Transport Errors
-					transaction.raiseIOExceptionEvent(Reason.ConnectionFailure);
+					transaction.raiseIOExceptionEvent(null, Reason.ConnectionFailure);
 				}
 			}
 		}

@@ -58,6 +58,7 @@ import javax.sip.header.RequireHeader;
 import javax.sip.header.RouteHeader;
 import javax.sip.header.SupportedHeader;
 import javax.sip.header.TimeStampHeader;
+import javax.sip.message.Message;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -369,7 +370,7 @@ public class SIPDialog implements DialogExt {
                         ackRequest, lastTransaction);
                 }
             } catch (Exception ex) {                                
-                raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, messageChannel.getHost(), messageChannel.getPort(), hop.getHost(), hop.getPort(), hop
+                raiseIOException(ackRequest, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, messageChannel.getHost(), messageChannel.getPort(), hop.getHost(), hop.getPort(), hop
                         .getTransport());
             }
             
@@ -856,12 +857,12 @@ public class SIPDialog implements DialogExt {
      * @param protocol
      *            -- protocol (udp/tcp/tls)
      */
-    protected void raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason reason, String host, int port, String peerHost, int peerPort, String protocol) {
+    protected void raiseIOException(Message message, gov.nist.javax.sip.IOExceptionEventExt.Reason reason, String host, int port, String peerHost, int peerPort, String protocol) {
         // Error occured in retransmitting response.
         // Deliver the error event to the listener
         // Kill the dialog.
 
-        IOExceptionEventExt ioError = new IOExceptionEventExt(this, reason, host, port, peerHost, peerPort, protocol);
+        IOExceptionEventExt ioError = new IOExceptionEventExt(message, this, reason, host, port, peerHost, peerPort, protocol);
         sipProvider.handleEvent(ioError, null);
 
         setState(SIPDialog.TERMINATED_STATE);

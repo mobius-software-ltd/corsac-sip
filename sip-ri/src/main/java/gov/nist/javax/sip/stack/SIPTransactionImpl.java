@@ -37,6 +37,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.sip.Dialog;
 import javax.sip.TransactionState;
 import javax.sip.address.SipURI;
+import javax.sip.message.Message;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -1103,7 +1104,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      * @see gov.nist.javax.sip.stack.SIPTransaction#raiseIOExceptionEvent(Reason reason)
      */
     @Override
-    public void raiseIOExceptionEvent(Reason reason) {
+    public void raiseIOExceptionEvent(Message message, Reason reason) {
         setState(TransactionState._TERMINATED);        
         // if (expiresTimerTask != null) {
         //     sipStack.getTimer().cancel(expiresTimerTask);
@@ -1112,7 +1113,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
         int port = getPeerPort();
         String transport = getTransport();
         IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(
-            this, reason, getHost(), getPort(), host, port, transport);
+        		message, this, reason, getHost(), getPort(), host, port, transport);
         getSipProvider().handleEvent(exceptionEvent, this);
     }
 

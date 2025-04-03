@@ -491,7 +491,7 @@ public class NioTcpMessageChannel extends ConnectionOrientedMessageChannel {
                     }
                 } else {
                 	//17.2.4 Handling Transport Errors
-                    transaction.raiseIOExceptionEvent(Reason.ConnectionFailure);
+                    transaction.raiseIOExceptionEvent(null, Reason.ConnectionFailure);
                 }
             }
         }

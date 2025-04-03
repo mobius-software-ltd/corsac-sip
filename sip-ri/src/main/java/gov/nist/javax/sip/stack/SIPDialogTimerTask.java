@@ -73,14 +73,14 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
                     transaction.resendLastResponse();
                 } catch (IOException ex) {
 
-                    dialog.raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError,
+                    dialog.raiseIOException(transaction.getLastResponse(), gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError,
                             transaction.getHost(), transaction.getPort(), transaction.getPeerAddress(),
                             transaction.getPeerPort(), transaction
                                     .getPeerProtocol());
 
                 } catch (MessageTooLongException ex) {
 
-                    dialog.raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong,
+                    dialog.raiseIOException(transaction.getLastResponse(), gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong,
                             transaction.getHost(), transaction.getPort(), transaction.getPeerAddress(),
                             transaction.getPeerPort(), transaction
                                     .getPeerProtocol());

@@ -16,6 +16,7 @@
 package gov.nist.javax.sip;
 
 import javax.sip.IOExceptionEvent;
+import javax.sip.message.Message;
 
 /**
  * Created: 09.09.11 15:16
@@ -28,9 +29,10 @@ public class IOExceptionEventExt extends IOExceptionEvent {
 	private final String myHost;
     private final int myPort;   
     private Reason reason = null;
+    private Message message;
     public enum Reason {KeepAliveTimeout, ConnectionFailure, ConnectionError, MessageToLong, NoListeninPointForTransport};
 
-    public IOExceptionEventExt(Object source, Reason reason, String myHost, int myPort, String peerHost, int peerPort, String transport) {
+    public IOExceptionEventExt(Message message, Object source, Reason reason, String myHost, int myPort, String peerHost, int peerPort, String transport) {
         super(source, peerHost, peerPort, transport);
         this.myHost = myHost;
         this.myPort = myPort; 
@@ -62,10 +64,19 @@ public class IOExceptionEventExt extends IOExceptionEvent {
     	return reason;
     }
 
-    @Override
+    public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
+	public Message getMessage() {
+		return message;
+	}
+
+	@Override
     public String toString() {
         return "KeepAliveTimeoutEvent{" +
-                "myHost='" + myHost + '\'' +
+        		"message='" + message + '\'' +
+                ", myHost='" + myHost + '\'' +
                 ", myPort=" + myPort +
                 ", peerHost='" + getHost() + '\'' +
                 ", peerPort=" + getPort() +

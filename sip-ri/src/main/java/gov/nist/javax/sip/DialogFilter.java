@@ -922,14 +922,15 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 logger.logDebug(
                         "Too late to cancel Transaction");
             // send OK and just ignore the CANCEL.
+            SIPResponse response = null;
             try {
-
-                transaction.sendResponse(sipRequest
-                        .createResponse(Response.OK));
+            	response = sipRequest
+                        .createResponse(Response.OK);
+                transaction.sendResponse(response);
             } catch (Exception ex) {
                 if (ex.getCause() != null
                         && ex.getCause() instanceof IOException) {
-                    st.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
+                    st.raiseIOExceptionEvent(response, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
                 }
             }
             return false;

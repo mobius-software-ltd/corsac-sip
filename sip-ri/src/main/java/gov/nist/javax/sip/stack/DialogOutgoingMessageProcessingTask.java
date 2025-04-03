@@ -251,21 +251,21 @@ public class DialogOutgoingMessageProcessingTask implements SIPTask {
             }
 
         } catch (SipException e) {
-            sipDialog.raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, clientTransaction.getHost(),
+            sipDialog.raiseIOException(dialogRequest, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, clientTransaction.getHost(),
                     clientTransaction.getPort(),
                     sipProvider.getListeningPoint(
                             clientTransaction.getTransport()).getIPAddress(),
                     sipDialog.firstTransactionPort,
                     clientTransaction.getTransport());
         } catch (MessageTooLongException e) {
-            sipDialog.raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong, clientTransaction.getHost(),
+            sipDialog.raiseIOException(dialogRequest, gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong, clientTransaction.getHost(),
                     clientTransaction.getPort(),
                     sipProvider.getListeningPoint(
                             clientTransaction.getTransport()).getIPAddress(),
                     sipDialog.firstTransactionPort,
                     clientTransaction.getTransport());
         } catch (IOException e) {
-            sipDialog.raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, clientTransaction.getHost(),
+            sipDialog.raiseIOException(dialogRequest, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, clientTransaction.getHost(),
                     clientTransaction.getPort(),
                     sipProvider.getListeningPoint(
                             clientTransaction.getTransport()).getIPAddress(),

@@ -1069,10 +1069,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
       }
     } catch (IOException e) {
-      this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
+      this.raiseIOExceptionEvent(lastRequest, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
       raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
     } catch (MessageTooLongException e) {
-        this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong);
+        this.raiseIOExceptionEvent(lastRequest, gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong);
         raiseErrorEvent(SIPTransactionErrorEvent.MESSAGE_LENGTH_ERROR);
       }
 
