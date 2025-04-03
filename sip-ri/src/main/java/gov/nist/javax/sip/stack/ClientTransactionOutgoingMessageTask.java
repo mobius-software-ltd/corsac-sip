@@ -80,6 +80,16 @@ public class ClientTransactionOutgoingMessageTask implements SIPTask {
             // ex);
             clientTransaction.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
 
+        } catch (MessageTooLongException ex) {
+            // setState(TransactionState._TERMINATED);
+            // if (expiresTimerTask != null) {
+            // sipStack.getTimer().cancel(expiresTimerTask);
+            // }
+            // throw new SipException(ex.getMessage() == null ? "IO Error sending request" :
+            // ex.getMessage(),
+            // ex);
+            clientTransaction.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong);
+
         }
     }
 

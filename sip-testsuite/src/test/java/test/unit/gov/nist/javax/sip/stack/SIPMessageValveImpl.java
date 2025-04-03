@@ -2,6 +2,7 @@ package test.unit.gov.nist.javax.sip.stack;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.MessageTooLongException;
 import gov.nist.javax.sip.stack.SIPMessageValve;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
@@ -22,6 +23,9 @@ import javax.sip.message.Response;
     		} catch (IOException e) {
     			// TODO Auto-generated catch block
     			e.printStackTrace();
+    		} catch (MessageTooLongException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
     		}
     		return false;
     	}
@@ -36,7 +40,7 @@ import javax.sip.message.Response;
     		return request.createResponse(code);
     	}
     	
-    	public void sendResponse(MessageChannel channel, SIPMessage response) throws IOException {
+    	public void sendResponse(MessageChannel channel, SIPMessage response) throws IOException, MessageTooLongException {
     		channel.sendMessage(response);
     	}
 

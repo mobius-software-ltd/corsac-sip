@@ -28,7 +28,7 @@ public class IOExceptionEventExt extends IOExceptionEvent {
 	private final String myHost;
     private final int myPort;   
     private Reason reason = null;
-    public enum Reason {KeepAliveTimeout, ConnectionFailure, ConnectionError, NoListeninPointForTransport};
+    public enum Reason {KeepAliveTimeout, ConnectionFailure, ConnectionError, MessageToLong, NoListeninPointForTransport};
 
     public IOExceptionEventExt(Object source, Reason reason, String myHost, int myPort, String peerHost, int peerPort, String transport) {
         super(source, peerHost, peerPort, transport);

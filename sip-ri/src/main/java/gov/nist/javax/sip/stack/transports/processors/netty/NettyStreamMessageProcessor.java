@@ -92,7 +92,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
      */
     protected NettyStreamMessageProcessor(InetAddress ipAddress,
             SIPTransactionStack sipStack, int port, String transport) throws IOException {
-    	this(ipAddress, sipStack, port, transport, NettyMessageProcessorFactory.newNioOrEpollEventLoopGroup(1), NettyMessageProcessorFactory.newNioOrEpollEventLoopGroup(sipStack.getThreadPoolSize()));
+    	this(ipAddress, sipStack, port, transport, NettyMessageProcessorFactory.newNioOrEpollEventLoopGroup(1, transport), NettyMessageProcessorFactory.newNioOrEpollEventLoopGroup(sipStack.getThreadPoolSize(), transport));
     	localWorkerGroup = true;        
     }
     

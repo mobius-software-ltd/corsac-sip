@@ -68,7 +68,7 @@ public interface SIPServerTransaction extends SIPTransaction, ServerTransactionE
    *
    * @param messageToSend Response to process and send.
    */
-  public  void sendMessage(SIPMessage messageToSend) throws IOException;
+  public  void sendMessage(SIPMessage messageToSend) throws IOException, MessageTooLongException;
 
   public  String getViaHost();
 
@@ -76,8 +76,8 @@ public interface SIPServerTransaction extends SIPTransaction, ServerTransactionE
 
   // jeand we nullify the last response very fast to save on mem and help GC but we keep it as byte array
   // so this method is used to resend the last response either as a response or byte array depending on if it has been nullified
-  public  void resendLastResponse() throws IOException;
-  public  void resendLastResponseAsBytes(byte[] lastResponseAsBytes) throws IOException;
+  public  void resendLastResponse() throws IOException, MessageTooLongException;
+  public  void resendLastResponseAsBytes(byte[] lastResponseAsBytes) throws IOException, MessageTooLongException;
 
   /**
    * Get the last response status code.

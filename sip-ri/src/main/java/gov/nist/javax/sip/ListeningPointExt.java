@@ -6,6 +6,8 @@ import javax.sip.ListeningPoint;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.ViaHeader;
 
+import gov.nist.javax.sip.stack.MessageTooLongException;
+
 public interface ListeningPointExt extends ListeningPoint {
 
 	/**
@@ -36,7 +38,7 @@ public interface ListeningPointExt extends ListeningPoint {
      *
      * @since 2.0
      */
-    public void sendHeartbeat(String ipAddress, int port) throws IOException ;
+    public void sendHeartbeat(String ipAddress, int port) throws IOException, MessageTooLongException;
     
     /**
      * Create a Via header for this listening point.

@@ -44,6 +44,7 @@ import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.MessageTooLongException;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 
 
@@ -147,7 +148,7 @@ public class NioWebSocketMessageChannel extends NioTcpMessageChannel{
 
 	@Override
 	public void sendMessage(SIPMessage sipMessage, InetAddress receiverAddress, int receiverPort)
-            throws IOException {
+            throws IOException, MessageTooLongException {
 		if(sipMessage instanceof SIPRequest)
 		{
 			if(client && httpClientRequestSent.compareAndSet(false, true)) {

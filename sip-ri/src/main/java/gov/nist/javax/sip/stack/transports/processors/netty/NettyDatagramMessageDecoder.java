@@ -48,7 +48,7 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
     @Override
     protected void decode(ChannelHandlerContext ctx, DatagramPacket msg, List<Object> out) {            
         NettyMessageParser nettyMessageParser = new NettyMessageParser(                
-                nettyMessageProcessor.getSIPStack().getMaxMessageSize(),
+                nettyMessageProcessor.getSIPStack().getMaxUdpMessageSize(),
                 nettyMessageProcessor.getSIPStack().isComputeContentLengthFromMessage());
         SIPMessage sipMessage = null;  
         ByteBuf content =  msg.content();

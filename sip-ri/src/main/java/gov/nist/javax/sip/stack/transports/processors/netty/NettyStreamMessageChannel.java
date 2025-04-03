@@ -55,6 +55,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.SIPMessageListener;
+import gov.nist.javax.sip.stack.MessageTooLongException;
 import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPTransaction;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
@@ -274,7 +275,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 	 * @param msg      is the message to send.
 	 * @param isClient
 	 */
-	protected void sendMessage(byte[] msg, boolean isClient) throws IOException {
+	protected void sendMessage(byte[] msg, boolean isClient) throws IOException, MessageTooLongException {
 
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 			logger.logDebug("sendMessage isClient  = " + isClient + " this = " + this);
@@ -301,7 +302,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 	 */
 	@Override
 	public void sendMessage(byte message[], InetAddress receiverAddress, int receiverPort, boolean retry)
-			throws IOException {
+			throws IOException, MessageTooLongException {
 		sendTCPMessage(message, receiverAddress, receiverPort, retry);
 	}
 
@@ -314,11 +315,17 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 	 * @throws IOException If there is a problem connecting or sending.
 	 */
 	public void sendTCPMessage(byte message[], InetAddress receiverAddress, int receiverPort, boolean retry)
-			throws IOException {
+			throws IOException, MessageTooLongException {
 		if (message == null || receiverAddress == null) {
 			logger.logError("receiverAddress = " + receiverAddress);
 			throw new IllegalArgumentException("Null argument");
 		}
+		
+		if(getSIPStack().getMaxMessageSize()>0 && message.length>getSIPStack().getMaxMessageSize()) {
+			logger.logError("message length = " + message.length + " , while maximum allowed for tcp " + getSIPStack().getMaxMessageSize());
+			throw new MessageTooLongException("Message is too long");
+		}
+		
 		lastActivityTimeStamp = System.currentTimeMillis();
 
 		if (peerPortAdvertisedInHeaders <= 0) {
@@ -807,7 +814,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 	}
 
 	@Override
-	public void sendMessage(SIPMessage sipMessage) throws IOException {
+	public void sendMessage(SIPMessage sipMessage) throws IOException, MessageTooLongException {
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG) && !sipMessage.isNullRequest()) {
 			logger.logDebug("sendMessage:: " + sipMessage.getFirstLine() + " cseq method = "
 					+ sipMessage.getCSeq().getMethod());

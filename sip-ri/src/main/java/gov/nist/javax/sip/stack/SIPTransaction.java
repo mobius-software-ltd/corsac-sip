@@ -257,7 +257,7 @@ public interface SIPTransaction extends TransactionExt {
    * @param messageToSend
    *          Message to send to the SIP peer.
    */
-  public void sendMessage(SIPMessage messageToSend) throws IOException;
+  public void sendMessage(SIPMessage messageToSend) throws IOException, MessageTooLongException;
 
   /**
    * Gets the dialog object of this Transaction object. This object returns

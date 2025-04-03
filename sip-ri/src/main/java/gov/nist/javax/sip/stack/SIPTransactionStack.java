@@ -300,6 +300,11 @@ public abstract class SIPTransactionStack implements
      * Max # of headers that a SIP message can contain.
      */
     protected int maxMessageSize;
+    
+    /*
+     * Max message size that can be sent over UDP.
+     */
+    protected int maxUdpMessageSize;
 
     /*
      * A collection of message processors.
@@ -2462,6 +2467,7 @@ public abstract class SIPTransactionStack implements
     /**
      * Maximum size of a single TCP message. Limiting the size of a single TCP
      * message prevents flooding attacks.
+     * MAX TCP message size is effective for both directions for netty handlers
      *
      * @return the size of a single TCP message.
      */
@@ -2469,6 +2475,17 @@ public abstract class SIPTransactionStack implements
         return this.maxMessageSize;
     }
 
+    /**
+     * Maximum size of a single UDP message. Limiting the size of a single UDP
+     * message prevents datagram fragmentation which in turns can cause handling/processing errors.
+     * MAX UDP message size is effective for both directions for netty handlers
+     *
+     * @return the size of a single UDP message.
+     */
+    public int getMaxUdpMessageSize() {
+        return this.maxUdpMessageSize;
+    }
+    
     /**
      * Set the flag that instructs the stack to only start a single thread for
      * sequentially processing incoming udp messages (thus serializing the

@@ -254,6 +254,9 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 } catch (IOException ex) {
                     if (logger.isLoggingEnabled())
                         logger.logError("IO error sending  TRYING");
+                } catch (MessageTooLongException ex) {
+                    if (logger.isLoggingEnabled())
+                        logger.logError("Message too long error sending  TRYING");
                 }
             }
 
@@ -277,7 +280,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      *
      */
 
-    protected void sendResponse(SIPResponse transactionResponse) throws IOException {
+    protected void sendResponse(SIPResponse transactionResponse) throws IOException, MessageTooLongException {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("sipServerTransaction::sendResponse " + transactionResponse.getFirstLine());
         }
@@ -679,6 +682,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 logger.logError("IOException ", e);
             // this.semRelease();
             this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
+        } catch (MessageTooLongException e) {
+            if (logger.isLoggingEnabled())
+                logger.logError("IOException ", e);
+            // this.semRelease();
+            this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong);
         }
 
     }
@@ -687,7 +695,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      * @see gov.nist.javax.sip.stack.SIPServerTransaction#sendMessage(gov.nist.javax.sip.message.SIPMessage)
      */
     @Override
-    public void sendMessage(SIPMessage messageToSend) throws IOException {
+    public void sendMessage(SIPMessage messageToSend) throws IOException, MessageTooLongException {
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("sipServerTransaction::sendMessage " + messageToSend.getFirstLine());
         }
@@ -967,6 +975,11 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                 logger.logException(e);
             raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
 
+        } catch (MessageTooLongException e) {
+            if (logger.isLoggingEnabled())
+                logger.logException(e);
+            raiseErrorEvent(SIPTransactionErrorEvent.MESSAGE_LENGTH_ERROR);
+
         }
 
     }
@@ -979,7 +992,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      * @see resendLastResponseAsBytes(byte[] lastResponseAsBytes)
      */
     @Override
-    public void resendLastResponse() throws IOException {
+    public void resendLastResponse() throws IOException, MessageTooLongException {
 
         if (lastResponse != null) {
             if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
@@ -991,7 +1004,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
     }
 
-    public void resendLastResponseAsBytes(byte[] lastResponseAsBytes) throws IOException {
+    public void resendLastResponseAsBytes(byte[] lastResponseAsBytes) throws IOException, MessageTooLongException {
         // Send the message to the client
         // if(!checkStateTimers(lastResponseStatusCode)) {
         // return;

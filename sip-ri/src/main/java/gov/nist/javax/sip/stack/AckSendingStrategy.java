@@ -47,7 +47,7 @@ public interface AckSendingStrategy extends SIPTask {
      * @throws SipException
      * @throws IOException
      */
-    public void send(SIPRequest ackRequest) throws SipException, IOException;
+    public void send(SIPRequest ackRequest) throws SipException, IOException, MessageTooLongException;
 
     /**
      * Returns the last hop that a send was attempted on.

@@ -18,6 +18,7 @@ import javax.sip.message.Response;
 
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.MessageTooLongException;
 import gov.nist.javax.sip.stack.SIPMessageValve;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
@@ -115,6 +116,8 @@ public class SipMessageValve implements SIPMessageValve {
 		try {
 			messageChannel.sendMessage(request.createResponse(603));
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (MessageTooLongException e) {
 			e.printStackTrace();
 		}
 		return false;

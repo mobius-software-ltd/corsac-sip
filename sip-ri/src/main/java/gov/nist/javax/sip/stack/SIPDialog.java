@@ -348,7 +348,7 @@ public class SIPDialog implements DialogExt {
         }
         
         @Override
-        public void send(SIPRequest ackRequest) throws SipException, IOException {
+        public void send(SIPRequest ackRequest) throws SipException, IOException, MessageTooLongException {
             InetAddress inetAddress = InetAddress.getByName(hop.getHost());
             messageChannel = lp.getMessageProcessor()
                     .createMessageChannel(inetAddress, hop.getPort());
@@ -1150,7 +1150,7 @@ public class SIPDialog implements DialogExt {
      * @throws SipException
      * @throws IOException
     */
-    protected void send(MessageChannel messageChannel, SIPRequest ackRequest) throws SipException, IOException {        
+    protected void send(MessageChannel messageChannel, SIPRequest ackRequest) throws SipException, IOException, MessageTooLongException {        
         messageChannel.sendMessage(ackRequest);
     }
 

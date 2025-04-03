@@ -78,6 +78,13 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
                             transaction.getPeerPort(), transaction
                                     .getPeerProtocol());
 
+                } catch (MessageTooLongException ex) {
+
+                    dialog.raiseIOException(gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong,
+                            transaction.getHost(), transaction.getPort(), transaction.getPeerAddress(),
+                            transaction.getPeerPort(), transaction
+                                    .getPeerProtocol());
+
                 } finally {                    
                     if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
                         logger.logDebug(

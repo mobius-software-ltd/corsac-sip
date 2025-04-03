@@ -90,6 +90,8 @@ public class CongestionControlMessageValve implements SIPMessageValve{
 						messageChannel.sendMessage(response);
 					} catch (IOException e) {
 						logger.logError("Failed to send congestion control error response" + response, e);
+					} catch (MessageTooLongException e) {
+						logger.logError("Failed to send congestion control error response" + response, e);
 					}
 				}
 				return false; // Do not pass this request to the pipeline

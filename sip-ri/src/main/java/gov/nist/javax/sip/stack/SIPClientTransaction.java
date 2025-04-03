@@ -44,7 +44,7 @@ public interface SIPClientTransaction extends ClientTransactionExt, SIPTransacti
    * 
    * @param messageToSend Request to process and send.
    */
-  public abstract void sendMessage(SIPMessage messageToSend) throws IOException;
+  public abstract void sendMessage(SIPMessage messageToSend) throws IOException, MessageTooLongException;
 
   /**
    * Process a new response message through this transaction. If necessary, this message will

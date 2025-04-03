@@ -66,7 +66,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
     */
     protected NettyDatagramMessageProcessor(InetAddress ipAddress,
             SIPTransactionStack sipStack, int port) throws IOException {
-    	this(ipAddress,sipStack,port,NettyMessageProcessorFactory.newNioOrEpollEventLoopGroup(sipStack.getThreadPoolSize()));
+    	this(ipAddress,sipStack,port,NettyMessageProcessorFactory.newNioOrEpollEventLoopGroup(sipStack.getThreadPoolSize(), ListeningPoint.UDP));
     	localWorkerGroup = true;
     }
     

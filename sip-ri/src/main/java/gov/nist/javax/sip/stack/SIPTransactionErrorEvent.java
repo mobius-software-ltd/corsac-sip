@@ -62,7 +62,13 @@ public class SIPTransactionErrorEvent extends EventObject {
      */
     public static final int TIMEOUT_RETRANSMIT = 3;
 
+    /**
+     * This event ID indicates that the message was too big for
+     * the underlying transport.
+     */
+    public static final int MESSAGE_LENGTH_ERROR = 4;
 
+    
 
     // ID of this error event
     private int errorID;

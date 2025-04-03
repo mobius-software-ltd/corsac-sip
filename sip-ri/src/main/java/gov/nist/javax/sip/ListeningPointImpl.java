@@ -43,6 +43,7 @@ import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.MessageTooLongException;
 import gov.nist.javax.sip.stack.transports.processors.ConnectionOrientedMessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
@@ -252,7 +253,7 @@ public class ListeningPointImpl implements gov.nist.javax.sip.ListeningPointExt 
     }
 
 
-    public void sendHeartbeat(String ipAddress, int port) throws IOException {
+    public void sendHeartbeat(String ipAddress, int port) throws IOException, MessageTooLongException {
 
     	if(!sipStack.isAlive())
     		return;

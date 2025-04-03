@@ -58,6 +58,7 @@ import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.MessageTooLongException;
 import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.transports.processors.oio.UDPMessageChannel;
@@ -144,7 +145,7 @@ public abstract class MessageChannel {
      *
      * @param sipMessage Message to send.
      */
-    public abstract void sendMessage(SIPMessage sipMessage) throws IOException;
+    public abstract void sendMessage(SIPMessage sipMessage) throws IOException, MessageTooLongException;
 
     /**
      * Get the peer address of the machine that sent us this message.
@@ -191,7 +192,7 @@ public abstract class MessageChannel {
      * @param receiverPort Port of the receiver.
      */
     public abstract void sendMessage(byte[] message, InetAddress receiverAddress,
-            int receiverPort, boolean reconnectFlag) throws IOException;
+            int receiverPort, boolean reconnectFlag) throws IOException, MessageTooLongException;
 
     /**
      * Get the host of this message channel.
@@ -278,7 +279,7 @@ public abstract class MessageChannel {
      * @param receiverPort is the port to which we want to send
      */
     public void sendMessage(SIPMessage sipMessage, InetAddress receiverAddress, int receiverPort)
-            throws IOException {
+            throws IOException, MessageTooLongException {
         long time = System.currentTimeMillis();
         byte[] bytes = sipMessage.encodeAsBytes(this.getTransport());
         messageTxId.set(sipMessage.getTransactionId());

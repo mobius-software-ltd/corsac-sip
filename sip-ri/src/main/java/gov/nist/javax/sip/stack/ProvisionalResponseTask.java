@@ -76,6 +76,11 @@ public class ProvisionalResponseTask extends SIPStackTimerTask {
                     logger.logException(e);
                 // serverTransaction.setState(TransactionState._TERMINATED);
                 serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
+            } catch (MessageTooLongException e) {
+                if (logger.isLoggingEnabled())
+                    logger.logException(e);
+                // serverTransaction.setState(TransactionState._TERMINATED);
+                serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.MESSAGE_LENGTH_ERROR);
             }
             
             ticks = 2 * ticks;

@@ -105,8 +105,8 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
                 }
         }
 
-        public static EventLoopGroup newNioOrEpollEventLoopGroup(int threads) {
-            if (Epoll.isAvailable()) {
+        public static EventLoopGroup newNioOrEpollEventLoopGroup(int threads,String transport) {
+            if (Epoll.isAvailable() && !ListeningPoint.SCTP.equalsIgnoreCase(transport)) {
                 return new EpollEventLoopGroup(threads);
             } else {
                 return new NioEventLoopGroup(threads);

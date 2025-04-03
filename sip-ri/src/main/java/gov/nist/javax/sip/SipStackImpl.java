@@ -1298,6 +1298,24 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 				logger.logError(
 					"maxMessageSize - bad value " + ex.getMessage());
 		}
+		
+		String maxUdpMsgSize = configurationProperties
+				.getProperty("gov.nist.javax.sip.MAX_UDP_MESSAGE_SIZE");
+
+		try {
+			if (maxUdpMsgSize != null) {
+				super.maxUdpMessageSize = new Integer(maxUdpMsgSize).intValue();
+				if (super.maxUdpMessageSize < 0)
+					super.maxUdpMessageSize = -1;
+			} else {
+				// Allow for "infinite" size of message
+				super.maxUdpMessageSize = -1;
+			}
+		} catch (NumberFormatException ex) {
+			if (logger.isLoggingEnabled())
+				logger.logError(
+					"maxMessageSize - bad value " + ex.getMessage());
+		}
 
 		String rel = configurationProperties
 				.getProperty("gov.nist.javax.sip.REENTRANT_LISTENER");

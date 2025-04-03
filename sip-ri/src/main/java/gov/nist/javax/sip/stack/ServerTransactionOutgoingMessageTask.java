@@ -181,6 +181,12 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
             // setState(TransactionState._TERMINATED);
             serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
             // throw new SipException(ex1.getMessage(), ex1);
+        } catch (MessageTooLongException ex) {
+            if (logger.isLoggingEnabled())
+                logger.logException(ex);
+            // setState(TransactionState._TERMINATED);
+            serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.MESSAGE_LENGTH_ERROR);
+            // throw new SipException(ex1.getMessage(), ex1);
         }
     }
 

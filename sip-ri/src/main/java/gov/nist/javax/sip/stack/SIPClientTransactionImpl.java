@@ -343,7 +343,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    * @see gov.nist.javax.sip.stack.SIPClientTransaction#sendMessage(gov.nist.javax.sip.message.SIPMessage)
    */
   @Override
-  public void sendMessage(SIPMessage messageToSend) throws IOException {
+  public void sendMessage(SIPMessage messageToSend) throws IOException, MessageTooLongException {
 
     // Message typecast as a request
     SIPRequest transactionRequest = (SIPRequest) messageToSend;
@@ -1071,7 +1071,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     } catch (IOException e) {
       this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError);
       raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
-    }
+    } catch (MessageTooLongException e) {
+        this.raiseIOExceptionEvent(gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong);
+        raiseErrorEvent(SIPTransactionErrorEvent.MESSAGE_LENGTH_ERROR);
+      }
 
   }
 

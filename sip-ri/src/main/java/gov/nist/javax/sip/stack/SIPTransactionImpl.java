@@ -806,7 +806,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      * @see gov.nist.javax.sip.stack.SIPTransaction#sendMessage(gov.nist.javax.sip.message.SIPMessage)
      */
     @Override
-    public void sendMessage(final SIPMessage messageToSend) throws IOException {
+    public void sendMessage(final SIPMessage messageToSend) throws IOException, MessageTooLongException {
         // Use the peer address, port and transport
         // that was specified when the transaction was
         // created. Bug was noted by Bruce Evangelder
