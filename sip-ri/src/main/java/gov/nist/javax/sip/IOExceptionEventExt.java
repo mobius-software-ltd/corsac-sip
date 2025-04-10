@@ -37,6 +37,7 @@ public class IOExceptionEventExt extends IOExceptionEvent {
         this.myHost = myHost;
         this.myPort = myPort; 
         this.reason = reason;
+        this.message = message;
     }
    
     public String getLocalHost() {

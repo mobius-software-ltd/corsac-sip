@@ -131,7 +131,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 		try {
 			byte[] message = sipMessage.encodeAsBytes(this.getTransport());
 			if(getSIPStack().getMaxUdpMessageSize()>0 && message.length>getSIPStack().getMaxUdpMessageSize()) {
-				logger.logError("message length = " + message.length + " , while maximum allowed for udp " + getSIPStack().getMaxMessageSize());
+				logger.logError("message length = " + message.length + " , while maximum allowed for udp " + getSIPStack().getMaxUdpMessageSize());
 				throw new MessageTooLongException("Message is too long");
 			}
 			
@@ -168,7 +168,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 		}
 		
 		if(getSIPStack().getMaxUdpMessageSize()>0 && message.length>getSIPStack().getMaxUdpMessageSize()) {
-			logger.logError("message length = " + message.length + " , while maximum allowed for udp " + getSIPStack().getMaxMessageSize());
+			logger.logError("message length = " + message.length + " , while maximum allowed for udp " + getSIPStack().getMaxUdpMessageSize());
 			throw new MessageTooLongException("Message is too long");
 		}
 		
