@@ -29,6 +29,7 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.core.executor.SIPTask;
+import gov.nist.javax.sip.IOExceptionEventExt;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -182,10 +183,14 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
             serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
             // throw new SipException(ex1.getMessage(), ex1);
         } catch (MessageTooLongException ex) {
-            if (logger.isLoggingEnabled())
-                logger.logException(ex);
             // setState(TransactionState._TERMINATED);
-            serverTransaction.raiseErrorEvent(SIPTransactionErrorEvent.MESSAGE_LENGTH_ERROR);
+            String host = serverTransaction.getPeerAddress();
+            int port = serverTransaction.getPeerPort();
+            String transport = serverTransaction.getTransport();
+            IOExceptionEventExt exceptionEvent = new IOExceptionEventExt(
+            		sipResponse, this, gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong, serverTransaction.getHost(), serverTransaction.getPort(), host, port, transport);
+            serverTransaction.getSipProvider().handleEvent(exceptionEvent, serverTransaction);
+            
             // throw new SipException(ex1.getMessage(), ex1);
         }
     }

@@ -2205,11 +2205,19 @@ public abstract class SIPTransactionStack implements
     }
 
     protected SIPTransaction storeTransaction(String key, SIPTransaction sipTransaction, boolean isServer) {
-        if(isServer) {
-            return serverTransactionTable.putIfAbsent(key, (SIPServerTransaction) sipTransaction);
-        } else {
-            return clientTransactionTable.putIfAbsent(key, (SIPClientTransaction) sipTransaction);            
-        }
+    	try {
+	        if(isServer) {
+	            return serverTransactionTable.putIfAbsent(key, (SIPServerTransaction) sipTransaction);
+	        } else {
+	            return clientTransactionTable.putIfAbsent(key, (SIPClientTransaction) sipTransaction);            
+	        }
+    	}
+    	finally {			
+	        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+	            logger.logDebug("STORED tx " + sipTransaction + " KEY = "
+	                    + key + " isServer = " + isServer);	            	            
+	        }
+    	}
     }
 
     /**

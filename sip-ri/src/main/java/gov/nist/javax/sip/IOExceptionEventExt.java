@@ -75,7 +75,7 @@ public class IOExceptionEventExt extends IOExceptionEvent {
 
 	@Override
     public String toString() {
-        return "KeepAliveTimeoutEvent{" +
+        return "IOExceptionEvent {" +
         		"message='" + message + '\'' +
                 ", myHost='" + myHost + '\'' +
                 ", myPort=" + myPort +
