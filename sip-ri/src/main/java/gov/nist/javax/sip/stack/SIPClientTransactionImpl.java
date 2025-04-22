@@ -1946,10 +1946,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    */
   @Override
   public String getOriginalRequestFromTag() {
-    if (originalRequest == null) {
+    if (getOriginalRequest() == null) {
       return originalRequestFromTag;
     }
-    return originalRequest.getFromTag();
+    return getOriginalRequest().getFromTag();
   }
 
   /**
@@ -1957,10 +1957,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    */
   @Override
   public String getOriginalRequestCallId() {
-    if (originalRequest == null) {
+    if (getOriginalRequest() == null) {
       return originalRequestCallId;
     }
-    return originalRequest.getCallId().getCallId();
+    return getOriginalRequest().getCallId().getCallId();
   }
 
   /**
@@ -1968,10 +1968,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    */
   @Override
   public Event getOriginalRequestEvent() {
-    if (originalRequest == null) {
+    if (getOriginalRequest() == null) {
       return originalRequestEventHeader;
     }
-    return (Event) originalRequest.getHeader(EventHeader.NAME);
+    return (Event) getOriginalRequest().getHeader(EventHeader.NAME);
   }
 
   /**
@@ -1979,10 +1979,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    */
   @Override
   public Contact getOriginalRequestContact() {
-    if (originalRequest == null) {
+    if (getOriginalRequest() == null) {
       return originalRequestContact;
     }
-    return originalRequest.getContactHeader();
+    return getOriginalRequest().getContactHeader();
   }
 
   /**
@@ -1990,10 +1990,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    */
   @Override
   public String getOriginalRequestScheme() {
-    if (originalRequest == null) {
+    if (getOriginalRequest() == null) {
       return originalRequestScheme;
     }
-    return originalRequest.getRequestURI().getScheme();
+    return getOriginalRequest().getRequestURI().getScheme();
   }
 
   /**

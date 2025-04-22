@@ -437,15 +437,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public SIPRequest getOriginalRequest() {
-        return this.originalRequest;
-    }
-
-    /**
-     * @see gov.nist.javax.sip.stack.SIPTransaction#getRequest()
-     */
-    @Override
-    public Request getRequest() {
-        if(getReleaseReferencesStrategy() != ReleaseReferencesStrategy.None && originalRequest == null && originalRequestBytes != null) {
+    	if(getReleaseReferencesStrategy() != ReleaseReferencesStrategy.None && originalRequest == null && originalRequestBytes != null) {
             if(logger.isLoggingEnabled(StackLogger.TRACE_WARN)) {
                 logger.logWarning("reparsing original request " + originalRequestBytes + " since it was eagerly cleaned up, but beware this is not efficient with the aggressive flag set !");
             }
@@ -458,7 +450,16 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             	}
             }
         }
-        return (Request) originalRequest;
+    	
+    	return this.originalRequest;
+    }
+
+    /**
+     * @see gov.nist.javax.sip.stack.SIPTransaction#getRequest()
+     */
+    @Override
+    public Request getRequest() {
+        return (Request) getOriginalRequest();
     }
 
     /**

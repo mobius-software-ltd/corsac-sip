@@ -68,8 +68,6 @@ public class SIPTransactionErrorEvent extends EventObject {
      */
     public static final int MESSAGE_LENGTH_ERROR = 4;
 
-    
-
     // ID of this error event
     private int errorID;
 

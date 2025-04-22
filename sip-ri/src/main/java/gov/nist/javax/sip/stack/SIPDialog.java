@@ -623,7 +623,8 @@ public class SIPDialog implements DialogExt {
         }        
 
         public void runTask() {
-            if (SIPDialog.this.highestSequenceNumberAcknowledged < seqno) {
+        	SIPDialog dialog = sipStack.getDialog(dialogId);
+        	if (dialog==null || dialog.highestSequenceNumberAcknowledged < seqno) {
                 /*
                  * Did not send ACK so we need to delete the dialog. B2BUA NOTE:
                  * we may want to send BYE to the Dialog at this point. Do we
@@ -1242,7 +1243,7 @@ public class SIPDialog implements DialogExt {
             throw new SipException(
                     "No listening point for this provider registered at "
                             + hop);
-                              
+              
         // Sent atleast one ACK.
         this.isAcknowledged = true;
         this.highestSequenceNumberAcknowledged = Math.max(

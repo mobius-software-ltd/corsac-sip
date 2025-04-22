@@ -38,6 +38,7 @@ import javax.sip.DialogTerminatedEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.SipListener;
+import javax.sip.SipProvider;
 import javax.sip.Transaction;
 import javax.sip.TransactionState;
 import javax.sip.TransactionTerminatedEvent;
@@ -556,13 +557,14 @@ public abstract class SIPTransactionStack implements
         String id;
         String forkId;
         String transactionId;
+        SipProvider sipProvider;
 
-
-        public RemoveForkedTransactionTimerTask(String id, String transactionId, String forkId) {
+        public RemoveForkedTransactionTimerTask(String id, String transactionId, String forkId, SipProvider sipProvider) {
         	super(RemoveForkedTransactionTimerTask.class.getSimpleName());
             this.id = id;
             this.forkId = forkId;  
             this.transactionId = transactionId;
+            this.sipProvider = sipProvider;
         }
         
         @Override
@@ -577,7 +579,7 @@ public abstract class SIPTransactionStack implements
                         "Removing forked client transaction : forkId = " + forkId);
         	}
             SIPTransaction removed = removeTransactionById(transactionId, false);
-            sendTransactionTerminatedEvent(removed);
+            sendTransactionTerminatedEvent(removed, sipProvider);
         }
     }
 
@@ -931,9 +933,12 @@ public abstract class SIPTransactionStack implements
             if(earlyDialog == null) {
                 logger.logDebug("createDialog : earlyDialogTable=" + earlyDialogTable);
             } else {
+            	String defaultDialogId = null;
+            	if(transaction.getDefaultDialog()!=null)
+            		defaultDialogId = transaction.getDefaultDialog().getDialogId();
                 logger.logDebug("createDialog : transaction="
                     + transaction + " transaction default dialg = " + transaction.getDefaultDialog() 
-                    + " transaction default dialg id = " + transaction.getDefaultDialog().getDialogId());
+                    + " transaction default dialg id = " + defaultDialogId);
             }
         }
         if (earlyDialog != null && 
@@ -2079,12 +2084,12 @@ public abstract class SIPTransactionStack implements
         	                        "Scheduling to remove forked client transaction : forkId = " + forkId + " in "  + this.maxForkTime + " seconds");
         	        	}
         				this.timer.schedule(new RemoveForkedTransactionTimerTask(
-        						clientTx.getOriginalRequestCallId(), key, forkId), this.maxForkTime * 1000);
+        						clientTx.getOriginalRequestCallId(), key, forkId, sipTransaction.getSipProvider()), this.maxForkTime * 1000);
                         
         				clientTx.stopExpiresTimer();
         			} else {
                         removed = removeTransactionById(key, false);                    
-                        sendTransactionTerminatedEvent(removed);
+                        sendTransactionTerminatedEvent(removed, sipTransaction.getSipProvider());
                     } 
         		}        		
         	}
@@ -2113,16 +2118,14 @@ public abstract class SIPTransactionStack implements
         return removed;
     }
 
-    private void sendTransactionTerminatedEvent(SIPTransaction sipTransaction) {
+    private void sendTransactionTerminatedEvent(SIPTransaction sipTransaction, SipProvider sipProvider) {
         // Send a notification to the listener.
         if (sipTransaction != null
             && sipTransaction.testAndSetTransactionTerminatedEvent()) {
-                SipProviderImpl sipProvider = (SipProviderImpl) sipTransaction
-                    .getSipProvider();
                 TransactionTerminatedEvent event = new TransactionTerminatedEvent(
                         sipProvider, (ClientTransaction) sipTransaction);
 
-                sipProvider.handleEvent(event, sipTransaction);
+                ((SipProviderImpl)sipProvider).handleEvent(event, sipTransaction);
         }
     }
 
