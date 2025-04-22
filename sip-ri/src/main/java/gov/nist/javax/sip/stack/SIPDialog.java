@@ -624,7 +624,7 @@ public class SIPDialog implements DialogExt {
 
         public void runTask() {
         	SIPDialog dialog = sipStack.getDialog(dialogId);
-        	if (dialog==null || dialog.highestSequenceNumberAcknowledged < seqno) {
+        	if (dialog!=null && dialog.highestSequenceNumberAcknowledged < seqno) {
                 /*
                  * Did not send ACK so we need to delete the dialog. B2BUA NOTE:
                  * we may want to send BYE to the Dialog at this point. Do we

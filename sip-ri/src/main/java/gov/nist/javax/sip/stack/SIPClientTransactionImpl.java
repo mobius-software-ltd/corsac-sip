@@ -808,6 +808,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // of the INVITE after app sends ACK
         disableRetransmissionTimer();
         disableTimeoutTimer();
+        ServerResponseInterface respondTo = this.respondTo;
         this.setState(TransactionState._TERMINATED);
 
         // 200 responses are always seen by TU.
@@ -852,6 +853,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // ((SIPDialog) this.getDialog()).releaseAckSem();
         // }
 
+        ServerResponseInterface respondTo = this.respondTo;
         if (!isReliable()) {
           this.setState(TransactionState._COMPLETED);
           enableTimeoutTimer(timerD);
@@ -876,7 +878,8 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // this.semRelease();
         // }
       } else if (statusCode / 100 == 2) {
-        this.setState(TransactionState._TERMINATED);
+    	ServerResponseInterface respondTo = this.respondTo;
+    	this.setState(TransactionState._TERMINATED);
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
         }
@@ -896,6 +899,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // ((SIPDialog) this.getDialog()).releaseAckSem();
         // }
         // JvB: update state before passing to app
+        ServerResponseInterface respondTo = this.respondTo;
         if (!isReliable()) {
           this.setState(TransactionState._COMPLETED);
           this.enableTimeoutTimer(timerD);
