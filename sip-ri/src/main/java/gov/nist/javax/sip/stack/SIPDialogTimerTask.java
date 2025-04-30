@@ -96,7 +96,7 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
 
         // Stop running this timer if the dialog is in the
         // confirmed state or ack seen if retransmit filter on.
-        if (dialog.isAckSeen() || dialog.dialogState == SIPDialog.TERMINATED_STATE) {
+        if (dialog.isAckSeen() || dialog.dialogState.get() == SIPDialog.TERMINATED_STATE) {
             dialog.ongoingTransactionId = null;
             dialog.stopDialogTimer();            
         }
