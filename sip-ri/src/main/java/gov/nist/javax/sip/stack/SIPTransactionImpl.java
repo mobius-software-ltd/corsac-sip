@@ -442,7 +442,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
                 logger.logWarning("reparsing original request " + originalRequestBytes + " since it was eagerly cleaned up, but beware this is not efficient with the aggressive flag set !");
             }
             try {
-                originalRequest = (SIPRequest) sipStack.getMessageParserFactory().createMessageParser(sipStack).parseSIPMessage(originalRequestBytes, true, false, null);
+            	originalRequest = (SIPRequest) sipStack.getMessageParserFactory().createMessageParser(sipStack).parseSIPMessage(originalRequestBytes, true, false, null);
 //                originalRequestBytes = null;
             } catch (ParseException e) {
             	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {

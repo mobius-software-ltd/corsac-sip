@@ -52,7 +52,7 @@ public class MobiusSipTimerTask implements SIPTimer {
 
     @Override
     public void execute() {
-        if (timestamp.get() < Long.MAX_VALUE) {
+		if (timestamp.get() < Long.MAX_VALUE) {
             try {
                 // task can be null if it has been cancelled
                 if (task != null) {

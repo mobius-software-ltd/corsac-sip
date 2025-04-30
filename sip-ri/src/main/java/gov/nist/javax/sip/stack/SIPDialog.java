@@ -19,7 +19,6 @@
 package gov.nist.javax.sip.stack;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -30,6 +29,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.sip.ClientTransaction;
@@ -38,11 +38,9 @@ import javax.sip.DialogDoesNotExistException;
 import javax.sip.DialogState;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
-import javax.sip.ObjectInUseException;
 import javax.sip.SipException;
 import javax.sip.Transaction;
 import javax.sip.TransactionDoesNotExistException;
-import javax.sip.TransactionState;
 import javax.sip.address.Address;
 import javax.sip.address.Hop;
 import javax.sip.address.SipURI;
@@ -53,7 +51,6 @@ import javax.sip.header.OptionTag;
 import javax.sip.header.ProxyAuthorizationHeader;
 import javax.sip.header.RAckHeader;
 import javax.sip.header.RSeqHeader;
-import javax.sip.header.ReasonHeader;
 import javax.sip.header.RequireHeader;
 import javax.sip.header.RouteHeader;
 import javax.sip.header.SupportedHeader;
@@ -68,14 +65,12 @@ import gov.nist.core.LogLevels;
 import gov.nist.core.LogWriter;
 import gov.nist.core.NameValueList;
 import gov.nist.core.StackLogger;
-import gov.nist.core.executor.SIPTask;
 import gov.nist.javax.sip.DialogExt;
 import gov.nist.javax.sip.IOExceptionEventExt;
 import gov.nist.javax.sip.ListeningPointImpl;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.SipProviderImpl;
-import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
@@ -89,7 +84,6 @@ import gov.nist.javax.sip.header.MaxForwards;
 import gov.nist.javax.sip.header.ProxyAuthorization;
 import gov.nist.javax.sip.header.RAck;
 import gov.nist.javax.sip.header.RSeq;
-import gov.nist.javax.sip.header.Reason;
 import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.header.RecordRouteList;
 import gov.nist.javax.sip.header.Require;
@@ -107,7 +101,6 @@ import gov.nist.javax.sip.parser.AddressParser;
 import gov.nist.javax.sip.parser.CallIDParser;
 import gov.nist.javax.sip.parser.ContactParser;
 import gov.nist.javax.sip.parser.RecordRouteParser;
-import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
@@ -198,7 +191,7 @@ public class SIPDialog implements DialogExt {
 
     protected transient SIPTransactionStack sipStack;
 
-    protected int dialogState;
+    protected AtomicInteger dialogState = new AtomicInteger(NULL_STATE);
 
     protected transient ACKWrapper lastAckSent;
     
@@ -269,7 +262,7 @@ public class SIPDialog implements DialogExt {
 
     private transient DialogDeleteTask dialogDeleteTask;
 
-    private transient DialogDeleteIfNoAckSentTask dialogDeleteIfNoAckSentTask;
+    protected transient DialogDeleteIfNoAckSentTask dialogDeleteIfNoAckSentTask;
 
     protected transient boolean isAcknowledged;
 
@@ -360,7 +353,7 @@ public class SIPDialog implements DialogExt {
 
         @Override
         public void execute() {
-            try {
+        	try {
                 send(ackRequest);
                 /**
                  * Notifying the application layer of the message sent out in the same thread
@@ -391,293 +384,7 @@ public class SIPDialog implements DialogExt {
         public String getId() {
             return ackRequest.getCallId().getCallId();
         }       
-    }
-
-    class EarlyStateTimerTask extends SIPStackTimerTask implements Serializable {        
-		private static final long serialVersionUID = 1L;
-
-		public EarlyStateTimerTask() {
-        	super(EarlyStateTimerTask.class.getSimpleName());
-        }
-
-        @Override
-        public void runTask() {
-            fireEarlyStateTimer();
-        }
-
-        @Override
-        public String getId() {
-            return getCallId().getCallId();
-        }
-    }
-
-    /**
-     * This task waits till a pending ACK has been recorded and then sends out a
-     * re-INVITE. This is to prevent interleaving INVITEs ( which will result in
-     * a 493 from the UA that receives the out of order INVITE). This is
-     * primarily for B2BUA support. A B2BUA may send a delayed ACK while it does
-     * mid call codec renegotiation. In the meanwhile, it cannot send an
-     * intervening re-INVITE otherwise the othr end will respond with a
-     * REQUEST_PENDING. We want to avoid this condition. Hence we wait till the
-     * ACK for the previous re-INVITE has been sent before sending the next
-     * re-INVITE.
-     */
-    public class ReInviteSender implements SIPTask, Serializable {
-        private static final long serialVersionUID = 1019346148741070635L;
-        ClientTransaction ctx;
-        long startTime = System.currentTimeMillis();
-
-        public void terminate() {
-            try {
-            	if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            		logger.logDebug("ReInviteSender::terminate: ctx = " + ctx);
-            	}
-            	
-                ctx.terminate();
-                // Thread.currentThread().interrupt();
-            } catch (ObjectInUseException e) {
-                logger.logError("unexpected error", e);
-            }
-        }
-
-        public ReInviteSender(ClientTransaction ctx) {
-            this.ctx = ctx;
-            if ( logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            	logger.logDebug("ReInviteSender::ReInviteSender: ctx = " + ctx );
-            	logger.logStackTrace();
-            }
-        }
-
-        @Override
-        public void execute() {
-            try {
-                long timeToWait = 0;
-                long startTime = System.currentTimeMillis();
-                boolean dialogTimedOut = false;
-                
-                // If we have an INVITE transaction, make sure that it is TERMINATED
-                // before sending a re-INVITE.. Not the cleanest solution but it works.
-                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                	logger.logDebug("SIPDialog::reInviteSender: dialog = " + ctx.getDialog()  + " lastTransaction = " + lastTransaction + " lastTransactionState " + lastTransaction.getState());
-                }
-                // if (SIPDialog.this.lastTransaction != null &&
-                // 			SIPDialog.this.lastTransaction instanceof SIPServerTransaction && 
-                // 			SIPDialog.this.lastTransaction.isInviteTransaction() &&
-                // 		    SIPDialog.this.lastTransaction.getState() != TransactionState.TERMINATED)
-                // {
-                // 	((SIPServerTransaction)SIPDialog.this.lastTransaction).waitForTermination();
-                // 	Thread.sleep(50);
-                // }
-                
-               
-
-                // if (!SIPDialog.this.takeAckSem()) {
-                //     /*
-                //      * Could not send re-INVITE fire a timeout on the INVITE.
-                //      */
-                //     if (logger.isLoggingEnabled())
-                //         logger
-                //                 .logError(
-                //                         "Could not send re-INVITE time out ClientTransaction");
-                //     ((SIPClientTransaction) ctx).fireTimeoutTimer();
-                //     /*
-                //      * Send BYE to the Dialog.
-                //      */
-                //     if (sipProvider.getSipListener() != null
-                //             && sipProvider.getSipListener() instanceof SipListenerExt) {
-                //         dialogTimedOut = true;
-                //         raiseErrorEvent(SIPDialogErrorEvent.DIALOG_REINVITE_TIMEOUT,(SIPClientTransaction)ctx);
-                //     } else {
-                //         Request byeRequest = SIPDialog.this
-                //                 .createRequest(Request.BYE);
-                //         if (MessageFactoryImpl.getDefaultUserAgentHeader() != null) {
-                //             byeRequest.addHeader(MessageFactoryImpl
-                //                     .getDefaultUserAgentHeader());
-                //         }
-                //         ReasonHeader reasonHeader = new Reason();
-                //         reasonHeader.setCause(1024);
-                //         reasonHeader.setText("Timed out waiting to re-INVITE");
-                //         byeRequest.addHeader(reasonHeader);
-                //         ClientTransaction byeCtx = SIPDialog.this
-                //                 .getSipProvider().getNewClientTransaction(
-                //                         byeRequest);
-                //         SIPDialog.this.sendRequest(byeCtx);
-                //         return;
-                //     }
-                // }
-                if (getState() != DialogState.TERMINATED) {
-
-                    timeToWait = System.currentTimeMillis() - startTime;
-                }
-
-                /*
-                 * If we had to wait for ACK then wait for the ACK to actually
-                 * get to the other side. Wait for any ACK retransmissions to
-                 * finish. Then send out the request. This is a hack in support
-                 * of some UA that want re-INVITEs to be spaced out in time (
-                 * else they return a 400 error code ).
-                 */
-                try {
-                    if (timeToWait != 0) {
-                        Thread.sleep(SIPDialog.this.reInviteWaitTime);
-                    }
-                } catch (InterruptedException ex) {
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                        logger.logDebug("Interrupted sleep");
-                    return;
-                }
-                if (SIPDialog.this.getState() != DialogState.TERMINATED && !dialogTimedOut && ctx.getState() != TransactionState.TERMINATED ) {
-                    SIPDialog.this.sendRequest(ctx, true);
-                    if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) 
-                        logger.logDebug(
-                                "re-INVITE successfully sent");
-                }
-               
-            } catch (Exception ex) {
-                logger.logError("Error sending re-INVITE",
-                        ex);
-            } finally {
-                this.ctx = null;
-            }
-        }
-
-        @Override
-        public long getStartTime() {
-            return startTime;
-        }
-
-        @Override
-        public String getId() {
-            return SIPDialog.this.getCallId().getCallId();
-        }        
-    }
-
-    class LingerTimer extends SIPStackTimerTask implements Serializable {
-		private static final long serialVersionUID = 1L;
-
-		LingerTimer(){
-    		super(LingerTimer.class.getSimpleName());
-    	}
-
-        public void runTask() {
-            SIPDialog dialog = SIPDialog.this;
-            sipStack.removeDialog(dialog);
-            // Issue 279 :
-            // https://jain-sip.dev.java.net/issues/show_bug.cgi?id=279
-            // if non reentrant listener is used the event delivery of
-            // DialogTerminated
-            // can happen after the clean
-            if (((SipStackImpl) getStack()).isReEntrantListener()) {
-                cleanUp();
-            }
-        }
-
-        @Override
-        public String getId() {
-            return getCallId().getCallId();
-        }
-    }
-
-    
-
-    /**
-     * This timer task is used to garbage collect the dialog after some time.
-     * 
-     */
-
-    class DialogDeleteTask extends SIPStackTimerTask implements Serializable {
-		private static final long serialVersionUID = 1L;
-
-		DialogDeleteTask() {
-    		super(DialogDeleteTask.class.getSimpleName());
-    	}
-
-        public void runTask() {
-            delete();
-        }
-
-        @Override
-        public String getId() {
-            return getCallId().getCallId();
-        }
-    }
-
-    /**
-     * This timer task is used to garbage collect the dialog after some time.
-     * 
-     */
-
-    class DialogDeleteIfNoAckSentTask extends SIPStackTimerTask implements
-            Serializable {
-		private static final long serialVersionUID = 1L;
-        long seqno;     
-
-        public DialogDeleteIfNoAckSentTask(long seqno) {
-        	super(DialogDeleteIfNoAckSentTask.class.getSimpleName());
-            this.seqno = seqno;
-        }
-        
-        @Override
-        public String getId() {
-            return getCallId().getCallId();
-        }        
-
-        public void runTask() {
-        	SIPDialog dialog = sipStack.getDialog(dialogId);
-        	if (dialog!=null && dialog.highestSequenceNumberAcknowledged < seqno) {
-                /*
-                 * Did not send ACK so we need to delete the dialog. B2BUA NOTE:
-                 * we may want to send BYE to the Dialog at this point. Do we
-                 * want to make this behavior tailorable?
-                 */
-                dialogDeleteIfNoAckSentTask = null;
-                if (!SIPDialog.this.isBackToBackUserAgent) {
-                    if (logger.isLoggingEnabled())
-                        logger.logDebug(
-                                "ACK Was not sent. killing dialog " + dialogId);
-                    if (((SipProviderImpl) sipProvider).getSipListener() instanceof SipListenerExt) {
-                        raiseErrorEvent(SIPDialogErrorEvent.DIALOG_ACK_NOT_SENT_TIMEOUT);
-                    } else {
-                        delete();
-                    }
-                } else {
-                    if (logger.isLoggingEnabled())
-                        logger.logDebug(
-                                "ACK Was not sent. Sending BYE " + dialogId);
-                    if (((SipProviderImpl) sipProvider).getSipListener() instanceof SipListenerExt) {
-                        raiseErrorEvent(SIPDialogErrorEvent.DIALOG_ACK_NOT_SENT_TIMEOUT);
-                    } else {
-
-                        /*
-                         * Send BYE to the Dialog. This will be removed for the
-                         * next spec revision.
-                         */
-                        try {
-                            Request byeRequest = SIPDialog.this
-                                    .createRequest(Request.BYE);
-                            if (MessageFactoryImpl.getDefaultUserAgentHeader() != null) {
-                                byeRequest.addHeader(MessageFactoryImpl
-                                        .getDefaultUserAgentHeader());
-                            }
-                            ReasonHeader reasonHeader = new Reason();
-                            reasonHeader.setProtocol("SIP");
-                            reasonHeader.setCause(1025);
-                            reasonHeader
-                                    .setText("Timed out waiting to send ACK " + dialogId);
-                            byeRequest.addHeader(reasonHeader);
-                            ClientTransaction byeCtx = SIPDialog.this
-                                    .getSipProvider().getNewClientTransaction(
-                                            byeRequest);
-                            SIPDialog.this.sendRequest(byeCtx);
-                            return;
-                        } catch (Exception ex) {
-                            SIPDialog.this.delete();
-                        }
-                    }
-                }
-            }
-        }
-    }
+    }   
 
     // ///////////////////////////////////////////////////////////
     // Constructors.
@@ -691,7 +398,7 @@ public class SIPDialog implements DialogExt {
     protected SIPDialog(SipProviderImpl provider) {
         this.terminateOnBye = true;
         this.routeList = new RouteList();
-        this.dialogState = NULL_STATE; // not yet initialized.
+        this.dialogState.set(NULL_STATE); // not yet initialized.
         localSequenceNumber = 0;
         remoteSequenceNumber = -1;
         this.sipProvider = provider;
@@ -1051,10 +758,10 @@ public class SIPDialog implements DialogExt {
             if (sipResponse.getStatusCode() == 100) {
                 // Do nothing for trying messages.
                 return;
-            } else if (this.dialogState == TERMINATED_STATE) {
+            } else if (this.dialogState.get() == TERMINATED_STATE) {
                 // Do nothing if the dialog state is terminated.
                 return;
-            } else if (this.dialogState == CONFIRMED_STATE) {
+            } else if (this.dialogState.get() == CONFIRMED_STATE) {
                 // cannot add route list after the dialog is initialized.
                 // Remote target is updated on RE-INVITE but not
                 // the route list.
@@ -1423,7 +1130,11 @@ public class SIPDialog implements DialogExt {
         if (sipStack.getTimer() == null)
             this.setState(TERMINATED_STATE);
         else {
-            this.dialogDeleteTask = new DialogDeleteTask();
+        	String dialogId = this.dialogId;
+        	if(dialogId == null)
+        		dialogId = this.earlyDialogId;
+        	
+            this.dialogDeleteTask = new DialogDeleteTask(sipStack, getCallId().getCallId(), dialogId);
             // Delete the transaction after the max ack timeout.
             if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
             	int delay = SIPTransactionStack.BASE_TIMER_INTERVAL;
@@ -1453,7 +1164,7 @@ public class SIPDialog implements DialogExt {
             logger.logDebug(
                     "SIPDialog::setState:Setting dialog state for " + this + "newState = " + state);
             logger.logStackTrace();
-            if (state != NULL_STATE && state != this.dialogState)
+            if (state != NULL_STATE && state != this.dialogState.get())
                 if (logger.isLoggingEnabled()) {
                     logger.logDebug("SIPDialog::setState:" +	
                             this + "  old dialog state is " + this.getState());
@@ -1461,23 +1172,32 @@ public class SIPDialog implements DialogExt {
                             this + "  New dialog state is "
                                     + DialogState.getObject(state));
                 }
-
         }
 
-        this.dialogState = state;
-        // Dialog is in terminated state set it up for GC.
-        if (state == TERMINATED_STATE) {
-            if (sipStack.getTimer() != null && sipStack.getTimer().isStarted() ) { // may be null after shutdown
-            	if(sipStack.getConnectionLingerTimer() > 0) {
-                    sipStack.getTimer().schedule(new LingerTimer(),
-                        sipStack.getConnectionLingerTimer() * 1000);
-            	} else {
-            		new LingerTimer().runTask();
-            	}
+        if(state == TERMINATED_STATE)
+        {
+        	int oldState = this.dialogState.getAndSet(state);        	
+        	// Dialog is in terminated state set it up for GC.
+            if (oldState!=TERMINATED_STATE) {
+            	if (sipStack.getTimer() != null && sipStack.getTimer().isStarted() ) { // may be null after shutdown
+            		String dialogId = getDialogId();
+            		if(dialogId == null)
+            			dialogId = getEarlyDialogId();
+            		
+            		if(dialogId!=null) {        		
+            			if(sipStack.getConnectionLingerTimer() > 0) {
+    	            		sipStack.getTimer().schedule(new DialogLingerTimer(sipStack, sipProvider, dialogId, getCallId().getCallId()),
+    	            				sipStack.getConnectionLingerTimer() * 1000);
+    	            	} else {
+    	            		new DialogLingerTimer(sipStack, sipProvider, dialogId, getCallId().getCallId()).runTask();
+    	            	}
+            		}
+                }
+                this.stopTimer();
             }
-            this.stopTimer();
-
         }
+        else
+        	this.dialogState.set(state);        
     }
 
     /**
@@ -1549,56 +1269,6 @@ public class SIPDialog implements DialogExt {
         return lastAckSent != null ? lastAckSent.getDialogId() : null;
     }
     
-    public final class ACKWrapper {
-        String msgBytes;
-        String fromTag;
-        String dialogId;
-        Long cSeq;
-        ACKWrapper(SIPRequest req) {
-            req.setTransaction(null); // null out the associated Tx (release memory)
-            msgBytes = req.encode();
-            fromTag=req.getFromTag();
-            dialogId=req.getDialogId(false);
-            
-            if(req.getCSeq()!=null)
-            	cSeq = req.getCSeq().getSeqNumber();
-        }
-        
-        public ACKWrapper(String msgBytes, String fromTag, String dialogId, Long cSeq) {
-            this.msgBytes = msgBytes;
-            this.fromTag = fromTag;
-            this.dialogId = dialogId;
-            this.cSeq = cSeq;
-        }
-        
-        public String getFromTag() {
-            return fromTag;
-        }
-
-        public Long getCSeq() {
-            return cSeq;
-        }
-        
-        public String getDialogId() {
-                return dialogId;
-        }
-        
-        public String getMsgBytes() {
-        	return msgBytes;
-        }
-        
-        public SIPRequest reparseRequest() {
-            try {
-                return (SIPRequest) sipStack.getMessageParserFactory().createMessageParser(sipStack).parseSIPMessage(msgBytes.getBytes("UTF-8"),true,false,null);
-            } catch (Exception ex) {
-        	if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)){
-        		logger.logDebug("SIPDialog::resendAck:lastAck failed reparsing, hence not resending ACK");
-        	}
-                return null;
-            }
-        }
-    }    
-
     public boolean isLastAckPresent(){
     	return lastAckSent != null;
     }
@@ -1691,12 +1361,12 @@ public class SIPDialog implements DialogExt {
                             + this.getState());
         }
 
-        if (this.dialogState == CONFIRMED_STATE
+        if (this.dialogState.get() == CONFIRMED_STATE
                 && SIPRequest.isTargetRefresh(sipRequest.getMethod())) {
             this.doTargetRefresh(sipRequest);
         }
-        if (this.dialogState == CONFIRMED_STATE
-                || this.dialogState == TERMINATED_STATE) {
+        if (this.dialogState.get() == CONFIRMED_STATE
+                || this.dialogState.get() == TERMINATED_STATE) {
             return;
         }
         
@@ -2307,9 +1977,10 @@ public class SIPDialog implements DialogExt {
      * @see javax.sip.Dialog#getState()
      */
     public DialogState getState() {
-        if (this.dialogState == NULL_STATE)
+    	int state = this.dialogState.get();
+    	if (state == NULL_STATE)
             return null; // not yet initialized
-        return DialogState.getObject(this.dialogState);
+        return DialogState.getObject(state);
     }
 
     /**
@@ -2612,8 +2283,9 @@ public class SIPDialog implements DialogExt {
         	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
         		logger.logDebug("SIPDialog::sendRequest " + this + " clientTransaction = " + clientTransaction);
         	}
-            sipStack.getMessageProcessorExecutor().addTaskLast(
-                    (new ReInviteSender(clientTransaction)));
+        	
+        	sipStack.getMessageProcessorExecutor().addTaskLast(
+                    (new ReInviteSender(clientTransaction, getCallId().getCallId(), this)));
             return;
         }        
 
@@ -3426,7 +3098,7 @@ public class SIPDialog implements DialogExt {
                          * JvB: RFC4235 says that when sending 2xx on UAS side,
                          * state should move to CONFIRMED
                          */
-                        if (this.dialogState <= SIPDialog.EARLY_STATE
+                        if (this.dialogState.get() <= SIPDialog.EARLY_STATE
                                 && (cseqMethod.equals(Request.INVITE)
                                         || cseqMethod
                                                 .equals(Request.SUBSCRIBE) || cseqMethod
@@ -3968,7 +3640,7 @@ public class SIPDialog implements DialogExt {
      *            the lastAckSent to set
      */
     protected void setLastAckSent(SIPRequest lastAckSent) {
-        this.lastAckSent = new ACKWrapper(lastAckSent);
+        this.lastAckSent = new ACKWrapper(sipStack, lastAckSent);
     }
 
     /**
@@ -3987,7 +3659,7 @@ public class SIPDialog implements DialogExt {
             this.setState(TERMINATED_STATE);
         } else if (dialogDeleteIfNoAckSentTask == null) {
             // Delete the transaction after the max ack timeout.
-        	dialogDeleteIfNoAckSentTask = new DialogDeleteIfNoAckSentTask(seqno);
+        	dialogDeleteIfNoAckSentTask = new DialogDeleteIfNoAckSentTask(sipStack , getCallId().getCallId(), dialogId, seqno);
             if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
             	int delay = SIPTransactionStack.BASE_TIMER_INTERVAL;
             	if(lastTransaction != null) {
@@ -4301,7 +3973,11 @@ public class SIPDialog implements DialogExt {
     }
 
     protected void startEarlyStateTimer() {
-        this.earlyStateTimerTask = new EarlyStateTimerTask();
+    	String dialogId = this.dialogId;
+    	if(dialogId==null)
+    		dialogId = earlyDialogId;
+    	
+        this.earlyStateTimerTask = new EarlyStateTimerTask(sipStack, getCallId().getCallId(), dialogId);
         logger.logDebug(
                 "EarlyStateTimerTask " + earlyStateTimerTask + " created "
                         + this.earlyDialogTimeout * 1000);
