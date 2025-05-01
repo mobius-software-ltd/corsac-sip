@@ -13,20 +13,16 @@ class EarlyStateTimerTask extends SIPStackTimerTask implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String callId;
-	private String dialogId;
-	private SIPTransactionStack sipStack;
+	private SIPDialog dialog;
 	
-	EarlyStateTimerTask(SIPTransactionStack sipStack,String callId,String dialogId) {
+	EarlyStateTimerTask(String callId,SIPDialog dialog) {		
 		super(EarlyStateTimerTask.class.getSimpleName());
 		this.callId = callId;
-		this.dialogId = dialogId;
-		this.sipStack = sipStack;
+		this.dialog = dialog;
 	}
 
 	public void runTask() {
-		SIPDialog dialog = sipStack.getDialog(dialogId);
-		if (dialog != null)
-			dialog.fireEarlyStateTimer();
+		dialog.fireEarlyStateTimer();
 	}
 
 	@Override

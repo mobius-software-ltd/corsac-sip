@@ -13,20 +13,16 @@ class DialogDeleteTask extends SIPStackTimerTask implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String callId;
-	private String dialogId;
-	private SIPTransactionStack sipStack;
+	private SIPDialog dialog;
 	
-	DialogDeleteTask(SIPTransactionStack sipStack,String callId,String dialogId) {
+	DialogDeleteTask(String callId,SIPDialog dialog) {
 		super(DialogDeleteTask.class.getSimpleName());
 		this.callId = callId;
-		this.dialogId = dialogId;
-		this.sipStack = sipStack;
+		this.dialog = dialog;
 	}
 
 	public void runTask() {
-		SIPDialog dialog = sipStack.getDialog(dialogId);
-		if (dialog != null)
-			dialog.delete();
+		dialog.delete();
 	}
 
 	@Override

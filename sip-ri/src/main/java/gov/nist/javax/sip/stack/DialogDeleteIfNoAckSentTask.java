@@ -16,18 +16,16 @@ import gov.nist.javax.sip.stack.timers.SIPStackTimerTask;
 
 class DialogDeleteIfNoAckSentTask extends SIPStackTimerTask implements Serializable {
 	private static StackLogger logger = CommonLogger.getLogger(SIPDialog.class);
-	private SIPTransactionStack sipStack;
 	private String callId;
-	private String dialogId;
+	private SIPDialog dialog;
 	private static final long serialVersionUID = 1L;
 	long seqno;
 
-	public DialogDeleteIfNoAckSentTask(SIPTransactionStack sipStack, String callId, String dialogId, long seqno) {
+	public DialogDeleteIfNoAckSentTask(String callId, SIPDialog dialog, long seqno) {
 		super(DialogDeleteIfNoAckSentTask.class.getSimpleName());
 		this.seqno = seqno;
-		this.dialogId = dialogId;
+		this.dialog = dialog;
 		this.callId = callId;
-		this.sipStack = sipStack;
 	}
 
 	@Override
@@ -36,7 +34,6 @@ class DialogDeleteIfNoAckSentTask extends SIPStackTimerTask implements Serializa
 	}
 
 	public void runTask() {
-		SIPDialog dialog = sipStack.getDialog(dialogId);
 		if (dialog != null && dialog.highestSequenceNumberAcknowledged < seqno) {
 			/*
 			 * Did not send ACK so we need to delete the dialog. B2BUA NOTE: we may want to
@@ -46,7 +43,7 @@ class DialogDeleteIfNoAckSentTask extends SIPStackTimerTask implements Serializa
 			dialog.dialogDeleteIfNoAckSentTask = null;
 			if (!dialog.isBackToBackUserAgent) {
 				if (logger.isLoggingEnabled())
-					logger.logDebug("ACK Was not sent. killing dialog " + dialogId);
+					logger.logDebug("ACK Was not sent. killing dialog " + dialog.getDialogId());
 				if (((SipProviderImpl) dialog.getSipProvider()).getSipListener() instanceof SipListenerExt) {
 					dialog.raiseErrorEvent(SIPDialogErrorEvent.DIALOG_ACK_NOT_SENT_TIMEOUT);
 				} else {
@@ -54,7 +51,7 @@ class DialogDeleteIfNoAckSentTask extends SIPStackTimerTask implements Serializa
 				}
 			} else {
 				if (logger.isLoggingEnabled())
-					logger.logDebug("ACK Was not sent. Sending BYE " + dialogId);
+					logger.logDebug("ACK Was not sent. Sending BYE " + dialog.getDialogId());
 				if (((SipProviderImpl) dialog.getSipProvider()).getSipListener() instanceof SipListenerExt) {
 					dialog.raiseErrorEvent(SIPDialogErrorEvent.DIALOG_ACK_NOT_SENT_TIMEOUT);
 				} else {
@@ -70,7 +67,7 @@ class DialogDeleteIfNoAckSentTask extends SIPStackTimerTask implements Serializa
 						ReasonHeader reasonHeader = new Reason();
 						reasonHeader.setProtocol("SIP");
 						reasonHeader.setCause(1025);
-						reasonHeader.setText("Timed out waiting to send ACK " + dialogId);
+						reasonHeader.setText("Timed out waiting to send ACK " + dialog.getDialogId());
 						byeRequest.addHeader(reasonHeader);
 						ClientTransaction byeCtx = dialog.getSipProvider().getNewClientTransaction(byeRequest);
 						dialog.sendRequest(byeCtx);

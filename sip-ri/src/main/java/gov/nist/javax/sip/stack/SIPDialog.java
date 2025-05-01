@@ -1134,7 +1134,7 @@ public class SIPDialog implements DialogExt {
         	if(dialogId == null)
         		dialogId = this.earlyDialogId;
         	
-            this.dialogDeleteTask = new DialogDeleteTask(sipStack, getCallId().getCallId(), dialogId);
+            this.dialogDeleteTask = new DialogDeleteTask(getCallId().getCallId(), this);
             // Delete the transaction after the max ack timeout.
             if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
             	int delay = SIPTransactionStack.BASE_TIMER_INTERVAL;
@@ -1186,10 +1186,10 @@ public class SIPDialog implements DialogExt {
             		
             		if(dialogId!=null) {        		
             			if(sipStack.getConnectionLingerTimer() > 0) {
-    	            		sipStack.getTimer().schedule(new DialogLingerTimer(sipStack, sipProvider, dialogId, getCallId().getCallId()),
+    	            		sipStack.getTimer().schedule(new DialogLingerTimer(sipStack, sipProvider, this, getCallId().getCallId()),
     	            				sipStack.getConnectionLingerTimer() * 1000);
     	            	} else {
-    	            		new DialogLingerTimer(sipStack, sipProvider, dialogId, getCallId().getCallId()).runTask();
+    	            		new DialogLingerTimer(sipStack, sipProvider, this, getCallId().getCallId()).runTask();
     	            	}
             		}
                 }
@@ -3659,7 +3659,7 @@ public class SIPDialog implements DialogExt {
             this.setState(TERMINATED_STATE);
         } else if (dialogDeleteIfNoAckSentTask == null) {
             // Delete the transaction after the max ack timeout.
-        	dialogDeleteIfNoAckSentTask = new DialogDeleteIfNoAckSentTask(sipStack , getCallId().getCallId(), dialogId, seqno);
+        	dialogDeleteIfNoAckSentTask = new DialogDeleteIfNoAckSentTask(getCallId().getCallId(), this, seqno);
             if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
             	int delay = SIPTransactionStack.BASE_TIMER_INTERVAL;
             	if(lastTransaction != null) {
@@ -3977,7 +3977,7 @@ public class SIPDialog implements DialogExt {
     	if(dialogId==null)
     		dialogId = earlyDialogId;
     	
-        this.earlyStateTimerTask = new EarlyStateTimerTask(sipStack, getCallId().getCallId(), dialogId);
+        this.earlyStateTimerTask = new EarlyStateTimerTask(getCallId().getCallId(), this);
         logger.logDebug(
                 "EarlyStateTimerTask " + earlyStateTimerTask + " created "
                         + this.earlyDialogTimeout * 1000);

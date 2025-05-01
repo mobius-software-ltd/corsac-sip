@@ -61,7 +61,7 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
             }
             if (transaction != null
                     && transaction.getState() != javax.sip.TransactionState.TERMINATED) {
-                transaction
+            	transaction
                         .raiseErrorEvent(SIPTransactionErrorEvent.TIMEOUT_ERROR);
             }
         } else if ((transaction != null) && (!dialog.isAckSeen())) {
@@ -70,19 +70,19 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
                 try {
 
                     // resend the last response.
-                    transaction.resendLastResponse();
+                	transaction.resendLastResponse();
                 } catch (IOException ex) {
 
                     dialog.raiseIOException(transaction.getLastResponse(), gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError,
-                            transaction.getHost(), transaction.getPort(), transaction.getPeerAddress(),
-                            transaction.getPeerPort(), transaction
+                    		transaction.getHost(), transaction.getPort(), transaction.getPeerAddress(),
+                    		transaction.getPeerPort(), transaction
                                     .getPeerProtocol());
 
                 } catch (MessageTooLongException ex) {
 
                     dialog.raiseIOException(transaction.getLastResponse(), gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong,
-                            transaction.getHost(), transaction.getPort(), transaction.getPeerAddress(),
-                            transaction.getPeerPort(), transaction
+                    		transaction.getHost(), transaction.getPort(), transaction.getPeerAddress(),
+                    		transaction.getPeerPort(), transaction
                                     .getPeerProtocol());
 
                 } finally {                    
