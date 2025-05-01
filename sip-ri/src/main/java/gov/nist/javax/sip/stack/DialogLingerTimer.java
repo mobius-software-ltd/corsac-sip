@@ -11,32 +11,35 @@ public class DialogLingerTimer extends SIPStackTimerTask implements Serializable
 	
 	private SIPTransactionStack sipStack;
 	private SipProviderImpl sipProvider;
-	private SIPDialog dialog;
+	private String dialogId;
 	private String callId;
 	
-	DialogLingerTimer(SIPTransactionStack sipStack, SipProviderImpl sipProvider, SIPDialog dialog,String callId){
+	DialogLingerTimer(SIPTransactionStack sipStack, SipProviderImpl sipProvider, String dialogId,String callId){
 		super(DialogLingerTimer.class.getSimpleName());
 		this.sipStack = sipStack;
 		this.sipProvider = sipProvider;
-		this.dialog = dialog;
+		this.dialogId = dialogId;
 		this.callId = callId;
 	}
 
     public void runTask() {
-    	try {
-			sipStack.removeDialog(dialog, sipProvider);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		// Issue 279 :
-        // https://jain-sip.dev.java.net/issues/show_bug.cgi?id=279
-        // if non reentrant listener is used the event delivery of
-        // DialogTerminated
-        // can happen after the clean
-        if (((SipStackImpl) sipStack).isReEntrantListener()) {
-             ((SIPDialog)dialog).cleanUp();
-        }
+    	SIPDialog dialog = sipStack.getDialog(dialogId);
+    	if(dialog!=null) {
+	    	try {
+				sipStack.removeDialog(dialog, sipProvider);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			// Issue 279 :
+	        // https://jain-sip.dev.java.net/issues/show_bug.cgi?id=279
+	        // if non reentrant listener is used the event delivery of
+	        // DialogTerminated
+	        // can happen after the clean
+	        if (((SipStackImpl) sipStack).isReEntrantListener()) {
+	             ((SIPDialog)dialog).cleanUp();
+	        }
+    	}
     }
 
     @Override
