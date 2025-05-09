@@ -21,7 +21,7 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
     public SIPDialogTimerTask(SIPDialog sipDialog,SIPServerTransaction transaction, int timerT2,long baseTimerInterval) {
         	super(SIPDialogTimerTask.class.getSimpleName());
             this.dialog = sipDialog;
-            nRetransmissions = 0;
+            nRetransmissions = 1;
             this.timerT2 = timerT2;
             this.baseTimerInterval = baseTimerInterval;
             this.transaction = transaction;
@@ -32,13 +32,11 @@ public class SIPDialogTimerTask extends SIPStackTimerTask implements Serializabl
         // resend last response.
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
             logger.logDebug("Running dialog timer");
-        if(nRetransmissions==0)
-        	nRetransmissions = 1;
-        else
-        	nRetransmissions *= 2;
+        
+        nRetransmissions *= 2;
         
         SIPServerTransaction transaction = (SIPServerTransaction) 
-                dialog.getStack().findTransaction(getTaskName(), true);
+                dialog.getStack().findTransaction(this.transaction.getTransactionId(), true);
         
         /*
          * Issue 106. Section 13.3.1.4 RFC 3261 The 2xx response is passed
