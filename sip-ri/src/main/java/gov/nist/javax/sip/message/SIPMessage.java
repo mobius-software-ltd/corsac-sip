@@ -1308,8 +1308,14 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
             if (this.messageContentBytes != null) {
                 // return messageContentBytes;
             } else if (this.messageContentObject != null) {
-                String messageContent = this.messageContentObject.toString();
-                this.messageContentBytes = messageContent.getBytes(getCharset());
+            	if(this.messageContentObject instanceof Content)
+            		this.messageContentBytes = ((Content)this.messageContentObject).getContent();
+            	else if(this.messageContentObject instanceof MultipartMimeContent)
+            		this.messageContentBytes = ((MultipartMimeContent)this.messageContentObject).getEncodedValue();
+            	else {
+            		String messageContent = this.messageContentObject.toString();
+            		this.messageContentBytes = messageContent.getBytes(getCharset());
+            	}
             } else if (this.messageContent != null) {
                 this.messageContentBytes = messageContent.getBytes(getCharset());
             }
@@ -1947,23 +1953,18 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
 
     /**
      * Get the multipart MIME content
+     * @throws UnsupportedEncodingException 
      *
      */
-    public MultipartMimeContent getMultipartMimeContent() throws ParseException {
+    public MultipartMimeContent getMultipartMimeContent() throws ParseException, UnsupportedEncodingException {
         if (this.contentLengthHeader.getContentLength() == 0) {
             return null;
         }
         MultipartMimeContentImpl retval = new MultipartMimeContentImpl(this
-                .getContentTypeHeader());
+                .getContentTypeHeader(), getCharset());
         byte[] rawContent = getRawContent();
-        try {
-            String body = new String(rawContent, getCharset());
-            retval.createContentList(body);
-            return retval;
-        } catch (UnsupportedEncodingException e) {
-            InternalErrorHandler.handleException(e);
-            return null;
-        }
+        retval.createContentList(rawContent);
+        return retval;
     }
 
     public CallIdHeader getCallIdHeader() {
@@ -1989,7 +1990,7 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
     /**
      * Returns the charset to use for encoding/decoding the body of this message
      */
-    protected final String getCharset() {
+    public final String getCharset() {
         ContentType ct = getContentTypeHeader();
         if (ct != null) {
             String c = ct.getCharset();

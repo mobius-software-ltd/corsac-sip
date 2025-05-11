@@ -14,8 +14,6 @@ public interface MultipartMimeContent {
      */
     public abstract ContentTypeHeader getContentTypeHeader();
 
-    public abstract String toString();
-
     /**
      * Set the content by its type.
      * 
@@ -37,4 +35,10 @@ public interface MultipartMimeContent {
      */
     public int getContentCount();
 
+    /**
+     * Get the encoded value of multipart content.
+     * 
+     * @return - the content byte array.
+     */
+    public byte[] getEncodedValue();
 }

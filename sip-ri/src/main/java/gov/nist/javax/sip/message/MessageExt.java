@@ -1,5 +1,6 @@
 package gov.nist.javax.sip.message;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 import javax.sip.header.CSeqHeader;
@@ -55,9 +56,10 @@ public interface MessageExt extends Message {
      * @since v2.0
      * @throws ParseException if the content type is multipart mime but the content
      *  is not properly encoded.
+     * @throws UnsupportedEncodingException if the boundary property has invalid encoding
      *  
      */
-    public MultipartMimeContent getMultipartMimeContent() throws ParseException;
+    public MultipartMimeContent getMultipartMimeContent() throws ParseException, UnsupportedEncodingException;
     
     /**
      * Get the topmost Via header.

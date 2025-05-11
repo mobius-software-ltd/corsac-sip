@@ -1,5 +1,7 @@
 package gov.nist.javax.sip.message;
 
+import java.io.UnsupportedEncodingException;
+
 import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.ServerHeader;
 import javax.sip.header.UserAgentHeader;
@@ -60,10 +62,16 @@ public interface MessageFactoryExt extends MessageFactory {
     public MultipartMimeContent createMultipartMimeContent(ContentTypeHeader multipartMimeContentTypeHeader,
             String[] contentType, 
             String[] contentSubtype, 
-            String[] contentBody);
+            String[] contentBody, String charset) throws UnsupportedEncodingException;
     
-    
-    
-    
-    
+    /**
+     * Create a MultipartMime attachment from a list of content type, subtype and content.
+     * 
+     * @since 2.0
+     * 
+     */
+    public MultipartMimeContent createMultipartMimeContent(ContentTypeHeader multipartMimeContentTypeHeader,
+            String[] contentType, 
+            String[] contentSubtype, 
+            byte[][] contentBody, String charset) throws UnsupportedEncodingException;    
 }

@@ -28,6 +28,7 @@
  *******************************************************************************/
 package gov.nist.javax.sip.message;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.List;
 
@@ -848,9 +849,9 @@ public class MessageFactoryImpl implements MessageFactoryExt {
     public MultipartMimeContent createMultipartMimeContent(ContentTypeHeader multipartMimeCth,
             String[] contentType,
             String[] contentSubtype, 
-            String[] contentBody) {
+            byte[][] contentBody, String charset) throws UnsupportedEncodingException {
         multipartMimeCth.getParameter("boundary");
-        MultipartMimeContentImpl retval = new MultipartMimeContentImpl(multipartMimeCth);
+        MultipartMimeContentImpl retval = new MultipartMimeContentImpl(multipartMimeCth,charset);
         for (int i = 0 ;  i < contentType.length; i++ ) {
             ContentTypeHeader cth = new ContentType(contentType[i],contentSubtype[i]);
             ContentImpl contentImpl  = new ContentImpl(contentBody[i]);
@@ -860,7 +861,20 @@ public class MessageFactoryImpl implements MessageFactoryExt {
         return retval;
     }
 
-
+    public MultipartMimeContent createMultipartMimeContent(ContentTypeHeader multipartMimeCth,
+            String[] contentType,
+            String[] contentSubtype, 
+            String[] contentBody, String charset) throws UnsupportedEncodingException {
+        multipartMimeCth.getParameter("boundary");
+        MultipartMimeContentImpl retval = new MultipartMimeContentImpl(multipartMimeCth,charset);
+        for (int i = 0 ;  i < contentType.length; i++ ) {
+            ContentTypeHeader cth = new ContentType(contentType[i],contentSubtype[i]);
+            ContentImpl contentImpl  = new ContentImpl(contentBody[i]);
+            contentImpl.setContentTypeHeader(cth);
+            retval.add(contentImpl);
+        }
+        return retval;
+    }
 
 
 }
