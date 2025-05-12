@@ -842,7 +842,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                         cleanUpOnTimer();
                         this.setState(TransactionState._TERMINATED);
                         if (this.getDialog() != null)
-                            ((SIPDialog) this.getDialog()).rescheduleDialogTimer(getBaseTimerInterval(), this);
+                            ((SIPDialog) this.getDialog()).rescheduleDialogTimer(getTimerT2(), getBaseTimerInterval(), getBaseTimerInterval(), 0, this);
                     } else {
                         // This an error final response.
                         this.setState(TransactionState._COMPLETED);
@@ -885,7 +885,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
                     cleanUpOnTimer();
                     this.setState(TransactionState._TERMINATED);
                     if (this.getDialog() != null)
-                        ((SIPDialog) this.getDialog()).rescheduleDialogTimer(getBaseTimerInterval(), this);
+                        ((SIPDialog) this.getDialog()).rescheduleDialogTimer(getTimerT2(), getBaseTimerInterval(), getBaseTimerInterval(), 0, this);
 
                 } else if (300 <= statusCode && statusCode <= 699) {
 

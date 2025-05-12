@@ -2420,7 +2420,7 @@ public class SIPDialog implements DialogExt {
 			return;
 
 		SIPDialogTimerTask newTimer = new SIPDialogTimerTask(this, transaction, transaction.getTimerT2(),
-				transaction.getBaseTimerInterval());
+				transaction.getBaseTimerInterval(), transaction.getBaseTimerInterval(), 0);
 		if (this.timerTask.compareAndSet(null, newTimer)) {
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
 				logger.logDebug("Executing DialogTimerTask " + timerTask + " with fixed delay and period of "
@@ -2429,16 +2429,16 @@ public class SIPDialog implements DialogExt {
 		}
 	}
 
-    protected void rescheduleDialogTimer(long baseInterval, SIPServerTransaction transaction) {
+    protected void rescheduleDialogTimer(int timerT2, long baseTimerInterval, long currentInterval, long summaryInterval, SIPServerTransaction originalTransaction) {
 		stopDialogTimer();
 
-		SIPDialogTimerTask newTimer = new SIPDialogTimerTask(this, transaction, transaction.getTimerT2(),
-				transaction.getBaseTimerInterval());
+		SIPDialogTimerTask newTimer = new SIPDialogTimerTask(this, originalTransaction, timerT2,
+				baseTimerInterval, currentInterval, summaryInterval);
 		if (this.timerTask.compareAndSet(null, newTimer)) {
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-				logger.logDebug("Executing DialogTimerTask " + timerTask + " with fixed delay and period of "
-						+ transaction.getBaseTimerInterval());
-			sipStack.getTimer().schedule(newTimer, baseInterval);
+				logger.logDebug("Executing DialogTimerTask " + timerTask + " with delay and period of "
+						+ currentInterval);
+			sipStack.getTimer().schedule(newTimer, currentInterval);
 		}
 	}
 
