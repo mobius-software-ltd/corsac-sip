@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
@@ -203,7 +204,7 @@ public class SIPDialog implements DialogExt {
     // of ackSeen
     protected transient boolean ackProcessed;
 
-    protected transient SIPDialogTimerTask timerTask;
+    protected transient AtomicReference<SIPDialogTimerTask> timerTask = new AtomicReference<SIPDialogTimerTask>();
     protected AtomicBoolean timerTaskStarted = new AtomicBoolean(false);
 
     protected transient AtomicLong nextSeqno;
@@ -880,7 +881,7 @@ public class SIPDialog implements DialogExt {
      *             reason
      * 
      */
-    private void sendAck(Request request, boolean throwIOExceptionAsSipException)
+    protected void sendAck(Request request, boolean throwIOExceptionAsSipException)
             throws SipException {
 
         SIPRequest ackRequest = (SIPRequest) request;
@@ -2382,31 +2383,27 @@ public class SIPDialog implements DialogExt {
      * @param transaction
      */
     protected void startTimer(SIPServerTransaction transaction) {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug(
-                    "Starting dialog timer for " + getDialogId() + 
-                    ", timerTask=" + timerTask + 
-                    ", timerTaskStarted=" + timerTaskStarted.get() +
-                    ", ongoingTransactionId=" + ongoingTransactionId + 
-                    ", transaction= " + transaction.getTransactionId());
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+			logger.logDebug("Starting dialog timer for " + getDialogId() + ", timerTask=" + timerTask
+					+ ", timerTaskStarted=" + timerTaskStarted.get() + ", ongoingTransactionId=" + ongoingTransactionId
+					+ ", transaction= " + transaction.getTransactionId());
 
-        if (this.timerTaskStarted.get() && ongoingTransactionId == transaction.getTransactionId()) {
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-                logger.logDebug(
-                        "Timer already running for " + getDialogId());
-            return;
-        }
-            
-        if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug(
-                "setting  this.ongoingTransactionId " + this.ongoingTransactionId + " to " + transaction.getTransactionId());
-            this.ongoingTransactionId = transaction.getTransactionId();
-            if (this.timerTaskStarted.compareAndSet(false, true)) {
-                scheduleDialogTimer(transaction);
-            }
-        }
-    }
+		if (this.timerTaskStarted.get() && ongoingTransactionId == transaction.getTransactionId()) {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+				logger.logDebug("Timer already running for " + getDialogId());
+			return;
+		}
+
+		if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+				logger.logDebug("setting  this.ongoingTransactionId " + this.ongoingTransactionId + " to "
+						+ transaction.getTransactionId());
+			this.ongoingTransactionId = transaction.getTransactionId();
+			if (this.timerTaskStarted.compareAndSet(false, true)) {
+				scheduleDialogTimer(transaction);
+			}
+		}
+	}
 
     /**
      * Stop the dialog timer. This is called when the dialog is terminated.
@@ -2415,39 +2412,49 @@ public class SIPDialog implements DialogExt {
     protected void stopTimer() {
         stopDialogTimer();
         stopEarlyStateTimer();
-        this.timerTask = null;
         this.ongoingTransactionId = null;                    
     }
 
     protected void scheduleDialogTimer(SIPServerTransaction transaction) {
-        this.timerTask = new SIPDialogTimerTask(this, transaction, transaction.getTimerT2(), transaction.getBaseTimerInterval());
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
-            logger.logDebug(
-                "Executing DialogTimerTask " + timerTask + " with fixed delay and period of " + transaction.getBaseTimerInterval());
-        sipStack.getTimer().schedule(timerTask,transaction.getBaseTimerInterval());
-    }
+		if (this.timerTask.get() != null)
+			return;
 
-    protected void rescheduleDialogTimer(long baseInterval,SIPServerTransaction transaction) {
-    	if(timerTask==null)
-    		this.timerTask = new SIPDialogTimerTask(this, transaction, transaction.getTimerT2(), transaction.getBaseTimerInterval());
-        
-    	sipStack.getTimer().schedule(timerTask,baseInterval);
-    }
+		SIPDialogTimerTask newTimer = new SIPDialogTimerTask(this, transaction, transaction.getTimerT2(),
+				transaction.getBaseTimerInterval());
+		if (this.timerTask.compareAndSet(null, newTimer)) {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+				logger.logDebug("Executing DialogTimerTask " + timerTask + " with fixed delay and period of "
+						+ transaction.getBaseTimerInterval());
+			sipStack.getTimer().schedule(newTimer, transaction.getBaseTimerInterval());
+		}
+	}
+
+    protected void rescheduleDialogTimer(long baseInterval, SIPServerTransaction transaction) {
+		stopDialogTimer();
+
+		SIPDialogTimerTask newTimer = new SIPDialogTimerTask(this, transaction, transaction.getTimerT2(),
+				transaction.getBaseTimerInterval());
+		if (this.timerTask.compareAndSet(null, newTimer)) {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+				logger.logDebug("Executing DialogTimerTask " + timerTask + " with fixed delay and period of "
+						+ transaction.getBaseTimerInterval());
+			sipStack.getTimer().schedule(newTimer, baseInterval);
+		}
+	}
 
     protected void stopDialogTimer() {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug(
-                    "Trying to stop Dialog Timers " + this.timerTask);
-        }
-        if (this.timerTask != null) {
-            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-                logger.logDebug(
-                        "Cancelled Dialog Timer " + timerTask);
-            }                    
-            this.getStack().getTimer().cancel(timerTask);
-            timerTask = null;
-        }
-    }
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+			logger.logDebug("Trying to stop Dialog Timers " + this.timerTask);
+		}
+
+		SIPDialogTimerTask oldTask = this.timerTask.getAndSet(null);
+		if (oldTask != null) {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug("Cancelled Dialog Timer " + timerTask);
+			}
+			this.getStack().getTimer().cancel(oldTask);
+		}
+	}
     
     /*
      * (non-Javadoc) Retransmissions of the reliable provisional response cease
