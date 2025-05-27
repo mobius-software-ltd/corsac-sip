@@ -136,8 +136,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 			}
 			
 			ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
-			channel.writeAndFlush(
-					new DatagramPacket(byteBuf, new InetSocketAddress(getPeerInetAddress(), getPeerPort())));
+			writeDatagramPacket(new DatagramPacket(byteBuf, new InetSocketAddress(getPeerInetAddress(), getPeerPort())));
 
 			// we didn't run into problems while sending so let's set ports and
 			// addresses before feeding the message to the loggers.
@@ -173,9 +172,13 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 		}
 		
 		ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
-		channel.writeAndFlush(new DatagramPacket(byteBuf, new InetSocketAddress(receiverAddress, receiverPort)));
+		writeDatagramPacket(new DatagramPacket(byteBuf, new InetSocketAddress(receiverAddress, receiverPort)));
 	}
 
+	protected void writeDatagramPacket(DatagramPacket packet) {
+		channel.writeAndFlush(packet);
+	}
+	
 	@Override
 	public void processMessage(SIPMessage sipMessage) throws Exception {
 		this.receptionTime = System.currentTimeMillis();
