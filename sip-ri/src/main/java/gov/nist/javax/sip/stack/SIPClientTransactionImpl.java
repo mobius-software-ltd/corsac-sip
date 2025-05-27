@@ -638,7 +638,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     if (timeoutTimerStarted.get() && timerKStarted.compareAndSet(false, true)) {
       // synchronized (transactionTimerLock) {
       if (!transactionTimerCancelled.get()) {
-        stopTimeoutTimer();
+    	  disableTimeoutTimer();
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
           logger.logDebug("starting TransactionTimerK() : " + getTransactionId() + " time "
               + time);
@@ -1354,7 +1354,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     
     if(newState == TransactionState._TERMINATED) {
     	try {
-            stopTimeoutTimer();
+    		disableTimeoutTimer();
 
         } catch (IllegalStateException ex) {
             if (!getSIPStack().isAlive())

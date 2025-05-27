@@ -680,10 +680,18 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
      */
     @Override
     public void disableTimeoutTimer() {
-    	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) logger.logDebug("disableTimeoutTimer " + this);
-    	if(timeoutTimer!=null) {
-        	getSIPStack().getTimer().cancel(timeoutTimer);
-        	timeoutTimer = null;
+    	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("disable TransactionTimer : " + getTransactionId());
+        }
+        if (timeoutTimer != null) {
+            try {
+                sipStack.getTimer().cancel(timeoutTimer);
+            } catch (IllegalStateException ex) {
+                if (!sipStack.isAlive())
+                    return;
+            } finally {
+            	timeoutTimer = null;
+            }
         }
     }
 
@@ -1549,22 +1557,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 			maxTxLifeTimeListener = null;
 		}
 	}
-
-    protected void stopTimeoutTimer() {
-        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
-            logger.logDebug("stopping TransactionTimer : " + getTransactionId());
-        }
-        if (timeoutTimer != null) {
-            try {
-                sipStack.getTimer().cancel(timeoutTimer);
-            } catch (IllegalStateException ex) {
-                if (!sipStack.isAlive())
-                    return;
-            } finally {
-            	timeoutTimer = null;
-            }
-        }
-    }
 
 	/**
    * @see gov.nist.javax.sip.stack.SIPTransaction#getMergeId()

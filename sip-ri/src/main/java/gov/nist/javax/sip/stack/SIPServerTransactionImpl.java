@@ -1394,7 +1394,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             // to catch the incoming ACK -- this is needed for tcp only.
             // Note that the transaction record is actually removed in
             // the connection linger timer.
-            stopTimeoutTimer();
+            disableTimeoutTimer();
 
             if(lingerTimer==null) {
 	            // Oneshot timer that garbage collects the SeverTransaction
