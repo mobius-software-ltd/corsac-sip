@@ -11,6 +11,8 @@ public interface Content {
   public abstract void setContent(byte[] content);
 
   public abstract byte[] getContent();
+  
+  public abstract int getLength();
 
   public abstract byte[] getEncodedHeaders();
 

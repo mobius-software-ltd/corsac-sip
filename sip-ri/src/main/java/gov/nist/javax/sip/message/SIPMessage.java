@@ -466,7 +466,6 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
 
         if (this.messageContentObject != null) {
             String mbody = this.getContent().toString();
-
             encoding.append(mbody);
         } else if (this.messageContent != null || this.messageContentBytes != null) {
 
@@ -1480,7 +1479,11 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
                 }
             } else if (content instanceof byte[]) {
                 length = ((byte[]) content).length;
-            } else {
+            } else if(this.messageContentObject instanceof Content)
+            	length = ((Content)this.messageContentObject).getLength();
+        	else if(this.messageContentObject instanceof MultipartMimeContent)
+            	length = ((MultipartMimeContentImpl)this.messageContentObject).getEncodedLength();
+        	else {
                 try {
                     length = content.toString().getBytes( getCharset() ).length;
                 } catch (UnsupportedEncodingException ex) {

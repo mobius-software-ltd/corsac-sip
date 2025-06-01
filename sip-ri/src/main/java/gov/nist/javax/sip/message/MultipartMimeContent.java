@@ -41,4 +41,11 @@ public interface MultipartMimeContent {
      * @return - the content byte array.
      */
     public byte[] getEncodedValue();
+    
+    /**
+     * Get length of multipart content.
+     * 
+     * @return - the length.
+     */
+    public int getEncodedLength();
 }

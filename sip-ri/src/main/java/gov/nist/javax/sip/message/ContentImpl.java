@@ -163,4 +163,9 @@ public class ContentImpl implements Content {
 	public Iterator<Header> getExtensionHeaders() {
 		return extensionHeaders.iterator();
 	}
+
+	@Override
+	public int getLength() {
+		return getEncodedHeaders().length + getContent().length;		
+	}
 }

@@ -363,4 +363,25 @@ public class MultipartMimeContentImpl implements MultipartMimeContent {
 
 		return output;
 	}
+
+	@Override
+	public int getEncodedLength() {
+		Integer totalBytes = 0;	
+		List<byte[]> encodedHeaders = new ArrayList<byte[]>();
+		
+		for (Content content : this.contentList) {
+			totalBytes += delimiterBytes.length;
+			totalBytes += LINE_FULL.length;
+			byte[] currHeaders = content.getEncodedHeaders();
+			totalBytes += currHeaders.length;
+			encodedHeaders.add(currHeaders);
+			totalBytes += content.getContent().length;
+			totalBytes += LINE_FULL.length;
+		}
+		
+		if (!contentList.isEmpty())
+			totalBytes += delimiterBytes.length + 2;
+		
+		return totalBytes;
+	}
 }
