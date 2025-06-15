@@ -3044,7 +3044,7 @@ public class SIPDialog implements DialogExt {
                      * returned for the BYE. Other status codes just result in
                      * leaving the state in COMPLETED state.
                      */
-                    this.setState(SIPDialog.TERMINATED_STATE);
+                    this.setState(SIPDialog.TERMINATED_STATE);                    
                 } else {
                     boolean doPutDialog = false;
 

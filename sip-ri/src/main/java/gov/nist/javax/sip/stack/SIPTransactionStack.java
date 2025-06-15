@@ -1044,12 +1044,12 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 			// the same as the one
 			// specified
 
-			Object old = getDialog(id);
-
-			if (old == dialog) {
+			//WHY THE HELL WE SHOULD COMPARE MEMORY ADDRESSES?? It can be put only if no dialog found...
+			//Object old = getDialog(id);
+			//if (old == dialog) {
 				removeDialog(id);
-			}
-
+			//}
+			
 			// We now deliver DTE even when the dialog is not originally present
 			// in the Dialog
 			// Table
