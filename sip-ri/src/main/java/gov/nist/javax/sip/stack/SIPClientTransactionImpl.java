@@ -374,6 +374,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
             this.setState(TransactionState._TERMINATED);
           } else {
             this.setState(TransactionState._COMPLETED);
+            if(getInternalState() == TransactionState._COMPLETED) {
+            	enableTimeoutTimer(TIMER_H); // timer H must be started around now
+            }
           }
           cleanUpOnTimer();
           // BUGBUG -- This suppresses sending the ACK uncomment this

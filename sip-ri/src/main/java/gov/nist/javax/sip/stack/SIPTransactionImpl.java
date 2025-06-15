@@ -563,10 +563,6 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             newState = currentState;
         // END OF PATCH
 
-        if(newState == TransactionState._COMPLETED) {
-        	enableTimeoutTimer(TIMER_H); // timer H must be started around now
-        }
-
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("Transaction:setState " + newState
                     + " " + this + " branchID = " + this.getBranch()
