@@ -32,6 +32,7 @@ import gov.nist.core.InternalErrorHandler;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.core.executor.SIPTask;
+import gov.nist.javax.sip.IOExceptionEventExt;
 import gov.nist.javax.sip.SipListenerExt;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
@@ -258,12 +259,8 @@ public class DialogOutgoingMessageProcessingTask implements SIPTask {
                     sipDialog.firstTransactionPort,
                     clientTransaction.getTransport());
         } catch (MessageTooLongException e) {
-            sipDialog.raiseIOException(dialogRequest, gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong, clientTransaction.getHost(),
-                    clientTransaction.getPort(),
-                    sipProvider.getListeningPoint(
-                            clientTransaction.getTransport()).getIPAddress(),
-                    sipDialog.firstTransactionPort,
-                    clientTransaction.getTransport());
+        	IOExceptionEventExt ioError = new IOExceptionEventExt(dialogRequest, this, gov.nist.javax.sip.IOExceptionEventExt.Reason.MessageToLong, clientTransaction.getHost(), clientTransaction.getPort(), sipProvider.getListeningPoint(clientTransaction.getTransport()).getIPAddress(), sipDialog.firstTransactionPort, clientTransaction.getTransport());
+	        sipProvider.handleEvent(ioError, null);
         } catch (IOException e) {
             sipDialog.raiseIOException(dialogRequest, gov.nist.javax.sip.IOExceptionEventExt.Reason.ConnectionError, clientTransaction.getHost(),
                     clientTransaction.getPort(),
