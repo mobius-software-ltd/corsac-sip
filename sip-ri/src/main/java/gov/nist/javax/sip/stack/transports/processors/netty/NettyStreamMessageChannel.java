@@ -75,6 +75,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.sctp.SctpChannelOption;
 import io.netty.channel.sctp.SctpMessage;
@@ -182,11 +183,13 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 				bootstrap.option(SctpChannelOption.SO_SNDBUF, sipStack.getSctpSoSndbuf());
 				bootstrap.option(SctpChannelOption.SO_RCVBUF, sipStack.getSctpSoRcvbuf());
 				bootstrap.option(SctpChannelOption.SO_LINGER, sipStack.getSctpSoLinger());
+				bootstrap.option(SctpChannelOption.SO_REUSEADDR, true);		        
 			} else {
 				bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup).channel(nioOrEpollSocketChannel());
 				bootstrap = bootstrap.option(ChannelOption.SO_RCVBUF, sipStack.getTcpSoRcvbuf());
 				bootstrap = bootstrap.option(ChannelOption.SO_SNDBUF, sipStack.getTcpSoSndbuf());
 				bootstrap = bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+				bootstrap = bootstrap.option(ChannelOption.SO_REUSEADDR, true);		        
 			}
 
 			bootstrap = bootstrap.handler(nettyChannelInitializer).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
@@ -195,6 +198,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 			bootstrap = bootstrap.group(nettyStreamMessageProcessor.workerGroup).channel(nioOrEpollSocketChannel());
 			bootstrap = bootstrap.option(ChannelOption.SO_RCVBUF, sipStack.getTcpSoRcvbuf());
 			bootstrap = bootstrap.option(ChannelOption.SO_SNDBUF, sipStack.getTcpSoSndbuf());
+			bootstrap = bootstrap.option(ChannelOption.SO_REUSEADDR, true);		        
 
 			String uri = getTransport().toLowerCase() + "://" + inetAddress.getHostAddress() + ":" + port
 					+ "/websocket";
