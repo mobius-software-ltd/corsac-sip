@@ -714,10 +714,10 @@ public class StackQueueCongestionControlTest extends TestCase {
         shootme.terminate();
     }
 
-    private static final int TIMEOUT = 120000;
+    private static final int TIMEOUT = 10000;
 
     public void testTCPZeroLostMessages() {
-        this.shootme.init("tcp",300);
+        this.shootme.init("tcp",200);
         this.shootist.init("10", "10000", 2, "tcp");
         try {
             Thread.sleep(TIMEOUT);
