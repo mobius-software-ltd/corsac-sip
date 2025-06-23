@@ -10,6 +10,8 @@
 
     <artifactId>sip-testsuite-common</artifactId>
     <packaging>jar</packaging>
+    <name>sip-testsuite-common</name>
+    
     <build>
         <plugins>
             <plugin>
