@@ -502,7 +502,8 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
         // in the topmost Via header
         ViaHeader topVia = (ViaHeader) this.getHeader(ViaHeader.NAME);
         try {
-            topVia.setTransport(transport);
+        	if(topVia!=null)
+        		topVia.setTransport(transport);
         } catch (ParseException e) {
             InternalErrorHandler.handleException(e);
         }

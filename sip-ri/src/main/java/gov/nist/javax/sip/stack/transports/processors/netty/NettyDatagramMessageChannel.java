@@ -226,7 +226,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 		Via topMostVia = sipMessage.getTopmostVia();
 		// Check for the required headers.
 		if (sipMessage.getFrom() == null || sipMessage.getTo() == null || sipMessage.getCallId() == null
-				|| sipMessage.getCSeq() == null || topMostVia == null) {
+				|| sipMessage.getCSeq() == null || (topMostVia == null && (sipMessage instanceof SIPRequest))) {
 			String badmsg = new String(sipMessage.encodeAsBytes(ListeningPoint.UDP));
 			if (logger.isLoggingEnabled()) {
 				logger.logError("bad message " + badmsg);
@@ -325,7 +325,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 			if (sipMessage.getRemotePort() > 0) {
 				this.setPeerPort(sipMessage.getRemotePort());
 			}
-			if (topMostVia.getTransport() != null) {
+			if (topMostVia !=null && topMostVia.getTransport() != null) {
 				this.peerProtocol = topMostVia.getTransport();
 			}
 		}
