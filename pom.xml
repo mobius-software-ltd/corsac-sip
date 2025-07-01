@@ -77,6 +77,8 @@
         <module>sip-api</module>
         <module>sip-testsuite-common</module>
         <module>sip-ri</module>
+        <module>sip-testsuite</module>
+        <module>sip-sctp</module>
     </modules>
 
     <properties>
@@ -151,19 +153,7 @@
 					</plugin>
 				</plugins>
 			</build>			
-    	</profile>
-        <profile>
-            <id>performance</id>
-            <modules>
-                <module>sip-performance</module>
-            </modules>
-        </profile>          
-        <profile>
-            <id>examples</id>
-            <modules>
-                <module>sip-examples</module>
-            </modules>
-        </profile>
+    	</profile> 
         <profile>
             <id>docs</id>
             <build>
@@ -171,6 +161,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.8.0</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>                                
@@ -182,32 +173,23 @@
                     </plugin>                    
                 </plugins>
             </build>
-        </profile>  
-        
+        </profile>         
         <profile>
-            <id>int-testing</id>
-            <modules>
-                <module>sip-testsuite</module>
-            </modules>
-        </profile>                                             
-        <profile>
-            <id>sctp</id>
-            <modules>
-                <module>sip-sctp</module>
-            </modules>
-        </profile>        
-        <profile>
-			<id>maven-release</id>
+			<id>src</id>
 			<build>
 				<plugins>
-					<plugin>
+					 <plugin>
 						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-release-plugin</artifactId>
-						<configuration>
-							<autoVersionSubmodules>true</autoVersionSubmodules>							
-                            <arguments>-DskipTests</arguments>
-							<arguments>-Dmaven.test.skip=true</arguments>	                            					
-						</configuration>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.1.2</version>
+							<executions>
+								<execution>
+									<id>attach-sources</id>
+									<goals>
+										<goal>jar-no-fork</goal>
+									</goals>
+								</execution>
+							</executions>
 					</plugin>					
 				</plugins>
 			</build>		
