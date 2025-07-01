@@ -175,17 +175,21 @@
             </build>
         </profile>         
         <profile>
-			<id>maven-release</id>
+			<id>src</id>
 			<build>
 				<plugins>
-					<plugin>
+					 <plugin>
 						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-release-plugin</artifactId>
-						<configuration>
-							<autoVersionSubmodules>true</autoVersionSubmodules>							
-                            <arguments>-DskipTests</arguments>
-							<arguments>-Dmaven.test.skip=true</arguments>	                            					
-						</configuration>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.1.2</version>
+							<executions>
+								<execution>
+									<id>attach-sources</id>
+									<goals>
+										<goal>jar-no-fork</goal>
+									</goals>
+								</execution>
+							</executions>
 					</plugin>					
 				</plugins>
 			</build>		
@@ -306,7 +310,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--  >plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>3.8.0</version>
@@ -318,7 +322,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin-->
+			</plugin>
 
 	
             <plugin>
