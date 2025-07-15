@@ -229,9 +229,9 @@ public class NettyMessageParser {
 				// if we saw a Content-Length header we can stop processing headers
 				parsingState = ParsingState.PARSING_COMPLETE;																							
 			}
-			if(parsingState == ParsingState.READING_HEADER_LINES) {
-				parsingState = ParsingState.READING_EMPTY_LINE;
-			}
+			// if(parsingState == ParsingState.READING_HEADER_LINES) {
+			// 	parsingState = ParsingState.READING_EMPTY_LINE;
+			// }
 		}
 			
 		if(contentLength > 0) {
