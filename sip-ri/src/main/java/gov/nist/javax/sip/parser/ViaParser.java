@@ -51,8 +51,7 @@ public class ViaParser extends HeaderParser {
     /**
      * a parser for the essential part of the via header.
      */
-    @SuppressWarnings("deprecation")
-	private void parseVia(Via v) throws ParseException {
+    private void parseVia(Via v) throws ParseException {
         // The protocol
         lexer.match(TokenTypes.ID);
         Token protocolName = lexer.getNextToken();

@@ -10,6 +10,7 @@ import gov.nist.core.net.AddressResolver;
 import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
 import gov.nist.javax.sip.clientauthutils.SecureAccountManager;
+import gov.nist.javax.sip.dns.HopperFactory;
 import gov.nist.javax.sip.header.extensions.JoinHeader;
 import gov.nist.javax.sip.header.extensions.ReplacesHeader;
 import gov.nist.javax.sip.stack.timers.StackTimer;
@@ -127,4 +128,9 @@ public interface SipStackExt extends SipStack {
      * @return the stack timer
      */
     public StackTimer getStackTimer(); 
+    
+    void setSendTryingRightAway(boolean sendTryingRightAway);
+	boolean isSendTryingRightAway();
+	
+	public HopperFactory getHopperFactory(); 
 }

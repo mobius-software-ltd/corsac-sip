@@ -74,6 +74,7 @@ import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPDialog;
 import gov.nist.javax.sip.stack.SIPDialogErrorEvent;
 import gov.nist.javax.sip.stack.SIPServerTransaction;
+import gov.nist.javax.sip.stack.SIPServerTransactionImpl;
 import gov.nist.javax.sip.stack.SIPTransaction;
 import gov.nist.javax.sip.stack.SIPTransactionErrorEvent;
 import gov.nist.javax.sip.stack.SIPTransactionEventListener;
@@ -479,9 +480,23 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
     public ServerTransaction getNewServerTransaction(Request request)
             throws TransactionAlreadyExistsException,
             TransactionUnavailableException {
+    	
+    	ServerTransaction tx = prepareNewServerTransaction(request);
+    	if(sipStack.isSendTryingRightAway()) {
+			// if the 100 Trying was sent right away we need to start the transaction timer only then 
+    		((SIPServerTransactionImpl)tx).getTransactionTimerForTrying();
+		}
+    	
+		return tx;
+    }
+    
+    private ServerTransaction prepareNewServerTransaction(Request request)
+            throws TransactionAlreadyExistsException,
+            TransactionUnavailableException {
 
         if (!sipStack.isAlive())
             throw new TransactionUnavailableException("Stack is stopped");
+        
         SIPServerTransaction transaction = null;
         SIPRequest sipRequest = (SIPRequest) request;
         try {

@@ -65,6 +65,10 @@ import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelperImpl;
 import gov.nist.javax.sip.clientauthutils.SecureAccountManager;
+import gov.nist.javax.sip.dns.DNSLookupPerformer;
+import gov.nist.javax.sip.dns.DefaultDNSLookupPerformer;
+import gov.nist.javax.sip.dns.HopperFactory;
+import gov.nist.javax.sip.dns.Rfc3263HopperFactory;
 import gov.nist.javax.sip.parser.MessageParserFactory;
 import gov.nist.javax.sip.parser.StringMsgParser;
 import gov.nist.javax.sip.parser.StringMsgParserFactory;
@@ -605,6 +609,15 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * <li><b>gov.nist.javax.sip.SSL_RENEGOTIATION_ENABLED = [true|false]</b> Default value is <b>true</b>. Allow or disallow SSL renegotiation to resolve potential DoS problem -
  * <a href="http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2011-1473">reference</a> and <a href="http://www.ietf.org/mail-archive/web/tls/current/msg07553.html">another reference</a>. The safe option is to disable it.</li>
  *
+ * <li><b>org.restcomm.ext.java.sip.SEND_TRYING_RIGHT_AWAY = [true|false]</b> Default value is <b>true</b>. Send 100 trying as soon as message received by stack.</li>
+ *
+ * <li><b>org.restcomm.ext.java.sip.DNS_LOOKUP_PERFORMER = classpath </b><br/>
+ * The fully qualified class path for an implementation of the DNSLookupPerformer
+ * interface. The DNSLookupPerformer Allow stack to provide its own DNS Lookup Performer instance.</li>
+ *
+ * <li><b>org.restcomm.ext.java.sip.DNS_HOPPER_FACTORY = classpath </b><br/>
+ * The fully qualified class path for an implementation of the HopperFactory
+ * interface. The HopperFactory Allow stack to provide its own DNS Hopper Factory instance.</li>
  *
  * <li><b>javax.net.ssl.keyStore = fileName </b> <br/>
  * Default is <i>NULL</i>. If left undefined the keyStore and trustStore will
@@ -643,6 +656,10 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	private static StackLogger logger = CommonLogger.getLogger(SipStackImpl.class);
 	private EventScanner eventScanner;
 
+	protected DNSLookupPerformer dnsLookupPerformer;
+	protected HopperFactory hopperFactory;
+	protected boolean sendTryingRightAway;
+	
 	protected ConcurrentHashMap<String, ListeningPointImpl> listeningPoints;
 
 	protected List<SipProviderImpl> sipProviders;
@@ -687,7 +704,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	 * Creates a new instance of SipStackImpl.
 	 */
 
-	protected SipStackImpl() {
+	protected SipStackImpl() throws PeerUnavailableException {
 		super();
 		NistSipMessageFactoryImpl msgFactory = new NistSipMessageFactoryImpl(
 				this);
@@ -703,8 +720,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 			}
 		} catch (Exception e) {
 			logger.logWarning("UTF-8 charset cannot be used this system. This will lead to unpredictable behavior when parsing SIP messages: " + e.getMessage());
-		}
-
+		}	
 	}
 
 	/**
@@ -1693,6 +1709,29 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 			Boolean sctpDisableFragmentsBoolean = new Boolean(sctpDisableFragmentsString).booleanValue();
 			sctpDisableFragments = sctpDisableFragmentsBoolean;
 		}
+		
+		String sendTryingRightAway = configurationProperties.getProperty("org.restcomm.ext.java.sip.SEND_TRYING_RIGHT_AWAY","false");
+		this.sendTryingRightAway = Boolean.valueOf(sendTryingRightAway).booleanValue();
+		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
+        	logger.logInfo("SIP Stack send trying right away " + sendTryingRightAway);
+		}
+
+		// Allow stack to provide its own DNS Lookup Performer instance
+		final String dnsLookupPerformerClassName = configurationProperties.getProperty("org.restcomm.ext.java.sip.DNS_LOOKUP_PERFORMER", DefaultDNSLookupPerformer.class.getName());
+		try {
+			this.dnsLookupPerformer = (DNSLookupPerformer) Class.forName(dnsLookupPerformerClassName).newInstance();
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			throw new PeerUnavailableException("The DNS Lookup Provider of type " + dnsLookupPerformerClassName + " could not be instantiated", e);
+		}
+
+		// Allow stack to provide its own DNS Hopper Factory instance
+		final String hopperFactoryClassName = configurationProperties.getProperty("org.restcomm.ext.java.sip.DNS_HOPPER_FACTORY", Rfc3263HopperFactory.class.getName());
+		try {
+			this.hopperFactory = (HopperFactory) Class.forName(hopperFactoryClassName).newInstance();
+			this.hopperFactory.setLookupPerformer(dnsLookupPerformer);
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			throw new PeerUnavailableException("The DNS Hopper of type " + dnsLookupPerformerClassName + " could not be instantiated", e);
+		}
 	}
 
 	/*
@@ -2113,6 +2152,22 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		this.tlsSecurityPolicy = tlsSecurityPolicy;
 	}
     
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.SipStackExt#setSendTryingRightAway(boolean)
+	 */
+	public void setSendTryingRightAway(boolean sendTryingRightAway) {
+		this.sendTryingRightAway = sendTryingRightAway;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.SipStackExt#isSendTryingRightAway()
+	 */
+	public boolean isSendTryingRightAway() {
+		return sendTryingRightAway;
+	}
+	
 	/**
 	 * @return the configurationProperties
 	 */
@@ -2132,7 +2187,11 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		return this.timer;
 	}
 
+	public DNSLookupPerformer getDnsLookupPerformer() {
+		return dnsLookupPerformer;
+	}
 
-
-
+	public HopperFactory getHopperFactory() {
+		return hopperFactory;
+	}
 }

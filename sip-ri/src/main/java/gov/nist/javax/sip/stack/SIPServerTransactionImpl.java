@@ -47,6 +47,7 @@ import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.ReleaseReferencesStrategy;
 import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.ParameterNames;
@@ -1419,18 +1420,24 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
      */
     @Override
     public SIPStackTimerTask getTimeoutTimer() {
-        if (getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL)
-                || getMethod().equalsIgnoreCase(Request.ACK)) {
-            if (this.timeoutTimerStarted.compareAndSet(false, true)) {
-                // Do not schedule when the stack is not alive.
-                if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
-                	return new SIPServerTimeoutTimer(this);
-                }
-            }
-        }
+    	if(!((SipStackExt)sipStack).isSendTryingRightAway() || getLastResponseStatusCode() != 100) {
+	        if (getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL)
+	                || getMethod().equalsIgnoreCase(Request.ACK)) {
+	            if (this.timeoutTimerStarted.compareAndSet(false, true)) {
+	                // Do not schedule when the stack is not alive.
+	                if (sipStack.getTimer() != null && sipStack.getTimer().isStarted()) {
+	                	return new SIPServerTimeoutTimer(this);
+	                }
+	            }
+	        }
+    	}
         
         return null;
     }
+    
+	public void getTransactionTimerForTrying() {
+		getTimeoutTimer();
+	}
     
     /**
      * Start the timer task.
@@ -1864,4 +1871,19 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             }
         }
     }
+	
+	public void startTransactionTimerForTrying() {
+		getTimeoutTimer();
+	}
+
+	@Override
+	public void setRetransmitTimer(int retransmitTimer) {
+		if (retransmitTimer <= 0)
+            throw new IllegalArgumentException(
+                    "Retransmit timer must be positive!");
+		if (!((SipStackExt)sipStack).isSendTryingRightAway() && this.timeoutTimerStarted.get())
+            throw new IllegalStateException(
+                    "Transaction timer is already started");
+        baseTimerInterval = retransmitTimer;
+	}
 }

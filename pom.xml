@@ -100,6 +100,12 @@
             <scope>test</scope>
         </dependency>
 
+		<dependency>
+		    <groupId>com.mobius-software</groupId>
+		    <artifactId>dnsjava</artifactId>
+		    <version>3.6.7-MOBIUS</version>
+		</dependency>
+        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -136,7 +142,7 @@
     	<profile>
     		<id>java11</id>
     		<properties>
-    			<version.mobius-timers>1.0.0-34-java11</version.mobius-timers>        
+    			<version.mobius-timers>1.0.0-34-java11</version.mobius-timers>     
     		</properties>
     		<build>
 				<plugins>
