@@ -115,7 +115,7 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
     		<properties>
-    			<version.mobius-timers>1.0.0-34</version.mobius-timers>        
+    			<version.mobius-timers>1.0.0-35</version.mobius-timers>        
     		</properties>
     		<build>
 				<plugins>
@@ -136,7 +136,7 @@
     	<profile>
     		<id>java11</id>
     		<properties>
-    			<version.mobius-timers>1.0.0-34-java11</version.mobius-timers>        
+    			<version.mobius-timers>1.0.0-35-java11</version.mobius-timers>        
     		</properties>
     		<build>
 				<plugins>
