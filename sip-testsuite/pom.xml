@@ -78,13 +78,13 @@
 		<profile>
 			<id>java8</id>
 	    	<properties>
-	    		<version.mobius-timers>1.0.0-31</version.mobius-timers>        
+	    		<version.mobius-timers>1.0.0-35</version.mobius-timers>        
 	    	</properties>
 	    </profile>
 		<profile>
 	    	<id>java11</id>
 	    	<properties>
-	    		<version.mobius-timers>1.0.0-31-java11</version.mobius-timers>        
+	    		<version.mobius-timers>1.0.0-35-java11</version.mobius-timers>        
 	    	</properties>
 	    </profile>
     </profiles>

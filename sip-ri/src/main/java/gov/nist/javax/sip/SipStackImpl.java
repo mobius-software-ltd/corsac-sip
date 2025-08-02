@@ -49,6 +49,8 @@ import javax.sip.address.Router;
 import javax.sip.header.HeaderFactory;
 import javax.sip.message.Request;
 
+import com.mobius.software.common.dal.timers.WorkerPool;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
 import gov.nist.core.ServerLogger;
@@ -700,6 +702,13 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	};
 
 	private Properties configurationProperties;
+	
+	private WorkerPool workerPool;
+	
+	protected SipStackImpl(WorkerPool workerPool) throws PeerUnavailableException {
+		this();
+		this.workerPool = workerPool;		
+	}
 	/**
 	 * Creates a new instance of SipStackImpl.
 	 */
@@ -1148,8 +1157,10 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		String stackExecutorString = configurationProperties
 				.getProperty("gov.nist.javax.sip.STACK_EXECUTOR", MessageProcessorExecutor.class.getName());
 		try {
-			messageProcessorExecutor = (StackExecutor) Class.forName(stackExecutorString).newInstance();			
-			if(this.threadPoolSize <= 0) {
+			messageProcessorExecutor = (StackExecutor) Class.forName(stackExecutorString).newInstance();
+			if(this.workerPool!=null && messageProcessorExecutor instanceof MessageProcessorExecutor)
+				((MessageProcessorExecutor)messageProcessorExecutor).start(this.workerPool);
+			else if(this.threadPoolSize <= 0) {
 				messageProcessorExecutor.start(MAX_WORKERS, taskInterval);
 			} else {
 				messageProcessorExecutor.start(this.threadPoolSize, taskInterval);

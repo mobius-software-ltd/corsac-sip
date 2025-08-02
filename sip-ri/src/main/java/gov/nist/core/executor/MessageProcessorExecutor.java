@@ -31,17 +31,20 @@ import gov.nist.core.StackLogger;
 public class MessageProcessorExecutor implements StackExecutor {
 	private static StackLogger logger = CommonLogger.getLogger(MessageProcessorExecutor.class);
 	private WorkerPool workerPool;
-	private int workersNumber;
-
+	
 	public void start(int workersNumber, long taskInterval) {
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 			logger.logDebug("Starting MessageProcessorExecutor with workersNumber: " + workersNumber + " and taskInterval: " + taskInterval);
 		}
-		this.workersNumber = workersNumber;	
+		
 		workerPool = new WorkerPool(taskInterval);
 		workerPool.start(workersNumber);
 	}
-
+	
+	public void start(WorkerPool workerPool) {
+		this.workerPool = workerPool;
+	}
+	
 	public void stop() {
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 			logger.logDebug("Stopping MessageProcessorExecutor");
@@ -77,15 +80,11 @@ public class MessageProcessorExecutor implements StackExecutor {
 	}
 
 	private CountableQueue<Task> getQueue(String id) {
-		int index = findQueueIndex(id);
-		// if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-		// 	logger.logDebug("Queue index: " + index + " for id: " + id);
-		// }
-		return workerPool.getLocalQueue(index);		
+		return workerPool.getLocalQueue(workerPool.findQueueIndex(id));		
 	}
 
 	public int findQueueIndex(String id) {
-		return Math.abs(id.hashCode()) % workersNumber;
+		return workerPool.findQueueIndex(id);
 	}
 
 	public PeriodicQueuedTasks<Timer> getPeriodicQueue() {
