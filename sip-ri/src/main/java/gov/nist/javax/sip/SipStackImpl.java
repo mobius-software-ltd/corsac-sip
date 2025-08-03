@@ -783,7 +783,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		loadProperties(configurationProperties);
 	}
 	
-	protected void loadProperties(Properties configurationProperties) {
+	protected void loadProperties(Properties configurationProperties) throws PeerUnavailableException {
 		configurationProperties = new MergedSystemProperties(configurationProperties);
 		this.configurationProperties = configurationProperties;
 		String address = configurationProperties
