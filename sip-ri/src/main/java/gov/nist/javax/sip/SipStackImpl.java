@@ -707,7 +707,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	
 	protected SipStackImpl(WorkerPool workerPool) throws PeerUnavailableException {
 		this();
-		this.workerPool = workerPool;		
+		this.workerPool = workerPool;	
 	}
 	/**
 	 * Creates a new instance of SipStackImpl.
@@ -780,6 +780,10 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	public SipStackImpl(Properties configurationProperties)
 			throws PeerUnavailableException {
 		this();
+		loadProperties(configurationProperties);
+	}
+	
+	protected void loadProperties(Properties configurationProperties) {
 		configurationProperties = new MergedSystemProperties(configurationProperties);
 		this.configurationProperties = configurationProperties;
 		String address = configurationProperties
