@@ -329,6 +329,7 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
 
     // May be required by the subclasses for in memory datagrid frameworks
     protected SIPTransactionImpl() {
+        this.applicationData = new ConcurrentHashMap<String, Object>(10);
     }
 
     /**
