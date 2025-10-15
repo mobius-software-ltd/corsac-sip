@@ -737,7 +737,7 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
             throw new SipException("Invalid SipRequest -- no via header!");
 
         SipProviderOutgoingRequestTask outgoingMessageProcessingTask = 
-            new SipProviderOutgoingRequestTask(this, sipRequest, hop, "");
+            new SipProviderOutgoingRequestTask(this, sipRequest, hop, "SipProviderSendRequest");
         sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
     }
 
