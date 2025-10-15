@@ -251,10 +251,13 @@ public final class PipelinedMsgParser implements Runnable {
     	CallIDOrderingStructure callIDOrderingStructure;
     	String callId;
     	long time;
-    	public Dispatch(CallIDOrderingStructure callIDOrderingStructure, String callId) {
+    	String taskName;
+    	
+    	public Dispatch(CallIDOrderingStructure callIDOrderingStructure, String callId, String taskName) {
     		this.callIDOrderingStructure = callIDOrderingStructure;
     		this.callId = callId;
     		time = System.currentTimeMillis();
+    		this.taskName = taskName;
     	}
 
         @Override
@@ -321,6 +324,11 @@ public final class PipelinedMsgParser implements Runnable {
         public String getId() {
             return callId;
         }
+        
+        @Override
+		public String printTaskDetails() {
+			return "Task name: " + taskName + ", id: " + callId;
+		}
     };
     /**
      * This is input reading thread for the pipelined parser. You feed it input
@@ -584,7 +592,7 @@ public final class PipelinedMsgParser implements Runnable {
                             // that could be processed in parallel
                             callIDOrderingStructure.getMessagesForCallID().offer(sipMessage);                                                                                   
                             
-                            sipStack.getMessageProcessorExecutor().addTaskLast(new Dispatch(callIDOrderingStructure, callId)); // run in executor thread
+                            sipStack.getMessageProcessorExecutor().addTaskLast(new Dispatch(callIDOrderingStructure, callId, "SipMsgParserDispatch")); // run in executor thread
                         }
                     } catch (Exception ex) {
                         // fatal error in processing - close the

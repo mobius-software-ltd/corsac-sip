@@ -102,10 +102,12 @@ public class NioPipelineParser {
     	String callId;
         UnparsedMessage unparsedMessage;
     	long time;
-    	public Dispatch(UnparsedMessage unparsedMsg, String callId) {
+    	String taskName;
+    	public Dispatch(UnparsedMessage unparsedMsg, String callId, String taskName) {
     		this.unparsedMessage = unparsedMsg;
     		this.callId = callId;
     		time = System.currentTimeMillis();
+    		this.taskName = taskName;
     	}
         public void run() {   
 			if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
@@ -180,6 +182,10 @@ public class NioPipelineParser {
 		@Override
 		public String getId() {
 			return callId;
+		}
+		@Override
+		public String printTaskDetails() {
+			return "Task name: " + taskName + ", id: " + callId;
 		}
     };
 	
@@ -307,7 +313,7 @@ public class NioPipelineParser {
 					throw new IOException("received message with no Call-ID");
 				}
                                                                                 
-                sipStack.getMessageProcessorExecutor().addTaskLast(new Dispatch(new UnparsedMessage(msgLines, msgBodyBytes), callId)); // run in executor thread
+                sipStack.getMessageProcessorExecutor().addTaskLast(new Dispatch(new UnparsedMessage(msgLines, msgBodyBytes), callId, "SipReadMessageBody")); // run in executor thread
 			} else {
 				SIPMessage sipMessage = null;
 				

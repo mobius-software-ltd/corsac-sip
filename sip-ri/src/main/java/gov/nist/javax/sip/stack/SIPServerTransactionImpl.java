@@ -1230,7 +1230,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
 
         ServerTransactionOutgoingMessageTask outgoingMessageProcessingTask = 
-            new ServerTransactionOutgoingMessageTask(this, sipResponse, (SIPDialog) getDialog());
+            new ServerTransactionOutgoingMessageTask(this, sipResponse, (SIPDialog) getDialog(), "SipServerTransactionSendResponse");
         sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
     }
 
@@ -1262,7 +1262,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             forkedDialog.sendReliableProvisionalResponse(newResponse);            
         } else {
             ServerTransactionOutgoingMessageTask outgoingMessageProcessingTask = 
-                new ServerTransactionOutgoingMessageTask(this, newResponse, forkedDialog);
+                new ServerTransactionOutgoingMessageTask(this, newResponse, forkedDialog, "SipServerTransactionSendForkedResponse");
             sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
         }
 

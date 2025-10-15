@@ -38,16 +38,18 @@ public class SIPDialogOutgoingProvisionalResponseTask implements SIPTask {
     SIPDialog sipDialog;
     private String id;
     private long startTime;
+    private String taskName;
 
     SIPResponse relResponse;
 
     public SIPDialogOutgoingProvisionalResponseTask(SIPDialog sipDialog, SIPServerTransactionImpl serverTransaction,
-            SIPResponse sipResponse) {
+            SIPResponse sipResponse, String taskName) {
         this.serverTransaction = serverTransaction;
         this.sipDialog = sipDialog;
         startTime = System.currentTimeMillis();
         this.id = sipResponse.getCallId().getCallId();
         this.relResponse = sipResponse;
+        this.taskName = taskName;
     }
 
     @Override
@@ -116,4 +118,9 @@ public class SIPDialogOutgoingProvisionalResponseTask implements SIPTask {
     public long getStartTime() {
         return startTime;
     }
+
+	@Override
+	public String printTaskDetails() {
+		return "Task name: " + taskName + ", id: " + id;
+	}
 }

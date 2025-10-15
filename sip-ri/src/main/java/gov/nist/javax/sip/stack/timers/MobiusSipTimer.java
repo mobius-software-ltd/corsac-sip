@@ -69,7 +69,7 @@ public class MobiusSipTimer implements SipTimer {
 	 */
 	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay) {
-		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay);
+		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay,"SipTimerSchedule");
 		task.setSipTimerTask(timerTask);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + " to run at " + timerTask.getRealTimestamp());
@@ -86,7 +86,7 @@ public class MobiusSipTimer implements SipTimer {
 	@Override
 	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
-		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay, period);
+		MobiusSipTimerTask timerTask = new MobiusSipTimerTask(this, task, delay, period, "SipTimerScheduleWithFixedDelay");
 		task.setSipTimerTask(timerTask);
 		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 			logger.logDebug("Scheduling timer  " + task + " with delay " + delay + 
