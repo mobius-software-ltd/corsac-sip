@@ -31,6 +31,7 @@ public class ReInviteSender implements SIPTask, Serializable {
 
 	private String callId;
 	private SIPDialog dialog;
+	private String taskName;
 	
 	public void terminate() {
 		try {
@@ -45,10 +46,11 @@ public class ReInviteSender implements SIPTask, Serializable {
 		}
 	}
 
-	public ReInviteSender(ClientTransaction ctx, String callId, SIPDialog dialog) {
+	public ReInviteSender(ClientTransaction ctx, String callId, SIPDialog dialog, String taskName) {
 		this.ctx = ctx;
 		this.callId = callId;
 		this.dialog = dialog;
+		this.taskName = taskName;
 		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 			logger.logDebug("ReInviteSender::ReInviteSender: ctx = " + ctx);
 			logger.logStackTrace();
@@ -153,5 +155,10 @@ public class ReInviteSender implements SIPTask, Serializable {
 	@Override
 	public String getId() {
 		return callId;
+	}
+	
+	@Override
+	public String printTaskDetails() {
+		return "Task name: " + taskName + ", id: " + callId;
 	}
 }

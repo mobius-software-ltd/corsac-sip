@@ -32,14 +32,16 @@ public class IncomingMessageProcessingTask implements SIPTask {
     private RawMessageChannel rawMessageChannel;
     private SIPMessage sipMessage;  
     private SIPTransactionStack sipStack;
+    private String taskName;
 
 
-    public IncomingMessageProcessingTask(RawMessageChannel rawMessageChannel, SIPMessage sipMessage) {
+    public IncomingMessageProcessingTask(RawMessageChannel rawMessageChannel, SIPMessage sipMessage, String taskName) {
         startTime = System.currentTimeMillis();
         this.id = sipMessage.getCallId().getCallId();    
         this.rawMessageChannel = rawMessageChannel;
         this.sipMessage = sipMessage;  
         this.sipStack = rawMessageChannel.getSIPStack();
+        this.taskName = taskName;
     }
 
     @Override
@@ -76,5 +78,10 @@ public class IncomingMessageProcessingTask implements SIPTask {
     public long getStartTime() {
         return startTime;
     }    
+    
+    @Override
+	public String printTaskDetails() {
+		return "Task name: " + taskName + ", id: " + id;
+	}
 }
 

@@ -332,7 +332,12 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                         @Override
                         public String getId() {
                             return socketChannel.toString();
-                        }                       
+                        }
+
+						@Override
+						public String printTaskDetails() {
+							return "Task name: SipTriggerConnectSuccess, id: " + socketChannel.toString();
+						}                       
     				});    				
     			} else {
     				nioTcpMessageChannel.triggerConnectSuccess();
@@ -366,7 +371,12 @@ public class NioTcpMessageProcessor extends ConnectionOrientedMessageProcessor {
                         @Override
                         public String getId() {
                             return socketChannel.toString();
-                        }                        
+                        }
+
+						@Override
+						public String printTaskDetails() {
+							return "Task name: SipTriggerConnectFailure, id: " + socketChannel.toString();
+						}                        
     				});
     			} else {
     				nioTcpMessageChannel.triggerConnectFailure(pendingData.get(socketChannel));                                           

@@ -48,16 +48,19 @@ public class DialogOutgoingMessageProcessingTask implements SIPTask {
     private SIPRequest dialogRequest;
     private SIPDialog sipDialog;
     private SIPClientTransaction clientTransaction;
+    private String taskName;
 
     public DialogOutgoingMessageProcessingTask(
             SIPDialog sipDialog,
             SIPClientTransaction clientTransaction,
-            SIPRequest sipRequest) {
+            SIPRequest sipRequest,
+            String taskName) {
         startTime = System.currentTimeMillis();
         this.id = sipRequest.getCallId().getCallId();
         this.dialogRequest = sipRequest;
         this.sipDialog = sipDialog;
         this.clientTransaction = clientTransaction;
+        this.taskName = taskName;
     }
 
     @Override
@@ -280,4 +283,9 @@ public class DialogOutgoingMessageProcessingTask implements SIPTask {
     public long getStartTime() {
         return startTime;
     }
+
+	@Override
+	public String printTaskDetails() {
+		return "Task name: " + taskName + ", id: " + id;
+	}
 }

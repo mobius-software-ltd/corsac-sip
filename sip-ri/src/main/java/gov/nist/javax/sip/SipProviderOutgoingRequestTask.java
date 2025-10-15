@@ -40,9 +40,10 @@ public class SipProviderOutgoingRequestTask implements SIPTask {
         private String id;
         private long startTime;
         private SIPRequest sipRequest;
+        private String taskName;
         private Hop hop;
 
-        public SipProviderOutgoingRequestTask(SipProviderImpl sipProviderImpl, SIPRequest sipRequest, Hop hop) {
+        public SipProviderOutgoingRequestTask(SipProviderImpl sipProviderImpl, SIPRequest sipRequest, Hop hop, String taskName) {
             this.sipProvider = sipProviderImpl;
             startTime = System.currentTimeMillis();
             if(sipRequest.isNullRequest()) {
@@ -52,6 +53,7 @@ public class SipProviderOutgoingRequestTask implements SIPTask {
             }
             this.sipRequest = sipRequest;
             this.hop = hop;
+            this.taskName = taskName;
         }
 
         @Override
@@ -145,5 +147,10 @@ public class SipProviderOutgoingRequestTask implements SIPTask {
         @Override
         public long getStartTime() {
             return startTime;
-        }       
+        } 
+        
+        @Override
+    	public String printTaskDetails() {
+    		return "Task name: " + taskName + ", id: " + id;
+    	}
     }

@@ -42,14 +42,16 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
     private long startTime;
     private SIPResponse sipResponse;
     private SIPDialog sipDialog;
-
+    private String taskName;
+    
     public ServerTransactionOutgoingMessageTask(SIPServerTransactionImpl serverTransaction, SIPResponse sipResponse,
-            SIPDialog sipDialog) {
+            SIPDialog sipDialog, String taskName) {
         this.serverTransaction = serverTransaction;
         startTime = System.currentTimeMillis();
         this.id = sipResponse.getCallId().getCallId();
         this.sipResponse = sipResponse;
         this.sipDialog = sipDialog;
+        this.taskName = taskName;
     }
 
     @Override
@@ -203,5 +205,10 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
     @Override
     public long getStartTime() {
         return startTime;
+    }
+    
+    @Override
+    public String printTaskDetails() {
+    	return "Task name: " + taskName + ", id: " + id;
     }
 }

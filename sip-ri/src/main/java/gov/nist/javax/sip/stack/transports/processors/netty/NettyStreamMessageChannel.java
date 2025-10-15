@@ -433,7 +433,7 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 					}
 					if (sipStack.getMessageProcessorExecutor() != null) {
 						sipStack.getMessageProcessorExecutor()
-								.addTaskLast(new NettyConnectionFailureThread(current, finalFuture));
+								.addTaskLast(new NettyConnectionFailureThread(current, finalFuture, "SipNettyMessageChannelConnectionFailure"));
 					} else {
 						current.triggerConnectFailure(finalFuture);
 					}

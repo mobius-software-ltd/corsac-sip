@@ -34,8 +34,9 @@ public class MobiusSipTimerTask implements SIPTimer {
     private AtomicLong period;
     private String id;
     private MessageProcessorExecutor messageProcessorExecutor;
+    private String taskName;
 
-    public MobiusSipTimerTask(MobiusSipTimer timer, SIPTimerTask task, long timeout) {
+    public MobiusSipTimerTask(MobiusSipTimer timer, SIPTimerTask task, long timeout, String taskName) {
         this.timer = timer;
         this.task = task;
         this.startTime = System.currentTimeMillis();
@@ -43,10 +44,11 @@ public class MobiusSipTimerTask implements SIPTimer {
         this.period = new AtomicLong(-1);
         this.id = task.getId();
         this.messageProcessorExecutor = (MessageProcessorExecutor) timer.sipStackImpl.getMessageProcessorExecutor();
+        this.taskName = taskName;
     }
 
-    public MobiusSipTimerTask(MobiusSipTimer timer, SIPTimerTask task, long timeout, long period) {
-        this(timer, task, timeout);
+    public MobiusSipTimerTask(MobiusSipTimer timer, SIPTimerTask task, long timeout, long period, String taskName) {
+        this(timer, task, timeout, taskName);
         this.period = new AtomicLong(period);
     }
 
@@ -102,4 +104,9 @@ public class MobiusSipTimerTask implements SIPTimer {
     public Integer getQueueIndex() {
         return messageProcessorExecutor.findQueueIndex(id);
     }
+    
+    @Override
+	public String printTaskDetails() {
+		return "Task name: " + taskName + ", id: " + id;
+	}
 }

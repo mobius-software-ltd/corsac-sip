@@ -86,7 +86,7 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         
         RawMessageChannel rawMessageChannel = (RawMessageChannel)nettyMessageChannel;
         IncomingMessageProcessingTask incomingMessageProcessingTask = 
-            new IncomingMessageProcessingTask(rawMessageChannel, sipMessage);
+            new IncomingMessageProcessingTask(rawMessageChannel, sipMessage, "SipNettyIncomingMessageProcessingTask");
         sipStack.getMessageProcessorExecutor().addTaskLast(incomingMessageProcessingTask);        
     }
 

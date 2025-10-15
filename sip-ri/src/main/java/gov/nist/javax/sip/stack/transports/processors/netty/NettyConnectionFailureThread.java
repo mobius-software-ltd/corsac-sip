@@ -30,11 +30,13 @@ public class NettyConnectionFailureThread implements SIPTask {
 	NettyStreamMessageChannel messageChannel;
 	ChannelFuture channelFuture;
 	long startTime;
+	String taskName;
 
-	public NettyConnectionFailureThread(NettyStreamMessageChannel messageChannel, ChannelFuture channelFuture) {
+	public NettyConnectionFailureThread(NettyStreamMessageChannel messageChannel, ChannelFuture channelFuture, String taskName) {
 		this.messageChannel = messageChannel;
 		this.channelFuture = channelFuture;
 		startTime = System.currentTimeMillis();
+		this.taskName = taskName;
 	}
 
 	@Override
@@ -50,5 +52,10 @@ public class NettyConnectionFailureThread implements SIPTask {
 	@Override
 	public String getId() {
 		return NettyConnectionFailureThread.class.getName().concat("-").concat("" + startTime);
+	}
+	
+	@Override
+	public String printTaskDetails() {
+		return "Task name: " + taskName;
 	}
 }

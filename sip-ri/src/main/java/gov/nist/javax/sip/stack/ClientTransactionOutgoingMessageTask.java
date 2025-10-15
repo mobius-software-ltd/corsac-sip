@@ -33,12 +33,14 @@ public class ClientTransactionOutgoingMessageTask implements SIPTask {
     private String id;
     private long startTime;
     private SIPRequest sipRequest;
+    private String taskName;
 
-    public ClientTransactionOutgoingMessageTask(SIPClientTransactionImpl clientTransaction, SIPRequest sipRequest) {
+    public ClientTransactionOutgoingMessageTask(SIPClientTransactionImpl clientTransaction, SIPRequest sipRequest, String taskName) {
         this.clientTransaction = clientTransaction;
         startTime = System.currentTimeMillis();
         this.id = sipRequest.getCallId().getCallId();
         this.sipRequest = sipRequest;
+        this.taskName = taskName;
     }
 
     @Override
@@ -102,4 +104,9 @@ public class ClientTransactionOutgoingMessageTask implements SIPTask {
     public long getStartTime() {
         return startTime;
     }
+
+	@Override
+	public String printTaskDetails() {
+		return "Task name: " + taskName + ", id: " + id;
+	}
 }

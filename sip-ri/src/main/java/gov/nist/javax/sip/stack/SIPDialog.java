@@ -334,12 +334,14 @@ public class SIPDialog implements DialogExt {
         private SIPRequest ackRequest = null;
         private long startTime;
         private MessageChannel messageChannel = null;
+        private String taskName;
 
-        public AckSendingStrategyImpl(SIPRequest ackRequest, Hop hop, ListeningPointImpl lp) {
+        public AckSendingStrategyImpl(SIPRequest ackRequest, Hop hop, ListeningPointImpl lp, String taskName) {
             this.ackRequest = ackRequest;
             startTime = System.currentTimeMillis();
             this.hop = hop; 
-            this.lp = lp;   
+            this.lp = lp; 
+            this.taskName = taskName;
         }
         
         @Override
@@ -385,6 +387,11 @@ public class SIPDialog implements DialogExt {
         public String getId() {
             return ackRequest.getCallId().getCallId();
         }       
+        
+        @Override
+        public String printTaskDetails() {
+        	return "Task name: " + taskName + ", id: " + ackRequest.getCallId().getCallId();
+        }
     }   
 
     // ///////////////////////////////////////////////////////////
@@ -957,7 +964,7 @@ public class SIPDialog implements DialogExt {
         this.highestSequenceNumberAcknowledged = Math.max(
                 this.highestSequenceNumberAcknowledged,
                 ((SIPRequest) ackRequest).getCSeq().getSeqNumber());
-        AckSendingStrategy ackSendingStrategy = new AckSendingStrategyImpl(ackRequest, hop, lp);
+        AckSendingStrategy ackSendingStrategy = new AckSendingStrategyImpl(ackRequest, hop, lp, "SipAckSendingStrategy");
         sipStack.getMessageProcessorExecutor().addTaskFirst(ackSendingStrategy);
         // if (releaseAckSem && this.isBackToBackUserAgent) {
         //     this.releaseAckSem();
@@ -2286,7 +2293,7 @@ public class SIPDialog implements DialogExt {
         	}
         	
         	sipStack.getMessageProcessorExecutor().addTaskLast(
-                    (new ReInviteSender(clientTransaction, getCallId().getCallId(), this)));
+                    (new ReInviteSender(clientTransaction, getCallId().getCallId(), this, "SipReInviteSender")));
             return;
         }        
 
@@ -2335,7 +2342,7 @@ public class SIPDialog implements DialogExt {
         }
         sipStack.getMessageProcessorExecutor().addTaskLast(
                     (new DialogOutgoingMessageProcessingTask(
-                        this, (SIPClientTransaction) clientTransaction, dialogRequest)));
+                        this, (SIPClientTransaction) clientTransaction, dialogRequest, "SipDialogOutgoingMessageProcessingTask")));
     }
 
     /**
@@ -3449,7 +3456,7 @@ public class SIPDialog implements DialogExt {
         } 
 
         SIPDialogOutgoingProvisionalResponseTask outgoingMessageProcessingTask = 
-            new SIPDialogOutgoingProvisionalResponseTask(this, serverTransaction, (SIPResponse) relResponse);
+            new SIPDialogOutgoingProvisionalResponseTask(this, serverTransaction, (SIPResponse) relResponse, "SipDialogOutgoingProvisionalResponseTask");
         sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask); 
 
         this.startRetransmitTimer(serverTransaction, relResponse);

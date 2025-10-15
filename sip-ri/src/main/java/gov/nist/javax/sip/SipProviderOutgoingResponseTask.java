@@ -38,13 +38,15 @@ public class SipProviderOutgoingResponseTask implements SIPTask {
 	private long startTime;
 	private SIPResponse sipResponse;
 	private Hop hop;
+	private String taskName;
 
-	public SipProviderOutgoingResponseTask(SipProviderImpl sipProviderImpl, SIPResponse sipResponse, Hop hop) {
+	public SipProviderOutgoingResponseTask(SipProviderImpl sipProviderImpl, SIPResponse sipResponse, Hop hop, String taskName) {
 		this.sipProvider = sipProviderImpl;
 		startTime = System.currentTimeMillis();
 		this.id = sipResponse.getCallId().getCallId();
 		this.sipResponse = sipResponse;
 		this.hop = hop;
+		this.taskName = taskName;
 	}
 
 	@Override
@@ -124,5 +126,10 @@ public class SipProviderOutgoingResponseTask implements SIPTask {
 	@Override
 	public long getStartTime() {
 		return startTime;
+	}
+	
+	@Override
+	public String printTaskDetails() {
+		return "Task name: " + taskName + ", id: " + id;
 	}
 }

@@ -1008,7 +1008,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     }
 
     ClientTransactionOutgoingMessageTask outgoingMessageProcessingTask = new ClientTransactionOutgoingMessageTask(this,
-        sipRequest);
+        sipRequest, "SipClientTransactionOutgoingMessageTask");
     sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask);
   }
 
