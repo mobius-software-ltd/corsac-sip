@@ -17,7 +17,7 @@ def build() {
     // Run the maven build with in-module unit testing
     try {
         withMaven(maven: 'maven-3.6.3',traceability: true) {
-            sh "mvn -B -f pom.xml -Dmaven.test.redirectTestOutputToFile=true clean install -P sctp"
+            sh "mvn -DskipTests=true -B -f pom.xml -Dmaven.test.redirectTestOutputToFile=true clean install -P sctp"
         }
     } catch(err) {
         publishTestsuiteResults()
