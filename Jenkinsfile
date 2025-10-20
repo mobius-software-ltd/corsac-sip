@@ -195,7 +195,7 @@ node("slave-xlarge") {
             withMaven(maven: 'maven-3.6.3',traceability: true) {
                 sh "mvn -DskipTests=true -B -f sip-performance/pom.xml clean install"
             }
-            sh '$WORKSPACE/sip-performance/src/test/resources/download-and-compile-sipp.sh'
+            //sh '$WORKSPACE/sip-performance/src/test/resources/download-and-compile-sipp.sh'
             sh 'sudo sysctl -w net.core.rmem_max=26214400'  
             sh 'ulimit -n 120000'
         }
