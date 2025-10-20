@@ -78,6 +78,7 @@
         <module>sip-testsuite-common</module>
         <module>sip-ri</module>
         <module>sip-testsuite</module>
+        <module>sip-performance</module>
         <module>sip-sctp</module>
     </modules>
 
