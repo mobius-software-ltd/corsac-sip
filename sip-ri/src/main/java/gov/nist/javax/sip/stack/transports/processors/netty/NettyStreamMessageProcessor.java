@@ -69,6 +69,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
 
     private static StackLogger logger = CommonLogger.getLogger(NettyStreamMessageProcessor.class);
 
+    protected final InetAddress bindAddress;
     protected final Map<String, NettyStreamMessageChannel> messageChannels;
 
     // multithreaded event loop that handles incoming connection and I/O operations
@@ -100,6 +101,7 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
             SIPTransactionStack sipStack, int port, String transport,EventLoopGroup bossgroup,EventLoopGroup workerGroup) throws IOException {
 
         super(ipAddress, port, transport, sipStack);
+        this.bindAddress = ipAddress;
         this.messageChannels = new ConcurrentHashMap<String, NettyStreamMessageChannel>();
         this.bossGroup = bossgroup;
         this.workerGroup = workerGroup;
@@ -295,10 +297,10 @@ public class NettyStreamMessageProcessor extends MessageProcessor implements Net
                 server.childOption(SctpChannelOption.SO_RCVBUF, sipStack.getSctpSoRcvbuf());
                 server.childOption(SctpChannelOption.SO_LINGER, sipStack.getSctpSoLinger());
             }
-
+            
             // Bind and start to accept incoming connections.
-            channel = server.bind(port).await().channel();
-
+            channel = server.bind(new InetSocketAddress(bindAddress.getHostAddress(), port)).await().channel();
+            
             // Create a new thread to run the server
             new Thread(() -> {
                 try {
