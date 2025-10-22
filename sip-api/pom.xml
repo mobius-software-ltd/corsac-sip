@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.mobius-software.protocols.sip</groupId>
-    <version>10.1.0-22-SNAPSHOT</version>
+    <version>10.1.0-22</version>
     <artifactId>corsac-sip</artifactId>
   </parent>
 
