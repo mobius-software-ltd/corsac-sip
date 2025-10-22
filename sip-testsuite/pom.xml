@@ -72,20 +72,5 @@
             <artifactId>mobius-timers</artifactId>
             <version>${version.mobius-timers}</version>
         </dependency>
-    </dependencies>
-    
-    <profiles>
-		<profile>
-			<id>java8</id>
-	    	<properties>
-	    		<version.mobius-timers>1.0.0-37</version.mobius-timers>        
-	    	</properties>
-	    </profile>
-		<profile>
-	    	<id>java11</id>
-	    	<properties>
-	    		<version.mobius-timers>1.0.0-37-java11</version.mobius-timers>        
-	    	</properties>
-	    </profile>
-    </profiles>
+    </dependencies>    
 </project>
