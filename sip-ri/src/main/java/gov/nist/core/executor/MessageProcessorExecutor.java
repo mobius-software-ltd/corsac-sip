@@ -37,7 +37,7 @@ public class MessageProcessorExecutor implements StackExecutor {
 			logger.logDebug("Starting MessageProcessorExecutor with workersNumber: " + workersNumber + " and taskInterval: " + taskInterval);
 		}
 		
-		workerPool = new WorkerPool(taskInterval);
+		workerPool = new WorkerPool("sip-wp", taskInterval);
 		workerPool.start(workersNumber);
 	}
 	
