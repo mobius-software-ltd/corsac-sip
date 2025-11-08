@@ -11,7 +11,7 @@
 	
     <groupId>com.mobius-software.protocols.sip</groupId>
     <artifactId>corsac-sip</artifactId>
-    <version>10.1.0-26-SNAPSHOT</version>
+    <version>10.1.0-27-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
