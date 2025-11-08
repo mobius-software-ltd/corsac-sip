@@ -3420,8 +3420,8 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 	 * @param messageToSend message to send
 	 */
 	public void selfRouteMessage(RawMessageChannel channel, SIPMessage messageToSend) {
-		if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
-			logger.logDebug("Self routing message " + channel.getTransport());
+		if (logger.isLoggingEnabled(LogLevels.TRACE_INFO)) {
+			logger.logInfo("Self routing message " + channel.getTransport());
 		}
 		IncomingMessageProcessingTask processMessageTask = new IncomingMessageProcessingTask(channel,
 				(SIPMessage) messageToSend.clone(), "SipTransactionIncomingMessageProcessingTask");
