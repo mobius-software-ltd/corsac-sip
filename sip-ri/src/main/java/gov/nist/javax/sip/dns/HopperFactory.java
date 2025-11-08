@@ -25,7 +25,7 @@ import javax.sip.address.SipURI;
  */
 public interface HopperFactory {
 	
-	void setLookupPerformer(DNSLookupPerformer perfomer);
+	void setLookupPerformer(DNSLookupPerformer perfomer, String defaultTransport, String defaultSecureTransport);
     Hopper build(SipURI requestURI);
     
 }

@@ -1739,11 +1739,13 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 			throw new PeerUnavailableException("The DNS Lookup Provider of type " + dnsLookupPerformerClassName + " could not be instantiated", e);
 		}
 
+		final String defaultTransport = configurationProperties.getProperty("org.restcomm.ext.java.sip.DEFAULT_TRANSPORT", ListeningPoint.UDP);
+		final String defaultSecureTransport = configurationProperties.getProperty("org.restcomm.ext.java.sip.DEFAULT_SECURE_TRANSPORT", ListeningPoint.TLS);
 		// Allow stack to provide its own DNS Hopper Factory instance
 		final String hopperFactoryClassName = configurationProperties.getProperty("org.restcomm.ext.java.sip.DNS_HOPPER_FACTORY", Rfc3263HopperFactory.class.getName());
 		try {
 			this.hopperFactory = (HopperFactory) Class.forName(hopperFactoryClassName).newInstance();
-			this.hopperFactory.setLookupPerformer(dnsLookupPerformer);
+			this.hopperFactory.setLookupPerformer(dnsLookupPerformer, defaultTransport, defaultSecureTransport);
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			throw new PeerUnavailableException("The DNS Hopper of type " + dnsLookupPerformerClassName + " could not be instantiated", e);
 		}

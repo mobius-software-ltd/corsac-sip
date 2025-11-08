@@ -24,7 +24,6 @@ import static javax.sip.ListeningPoint.TCP;
 import static javax.sip.ListeningPoint.TLS;
 import static javax.sip.ListeningPoint.UDP;
 
-import javax.sip.ListeningPoint;
 import javax.sip.address.SipURI;
 
 import gov.nist.javax.sip.util.UtilsExtension;
@@ -42,11 +41,19 @@ public class Rfc3263HopperFactory implements HopperFactory {
 
     private DNSLookupPerformer dnsLookupPerformer;
     
+    private String defaultTransport = UDP;
+    private String defaultSecureTransport = TLS;
+    
     public Rfc3263HopperFactory() {        
     }
 
-    public void setLookupPerformer(DNSLookupPerformer perfomer) {
+    public void setLookupPerformer(DNSLookupPerformer perfomer, String defaultTransport, String defaultSecureTransport) {
     	this.dnsLookupPerformer = perfomer;
+    	if(defaultTransport!=null)
+    		this.defaultTransport = defaultTransport;
+    	
+    	if(defaultSecureTransport!=null)
+    		this.defaultSecureTransport = defaultSecureTransport;
     }
     
     @Override
@@ -71,8 +78,11 @@ public class Rfc3263HopperFactory implements HopperFactory {
             	return new DnsNaptrHopper(requestURI, transport, this.dnsLookupPerformer, this);
             }
         } else {
-            // Hop list of NAPTR records ordered by priority
-            return new DnsNaptrHopper(requestURI, ListeningPoint.UDP, this.dnsLookupPerformer, this);
+        	// Hop list of NAPTR records ordered by priority
+            if(requestURI.isSecure())
+            	return new DnsNaptrHopper(requestURI, defaultSecureTransport, this.dnsLookupPerformer, this);
+            else
+            	return new DnsNaptrHopper(requestURI, defaultTransport, this.dnsLookupPerformer, this);
         }
     }
 
@@ -84,12 +94,10 @@ public class Rfc3263HopperFactory implements HopperFactory {
             // If transport is specified in request URI then use it
             transport = transportParam;
         } else if (UtilsExtension.isIpAddress(requestURI.getHost())) {
-            // If target is numeric IP then use UDP
-            transport = (requestURI.isSecure() ? TCP : UDP).toLowerCase();
+            // If target is numeric IP then use default transport
+            transport = (requestURI.isSecure() ? defaultSecureTransport : defaultTransport).toLowerCase();
         } else if (requestURI.getPort() != -1) {
-            // TODO We may another transport besides UDP if msg > MTU for example!!
-            // If no transport and target is not numeric BUT port is specified, then use UDP
-            transport = (requestURI.isSecure() ? TCP : UDP).toLowerCase();
+            transport = (requestURI.isSecure() ? defaultSecureTransport : defaultTransport).toLowerCase();
         } else {
             // If none of the above, a DNS NAPTR lookup must be done to discover available transports for target address
             transport = null;
