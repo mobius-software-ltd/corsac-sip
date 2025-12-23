@@ -953,7 +953,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
         String clientAuthType = configurationProperties.getProperty("gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE");
         if (clientAuthType != null) {
             super.clientAuth = ClientAuthType.valueOf(clientAuthType);
-            logger.logInfo("using " + clientAuthType + " tls auth policy");
+            logger.logDebug("using " + clientAuthType + " tls auth policy");
         }
 
 		String keyStoreFile = configurationProperties
@@ -1063,7 +1063,7 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		String tlsPolicyPath = configurationProperties.getProperty("gov.nist.javax.sip.TLS_SECURITY_POLICY");
 		if (tlsPolicyPath == null) {
 			tlsPolicyPath = DefaultTlsSecurityPolicy.class.getCanonicalName();
-			logger.logWarning("using default tls security policy");
+			logger.logDebug("using default tls security policy");
 		}
 		try {
 			Class< ? > tlsPolicyClass = Class.forName(tlsPolicyPath);
@@ -1727,8 +1727,8 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		
 		String sendTryingRightAway = configurationProperties.getProperty("org.restcomm.ext.java.sip.SEND_TRYING_RIGHT_AWAY","false");
 		this.sendTryingRightAway = Boolean.valueOf(sendTryingRightAway).booleanValue();
-		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
-        	logger.logInfo("SIP Stack send trying right away " + sendTryingRightAway);
+		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+        	logger.logDebug("SIP Stack send trying right away " + sendTryingRightAway);
 		}
 
 		// Allow stack to provide its own DNS Lookup Performer instance

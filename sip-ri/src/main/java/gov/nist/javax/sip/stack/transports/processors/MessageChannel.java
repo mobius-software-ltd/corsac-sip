@@ -437,6 +437,9 @@ public abstract class MessageChannel {
      *
      */
     public void logResponse(SIPResponse sipResponse, long receptionTime, String status) {
+    	 if (!logger.isLoggingEnabled(ServerLogger.TRACE_MESSAGES))
+             return;
+    	 
         int peerport = getPeerPort();
         if (peerport == 0 && sipResponse.getContactHeaders() != null) {
             ContactHeader contact = (ContactHeader) sipResponse.getContactHeaders().getFirst();

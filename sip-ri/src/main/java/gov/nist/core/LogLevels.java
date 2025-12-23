@@ -12,7 +12,7 @@ public interface LogLevels {
     public static final int TRACE_INFO  = 16;
     public static final int TRACE_DEBUG = 32;
     public static final int TRACE_TRACE = 64;
-    public static final int TRACE_MESSAGES = TRACE_INFO;
+    public static final int TRACE_MESSAGES = TRACE_DEBUG;
     public static final int TRACE_EXCEPTION = TRACE_ERROR;
     
 }

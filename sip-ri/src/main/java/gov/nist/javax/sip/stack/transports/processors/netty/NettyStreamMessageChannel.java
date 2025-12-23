@@ -758,8 +758,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 			}
 		} else {
 			SIPResponse sipResponse = (SIPResponse) sipMessage;
-			if (logger.isLoggingEnabled())
-				logger.logError("processing response >>> " + sipResponse);
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+				logger.logDebug("processing response >>> " + sipResponse);
 			
 			// JvB: dont do this
 			// if (sipResponse.getStatusCode() == 100)
