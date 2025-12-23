@@ -49,8 +49,8 @@ public class MobiusSipTimer implements SipTimer {
 		sipStackImpl= sipStack;		
 		periodicQueue = ((MessageProcessorExecutor)sipStack.getMessageProcessorExecutor()).getPeriodicQueue();
 		started.set(true);
-		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
-			logger.logInfo("the sip stack timer " + this.getClass().getName() + " has been started");
+		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+			logger.logDebug("the sip stack timer " + this.getClass().getName() + " has been started");
 		}
 	}
 
@@ -59,8 +59,8 @@ public class MobiusSipTimer implements SipTimer {
 	 */
 	public void stop() {	
 		started.set(false);	
-		if(logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
-			logger.logInfo("the Mobius sip stack timer " + this.getClass().getName() + " has been stopped");
+		if(logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+			logger.logDebug("the Mobius sip stack timer " + this.getClass().getName() + " has been stopped");
 		}
 	}
 

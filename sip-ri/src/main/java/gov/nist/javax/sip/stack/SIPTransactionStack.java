@@ -1780,7 +1780,7 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 				// JvB: Need to log before passing the response to the client
 				// app, it
 				// gets modified!
-				if (logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
+				if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
 					responseMessageChannel.logResponse(responseReceived, System.currentTimeMillis(),
 							"before processing");
 				}
@@ -3370,8 +3370,8 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 		if (threadPriority > Thread.MAX_PRIORITY)
 			throw new IllegalArgumentException(
 					"The Stack Thread Priority shouldn't be higher than Thread.MAX_PRIORITY");
-		if (logger.isLoggingEnabled(StackLogger.TRACE_INFO)) {
-			logger.logInfo("Setting Stack Thread priority to " + threadPriority);
+		if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+			logger.logDebug("Setting Stack Thread priority to " + threadPriority);
 		}
 		this.threadPriority = threadPriority;
 	}
@@ -3394,14 +3394,14 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 //        } else 
 		if (reliableConnectionKeepAliveTimeout == 0) {
 
-			if (logger.isLoggingEnabled(LogWriter.TRACE_INFO)) {
-				logger.logInfo(
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug(
 						"Default value (840000 ms) will be used for reliableConnectionKeepAliveTimeout stack property");
 			}
 			reliableConnectionKeepAliveTimeout = 840000;
 		}
-		if (logger.isLoggingEnabled(LogWriter.TRACE_INFO)) {
-			logger.logInfo("value " + reliableConnectionKeepAliveTimeout
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+			logger.logDebug("value " + reliableConnectionKeepAliveTimeout
 					+ " will be used for reliableConnectionKeepAliveTimeout stack property");
 		}
 		this.reliableConnectionKeepAliveTimeout = reliableConnectionKeepAliveTimeout;
@@ -3420,8 +3420,8 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 	 * @param messageToSend message to send
 	 */
 	public void selfRouteMessage(RawMessageChannel channel, SIPMessage messageToSend) {
-		if (logger.isLoggingEnabled(LogLevels.TRACE_INFO)) {
-			logger.logInfo("Self routing message " + channel.getTransport());
+		if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
+			logger.logDebug("Self routing message " + channel.getTransport());
 		}
 		IncomingMessageProcessingTask processMessageTask = new IncomingMessageProcessingTask(channel,
 				(SIPMessage) messageToSend.clone(), "SipTransactionIncomingMessageProcessingTask");

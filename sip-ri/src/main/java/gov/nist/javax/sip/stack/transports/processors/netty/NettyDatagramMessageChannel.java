@@ -344,8 +344,8 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 		sipMessage.setLocalPort(this.getPort());
 		sipMessage.setLocalAddress(this.getMessageProcessor().getIpAddress());
 		// Issue 3: https://telestax.atlassian.net/browse/JSIP-3
-		if (logger.isLoggingEnabled(LogWriter.TRACE_INFO)) {
-			logger.logInfo(
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+			logger.logDebug(
 					"Setting SIPMessage peerPacketSource to: " + peerPacketSourceAddress + ":" + peerPacketSourcePort);
 		}
 		sipMessage.setPeerPacketSourceAddress(this.peerPacketSourceAddress);

@@ -562,8 +562,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 			sipMessage.setRemoteAddress(remoteAddress.getAddress());
 			sipMessage.setRemotePort(remoteAddress.getPort());
 			// Issue 3: https://telestax.atlassian.net/browse/JSIP-3
-			if (logger.isLoggingEnabled(LogWriter.TRACE_INFO)) {
-				logger.logInfo("Setting SIPMessage peerPacketSource to: " + remoteAddress.getAddress().getHostAddress()
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug("Setting SIPMessage peerPacketSource to: " + remoteAddress.getAddress().getHostAddress()
 						+ ":" + remoteAddress.getPort());
 			}
 			sipMessage.setPeerPacketSourceAddress(remoteAddress.getAddress());
@@ -573,8 +573,8 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 			sipMessage.setRemoteAddress(peerAddress);
 			sipMessage.setRemotePort(peerPort);
 			// Issue 3: https://telestax.atlassian.net/browse/JSIP-3
-			if (logger.isLoggingEnabled(LogWriter.TRACE_INFO)) {
-				logger.logInfo(
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+				logger.logDebug(
 						"Setting SIPMessage peerPacketSource to: " + peerAddress.getHostAddress() + ":" + peerPort);
 			}
 			sipMessage.setPeerPacketSourceAddress(peerAddress);
