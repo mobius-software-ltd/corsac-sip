@@ -18,6 +18,7 @@
  */
 package gov.nist.javax.sip.stack.transports.processors.netty;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import gov.nist.core.CommonLogger;
@@ -48,21 +49,22 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {            
-        SIPMessage sipMessage = null;          
         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
             logger.logDebug("Decoding message: \n" + in.toString(io.netty.util.CharsetUtil.UTF_8));
         }
-                  
+          
+        List<SIPMessage> sipMessages = new ArrayList<SIPMessage>();  
+        SIPMessage currMessage = null;
         do {
-        	sipMessage = null;
+        	currMessage = null;
             if(nettyMessageParser.parseBytes(in).isParsingComplete()) {
                 try {  
-                    sipMessage = nettyMessageParser.consumeSIPMessage();
-                    if (sipMessage != null) {
+                	currMessage = nettyMessageParser.consumeSIPMessage();
+                    if (currMessage != null) {
                         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                            logger.logDebug("following message parsed, passing it up the stack \n" + sipMessage.toString());
+                            logger.logDebug("following message parsed, passing it up the stack \n" + currMessage.toString());
                         }         
-                        out.add(sipMessage);            
+                        sipMessages.add(currMessage);            
                     }
                 } catch (Exception e) {                    
                     if(logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {   
@@ -75,11 +77,8 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
             // if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
 			// 	logger.logDebug("Readable Bytes: " + in.readableBytes() + ", SIP message:" + sipMessage);
 			// }	
-        } while (sipMessage != null && in.readableBytes() > 0);                    
-        if(sipMessage == null) {
-            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                logger.logDebug("No SIPMessage decoded ! ");
-            }
-        }        
+        } while (currMessage != null && in.readableBytes() > 0);                    
+        
+        out.addAll(sipMessages);       
     }
 }

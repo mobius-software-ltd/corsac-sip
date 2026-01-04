@@ -19,6 +19,7 @@
 package gov.nist.javax.sip.stack.transports.processors.netty;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 
 import gov.nist.core.CommonLogger;
@@ -50,27 +51,29 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
         NettyMessageParser nettyMessageParser = new NettyMessageParser(                
                 nettyMessageProcessor.getSIPStack().getMaxUdpMessageSize(),
                 nettyMessageProcessor.getSIPStack().isComputeContentLengthFromMessage());
-        SIPMessage sipMessage = null;  
         ByteBuf content =  msg.content();
         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
             logger.logDebug("Decoding message: \n" + content.toString(io.netty.util.CharsetUtil.UTF_8));
         }
                                     
+        List<SIPMessage> sipMessages = new ArrayList<SIPMessage>();  
+        SIPMessage currMessage = null;
         do {
+        	currMessage = null;
             if(nettyMessageParser.parseBytes(content).isParsingComplete()) {
                 try {      
-                    sipMessage = nettyMessageParser.consumeSIPMessage();
-                    if (sipMessage != null) {
+                	currMessage = nettyMessageParser.consumeSIPMessage();
+                    if (currMessage != null) {
                         if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                            logger.logDebug("following message parsed, passing it up the stack \n" + sipMessage.toString());
+                            logger.logDebug("following message parsed, passing it up the stack \n" + currMessage.toString());
                         }         
                         InetSocketAddress remoteAddress = (InetSocketAddress)msg.sender();
-                        sipMessage.setRemoteAddress(remoteAddress.getAddress());
-                        sipMessage.setRemotePort(remoteAddress.getPort());
-                        sipMessage.setPeerPacketSourceAddress(remoteAddress.getAddress());
-                        sipMessage.setPeerPacketSourcePort(remoteAddress.getPort());                          
+                        currMessage.setRemoteAddress(remoteAddress.getAddress());
+                        currMessage.setRemotePort(remoteAddress.getPort());
+                        currMessage.setPeerPacketSourceAddress(remoteAddress.getAddress());
+                        currMessage.setPeerPacketSourcePort(remoteAddress.getPort());                          
                         
-                        out.add(sipMessage);                                 
+                        sipMessages.add(currMessage);                                 
                     }
                 } catch (Exception e) {
                     // e.printStackTrace();            
@@ -80,12 +83,8 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
                     }
                 }  
             }                 
-        } while (sipMessage != null && content.readableBytes() > 0);
-        if(sipMessage == null) {
-            if(logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {   
-                logger.logDebug("No SIPMessage decoded ! ");
-            }
-        }                    
-                           
+        } while (currMessage != null && content.readableBytes() > 0);
+       
+        out.addAll(sipMessages);                           
     }
 }
