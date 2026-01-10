@@ -1151,8 +1151,8 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 	 * @param dialogId is the dialog Id to remove.
 	 */
 	public void removeDialog(String dialogId) {
-		if (logger.isLoggingEnabled()) {
-			logger.logWarning("Silently removing dialog from table");
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+			logger.logDebug("Silently removing dialog from table");
 		}
 		dialogTable.remove(dialogId);
 	}
