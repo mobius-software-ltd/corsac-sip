@@ -580,6 +580,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // this.semRelease();
         // }
       } else if (200 <= statusCode && statusCode <= 699) {
+    	disableRetransmissionTimer();
         if (!isReliable()) {
           this.setState(TransactionState._COMPLETED);
           startTimerK(timerK);
