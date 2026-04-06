@@ -487,7 +487,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 		return ListeningPoint.UDP;
 	}
 	
-	public void setPeerProtocol(String peerProtocol) 
+	protected void setPeerProtocol(String peerProtocol) 
 	{
 		this.peerProtocol = peerProtocol;
 	}
