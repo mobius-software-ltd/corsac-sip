@@ -21,6 +21,7 @@ package gov.nist.javax.sip.stack.transports.processors.netty;
 import java.io.IOException;
 
 import javax.sip.ListeningPoint;
+import javax.sip.header.CallIdHeader;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
@@ -81,9 +82,15 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
                 }
             }
             return;
-        }         
+        }
 
-        final String callId = sipMessage.getCallId().getCallId();
+        CallIdHeader callIdHeader = sipMessage.getCallId();
+        String callId = null;
+
+        if (callIdHeader != null) {
+            callId = callIdHeader.getCallId();
+        }
+
         if (callId == null || callId.trim().length() < 1) {
             // http://code.google.com/p/jain-sip/issues/detail?id=18
             // NIO Message with no Call-ID throws NPE
