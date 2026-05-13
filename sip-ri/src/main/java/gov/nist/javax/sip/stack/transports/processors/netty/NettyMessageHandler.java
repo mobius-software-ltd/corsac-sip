@@ -70,9 +70,16 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         	return;
         }
         
-        // RFC5626 CRLF Keep Alive Support
-        if (reliableTransport && sipMessage.isNullRequest()) {
-            processCRLFs(ctx, sipMessage, nettyMessageChannel);
+        if (sipMessage.isNullRequest()) {
+            // RFC5626 CRLF Keep Alive Support
+            if (reliableTransport) {
+                processCRLFs(ctx, sipMessage, nettyMessageChannel);
+            }
+            else {
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug("Ignoring null request over non reliable transport");
+                }
+            }
             return;
         }         
 
