@@ -21,6 +21,7 @@ package gov.nist.javax.sip.stack.transports.processors.netty;
 import java.io.IOException;
 
 import javax.sip.ListeningPoint;
+import javax.sip.header.CallIdHeader;
 
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogLevels;
@@ -70,13 +71,26 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         	return;
         }
         
-        // RFC5626 CRLF Keep Alive Support
-        if (reliableTransport && sipMessage.isNullRequest()) {
-            processCRLFs(ctx, sipMessage, nettyMessageChannel);
+        if (sipMessage.isNullRequest()) {
+            // RFC5626 CRLF Keep Alive Support
+            if (reliableTransport) {
+                processCRLFs(ctx, sipMessage, nettyMessageChannel);
+            }
+            else {
+                if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                    logger.logDebug("Ignoring null request over non reliable transport");
+                }
+            }
             return;
-        }         
+        }
 
-        final String callId = sipMessage.getCallId().getCallId();
+        CallIdHeader callIdHeader = sipMessage.getCallId();
+        String callId = null;
+
+        if (callIdHeader != null) {
+            callId = callIdHeader.getCallId();
+        }
+
         if (callId == null || callId.trim().length() < 1) {
             // http://code.google.com/p/jain-sip/issues/detail?id=18
             // NIO Message with no Call-ID throws NPE
