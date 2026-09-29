@@ -613,7 +613,8 @@ public class SIPDialog implements DialogExt {
         if (dialogTimeoutError != SIPDialogErrorEvent.DIALOG_ACK_NOT_SENT_TIMEOUT
                 && dialogTimeoutError != SIPDialogErrorEvent.DIALOG_ACK_NOT_RECEIVED_TIMEOUT
                 && dialogTimeoutError != SIPDialogErrorEvent.EARLY_STATE_TIMEOUT
-                && dialogTimeoutError != SIPDialogErrorEvent.DIALOG_REINVITE_TIMEOUT) {
+                && dialogTimeoutError != SIPDialogErrorEvent.DIALOG_REINVITE_TIMEOUT
+                && dialogTimeoutError != SIPDialogErrorEvent.RFC4028_SESSION_EXPIRED) {
             delete();
         }
 
@@ -4021,4 +4022,23 @@ public class SIPDialog implements DialogExt {
             dialogDeleteTask = null;
         }
     }
+    
+    public void rfc4028SessionExpired(boolean sendBye) {
+        if (sendBye) {
+            try {
+                Request byeRequest = this.createRequest(Request.BYE);
+                if (MessageFactoryImpl.getDefaultUserAgentHeader() != null) {
+                    byeRequest.addHeader(MessageFactoryImpl.getDefaultUserAgentHeader());
+                }
+                ClientTransaction byeCtx = this.getSipProvider().getNewClientTransaction(byeRequest);
+                this.sendRequest(byeCtx);
+            } catch (Exception ex) {
+                logger.logError("RFC 4028: could not send BYE for expired session " + getDialogId(), ex);
+                this.delete();
+            }
+        }
+        raiseErrorEvent(SIPDialogErrorEvent.RFC4028_SESSION_EXPIRED);
+    }
+ 
+
 }

@@ -613,6 +613,11 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  *
  * <li><b>org.restcomm.ext.java.sip.SEND_TRYING_RIGHT_AWAY = [true|false]</b> Default value is <b>true</b>. Send 100 trying as soon as message received by stack.</li>
  *
+ * * <li><b>gov.nist.javax.sip.RFC_4028_AUTOMATIC_SUPPORT = [true|false] </b>
+ * <br/>
+ * Default is <i>false</i>. On true, will be automatically compliant with RFC 4028
+ * </li> 
+ *
  * <li><b>org.restcomm.ext.java.sip.DNS_LOOKUP_PERFORMER = classpath </b><br/>
  * The fully qualified class path for an implementation of the DNSLookupPerformer
  * interface. The DNSLookupPerformer Allow stack to provide its own DNS Lookup Performer instance.</li>
@@ -1002,6 +1007,14 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 			super.isAutomaticDialogErrorHandlingEnabled = true;
 		}
 
+		// Set the RFC 4028 automatic support flag
+		if(configurationProperties
+				.getProperty("gov.nist.java.sip.RFC_4028_AUTO_SUPPORTED") != null) {
+		super.isRFC4028AutoSupported = configurationProperties
+				.getProperty("gov.nist.java.sip.RFC_4028_AUTO_SUPPORTED", "on")
+				.equalsIgnoreCase("on");
+		}
+		
 		if (configurationProperties
 				.getProperty("gov.nist.javax.sip.MAX_LISTENER_RESPONSE_TIME") != null) {
 			super.maxListenerResponseTime = Integer
@@ -1749,6 +1762,8 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			throw new PeerUnavailableException("The DNS Hopper of type " + dnsLookupPerformerClassName + " could not be instantiated", e);
 		}
+		
+		
 	}
 
 	/*
@@ -2183,6 +2198,10 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	 */
 	public boolean isSendTryingRightAway() {
 		return sendTryingRightAway;
+	}
+
+	public boolean isRFC4028AutoSupported() {
+		return isRFC4028AutoSupported;
 	}
 	
 	/**

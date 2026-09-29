@@ -18,31 +18,6 @@
  */
 package gov.nist.javax.sip;
 
-import gov.nist.core.CommonLogger;
-import gov.nist.core.HostPort;
-import gov.nist.core.InternalErrorHandler;
-import gov.nist.core.LogLevels;
-import gov.nist.core.LogWriter;
-import gov.nist.core.StackLogger;
-import gov.nist.javax.sip.address.SipUri;
-import gov.nist.javax.sip.header.Contact;
-import gov.nist.javax.sip.header.Event;
-import gov.nist.javax.sip.header.ReferTo;
-import gov.nist.javax.sip.header.RetryAfter;
-import gov.nist.javax.sip.header.Route;
-import gov.nist.javax.sip.header.RouteList;
-import gov.nist.javax.sip.message.MessageFactoryImpl;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.DialogResponseInterface;
-import gov.nist.javax.sip.stack.SIPClientTransaction;
-import gov.nist.javax.sip.stack.SIPDialog;
-import gov.nist.javax.sip.stack.SIPServerTransaction;
-import gov.nist.javax.sip.stack.SIPTransaction;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
-import gov.nist.javax.sip.stack.ServerRequestInterface;
-import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
-
 import java.io.IOException;
 
 import javax.sip.ClientTransaction;
@@ -57,8 +32,37 @@ import javax.sip.TransactionState;
 import javax.sip.header.EventHeader;
 import javax.sip.header.ReferToHeader;
 import javax.sip.header.ServerHeader;
+import javax.sip.header.SupportedHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+
+import gov.nist.core.CommonLogger;
+import gov.nist.core.HostPort;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.LogLevels;
+import gov.nist.core.LogWriter;
+import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.address.SipUri;
+import gov.nist.javax.sip.header.Contact;
+import gov.nist.javax.sip.header.Event;
+import gov.nist.javax.sip.header.ReferTo;
+import gov.nist.javax.sip.header.Require;
+import gov.nist.javax.sip.header.RetryAfter;
+import gov.nist.javax.sip.header.Route;
+import gov.nist.javax.sip.header.RouteList;
+import gov.nist.javax.sip.header.extensions.MinSE;
+import gov.nist.javax.sip.header.extensions.SessionExpires;
+import gov.nist.javax.sip.message.MessageFactoryImpl;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.DialogResponseInterface;
+import gov.nist.javax.sip.stack.SIPClientTransaction;
+import gov.nist.javax.sip.stack.SIPDialog;
+import gov.nist.javax.sip.stack.SIPServerTransaction;
+import gov.nist.javax.sip.stack.SIPTransaction;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.ServerRequestInterface;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 
 /*
  * Bug fixes and Contributions by Lamine Brahimi, Andreas Bystrom, Bill Roome, John Martin, Daniel
@@ -202,6 +206,56 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         }
     }
 
+    /**
+     * Send a SESSION INTERVAL TOO SMALL response.
+     * 
+     * @param sipRequest
+     * @param transaction
+     * @param minSE
+     */
+    //for later request handling of rfc 4028
+    @SuppressWarnings("unused")
+	private void sendSessionIntervalTooSmallResponse(
+            SIPRequest sipRequest, SIPServerTransaction transaction, int minSE) {
+
+        if (transaction.getState() != TransactionState.TERMINATED) {
+            SIPResponse sipResponse = sipRequest
+                    .createResponse(Response.SESSION_INTERVAL_TOO_SMALL);
+           
+            ServerHeader serverHeader = MessageFactoryImpl
+                    .getDefaultServerHeader();
+            if (serverHeader != null) {
+                sipResponse.setHeader(serverHeader);
+            }
+            try {
+            	if(minSE<=90) {
+            		logger.logError(
+    						"MinSE should be >=90, was:" + minSE + "; setting to 90");
+            		minSE=90;
+            	}
+            	
+            	MinSE minSEHeader = new MinSE();
+        		minSEHeader.setExpires(minSE);
+        		sipResponse.setHeader(minSEHeader);
+        		
+            	sipResponse.setReasonPhrase("Session Interval Too Small");
+            	
+            	if (sipRequest.getMethod().equals(Request.INVITE)) {
+            		sipStack.addTransactionPendingAck(transaction);
+            	}
+                transaction.sendResponse(sipResponse);
+                // transaction.releaseSem();
+            } catch (Exception ex) {
+                logger.logError(
+                        "Problem sending error response", ex);
+                // transaction.releaseSem();
+                sipStack.removeTransaction(transaction);
+            }
+
+        }
+    }
+    
+    
     /**
      * Send back a LOOP Detected Response.
      * 
@@ -807,7 +861,77 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         }
         return true;
     }
-
+    
+    private void checkRfc4028Headers(SIPResponse response, SIPClientTransaction transaction,
+            SIPDialog dialog) {
+        final int statusCode = response.getStatusCode();
+        final String method = response.getCSeqHeader().getMethod();
+        if (!Request.INVITE.equals(method) && !Request.UPDATE.equals(method)) {
+            return;
+        }
+        final SessionExpires sessionExpires = (SessionExpires) response.getHeader(SessionExpires.NAME);
+ 
+        if (dialog == null) {
+            // RFC 4028, Proxy 8.2
+        	// 2xx without Session-Expires, if request had Session-Expires and Supported: timer 
+            // insert Session-Expires with the value from the request, refresher=uac, Require: timer
+            // A 2xx that already has Session-Expires is not modified.
+            if (transaction == null || statusCode / 100 != 2 || sessionExpires != null) {
+                return;
+            }
+            SIPRequest request = transaction.getOriginalRequest();
+            SessionExpires originalSessionExpires =  null; 
+            if(request!=null)
+            	originalSessionExpires = (SessionExpires) request.getHeader(SessionExpires.NAME);
+            if (originalSessionExpires == null) {
+                return;
+            }
+            boolean uacSupportsTimer = false;
+            
+            while (request.getHeaders(SupportedHeader.NAME).hasNext()) {
+                if ("timer".equalsIgnoreCase(((SupportedHeader) request.getHeaders(SupportedHeader.NAME).next()).getOptionTag())) {
+                    uacSupportsTimer = true;
+                    break;
+                }
+            }
+            if (!uacSupportsTimer) {
+                return;
+            }
+            try {
+                SessionExpires newSessionExpires = new SessionExpires();
+                newSessionExpires.setExpires(originalSessionExpires.getExpires());
+                newSessionExpires.setRefresher("uac");
+                response.setHeader(newSessionExpires);
+                response.addHeader(new Require("timer"));
+            } catch (Exception ex) {
+                logger.logError("RFC 4028: could not add Session-Expires to proxied 2xx", ex);
+            }
+            return;
+        }
+        
+        if (dialog.getState() == DialogState.TERMINATED) {
+            return;
+        }
+        
+        if (statusCode / 100 == 2) {
+            if (sessionExpires == null) {
+            	//timer will be turned off here
+                return;
+            }
+         
+            // timer will be started here 
+            return;
+        }
+ 
+        if (statusCode == Response.REQUEST_TIMEOUT
+                || statusCode == Response.CALL_OR_TRANSACTION_DOES_NOT_EXIST) {
+            // Only if this dialog has an active timer
+        	// 408: BYE 481: no BYE
+            dialog.rfc4028SessionExpired(statusCode == Response.REQUEST_TIMEOUT);
+            return;
+        }
+    }
+    
     private boolean processInvite(SIPRequest sipRequest, SIPServerTransaction transaction, SIPDialog dialog,
             String dialogId, SipProviderImpl sipProvider) {
         SIPTransaction lastTransaction = dialog == null ? null : dialog
@@ -1465,7 +1589,11 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
             logger.logDebug(
                     "Dialog = " + dialog);
         }
-
+        
+        if (((SipStackImpl) sipStack).isRFC4028AutoSupported()) {
+            checkRfc4028Headers(response, transaction, dialog);
+        }
+        
         if (transaction == null) {
             // Transaction is null but the dialog is not null. This means that
             // the transaction has been removed by the stack.
@@ -1831,7 +1959,11 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG))
             logger.logDebug(
                     "sending response " + sipResponse.toString() + " to TU for processing ");        
-
+        
+        if (((SipStackImpl) sipStack).isRFC4028AutoSupported()) {
+            checkRfc4028Headers(sipResponse, transaction, sipDialog);
+        }
+        
         ResponseEventExt responseEvent = new ResponseEventExt(sipProvider,
                 (ClientTransactionExt) transaction, sipDialog,
                 (Response) sipResponse);
