@@ -866,7 +866,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
             SIPDialog dialog) {
         final int statusCode = response.getStatusCode();
         final String method = response.getCSeqHeader().getMethod();
-        if (!Request.INVITE.equals(method) && !Request.UPDATE.equals(method)) {
+        if (!method.equalsIgnoreCase(Request.INVITE) && !method.equalsIgnoreCase(Request.UPDATE) ) {
             return;
         }
         final SessionExpires sessionExpires = (SessionExpires) response.getHeader(SessionExpires.NAME);

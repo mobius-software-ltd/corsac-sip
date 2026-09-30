@@ -323,6 +323,9 @@ public class SIPDialog implements DialogExt {
 
     // The pending reliable Response Timer
     protected ProvisionalResponseTask provisionalResponseTask;
+    
+    //RFC 4028 timer reference
+    protected transient AtomicReference<RFC4028Timer> RefreshSessionTask = new AtomicReference<RFC4028Timer>();
 
     // //////////////////////////////////////////////////////
     // Inner classes
@@ -4027,9 +4030,6 @@ public class SIPDialog implements DialogExt {
         if (sendBye) {
             try {
                 Request byeRequest = this.createRequest(Request.BYE);
-                if (MessageFactoryImpl.getDefaultUserAgentHeader() != null) {
-                    byeRequest.addHeader(MessageFactoryImpl.getDefaultUserAgentHeader());
-                }
                 ClientTransaction byeCtx = this.getSipProvider().getNewClientTransaction(byeRequest);
                 this.sendRequest(byeCtx);
             } catch (Exception ex) {
@@ -4037,6 +4037,7 @@ public class SIPDialog implements DialogExt {
                 this.delete();
             }
         }
+        // !sendBye is only 481: EventScanner deletes the dialog (doDeferredDelete) on 408/481.
         raiseErrorEvent(SIPDialogErrorEvent.RFC4028_SESSION_EXPIRED);
     }
  
