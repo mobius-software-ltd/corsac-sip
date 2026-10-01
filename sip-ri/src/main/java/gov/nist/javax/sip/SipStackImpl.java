@@ -601,7 +601,8 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * </li>
  *
  *<li><b>gov.nist.javax.sip.RELIABLE_CONNECTION_KEEP_ALIVE_TIMEOUT</b> Value in seconds which is used as default keepalive timeout
- * (See also http://tools.ietf.org/html/rfc5626#section-4.4.1). Defaults to "infiinity" seconds (i.e. timeout event not delivered).</li>
+ * (See also http://tools.ietf.org/html/rfc5626#section-4.4.1).
+ *  Defaults to "infiinity" seconds (i.e. timeout event not delivered).</li>
  *
  * <li><b>gov.nist.javax.sip.ALLOW_DIALOG_ON_DIFFERENT_PROVIDER = [true|false]</b> Default value is <b>false</b>. Whether to allow dialog continuation on different provider or not.</li>
  *
@@ -613,7 +614,7 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  *
  * <li><b>org.restcomm.ext.java.sip.SEND_TRYING_RIGHT_AWAY = [true|false]</b> Default value is <b>true</b>. Send 100 trying as soon as message received by stack.</li>
  *
- * * <li><b>gov.nist.javax.sip.RFC_4028_AUTOMATIC_SUPPORT = [true|false] </b>
+ * * <li><b>gov.nist.java.sip.RFC_4028_AUTO_SUPPORTED = [true|false] </b>
  * <br/>
  * Default is <i>false</i>. On true, will be automatically compliant with RFC 4028
  * </li> 
@@ -1011,8 +1012,8 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		if(configurationProperties
 				.getProperty("gov.nist.java.sip.RFC_4028_AUTO_SUPPORTED") != null) {
 		super.isRFC4028AutoSupported = configurationProperties
-				.getProperty("gov.nist.java.sip.RFC_4028_AUTO_SUPPORTED", "on")
-				.equalsIgnoreCase("on");
+				.getProperty("gov.nist.java.sip.RFC_4028_AUTO_SUPPORTED", "false")
+				.equals(Boolean.TRUE.toString());
 		}
 		
 		if (configurationProperties

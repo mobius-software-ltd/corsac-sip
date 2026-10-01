@@ -19,6 +19,8 @@
 package gov.nist.javax.sip;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 import javax.sip.ClientTransaction;
 import javax.sip.DialogState;
@@ -50,6 +52,7 @@ import gov.nist.javax.sip.header.Require;
 import gov.nist.javax.sip.header.RetryAfter;
 import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.RouteList;
+import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.extensions.MinSE;
 import gov.nist.javax.sip.header.extensions.SessionExpires;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
@@ -228,7 +231,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 sipResponse.setHeader(serverHeader);
             }
             try {
-            	if(minSE<=90) {
+            	if(minSE<90) {
             		logger.logError(
     						"MinSE should be >=90, was:" + minSE + "; setting to 90");
             		minSE=90;
@@ -507,6 +510,13 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                             transaction);
                     continueProcessing =false;
                 }
+                if (continueProcessing && ((SipStackImpl) sipStack).isRFC4028AutoSupported()
+                        && sipRequest.getHeader(SessionExpires.NAME) != null
+                        && ((SessionExpires) sipRequest.getHeader(SessionExpires.NAME)).getExpires() < 90) {
+                            sendSessionIntervalTooSmallResponse(sipRequest, transaction, 90);
+                            continueProcessing = false;
+                            break;
+                        }
                 break;  
             case Request.ACK:
                 continueProcessing = processAck(sipRequest, transaction, dialog, dialogId, sipProvider);
@@ -523,6 +533,13 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 break;   
             case Request.INVITE:
                 continueProcessing = processInvite(sipRequest, transaction, dialog, dialogId, sipProvider);
+                if (continueProcessing && ((SipStackImpl) sipStack).isRFC4028AutoSupported()
+                        && sipRequest.getHeader(SessionExpires.NAME) != null
+                        && ((SessionExpires) sipRequest.getHeader(SessionExpires.NAME)).getExpires() < 90) {
+                            sendSessionIntervalTooSmallResponse(sipRequest, transaction, 90);
+                            continueProcessing = false;
+                            break;
+                        }
                 break;   
             default:
                 break;
@@ -887,9 +904,10 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                 return;
             }
             boolean uacSupportsTimer = false;
-            
-            while (request.getHeaders(SupportedHeader.NAME).hasNext()) {
-                if ("timer".equalsIgnoreCase(((SupportedHeader) request.getHeaders(SupportedHeader.NAME).next()).getOptionTag())) {
+           
+            ListIterator<SIPHeader> shl = request.getHeaders(SupportedHeader.NAME);
+            while (shl.hasNext()) {
+                if ("timer".equalsIgnoreCase(((SupportedHeader) shl.next()).getOptionTag())) {
                     uacSupportsTimer = true;
                     break;
                 }
@@ -915,11 +933,15 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         
         if (statusCode / 100 == 2) {
             if (sessionExpires == null) {
-            	//timer will be turned off here
+            	dialog.stopSessionRefreshTimer();
                 return;
             }
-         
-            // timer will be started here 
+           if(((SessionExpires) response.getHeader(SessionExpires.NAME)).getRefresher().equalsIgnoreCase("uac")) {
+               dialog.scheduleSessionRefreshTimerAsRefresher(response);
+
+           }
+           else 
+        	   dialog.scheduleSessionRefreshTimerAsRefreshee(response);
             return;
         }
  

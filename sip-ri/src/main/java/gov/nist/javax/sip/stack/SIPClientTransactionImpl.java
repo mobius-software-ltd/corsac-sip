@@ -58,6 +58,7 @@ import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.header.RecordRouteList;
 import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.RouteList;
+import gov.nist.javax.sip.header.Supported;
 import gov.nist.javax.sip.header.TimeStamp;
 import gov.nist.javax.sip.header.To;
 import gov.nist.javax.sip.header.Via;
@@ -348,6 +349,13 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     // Message typecast as a request
     SIPRequest transactionRequest = (SIPRequest) messageToSend;
 
+    // RFC 4028 7.1: every request but ACK
+    if (sipStack.isRFC4028AutoSupported && !transactionRequest.getMethod().equalsIgnoreCase(Request.ACK))
+    	{
+    		messageToSend.addHeader(new Supported("timer"));
+    	}
+    
+    
     try {
       // Set the branch id for the top via header.
       Via topVia = (Via) transactionRequest.getTopmostVia();

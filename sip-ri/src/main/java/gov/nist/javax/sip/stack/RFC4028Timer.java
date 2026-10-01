@@ -29,15 +29,16 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 	private static final long serialVersionUID = 1L;
 	private int sessionExpires;
 	private boolean useUpdate = false;
-	private boolean sendRefresh = false;
+	
+	private Boolean sendRefresh = false;
 	private volatile byte[] sdp;
 
 	/*
 	 * Use this one for when you ARE the refresher
 	 */
-	public RFC4028Timer(String callId, SIPDialog dialog, int sessionExpires, Boolean useUpdate) {
+	public RFC4028Timer(SIPDialog dialog, int sessionExpires, Boolean useUpdate) {
 		super(RFC4028Timer.class.getSimpleName());
-		this.callId = callId;
+		this.callId = dialog.getCallId().getCallId();
 		this.dialog = dialog;
 		this.sessionExpires = sessionExpires;
 		if(useUpdate != null) {
@@ -50,8 +51,17 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 	/*
 	 * Use this one for when you are NOT the refresher
 	 */
-	public RFC4028Timer(String callId, SIPDialog dialog, int sessionExpires) {
-		this(callId, dialog, sessionExpires, null);
+	public RFC4028Timer(SIPDialog dialog, int sessionExpires) {
+		this(dialog, sessionExpires, null);
+	}
+	
+	/*
+	 * use this one when PRACK/100rel is present
+	 * empty timer, will not be started 
+	 */
+	public RFC4028Timer(SIPDialog dialog) {
+		this(dialog, 0, null);
+		this.sendRefresh=null;
 	}
 	
 	@Override
@@ -61,10 +71,14 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 
 	@Override
 	public void runTask() {
+		//Don't start empty timer
+		if(sendRefresh==null) {
+			return;
+		}
 		//since refresher will be rescheduling itself
 		//we need to make sure we aren't running 2 timers on accident
 		//(if we processResponse of the answer and reschedule at the same time for example)
-		if(dialog.RefreshSessionTask.get() != this || dialog.getState()==DialogState.TERMINATED) {
+		if(dialog.refreshSessionTask.get() != this || dialog.getState()==DialogState.TERMINATED) {
 			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
 				logger.logDebug("RFC 4028 timer had a duplicate or tried to run at a dead dialog:" + dialog.getDialogId());
 			return;
@@ -119,7 +133,7 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 				}
 			}
 				//same as above, here we just make sure it's not going to get started
-				if(dialog.RefreshSessionTask.get() == this) {
+				if(dialog.refreshSessionTask.get() == this) {
 					//Reschedule the timer to timeout if we don't get a response in time
 					sendRefresh = false;
 					long deadlineMs = sessionExpires * 1000L - Math.min(32_000L, sessionExpires * 1000L / 3);
@@ -128,7 +142,7 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 			}
 			else {
 				dialog.rfc4028SessionExpired(true);
-				dialog.RefreshSessionTask.compareAndSet(this, null);
+				dialog.refreshSessionTask.compareAndSet(this, null);
 			}
 	}
 	/*
@@ -136,9 +150,9 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 	 * otherwise does nothing
 	 */
 	public void setSDPForReInviteRefresh(SIPMessage message) {
-		if (message == null) 
+		if (message == null || (sendRefresh!=null && sendRefresh==false)) 
 			return;
-		if(useUpdate==false && sendRefresh == true) {
+		if(useUpdate==false) {
 			ContentType ct = message.getContentTypeHeader();
 		    if (ct == null || message.getRawContent() == null) {
 		        return;
@@ -174,4 +188,20 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 		    }
 		}
 	}
+	
+	//necessary for PRACK/100rel offer
+	protected byte[] getSdp() {
+		return sdp;
+	}
+	
+	protected void setSdp(byte[] sdp) {
+		if (this.sdp == null)
+			this.sdp = sdp;
+	}
+	
+	//useful for early UPDATE 
+	protected boolean isUseUpdate() {
+		return useUpdate;
+	}
+
 }

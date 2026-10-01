@@ -94,6 +94,7 @@ import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.TimeStamp;
 import gov.nist.javax.sip.header.To;
 import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.extensions.SessionExpires;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -325,13 +326,13 @@ public class SIPDialog implements DialogExt {
     protected ProvisionalResponseTask provisionalResponseTask;
     
     //RFC 4028 timer reference
-    protected transient AtomicReference<RFC4028Timer> RefreshSessionTask = new AtomicReference<RFC4028Timer>();
+    protected transient AtomicReference<RFC4028Timer> refreshSessionTask = new AtomicReference<RFC4028Timer>();
 
     // //////////////////////////////////////////////////////
     // Inner classes
     // //////////////////////////////////////////////////////
   
-    public class AckSendingStrategyImpl implements AckSendingStrategy {
+	public class AckSendingStrategyImpl implements AckSendingStrategy {
         private Hop hop = null;
         private ListeningPointImpl lp = null;
         private SIPRequest ackRequest = null;
@@ -951,6 +952,10 @@ public class SIPDialog implements DialogExt {
         // we store it as it was passed to the method originally
         this.setLastAckSent(ackRequest);
         
+        if(refreshSessionTask.get()!=null) {
+        	refreshSessionTask.get().setSDPForReInviteRefresh(ackRequest);
+        }
+        
         Hop hop = sipStack.getNextHop(ackRequest);
         if (hop == null)
             throw new SipException("No route!");
@@ -1206,6 +1211,7 @@ public class SIPDialog implements DialogExt {
             		}
                 }
                 this.stopTimer();
+                this.refreshSessionTask.set(null);
             }
         }
         else
@@ -2288,7 +2294,19 @@ public class SIPDialog implements DialogExt {
         if (clientTransaction == null)
             throw new NullPointerException("null parameter");
         
-        
+       if(sipStack.isRFC4028AutoSupported) {
+    	   if(clientTransaction.getRequest().getMethod().equalsIgnoreCase(Request.PRACK)) {
+    			if(refreshSessionTask.get()==null) {
+            		RFC4028Timer emptyTimer = new RFC4028Timer(this);
+            		emptyTimer.setSDPForReInviteRefresh((SIPMessage) clientTransaction.getRequest());
+            		refreshSessionTask.set(emptyTimer);
+            	}
+            	else {
+            		refreshSessionTask.get().setSDPForReInviteRefresh((SIPMessage) clientTransaction.getRequest());
+            	}
+    	   }
+    		   
+       }
         if ((!allowInterleaving)
                 && clientTransaction.getRequest().getMethod().equals(
                         Request.INVITE)) {
@@ -3464,6 +3482,16 @@ public class SIPDialog implements DialogExt {
         sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask); 
 
         this.startRetransmitTimer(serverTransaction, relResponse);
+        if(sipStack.isRFC4028AutoSupported) {
+        	if(refreshSessionTask.get()==null) {
+        		RFC4028Timer emptyTimer = new RFC4028Timer(this);
+        		emptyTimer.setSDPForReInviteRefresh(sipResponse);
+        		refreshSessionTask.set(emptyTimer);
+        	}
+        	else {
+        		refreshSessionTask.get().setSDPForReInviteRefresh(sipResponse);
+        	}
+        }
     }
 
     /*
@@ -4040,6 +4068,29 @@ public class SIPDialog implements DialogExt {
         // !sendBye is only 481: EventScanner deletes the dialog (doDeferredDelete) on 408/481.
         raiseErrorEvent(SIPDialogErrorEvent.RFC4028_SESSION_EXPIRED);
     }
- 
+    
+    public void stopSessionRefreshTimer() {
+    	sipStack.getTimer().cancel(this.refreshSessionTask.get());
+    	this.refreshSessionTask.set(null);
+    }
+    
+    public void scheduleSessionRefreshTimerAsRefresher(SIPResponse response) {
+		RFC4028Timer oldRefreshSessionTask = refreshSessionTask.getAndSet(null);
+		byte[] sdpForReInvite = oldRefreshSessionTask.getSdp();
+		if (oldRefreshSessionTask != null)
+			sipStack.getTimer().cancel(oldRefreshSessionTask);
+		refreshSessionTask.set(new RFC4028Timer(this, ((SessionExpires) response.getHeader(SessionExpires.NAME)).getExpires(), response.getCSeqHeader().getMethod().equalsIgnoreCase(Request.UPDATE)));
+		if(sdpForReInvite!=null)
+			refreshSessionTask.get().setSdp(sdpForReInvite);
+		sipStack.getTimer().schedule(refreshSessionTask.get(), ((long) ((SessionExpires) response.getHeader(SessionExpires.NAME)).getExpires())/2*1000);
+    }
+    
+    public void scheduleSessionRefreshTimerAsRefreshee(SIPResponse response) {
+		RFC4028Timer oldRefreshSessionTask = refreshSessionTask.getAndSet(null);
+		if (oldRefreshSessionTask != null)
+			sipStack.getTimer().cancel(oldRefreshSessionTask);
+		refreshSessionTask.set(new RFC4028Timer(this, ((SessionExpires) response.getHeader(SessionExpires.NAME)).getExpires()));
+		sipStack.getTimer().schedule(refreshSessionTask.get(), Math.min((long) ((SessionExpires) response.getHeader(SessionExpires.NAME)).getExpires()/3*1000, 32000l));
+    }
 
 }
