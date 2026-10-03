@@ -93,18 +93,11 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 				Request refreshRequest = null;
 				try {
 					if(useUpdate) {
+						//no point in saving it now
+						sdp = null;
 						refreshRequest = dialog.createRequest(Request.UPDATE);
 					}
 					else {
-						if(sdp==null && last!=null) {
-							if(last instanceof SIPClientTransaction)
-							{
-								setSDPForReInviteRefresh((SIPMessage) last.getRequest());
-							}
-							else {
-								setSDPForReInviteRefresh((SIPMessage) last.getResponse());
-							}
-						}
 						ContentType ct = new ContentType("application", "sdp");
 						if(sdp!=null) {
 							refreshRequest = dialog.createRequest(Request.INVITE);
@@ -136,18 +129,19 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 				if(dialog.refreshSessionTask.get() == this) {
 					//Reschedule the timer to timeout if we don't get a response in time
 					sendRefresh = false;
-					long deadlineMs = sessionExpires * 1000L - Math.min(32_000L, sessionExpires * 1000L / 3);
-					dialog.getStack().getTimer().schedule(this, deadlineMs - sessionExpires * 1000L / 2);
+					long deadline = sessionExpires * 1000L - Math.min(32_000L, sessionExpires * 1000L / 3);
+					dialog.getStack().getTimer().schedule(this, deadline - sessionExpires * 1000L / 2);
 				}
 			}
 			else {
-				dialog.rfc4028SessionExpired(true);
 				dialog.refreshSessionTask.compareAndSet(this, null);
+				dialog.rfc4028SessionExpired(true);
 			}
 	}
 	/*
 	 * Will only save SDP for ReINVITE refreshes that were not yet sent
 	 * otherwise does nothing
+	 * Completely null-safe btw
 	 */
 	public void setSDPForReInviteRefresh(SIPMessage message) {
 		if (message == null || (sendRefresh!=null && sendRefresh==false)) 
@@ -202,6 +196,14 @@ class RFC4028Timer extends SIPStackTimerTask implements Serializable  {
 	//useful for early UPDATE 
 	protected boolean isUseUpdate() {
 		return useUpdate;
+	}
+	
+	protected void setUseUpdate(boolean useUpdate) {
+		 this.useUpdate = useUpdate;
+	}
+	
+	public boolean isTimerEmpty() {
+		return sendRefresh==null;
 	}
 
 }

@@ -292,6 +292,20 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
         
         this.setTimeoutTimerActive();
+        
+        SIPDialog sessionDialog = (SIPDialog) getDialog();
+        if(sipStack.isRFC4028AutoSupported && sessionDialog!=null && transactionResponse.getStatusCode()/100==2
+        		&& ((transactionResponse.getCSeq().getMethod().equalsIgnoreCase(Request.INVITE)) || (transactionResponse.getCSeq().getMethod().equalsIgnoreCase(Request.UPDATE)))) {
+        	if((SessionExpires) transactionResponse.getHeader(SessionExpires.NAME)!=null) {
+        		if(("uac").equalsIgnoreCase(((SessionExpires) transactionResponse.getHeader(SessionExpires.NAME)).getRefresher())) {
+        			sessionDialog.scheduleSessionRefreshTimerAsRefreshee(transactionResponse);
+        			}
+        		else { 
+        			sessionDialog.scheduleSessionRefreshTimerAsRefresher(transactionResponse, SIPDialog.checkForUpdateAllow(getOriginalRequest()));
+        		}
+        	}
+        	else sessionDialog.stopSessionRefreshTimer();
+        }
         // RFC18.2.2. Sending Responses
         // The server transport uses the value of the top Via header field
         // in
@@ -380,16 +394,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             }
 
         }
-        if(sipStack.isRFC4028AutoSupported && dialog!=null && transactionResponse.getStatusCode()/100==2
-        		&& ((transactionResponse.getCSeq().getMethod().equalsIgnoreCase(Request.INVITE)) || (transactionResponse.getCSeq().getMethod().equalsIgnoreCase(Request.UPDATE)))) {
-        	
-        	   if(((SessionExpires) transactionResponse.getHeader(SessionExpires.NAME)).getRefresher().equalsIgnoreCase("uac")) {
-                   dialog.scheduleSessionRefreshTimerAsRefreshee(transactionResponse);
-
-               }
-               else 
-            	   dialog.scheduleSessionRefreshTimerAsRefresher(transactionResponse);
-        }
+       
         lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
         lastResponse = null;
     }

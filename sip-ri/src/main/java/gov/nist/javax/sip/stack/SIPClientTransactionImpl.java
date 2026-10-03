@@ -349,10 +349,15 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     // Message typecast as a request
     SIPRequest transactionRequest = (SIPRequest) messageToSend;
 
-    // RFC 4028 7.1: every request but ACK
+    // RFC 4028 7.1: every request but ACK needs to have Supported: timer
     if (sipStack.isRFC4028AutoSupported && !transactionRequest.getMethod().equalsIgnoreCase(Request.ACK))
     	{
-    		messageToSend.addHeader(new Supported("timer"));
+    		transactionRequest.addHeader(new Supported("timer"));
+    		
+    		//Save SDP from initial INVITE in case peer won't be accepting UPDATE
+    		if (transactionRequest.getMethod().equalsIgnoreCase(Request.INVITE) && getDefaultDialog() != null) {
+    			getDefaultDialog().scheduleEmptyTimer(transactionRequest, false);
+    		}
     	}
     
     

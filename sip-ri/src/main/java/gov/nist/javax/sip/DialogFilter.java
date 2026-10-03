@@ -216,8 +216,6 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
      * @param transaction
      * @param minSE
      */
-    //for later request handling of rfc 4028
-    @SuppressWarnings("unused")
 	private void sendSessionIntervalTooSmallResponse(
             SIPRequest sipRequest, SIPServerTransaction transaction, int minSE) {
 
@@ -510,13 +508,15 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                             transaction);
                     continueProcessing =false;
                 }
-                if (continueProcessing && ((SipStackImpl) sipStack).isRFC4028AutoSupported()
-                        && sipRequest.getHeader(SessionExpires.NAME) != null
+                if (continueProcessing && ((SipStackImpl) sipStack).isRFC4028AutoSupported()) {
+                	if(sipRequest.getHeader(SessionExpires.NAME) != null
                         && ((SessionExpires) sipRequest.getHeader(SessionExpires.NAME)).getExpires() < 90) {
                             sendSessionIntervalTooSmallResponse(sipRequest, transaction, 90);
                             continueProcessing = false;
-                            break;
                         }
+                	else if(dialog!=null)
+                		dialog.scheduleEmptyTimer(sipRequest, true);
+                }
                 break;  
             case Request.ACK:
                 continueProcessing = processAck(sipRequest, transaction, dialog, dialogId, sipProvider);
@@ -538,7 +538,6 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                         && ((SessionExpires) sipRequest.getHeader(SessionExpires.NAME)).getExpires() < 90) {
                             sendSessionIntervalTooSmallResponse(sipRequest, transaction, 90);
                             continueProcessing = false;
-                            break;
                         }
                 break;   
             default:
@@ -878,12 +877,18 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         }
         return true;
     }
-    
-    private void checkRfc4028Headers(SIPResponse response, SIPClientTransaction transaction,
+  
+    private void checkRfc4028HeadersForUac(SIPResponse response, SIPClientTransaction transaction,
             SIPDialog dialog) {
         final int statusCode = response.getStatusCode();
         final String method = response.getCSeqHeader().getMethod();
-        if (!method.equalsIgnoreCase(Request.INVITE) && !method.equalsIgnoreCase(Request.UPDATE) ) {
+        
+        //to know that it uses UPDATE or save body from PRACK transaction
+        if(dialog!=null && (method.equalsIgnoreCase(Request.PRACK) || method.equalsIgnoreCase(Request.UPDATE)) && statusCode/100 == 2) {
+        	dialog.scheduleEmptyTimer(response, true);
+        }
+        
+        if (!method.equalsIgnoreCase(Request.INVITE) && !method.equalsIgnoreCase(Request.UPDATE)) {
             return;
         }
         final SessionExpires sessionExpires = (SessionExpires) response.getHeader(SessionExpires.NAME);
@@ -932,24 +937,25 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         }
         
         if (statusCode / 100 == 2) {
-            if (sessionExpires == null) {
-            	dialog.stopSessionRefreshTimer();
-                return;
-            }
-           if(((SessionExpires) response.getHeader(SessionExpires.NAME)).getRefresher().equalsIgnoreCase("uac")) {
-               dialog.scheduleSessionRefreshTimerAsRefresher(response);
-
-           }
-           else 
-        	   dialog.scheduleSessionRefreshTimerAsRefreshee(response);
-            return;
+            if(sessionExpires!=null) {
+        		if(("uac").equalsIgnoreCase(sessionExpires.getRefresher())) {
+        			dialog.scheduleSessionRefreshTimerAsRefresher(response, SIPDialog.checkForUpdateAllow(response));
+        			}
+        		else { 
+        			dialog.scheduleSessionRefreshTimerAsRefreshee(response);
+        		}
+        	}
+        	else dialog.stopSessionRefreshTimer();
         }
  
         if (statusCode == Response.REQUEST_TIMEOUT
                 || statusCode == Response.CALL_OR_TRANSACTION_DOES_NOT_EXIST) {
             // Only if this dialog has an active timer
         	// 408: BYE 481: no BYE
-            dialog.rfc4028SessionExpired(statusCode == Response.REQUEST_TIMEOUT);
+        	if(dialog.isRefreshTimerArmed()) {
+        	    dialog.stopSessionRefreshTimer();          // clears the live timer so the guard passes
+        	    dialog.rfc4028SessionExpired(statusCode == Response.REQUEST_TIMEOUT);
+        	}
             return;
         }
     }
@@ -1613,7 +1619,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         }
         
         if (((SipStackImpl) sipStack).isRFC4028AutoSupported()) {
-            checkRfc4028Headers(response, transaction, dialog);
+        	checkRfc4028HeadersForUac(response, transaction, dialog);
         }
         
         if (transaction == null) {
@@ -1983,7 +1989,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                     "sending response " + sipResponse.toString() + " to TU for processing ");        
         
         if (((SipStackImpl) sipStack).isRFC4028AutoSupported()) {
-            checkRfc4028Headers(sipResponse, transaction, sipDialog);
+        	checkRfc4028HeadersForUac(sipResponse, transaction, sipDialog);
         }
         
         ResponseEventExt responseEvent = new ResponseEventExt(sipProvider,

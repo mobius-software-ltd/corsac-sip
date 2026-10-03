@@ -614,7 +614,7 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  *
  * <li><b>org.restcomm.ext.java.sip.SEND_TRYING_RIGHT_AWAY = [true|false]</b> Default value is <b>true</b>. Send 100 trying as soon as message received by stack.</li>
  *
- * * <li><b>gov.nist.java.sip.RFC_4028_AUTO_SUPPORTED = [true|false] </b>
+ * * <li><b>gov.nist.javax.sip.RFC_4028_AUTO_SUPPORTED = [true|false] </b>
  * <br/>
  * Default is <i>false</i>. On true, will be automatically compliant with RFC 4028
  * </li> 
@@ -1010,9 +1010,9 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 
 		// Set the RFC 4028 automatic support flag
 		if(configurationProperties
-				.getProperty("gov.nist.java.sip.RFC_4028_AUTO_SUPPORTED") != null) {
+				.getProperty("gov.nist.javax.sip.RFC_4028_AUTO_SUPPORTED") != null) {
 		super.isRFC4028AutoSupported = configurationProperties
-				.getProperty("gov.nist.java.sip.RFC_4028_AUTO_SUPPORTED", "false")
+				.getProperty("gov.nist.javax.sip.RFC_4028_AUTO_SUPPORTED", "false")
 				.equals(Boolean.TRUE.toString());
 		}
 		
