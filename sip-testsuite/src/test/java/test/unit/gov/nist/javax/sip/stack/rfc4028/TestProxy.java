@@ -30,7 +30,9 @@ import javax.sip.message.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.javax.sip.SipStackImpl;
 import test.tck.msgflow.callflows.ProtocolObjects;
+import test.tck.msgflow.callflows.TestAssertion;
 import test.unit.gov.nist.javax.sip.stack.rfc4028.Records.MessageRecord;
 
 /**
@@ -193,5 +195,22 @@ public class TestProxy implements SipListener {
 
     public void stop() {
         sipStack.stop();
+    }
+    
+    public int getClientTransactionTableSize() {
+        return ((SipStackImpl) sipStack).getClientTransactionTableSize();
+    }
+
+    public int getServerTransactionTableSize() {
+        return ((SipStackImpl) sipStack).getServerTransactionTableSize();
+    }
+
+    public TestAssertion getNoTransactionsAssertion() {
+        return new TestAssertion() {
+            @Override
+            public boolean assertCondition() {
+                return getClientTransactionTableSize() == 0 && getServerTransactionTableSize() == 0;
+            }
+        };
     }
 }

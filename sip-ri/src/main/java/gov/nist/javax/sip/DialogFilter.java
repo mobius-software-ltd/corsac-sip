@@ -948,14 +948,8 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         	else dialog.stopSessionRefreshTimer();
         }
  
-        if (statusCode == Response.REQUEST_TIMEOUT
-                || statusCode == Response.CALL_OR_TRANSACTION_DOES_NOT_EXIST) {
-            // Only if this dialog has an active timer
-        	// 408: BYE 481: no BYE
-        	if(dialog.isRefreshTimerArmed()) {
-        	    dialog.stopSessionRefreshTimer();          // clears the live timer so the guard passes
-        	    dialog.rfc4028SessionExpired(statusCode == Response.REQUEST_TIMEOUT);
-        	}
+        if (statusCode == Response.REQUEST_TIMEOUT) {
+            dialog.rfc4028SessionExpired();
             return;
         }
     }

@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,6 +43,7 @@ import javax.sip.ListeningPoint;
 import javax.sip.SipException;
 import javax.sip.Transaction;
 import javax.sip.TransactionDoesNotExistException;
+import javax.sip.TransactionState;
 import javax.sip.address.Address;
 import javax.sip.address.Hop;
 import javax.sip.address.SipURI;
@@ -4065,20 +4067,20 @@ public class SIPDialog implements DialogExt {
         }
     }
     
-    public void rfc4028SessionExpired(boolean sendBye) {
-    	if(refreshSessionTask.get()!=null)
-    		return;
-        if (sendBye) {
+    public void rfc4028SessionExpired() {
+        RFC4028Timer task = refreshSessionTask.getAndSet(null);
+        if (task != null) sipStack.getTimer().cancel(task);
+        //Let's not have the failed session refresh transaction sit in limbo
+        SIPTransaction last = getLastTransaction();
+        if (last instanceof SIPServerTransaction && last.isInviteTransaction()
+                && last.getState() != TransactionState.COMPLETED && last.getState() != TransactionState.TERMINATED) {
             try {
-                Request byeRequest = this.createRequest(Request.BYE);
-                ClientTransaction byeCtx = this.getSipProvider().getNewClientTransaction(byeRequest);
-                this.sendRequest(byeCtx);
+                ((SIPServerTransaction) last).sendResponse(
+                        ((SIPRequest) last.getRequest()).createResponse(Response.REQUEST_TERMINATED));
             } catch (Exception ex) {
-                logger.logError("RFC 4028: could not send BYE for expired session " + getDialogId(), ex);
-                this.delete();
+                logger.logError("RFC 4028: could not 487 the pending re-INVITE of " + getDialogId(), ex);
             }
         }
-        // !sendBye is only 481.
         raiseErrorEvent(SIPDialogErrorEvent.RFC4028_SESSION_EXPIRED);
     }
     
@@ -4090,23 +4092,29 @@ public class SIPDialog implements DialogExt {
     }
     
     public void scheduleSessionRefreshTimerAsRefresher(SIPResponse response, boolean peerAllowsUpdate) {
-		RFC4028Timer oldRefreshSessionTask = refreshSessionTask.getAndSet(null);
-		byte[] sdpForReInvite = null;
-		boolean useUpdate = response.getCSeqHeader().getMethod().equalsIgnoreCase(Request.UPDATE) || peerAllowsUpdate;
-		if (oldRefreshSessionTask != null) {
-			sdpForReInvite = oldRefreshSessionTask.getSdp();
-			useUpdate = useUpdate || oldRefreshSessionTask.isUseUpdate();
-			sipStack.getTimer().cancel(oldRefreshSessionTask);
-		}
-		SessionExpires se = (SessionExpires) response.getHeader(SessionExpires.NAME);
-		RFC4028Timer newRefreshSessionTask = new RFC4028Timer(this, se.getExpires(), useUpdate);
-		if (sdpForReInvite != null  && !useUpdate)
-			newRefreshSessionTask.setSdp(sdpForReInvite);
-		if(!useUpdate && "uas".equalsIgnoreCase(se.getRefresher())) {
-			newRefreshSessionTask.setSDPForReInviteRefresh(response);
-		}
-		refreshSessionTask.set(newRefreshSessionTask);
-		sipStack.getTimer().schedule(newRefreshSessionTask, se.getExpires() * 1000L / 2);
+        RFC4028Timer oldRefreshSessionTask = refreshSessionTask.getAndSet(null);
+        byte[] sdpForReInvite = null;
+        Map<String, List<SIPHeader>> headerTemplate = null;
+        boolean useUpdate = response.getCSeqHeader().getMethod().equalsIgnoreCase(Request.UPDATE) || peerAllowsUpdate;
+        if (oldRefreshSessionTask != null) {
+            sdpForReInvite = oldRefreshSessionTask.getSdp();
+            headerTemplate = oldRefreshSessionTask.getHeaderTemplate();
+            useUpdate = useUpdate || oldRefreshSessionTask.isUseUpdate();
+            sipStack.getTimer().cancel(oldRefreshSessionTask);
+        }
+        SessionExpires se = (SessionExpires) response.getHeader(SessionExpires.NAME);
+        RFC4028Timer newRefreshSessionTask = new RFC4028Timer(this, se.getExpires(), useUpdate);
+        if (sdpForReInvite != null  && !useUpdate)
+            newRefreshSessionTask.setSdp(sdpForReInvite);
+        newRefreshSessionTask.setHeaderTemplate(headerTemplate);
+        if ("uas".equalsIgnoreCase(se.getRefresher())) {
+            // our own 2xx, we are the UAS and the refresher
+            if (!useUpdate)
+                newRefreshSessionTask.setSDPForReInviteRefresh(response);
+            newRefreshSessionTask.setHeaderTemplate(response);
+        }
+        refreshSessionTask.set(newRefreshSessionTask);
+        sipStack.getTimer().schedule(newRefreshSessionTask, se.getExpires() * 1000L / 2);
     }
     
     public void scheduleSessionRefreshTimerAsRefreshee(SIPResponse response) {
@@ -4120,21 +4128,26 @@ public class SIPDialog implements DialogExt {
     
     //For PRACK/100rel SDP and early UPDATE
     public void scheduleEmptyTimer(SIPMessage message, boolean messageIsFromPeer) {
-    	RFC4028Timer timer = refreshSessionTask.get();
-    	if (timer == null) {
-    		timer = new RFC4028Timer(this);
-    		refreshSessionTask.set(timer);
+    	 RFC4028Timer timer = refreshSessionTask.get();
+    	    if (timer == null) {
+    	        timer = new RFC4028Timer(this);
+    	        refreshSessionTask.set(timer);
+    	    }
+    	    // UPDATE refreshes need the headers too, so this goes before the useUpdate exit
+    	    if (!messageIsFromPeer && message instanceof SIPRequest
+    	            && (Request.INVITE.equalsIgnoreCase(message.getCSeq().getMethod())
+    	                    || Request.UPDATE.equalsIgnoreCase(message.getCSeq().getMethod())))
+    	        timer.setHeaderTemplate(message);
+    	    if(timer.isUseUpdate()) {
+    	        return;
+    	    }
+    	    if (messageIsFromPeer) {
+    	        if (message.getCSeq().getMethod().equalsIgnoreCase(Request.UPDATE) || checkForUpdateAllow(message))
+    	            timer.setUseUpdate(true);
+    	    } else {
+    	        timer.setSDPForReInviteRefresh(message);
+    	    }
     	}
-    	else if(timer.isUseUpdate()) {
-    		return;
-    	}
-    	if (messageIsFromPeer) {
-    		if (message.getCSeq().getMethod().equalsIgnoreCase(Request.UPDATE) || checkForUpdateAllow(message))
-    			timer.setUseUpdate(true);
-    	} else {
-    		timer.setSDPForReInviteRefresh(message);
-    	}
-    }
     
     public static boolean checkForUpdateAllow(SIPMessage message) {
     	if(message!=null) {

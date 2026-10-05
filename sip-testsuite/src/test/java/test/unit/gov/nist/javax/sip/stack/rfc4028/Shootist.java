@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
+import javax.sip.DialogState;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
 import javax.sip.ListeningPoint;
@@ -43,6 +44,7 @@ import org.apache.logging.log4j.Logger;
 import gov.nist.javax.sip.DialogTimeoutEvent;
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.TransactionExt;
 import gov.nist.javax.sip.header.HeaderFactoryImpl;
 import gov.nist.javax.sip.header.extensions.MinSE;
@@ -461,8 +463,16 @@ public class Shootist implements SipListenerExt {
     }
 
     public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
-        logger.info("shootist:" + port + " dialog timeout " + timeoutEvent.getReason());
         dialogTimeoutReasons.add(timeoutEvent.getReason());
+        if (timeoutEvent.getReason() == DialogTimeoutEvent.Reason.SessionExpired
+                && timeoutEvent.getDialog().getState() != DialogState.TERMINATED) {
+            try {
+                Dialog d = timeoutEvent.getDialog();
+                d.sendRequest(sipProvider.getNewClientTransaction(d.createRequest(Request.BYE)));
+            } catch (Exception ex) {
+                logger.error("shootist: could not BYE expired session", ex);
+            }
+        }
     }
 
     public void processTimeout(TimeoutEvent e) {
@@ -760,5 +770,40 @@ public class Shootist implements SipListenerExt {
     public void stop() {
         timer.cancel();
         sipStack.stop();
+    }
+    
+    public int getClientTransactionTableSize() {
+        return ((SipStackImpl) sipStack).getClientTransactionTableSize();
+    }
+
+    public int getServerTransactionTableSize() {
+        return ((SipStackImpl) sipStack).getServerTransactionTableSize();
+    }
+
+    public TestAssertion getNoTransactionsAssertion() {
+        return new TestAssertion() {
+            @Override
+            public boolean assertCondition() {
+                return getClientTransactionTableSize() == 0 && getServerTransactionTableSize() == 0;
+            }
+        };
+    }
+    
+    public List<MessageRecord> getInvite487s() {
+        return Records.responses(receivedResponses, Response.REQUEST_TERMINATED, Request.INVITE);
+    }
+
+    public List<MessageRecord> getSentCancels() {
+        return Records.requests(sentRequests, Request.CANCEL);
+    }
+
+    /** the unanswered refresh was CANCELed at expiry and the UAS closed it with 487 */
+    public TestAssertion getRefreshCancelledAssertion() {
+        return new TestAssertion() {
+            @Override
+            public boolean assertCondition() {
+                return getSentCancels().size() == 1 && getInvite487s().size() == 1;
+            }
+        };
     }
 }

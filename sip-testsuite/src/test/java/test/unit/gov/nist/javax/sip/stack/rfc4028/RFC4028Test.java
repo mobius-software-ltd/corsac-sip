@@ -36,6 +36,8 @@ public class RFC4028Test {
     private static final long QUIET = 65000;
     /** same, plus 5 s for a timer wrongly re-armed early in the dialog */
     private static final long TIMER_OFF_QUIET = 70000;
+    /** when refresh transactions are supposed to already be gone after dialog */
+    private static final int TRANSACTION_CLEANUP = 40000;
 
     private int shootistPort;
     private int shootmePort;
@@ -112,6 +114,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** UAS refresher: UAC stays quiet, UAS re-INVITEs at SE/2 with its own 2xx body. */
@@ -161,6 +164,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft(); 
     }
 
     /** 2xx says Allow: UPDATE, UAC refreshes with UPDATE. */
@@ -213,6 +217,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** Early UPDATE in a 183/PRACK dialog, no Allow anywhere: the refresh must still be UPDATE. */
@@ -271,6 +276,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** 183/PRACK, body-less 2xx: refresh carries the PRACK answer; UAS drops it, UAC BYEs at 60 s. */
@@ -314,7 +320,11 @@ public class RFC4028Test {
                 AssertUntil.assertUntil(shootist.getByeOkAssertion(), EXPIRY_TIMEOUT));
         assertTrue("DialogTimeoutEvent(SessionExpired) expected",
                 AssertUntil.assertUntil(shootist.getSessionExpiredAssertion(), TIMEOUT));
-
+     // the refresh got the stack's automatic 100, so at expiry it is PROCEEDING: it must be CANCELed, not left
+     // to retransmit until Timer B (17 s later)
+     assertTrue("pending refresh must be CANCELed at expiry and closed with 487, CANCELs/487s: "
+             + shootist.getSentCancels().size() + "/" + shootist.getInvite487s().size(),
+             AssertUntil.assertUntil(shootist.getRefreshCancelledAssertion(), TIMEOUT));
         assertEquals("exactly one BYE " + shootist.getSentByes(), 1, shootist.getSentByes().size());
         assertEquals("exactly one refresh " + shootist.getStackRefreshes(), 1, shootist.getStackRefreshes().size());
         assertTrue("Should see invite, ACK and BYE",
@@ -407,6 +417,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** 200 to the refresh without Session-Expires turns the timer off. */
@@ -474,6 +485,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** ACK held 1.5 s so the 2xx is retransmitted: one refresh per cycle, SDP survives the re-arms. */
@@ -525,6 +537,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** 408 to the refresh: BYE right away, not at the deadline. */
@@ -620,6 +633,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** UAS without timer support answers without Session-Expires: no timer at all. */
@@ -648,6 +662,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** App re-INVITE without Session-Expires turns the timer off on both sides. */
@@ -686,6 +701,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** App re-INVITE at 40 s answered at 50 s: the 45 s refresh is skipped, next one at 95 s with the new offer. */
@@ -740,6 +756,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
     }
 
     /** Proxy inserts SE + Require: timer into the timerless UAS's 2xx, on the refreshes too. */
@@ -804,6 +821,7 @@ public class RFC4028Test {
 
         finishCall();
         assertQuiet();
+        assertNoTransactionsLeft();
         assertFalse(proxy.isIoExceptionSeen());
     }
 
@@ -834,5 +852,19 @@ public class RFC4028Test {
     private void assertNoIo() {
         assertFalse("IOException on UAC", shootist.isIoExceptionSeen());
         assertFalse("IOException on UAS", shootme.isIoExceptionSeen());
+    }
+    
+    private void assertNoTransactionsLeft() throws Exception {
+        boolean uacClean = AssertUntil.assertUntil(shootist.getNoTransactionsAssertion(), TRANSACTION_CLEANUP);
+        assertTrue("transactions left on UAC, client/server " + shootist.getClientTransactionTableSize() + "/"
+                + shootist.getServerTransactionTableSize(), uacClean);
+        boolean uasClean = AssertUntil.assertUntil(shootme.getNoTransactionsAssertion(), TRANSACTION_CLEANUP);
+        assertTrue("transactions left on UAS, client/server " + shootme.getClientTransactionTableSize() + "/"
+                + shootme.getServerTransactionTableSize(), uasClean);
+        if (proxy != null) {
+            boolean proxyClean = AssertUntil.assertUntil(proxy.getNoTransactionsAssertion(), TRANSACTION_CLEANUP);
+            assertTrue("transactions left on proxy, client/server " + proxy.getClientTransactionTableSize() + "/"
+                    + proxy.getServerTransactionTableSize(), proxyClean);
+        }
     }
 }

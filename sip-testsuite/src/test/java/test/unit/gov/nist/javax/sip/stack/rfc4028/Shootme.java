@@ -10,6 +10,7 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.Dialog;
+import javax.sip.DialogState;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
 import javax.sip.ListeningPoint;
@@ -36,6 +37,7 @@ import org.apache.logging.log4j.Logger;
 import gov.nist.javax.sip.DialogTimeoutEvent;
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.SipListenerExt;
+import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.TransactionExt;
 import gov.nist.javax.sip.header.HeaderFactoryExt;
 import gov.nist.javax.sip.header.extensions.SessionExpiresHeader;
@@ -110,6 +112,10 @@ public class Shootme implements SipListenerExt {
     private volatile boolean byeSeen;
     private volatile boolean ioExceptionSeen;
 
+    /** re-INVITE we are sitting on (dropRefresh), gets its 487 when the BYE comes */
+    private volatile ServerTransaction pendingReInvite;
+    private volatile Request pendingReInviteRequest;
+    
     public Shootme(int port, SessionTimerMode mode) {
         this.port = port;
         this.mode = mode;
@@ -170,8 +176,22 @@ public class Shootme implements SipListenerExt {
             } else if (method.equals(Request.BYE)) {
                 byeSeen = true;
                 st.sendResponse(messageFactory.createResponse(Response.OK, request));
+                // RFC 3261 15.1.2: a pending INVITE gets 487 when the dialog is torn down
+                if (pendingReInvite != null) {
+                    pendingReInvite.sendResponse(
+                            messageFactory.createResponse(Response.REQUEST_TERMINATED, pendingReInviteRequest));
+                    pendingReInvite = null;
+                    pendingReInviteRequest = null;
+                }
             } else if (method.equals(Request.CANCEL)) {
                 st.sendResponse(messageFactory.createResponse(Response.OK, request));
+             // the CANCELed INVITE gets 487
+                if (pendingReInvite != null) {
+                    pendingReInvite.sendResponse(
+                            messageFactory.createResponse(Response.REQUEST_TERMINATED, pendingReInviteRequest));
+                    pendingReInvite = null;
+                    pendingReInviteRequest = null;
+                }
             } else {
                 st.sendResponse(messageFactory.createResponse(Response.METHOD_NOT_ALLOWED, request));
             }
@@ -244,10 +264,12 @@ public class Shootme implements SipListenerExt {
     }
 
     private void processReInvite(final Request request, final ServerTransaction st) {
-        if (dropRefresh) {
-            logger.info("shootme:" + port + " dropping re-INVITE on purpose");
-            return;
-        }
+    	if (dropRefresh) {
+    	    logger.info("shootme:" + port + " dropping re-INVITE on purpose");
+    	    pendingReInvite = st;
+    	    pendingReInviteRequest = request;
+    	    return;
+    	}
         Runnable answer = new Runnable() {
             @Override
             public void run() {
@@ -318,8 +340,16 @@ public class Shootme implements SipListenerExt {
     }
 
     public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
-        logger.info("shootme:" + port + " dialog timeout " + timeoutEvent.getReason());
         dialogTimeoutReasons.add(timeoutEvent.getReason());
+        if (timeoutEvent.getReason() == DialogTimeoutEvent.Reason.SessionExpired
+                && timeoutEvent.getDialog().getState() != DialogState.TERMINATED) {
+            try {
+                Dialog d = timeoutEvent.getDialog();
+                d.sendRequest(sipProvider.getNewClientTransaction(d.createRequest(Request.BYE)));
+            } catch (Exception ex) {
+                logger.error("shootist: could not BYE expired session", ex);
+            }
+        }
     }
 
     public void processTimeout(TimeoutEvent e) {
@@ -486,5 +516,22 @@ public class Shootme implements SipListenerExt {
     public void stop() {
         timer.cancel();
         sipStack.stop();
+    }
+    
+    public int getClientTransactionTableSize() {
+        return ((SipStackImpl) sipStack).getClientTransactionTableSize();
+    }
+
+    public int getServerTransactionTableSize() {
+        return ((SipStackImpl) sipStack).getServerTransactionTableSize();
+    }
+
+    public TestAssertion getNoTransactionsAssertion() {
+        return new TestAssertion() {
+            @Override
+            public boolean assertCondition() {
+                return getClientTransactionTableSize() == 0 && getServerTransactionTableSize() == 0;
+            }
+        };
     }
 }
