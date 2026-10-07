@@ -292,16 +292,22 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
         
         this.setTimeoutTimerActive();
-        
+       
+        //Record our SDP if sent and contact header
         SIPDialog sessionDialog = (SIPDialog) getDialog();
         if(sipStack.isRFC4028AutoSupported && sessionDialog!=null && transactionResponse.getStatusCode()/100==2
         		&& ((transactionResponse.getCSeq().getMethod().equalsIgnoreCase(Request.INVITE)) || (transactionResponse.getCSeq().getMethod().equalsIgnoreCase(Request.UPDATE)))) {
+        	sessionDialog.setSDPForReInviteRefresh(transactionResponse);
+        	//UAS dialogs never record our Contact (addTransaction runs before any response and cleans it). 
+        	//The re-INVITE refresh needs the one the peer knows
+        	if(transactionResponse.getContactHeader()!=null)
+        		sessionDialog.contactHeader = transactionResponse.getContactHeader();
         	if((SessionExpires) transactionResponse.getHeader(SessionExpires.NAME)!=null) {
         		if(("uac").equalsIgnoreCase(((SessionExpires) transactionResponse.getHeader(SessionExpires.NAME)).getRefresher())) {
         			sessionDialog.scheduleSessionRefreshTimerAsRefreshee(transactionResponse);
         			}
         		else { 
-        			sessionDialog.scheduleSessionRefreshTimerAsRefresher(transactionResponse, SIPDialog.checkForUpdateAllow(getOriginalRequest()));
+        			sessionDialog.scheduleSessionRefreshTimerAsRefresher(transactionResponse);
         		}
         	}
         	else sessionDialog.stopSessionRefreshTimer();

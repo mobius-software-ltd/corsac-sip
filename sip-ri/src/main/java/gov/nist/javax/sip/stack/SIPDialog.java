@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,9 +46,10 @@ import javax.sip.TransactionState;
 import javax.sip.address.Address;
 import javax.sip.address.Hop;
 import javax.sip.address.SipURI;
-import javax.sip.header.AllowHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.ContactHeader;
+import javax.sip.header.ContentDispositionHeader;
+import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.EventHeader;
 import javax.sip.header.OptionTag;
 import javax.sip.header.ProxyAuthorizationHeader;
@@ -82,6 +82,7 @@ import gov.nist.javax.sip.header.Authorization;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.ContactList;
+import gov.nist.javax.sip.header.ContentType;
 import gov.nist.javax.sip.header.Event;
 import gov.nist.javax.sip.header.From;
 import gov.nist.javax.sip.header.MaxForwards;
@@ -98,7 +99,9 @@ import gov.nist.javax.sip.header.TimeStamp;
 import gov.nist.javax.sip.header.To;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.extensions.SessionExpires;
+import gov.nist.javax.sip.message.Content;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
+import gov.nist.javax.sip.message.MultipartMimeContent;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -330,7 +333,8 @@ public class SIPDialog implements DialogExt {
     
     //RFC 4028 timer reference
     protected transient AtomicReference<RFC4028Timer> refreshSessionTask = new AtomicReference<RFC4028Timer>();
-
+    //RFC 4028: the last SDP we sent, re-offered by the ReINVITE refresh
+    private byte[] sdpForReInviteRefresh;
     // //////////////////////////////////////////////////////
     // Inner classes
     // //////////////////////////////////////////////////////
@@ -956,14 +960,11 @@ public class SIPDialog implements DialogExt {
         // we store it as it was passed to the method originally
         this.setLastAckSent(ackRequest);
         
-        //For RFC 4028: drop SDP-holding timer if no real timer was started
-        if(refreshSessionTask.get()!=null) {
-        	 if(refreshSessionTask.get().isTimerEmpty()) {
-        		sipStack.getTimer().cancel(this.refreshSessionTask.get());
-         		this.refreshSessionTask.set(null);
-        	 }
-        	 else refreshSessionTask.get().setSDPForReInviteRefresh(ackRequest);
-        }
+        //For RFC 4028: save the ACK's SDP if timer was started
+        if(refreshSessionTask.get()!=null)
+        	setSDPForReInviteRefresh(ackRequest);
+        else
+        	sdpForReInviteRefresh = null;
         
         Hop hop = sipStack.getNextHop(ackRequest);
         if (hop == null)
@@ -1004,7 +1005,7 @@ public class SIPDialog implements DialogExt {
      * 
      * @param sipStack
      *            the address of the SIP stack.
-     * 
+     *  
      */
     void setStack(SIPTransactionStack sipStack) {
         this.sipStack = sipStack;
@@ -1068,13 +1069,9 @@ public class SIPDialog implements DialogExt {
                 // }
                 this.setState(CONFIRMED_STATE);
                 
-                //For RFC 4028: drop SDP-holding timer if no real timer was started
-                if(refreshSessionTask.get()!=null) {
-                	if(refreshSessionTask.get().isTimerEmpty()) {
-                		sipStack.getTimer().cancel(this.refreshSessionTask.get());
-                			this.refreshSessionTask.set(null);
-               	 	}
-                }
+                //For RFC 4028: drop the SDP if no timer
+                if(refreshSessionTask.get()==null)
+                	sdpForReInviteRefresh = null; 
             }
         } else {
             if (logger.isLoggingEnabled(
@@ -2311,17 +2308,6 @@ public class SIPDialog implements DialogExt {
         if (clientTransaction == null)
             throw new NullPointerException("null parameter");
         
-       if(sipStack.isRFC4028AutoSupported) {
-    	   if(clientTransaction.getRequest().getMethod().equalsIgnoreCase(Request.PRACK)) {
-    			if(refreshSessionTask.get()==null) {
-            		scheduleEmptyTimer((SIPMessage) clientTransaction.getRequest(), false);
-            	}
-            	else {
-            		refreshSessionTask.get().setSDPForReInviteRefresh((SIPMessage) clientTransaction.getRequest());
-            	}
-    	   }
-    		   
-       }
         if ((!allowInterleaving)
                 && clientTransaction.getRequest().getMethod().equals(
                         Request.INVITE)) {
@@ -3497,13 +3483,9 @@ public class SIPDialog implements DialogExt {
         sipStack.getMessageProcessorExecutor().addTaskLast(outgoingMessageProcessingTask); 
 
         this.startRetransmitTimer(serverTransaction, relResponse);
+        // For RFC 4028: 1xx can contain an offer
         if(sipStack.isRFC4028AutoSupported) {
-        	if(refreshSessionTask.get()==null) {
-        		scheduleEmptyTimer(sipResponse, false);
-        	}
-        	else {
-        		refreshSessionTask.get().setSDPForReInviteRefresh(sipResponse);
-        	}
+        	setSDPForReInviteRefresh(sipResponse);
         }
     }
 
@@ -4085,34 +4067,18 @@ public class SIPDialog implements DialogExt {
     }
     
     public void stopSessionRefreshTimer() {
-    	if(this.refreshSessionTask.get()!=null && !this.refreshSessionTask.get().isTimerEmpty()) {
+    	if(this.refreshSessionTask.get()!=null) {
     		sipStack.getTimer().cancel(this.refreshSessionTask.get());
     		this.refreshSessionTask.set(null);
     	}
     }
     
-    public void scheduleSessionRefreshTimerAsRefresher(SIPResponse response, boolean peerAllowsUpdate) {
+    public void scheduleSessionRefreshTimerAsRefresher(SIPResponse response) {
         RFC4028Timer oldRefreshSessionTask = refreshSessionTask.getAndSet(null);
-        byte[] sdpForReInvite = null;
-        Map<String, List<SIPHeader>> headerTemplate = null;
-        boolean useUpdate = response.getCSeqHeader().getMethod().equalsIgnoreCase(Request.UPDATE) || peerAllowsUpdate;
-        if (oldRefreshSessionTask != null) {
-            sdpForReInvite = oldRefreshSessionTask.getSdp();
-            headerTemplate = oldRefreshSessionTask.getHeaderTemplate();
-            useUpdate = useUpdate || oldRefreshSessionTask.isUseUpdate();
+        if (oldRefreshSessionTask != null)
             sipStack.getTimer().cancel(oldRefreshSessionTask);
-        }
         SessionExpires se = (SessionExpires) response.getHeader(SessionExpires.NAME);
-        RFC4028Timer newRefreshSessionTask = new RFC4028Timer(this, se.getExpires(), useUpdate);
-        if (sdpForReInvite != null  && !useUpdate)
-            newRefreshSessionTask.setSdp(sdpForReInvite);
-        newRefreshSessionTask.setHeaderTemplate(headerTemplate);
-        if ("uas".equalsIgnoreCase(se.getRefresher())) {
-            // our own 2xx, we are the UAS and the refresher
-            if (!useUpdate)
-                newRefreshSessionTask.setSDPForReInviteRefresh(response);
-            newRefreshSessionTask.setHeaderTemplate(response);
-        }
+        RFC4028Timer newRefreshSessionTask = new RFC4028Timer(this, se.getExpires(), true);
         refreshSessionTask.set(newRefreshSessionTask);
         sipStack.getTimer().schedule(newRefreshSessionTask, se.getExpires() * 1000L / 2);
     }
@@ -4126,41 +4092,56 @@ public class SIPDialog implements DialogExt {
 		sipStack.getTimer().schedule(refreshSessionTask.get(), (expires-Math.min(expires/3, 32))*1000L);
     }
     
-    //For PRACK/100rel SDP and early UPDATE
-    public void scheduleEmptyTimer(SIPMessage message, boolean messageIsFromPeer) {
-    	 RFC4028Timer timer = refreshSessionTask.get();
-    	    if (timer == null) {
-    	        timer = new RFC4028Timer(this);
-    	        refreshSessionTask.set(timer);
-    	    }
-    	    // UPDATE refreshes need the headers too, so this goes before the useUpdate exit
-    	    if (!messageIsFromPeer && message instanceof SIPRequest
-    	            && (Request.INVITE.equalsIgnoreCase(message.getCSeq().getMethod())
-    	                    || Request.UPDATE.equalsIgnoreCase(message.getCSeq().getMethod())))
-    	        timer.setHeaderTemplate(message);
-    	    if(timer.isUseUpdate()) {
-    	        return;
-    	    }
-    	    if (messageIsFromPeer) {
-    	        if (message.getCSeq().getMethod().equalsIgnoreCase(Request.UPDATE) || checkForUpdateAllow(message))
-    	            timer.setUseUpdate(true);
-    	    } else {
-    	        timer.setSDPForReInviteRefresh(message);
-    	    }
-    	}
-    
-    public static boolean checkForUpdateAllow(SIPMessage message) {
-    	if(message!=null) {
-    		ListIterator<SIPHeader> allowList = message.getHeaders(AllowHeader.NAME);
-    		while (allowList.hasNext()) {
-			    if (Request.UPDATE.equalsIgnoreCase(((AllowHeader) allowList.next()).getMethod())) {
-			    	return true;
-			    }
-			}
-    	}
-		return false;
+    protected byte[] getSDPForReInviteRefresh() {
+    	return sdpForReInviteRefresh;
     }
     
+    protected void setSDPForReInviteRefresh(byte[] sdp) {
+    	this.sdpForReInviteRefresh = sdp;
+    }
+    
+    /*
+	 * Will only save SDP for ReINVITE refreshes that were not yet sent
+	 * Completely null-safe btw
+	 */
+	void setSDPForReInviteRefresh(SIPMessage message) {
+		if (message == null) 
+			return;
+		ContentType ct = message.getContentTypeHeader();
+		    if (ct == null || message.getRawContent() == null) {
+		        return;
+		    }
+		    if ("application".equalsIgnoreCase(ct.getContentType())
+		            && "sdp".equalsIgnoreCase(ct.getContentSubType())) {
+		    	sdpForReInviteRefresh = message.getRawContent();
+		        return;
+		    }
+		    if ("multipart".equalsIgnoreCase(ct.getContentType())) {
+		        try {  
+		        	MultipartMimeContent mmc = message.getMultipartMimeContent();
+		        	if (mmc != null) 
+		        	{
+		        		Iterator<Content> parts = mmc.getContents();
+		        		while (parts.hasNext()) {
+		        			Content part = parts.next();
+		        			ContentTypeHeader pct = part.getContentTypeHeader();
+		        			ContentDispositionHeader pcd = part.getContentDispositionHeader();
+		        			if (pct != null && "application".equalsIgnoreCase(pct.getContentType()) 
+		        					&& "sdp".equalsIgnoreCase(pct.getContentSubType()) && (pcd == null || "session".equalsIgnoreCase(pcd.getDispositionType())))
+		        				{
+		        				sdpForReInviteRefresh = part.getContent();
+		        					break;
+		        				}
+		        		}
+		        	}
+		        } catch (Exception ex) {
+		        	if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+						logger.logDebug("RFC 4028 timer couldn't extract SDP from:" + message);
+					return;
+		        }
+		    }
+		}
+	
     public boolean isRefreshTimerArmed() {
     	return refreshSessionTask.get()!=null;
     }

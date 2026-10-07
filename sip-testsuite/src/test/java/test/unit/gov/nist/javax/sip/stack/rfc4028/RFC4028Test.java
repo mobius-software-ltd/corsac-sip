@@ -3,9 +3,10 @@ package test.unit.gov.nist.javax.sip.stack.rfc4028;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.sip.message.Request;
@@ -95,12 +96,7 @@ public class RFC4028Test {
 
         List<MessageRecord> refreshes = shootist.getStackRefreshes();
         assertEquals("exactly two refreshes " + refreshes, 2, refreshes.size());
-        for (MessageRecord r : refreshes) {
-            assertEquals(Request.INVITE, r.method);
-            assertEquals("re-INVITE body must be the original offer", Shootist.OFFER_SDP, r.body);
-            assertSessionExpires(r, 90, "uac");
-            assertEquals(Integer.valueOf(90), r.minSe);
-        }
+        assertUacRefreshes(refreshes, shootist.getFirstSentInvite(), ok, Shootist.OFFER_SDP);
 
         List<MessageRecord> invites = shootme.getReceivedInvites();
         assertEquals("initial INVITE and both refreshes must reach the UAS", 3, invites.size());
@@ -154,75 +150,19 @@ public class RFC4028Test {
         for (MessageRecord r : peerRefreshes) {
             assertEquals("UAS re-INVITE body must be its own 200 body", Shootme.OK_ANSWER_SDP, r.body);
             assertSessionExpires(r, 90, "uac");
-            assertEquals(Integer.valueOf(90), r.minSe);
-            assertTrue(r.supportedTimer);
         }
         assertEquals(2, shootme.getStackRefreshes().size());
-        for (MessageRecord r : shootme.getStackRefreshes()) {
-            assertEquals(Request.INVITE, r.method);
-        }
+        assertUasRefreshes(shootme.getStackRefreshes(), shootme.getReceivedInvites().get(0),
+                shootme.getFirstSentInviteOk(), shootme.getViaSentBy(), Shootme.OK_ANSWER_SDP);
 
         finishCall();
         assertQuiet();
         assertNoTransactionsLeft(); 
     }
 
-    /** 2xx says Allow: UPDATE, UAC refreshes with UPDATE. */
+    /** Early UPDATE with a new offer in a 183/PRACK dialog: the refresh re-INVITE carries that offer, the last SDP we sent. */
     @Test(timeout = 180000)
-    public void testUpdateRefresh() throws Exception {
-        shootme = new Shootme(shootmePort, SessionTimerMode.STACK);
-        shootme.refresher = "uac";
-        shootme.peerAllowsUpdate = true;
-        shootist = new Shootist(shootistPort, shootmePort, SessionTimerMode.STACK);
-
-        shootist.sendInvite();
-        assertTrue("INVITE must be answered 200", AssertUntil.assertUntil(shootist.getInviteOkAssertion(), TIMEOUT));
-
-        MessageRecord ok = shootist.getFirstInviteOk();
-        assertNotNull(ok);
-        assertSessionExpires(ok, 90, "uac");
-        assertTrue("200 must advertise Allow: UPDATE", ok.allowUpdate);
-
-        Thread.sleep(BEFORE_REFRESH);
-        assertEquals("no refresh before SE/2", 0, shootist.getStackRefreshes().size());
-        assertTrue("first refresh at SE/2", AssertUntil.assertUntil(shootist.getStackRefreshesAssertion(1), TIMEOUT));
-        assertTrue("refresh must be answered 200", AssertUntil.assertUntil(shootist.getUpdateOksAssertion(1), TIMEOUT));
-
-        Thread.sleep(BEFORE_REFRESH);
-        assertEquals("no second refresh before SE/2 after the re-arm", 1, shootist.getStackRefreshes().size());
-        assertTrue("second refresh at SE/2", AssertUntil.assertUntil(shootist.getStackRefreshesAssertion(2), TIMEOUT));
-        assertTrue("second refresh must be answered 200",
-                AssertUntil.assertUntil(shootist.getUpdateOksAssertion(2), TIMEOUT));
-
-        List<MessageRecord> refreshes = shootist.getStackRefreshes();
-        assertEquals("exactly two refreshes " + refreshes, 2, refreshes.size());
-        for (MessageRecord r : refreshes) {
-            assertEquals("refresh must be UPDATE when the peer allows it", Request.UPDATE, r.method);
-            assertNull("UPDATE refresh must not carry a body", r.body);
-            assertSessionExpires(r, 90, "uac");
-            assertEquals(Integer.valueOf(90), r.minSe);
-        }
-
-        List<MessageRecord> updateOks = shootist.getUpdateOks();
-        assertEquals(2, updateOks.size());
-        for (MessageRecord r : updateOks) {
-            assertSessionExpires(r, 90, "uac");
-            assertTrue("2xx to UPDATE must carry Require: timer", r.requireTimer);
-        }
-        assertEquals("UAS must have seen exactly one INVITE", 1, shootme.getReceivedInvites().size());
-        assertEquals("UAS must have seen both UPDATE refreshes", 2, shootme.getReceivedUpdates().size());
-        for (MessageRecord r : shootme.getReceivedUpdates()) {
-            assertTrue(r.supportedTimer);
-        }
-
-        finishCall();
-        assertQuiet();
-        assertNoTransactionsLeft();
-    }
-
-    /** Early UPDATE in a 183/PRACK dialog, no Allow anywhere: the refresh must still be UPDATE. */
-    @Test(timeout = 180000)
-    public void testUpdateRefreshEarlyUpdateCarryOver() throws Exception {
+    public void testEarlyUpdateSdpUsedForRefresh() throws Exception {
         shootme = new Shootme(shootmePort, SessionTimerMode.STACK);
         shootme.refresher = "uac";
         shootme.sendReliableProvisional = true;
@@ -241,38 +181,36 @@ public class RFC4028Test {
         List<MessageRecord> appRequests = shootist.getAppRequests();
         assertEquals("one early UPDATE " + appRequests, 1, appRequests.size());
         assertEquals(Request.UPDATE, appRequests.get(0).method);
+        assertEquals("early UPDATE carries the new offer", Shootist.EARLY_UPDATE_SDP, appRequests.get(0).body);
         assertFalse("early UPDATE is sent without Session-Expires", appRequests.get(0).hasSessionExpires());
+        assertEquals("UAS answers the early UPDATE offer", Shootme.UPDATE_ANSWER_SDP, shootist.getUpdateOks().get(0).body);
 
         MessageRecord ok = shootist.getFirstInviteOk();
         assertNotNull(ok);
         assertSessionExpires(ok, 90, "uac");
-        assertFalse("no Allow: UPDATE anywhere in this scenario", ok.allowUpdate);
 
         Thread.sleep(BEFORE_REFRESH);
         assertEquals("no refresh before SE/2", 0, shootist.getStackRefreshes().size());
         assertTrue("first refresh at SE/2", AssertUntil.assertUntil(shootist.getStackRefreshesAssertion(1), TIMEOUT));
-        assertTrue("refresh must be answered 200", AssertUntil.assertUntil(shootist.getUpdateOksAssertion(2), TIMEOUT));
+        assertTrue("refresh must be answered 200", AssertUntil.assertUntil(shootist.getInviteOksAssertion(2), TIMEOUT));
 
         Thread.sleep(BEFORE_REFRESH);
         assertEquals("no second refresh before SE/2 after the re-arm", 1, shootist.getStackRefreshes().size());
         assertTrue("second refresh at SE/2", AssertUntil.assertUntil(shootist.getStackRefreshesAssertion(2), TIMEOUT));
         assertTrue("second refresh must be answered 200",
-                AssertUntil.assertUntil(shootist.getUpdateOksAssertion(3), TIMEOUT));
+                AssertUntil.assertUntil(shootist.getInviteOksAssertion(3), TIMEOUT));
 
         List<MessageRecord> refreshes = shootist.getStackRefreshes();
         assertEquals("exactly two refreshes " + refreshes, 2, refreshes.size());
-        for (MessageRecord r : refreshes) {
-            assertEquals("after an early UPDATE the refresh must stay UPDATE", Request.UPDATE, r.method);
-            assertNull("UPDATE refresh must not carry a body", r.body);
-            assertSessionExpires(r, 90, "uac");
-        }
-
-        List<MessageRecord> updates = shootme.getReceivedUpdates();
-        assertEquals("early UPDATE + two refreshes must reach the UAS", 3, updates.size());
-        assertFalse(updates.get(0).hasSessionExpires());
-        assertSessionExpires(updates.get(1), 90, "uac");
-        assertSessionExpires(updates.get(2), 90, "uac");
-        assertEquals("UAS must have seen exactly one INVITE", 1, shootme.getReceivedInvites().size());
+        // the early UPDATE was our last target refresh: the peer has its Contact, the refresh must carry that one
+        assertUacRefreshes(refreshes, appRequests.get(0), ok, Shootist.EARLY_UPDATE_SDP);
+        
+        List<MessageRecord> invites = shootme.getReceivedInvites();
+        assertEquals("initial INVITE and two refreshes must reach the UAS", 3, invites.size());
+        assertEquals("re-INVITE body must be the early UPDATE offer, not the PRACK answer", Shootist.EARLY_UPDATE_SDP,
+                invites.get(1).body);
+        assertEquals(Shootist.EARLY_UPDATE_SDP, invites.get(2).body);
+        assertEquals("only the early UPDATE reaches the UAS as UPDATE", 1, shootme.getReceivedUpdates().size());
 
         finishCall();
         assertQuiet();
@@ -304,9 +242,7 @@ public class RFC4028Test {
         assertTrue("refresh at SE/2", AssertUntil.assertUntil(shootist.getStackRefreshesAssertion(1), TIMEOUT));
 
         List<MessageRecord> refreshes = shootist.getStackRefreshes();
-        assertEquals(Request.INVITE, refreshes.get(0).method);
-        assertEquals("re-INVITE body must be the PRACK answer", Shootist.PRACK_ANSWER_SDP, refreshes.get(0).body);
-        assertSessionExpires(refreshes.get(0), 90, "uac");
+        assertUacRefreshes(refreshes, shootist.getFirstSentInvite(), ok, Shootist.PRACK_ANSWER_SDP);
         List<MessageRecord> invites = shootme.getReceivedInvites();
         assertEquals(2, invites.size());
         assertEquals(Shootist.PRACK_ANSWER_SDP, invites.get(1).body);
@@ -444,6 +380,7 @@ public class RFC4028Test {
         List<MessageRecord> oks = shootist.getInviteOks();
         assertFalse("200 to the refresh must have no Session-Expires", oks.get(1).hasSessionExpires());
         assertFalse(oks.get(1).requireTimer);
+        assertUacRefreshes(shootist.getStackRefreshes(), shootist.getFirstSentInvite(), ok, Shootist.OFFER_SDP);
 
         // past the old deadline and past where the second refresh would have been
         Thread.sleep(TIMER_OFF_QUIET);
@@ -525,11 +462,8 @@ public class RFC4028Test {
 
         List<MessageRecord> refreshes = shootist.getStackRefreshes();
         assertEquals("exactly one refresh per cycle " + refreshes, 2, refreshes.size());
-        for (MessageRecord r : refreshes) {
-            assertEquals(Request.INVITE, r.method);
-            assertEquals("SDP must survive the re-arm on every retransmitted 200", Shootist.PRACK_ANSWER_SDP, r.body);
-            assertSessionExpires(r, 90, "uac");
-        }
+        // SDP must survive the re-arm on every retransmitted 200
+        assertUacRefreshes(refreshes, shootist.getFirstSentInvite(), ok, Shootist.PRACK_ANSWER_SDP);
         List<MessageRecord> invites = shootme.getReceivedInvites();
         assertEquals(3, invites.size());
         assertEquals(Shootist.PRACK_ANSWER_SDP, invites.get(1).body);
@@ -569,71 +503,13 @@ public class RFC4028Test {
         assertEquals("exactly one 408", 1, shootist.getInvite408s().size());
         assertEquals("exactly one BYE " + shootist.getSentByes(), 1, shootist.getSentByes().size());
         assertEquals("exactly one refresh " + shootist.getStackRefreshes(), 1, shootist.getStackRefreshes().size());
+        assertUacRefreshes(shootist.getStackRefreshes(), shootist.getFirstSentInvite(), ok, Shootist.OFFER_SDP);
         assertEquals(2, shootme.getReceivedInvites().size());
         assertTrue("Should see invite, ACK and BYE",
                 AssertUntil.assertUntil(shootme.getCompletedCallAssertion(), TIMEOUT));
         assertEquals("hand-rolled UAS never BYEs", 0, shootme.getSentByes().size());
         assertFalse(shootist.isByeReceived());
         assertNoIo();
-    }
-
-    /** UAS refresher, INVITE said Allow: UPDATE: UAS refreshes with UPDATE. */
-    @Test(timeout = 180000)
-    public void testUasRefreshesWithUpdate() throws Exception {
-        shootme = new Shootme(shootmePort, SessionTimerMode.STACK);
-        shootme.refresher = "uas";
-        shootist = new Shootist(shootistPort, shootmePort, SessionTimerMode.STACK);
-        shootist.allowUpdate = true;
-
-        shootist.sendInvite();
-        assertTrue("INVITE must be answered 200", AssertUntil.assertUntil(shootist.getInviteOkAssertion(), TIMEOUT));
-
-        MessageRecord ok = shootist.getFirstInviteOk();
-        assertNotNull(ok);
-        assertSessionExpires(ok, 90, "uas");
-        assertTrue("INVITE did advertise Allow: UPDATE", shootme.getReceivedInvites().get(0).allowUpdate);
-
-        Thread.sleep(BEFORE_REFRESH);
-        assertEquals("no UAS refresh before SE/2", 0, shootist.getReceivedUpdates().size());
-        assertEquals("no UAS refresh before SE/2", 0, shootist.getReceivedInvites().size());
-        assertEquals("UAC must not refresh", 0, shootist.getStackRefreshes().size());
-        assertTrue("first UAS refresh at SE/2",
-                AssertUntil.assertUntil(shootist.getReceivedUpdatesAssertion(1), TIMEOUT));
-        assertTrue("UAS must get the 200 to its refresh",
-                AssertUntil.assertUntil(shootme.getUpdateOksAssertion(1), TIMEOUT));
-
-        Thread.sleep(BEFORE_REFRESH);
-        assertEquals("no second UAS refresh before SE/2 after the re-arm", 1, shootist.getReceivedUpdates().size());
-        assertTrue("second UAS refresh at SE/2",
-                AssertUntil.assertUntil(shootist.getReceivedUpdatesAssertion(2), TIMEOUT));
-        assertTrue("UAS must get the 200 to its second refresh",
-                AssertUntil.assertUntil(shootme.getUpdateOksAssertion(2), TIMEOUT));
-
-        assertEquals("UAC must not refresh when the UAS is the refresher", 0, shootist.getStackRefreshes().size());
-        assertEquals("UAS must not refresh with re-INVITE " + shootist.getReceivedInvites(), 0,
-                shootist.getReceivedInvites().size());
-        List<MessageRecord> updates = shootist.getReceivedUpdates();
-        assertEquals("two UPDATE refreshes from the UAS " + updates, 2, updates.size());
-        for (MessageRecord r : updates) {
-            assertNull("UPDATE refresh must not carry a body", r.body);
-            assertSessionExpires(r, 90, "uac");
-            assertEquals(Integer.valueOf(90), r.minSe);
-            assertTrue(r.supportedTimer);
-        }
-        assertEquals(2, shootme.getStackRefreshes().size());
-        for (MessageRecord r : shootme.getStackRefreshes()) {
-            assertEquals(Request.UPDATE, r.method);
-        }
-        List<MessageRecord> updateOks = shootme.getUpdateOks();
-        assertEquals(2, updateOks.size());
-        for (MessageRecord r : updateOks) {
-            assertSessionExpires(r, 90, "uac");
-            assertTrue("2xx to UPDATE must carry Require: timer", r.requireTimer);
-        }
-
-        finishCall();
-        assertQuiet();
-        assertNoTransactionsLeft();
     }
 
     /** UAS without timer support answers without Session-Expires: no timer at all. */
@@ -749,9 +625,8 @@ public class RFC4028Test {
 
         List<MessageRecord> refreshes = shootist.getStackRefreshes();
         assertEquals(1, refreshes.size());
-        assertEquals(Request.INVITE, refreshes.get(0).method);
-        assertEquals("refresh must carry the latest offer", Shootist.REINVITE_OFFER_SDP, refreshes.get(0).body);
-        assertSessionExpires(refreshes.get(0), 90, "uac");
+        // the latest offer, and the dialog as the app re-INVITE's 2xx left it
+        assertUacRefreshes(refreshes, appRequests.get(0), reInviteOk, Shootist.REINVITE_OFFER_SDP);
         assertEquals(3, shootme.getReceivedInvites().size());
 
         finishCall();
@@ -808,10 +683,9 @@ public class RFC4028Test {
 
         List<MessageRecord> refreshes = shootist.getStackRefreshes();
         assertEquals("exactly two refreshes " + refreshes, 2, refreshes.size());
-        for (MessageRecord r : refreshes) {
-            assertEquals(Request.INVITE, r.method);
-            assertEquals(Shootist.OFFER_SDP, r.body);
-        }
+        // through a record-routing proxy: the refresh must carry its Route
+        assertFalse("200 must carry the proxy's Record-Route " + ok, ok.recordRoutes.isEmpty());
+        assertUacRefreshes(refreshes, shootist.getFirstSentInvite(), ok, Shootist.OFFER_SDP);
         List<MessageRecord> oks = shootist.getInviteOks();
         assertEquals(3, oks.size());
         for (MessageRecord r : oks) {
@@ -829,6 +703,69 @@ public class RFC4028Test {
         assertTrue("Session-Expires expected on " + record, record.hasSessionExpires());
         assertEquals("Session-Expires value on " + record, Integer.valueOf(expires), record.seExpires);
         assertEquals("refresher on " + record, refresher, record.seRefresher);
+    }
+
+    /** UAC refresher: dialog state is our INVITE (or app re-INVITE) and the 200 that answered it. */
+    private static void assertUacRefreshes(List<MessageRecord> refreshes, MessageRecord invite, MessageRecord ok,
+            String body) {
+        assertNotNull(invite);
+        assertNotNull(ok);
+        List<String> routeSet = new ArrayList<String>(ok.recordRoutes);
+        Collections.reverse(routeSet);
+        MessageRecord previous = invite;
+        for (MessageRecord r : refreshes) {
+            assertRefreshRequest(r, previous, invite.callId, invite.fromUri, invite.fromTag, invite.toUri, ok.toTag,
+                    ok.contact, invite.contact, routeSet, invite.viaSentBy, body);
+            previous = r;
+        }
+    }
+
+    /** UAS refresher: dialog state is the INVITE we received and the 200 we sent to it. */
+    private static void assertUasRefreshes(List<MessageRecord> refreshes, MessageRecord invite, MessageRecord ok,
+            String viaSentBy, String body) {
+        assertNotNull(invite);
+        assertNotNull(ok);
+        MessageRecord previous = null;
+        for (MessageRecord r : refreshes) {
+            assertRefreshRequest(r, previous, invite.callId, invite.toUri, ok.toTag, invite.fromUri, invite.fromTag,
+                    invite.contact, ok.contact, invite.recordRoutes, viaSentBy, body);
+            previous = r;
+        }
+    }
+
+    /**
+     * A stack refresh must be a complete in-dialog re-INVITE: RFC 3261 12.2.1.1 dialog bits, our own Contact (a
+     * re-INVITE is a target refresh), the RFC 4028 bits, and the last SDP we sent. previous = the INVITE we sent before
+     * it on this dialog, null if none.
+     */
+    private static void assertRefreshRequest(MessageRecord refresh, MessageRecord previous, String callId,
+            String fromUri, String fromTag, String toUri, String toTag, String remoteTarget, String ourContact,
+            List<String> routeSet, String viaSentBy, String body) {
+        assertEquals("refresh method " + refresh, Request.INVITE, refresh.method);
+        assertEquals("Call-ID on " + refresh, callId, refresh.callId);
+        assertEquals("From URI on " + refresh, fromUri, refresh.fromUri);
+        assertEquals("From tag on " + refresh, fromTag, refresh.fromTag);
+        assertEquals("To URI on " + refresh, toUri, refresh.toUri);
+        assertEquals("To tag on " + refresh, toTag, refresh.toTag);
+        assertEquals("Request-URI must be the remote target on " + refresh, remoteTarget, refresh.requestUri);
+        assertEquals("Contact must be ours, not the listening point default, on " + refresh, ourContact,
+                refresh.contact);
+        assertEquals("Route set on " + refresh, routeSet, refresh.routes);
+        assertEquals("Via sent-by on " + refresh, viaSentBy, refresh.viaSentBy);
+        assertNotNull("Via branch on " + refresh, refresh.viaBranch);
+        assertTrue("RFC 3261 branch on " + refresh, refresh.viaBranch.startsWith("z9hG4bK"));
+        if (previous != null) {
+            assertTrue("CSeq must grow, " + previous + " then " + refresh, refresh.cseq > previous.cseq);
+            assertFalse("new transaction, new branch on " + refresh, refresh.viaBranch.equals(previous.viaBranch));
+        }
+        assertNotNull("Max-Forwards on " + refresh, refresh.maxForwards);
+        assertSessionExpires(refresh, 90, "uac");
+        assertEquals("Min-SE on " + refresh, Integer.valueOf(90), refresh.minSe);
+        assertTrue("Supported: timer on " + refresh, refresh.supportedTimer);
+        assertFalse("refresh must not require 100rel " + refresh, refresh.require100rel);
+        assertEquals("Content-Type on " + refresh, "application/sdp", refresh.contentType);
+        assertEquals("body on " + refresh, body, refresh.body);
+        assertEquals("Content-Length on " + refresh, body.getBytes().length, refresh.contentLength);
     }
 
     /** app BYE from the UAC, both sides see the call through */

@@ -354,12 +354,16 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     	{
     		transactionRequest.addHeader(new Supported("timer"));
     		
-    		//Save SDP from initial INVITE in case peer won't be accepting UPDATE
-    		if (transactionRequest.getMethod().equalsIgnoreCase(Request.INVITE) && getDefaultDialog() != null) {
-    			getDefaultDialog().scheduleEmptyTimer(transactionRequest, false);
+    		//Save the SDP of our INVITE, UPDATE or PRACK for the re-INVITE refresh
+    		String method = transactionRequest.getMethod();
+    		boolean targetRefresh = method.equalsIgnoreCase(Request.INVITE) || method.equalsIgnoreCase(Request.UPDATE);
+    		if ((targetRefresh || method.equalsIgnoreCase(Request.PRACK)) && getDefaultDialog() != null) {
+    			getDefaultDialog().setSDPForReInviteRefresh(transactionRequest);
+    			//a target refresh moves our Contact at the peer, the re-INVITE refresh must carry the same one
+    			if (targetRefresh && transactionRequest.getContactHeader() != null)
+    				getDefaultDialog().contactHeader = transactionRequest.getContactHeader();
     		}
     	}
-    
     
     try {
       // Set the branch id for the top via header.

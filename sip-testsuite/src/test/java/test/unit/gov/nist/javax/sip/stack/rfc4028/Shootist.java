@@ -77,6 +77,10 @@ public class Shootist implements SipListenerExt {
             + "s=rfc4028-app-reinvite\r\n" + "c=IN IP4 127.0.0.1\r\n" + "t=0 0\r\n" + "m=audio 20004 RTP/AVP 0\r\n"
             + "a=rtpmap:0 PCMU/8000\r\n";
 
+    static final String EARLY_UPDATE_SDP = "v=0\r\n" + "o=shootist 5000 5000 IN IP4 127.0.0.1\r\n"
+            + "s=rfc4028-early-update\r\n" + "c=IN IP4 127.0.0.1\r\n" + "t=0 0\r\n" + "m=audio 20008 RTP/AVP 0\r\n"
+            + "a=rtpmap:0 PCMU/8000\r\n";
+
     static final String ANSWER_TO_PEER_SDP = "v=0\r\n" + "o=shootist 4000 4000 IN IP4 127.0.0.1\r\n"
             + "s=rfc4028-uac-answer\r\n" + "c=IN IP4 127.0.0.1\r\n" + "t=0 0\r\n" + "m=audio 20006 RTP/AVP 0\r\n"
             + "a=rtpmap:0 PCMU/8000\r\n";
@@ -97,13 +101,12 @@ public class Shootist implements SipListenerExt {
     public int sessionExpires = 90;
     /** INVITE goes out without a body, offer expected in the 183, answer goes in the PRACK. */
     public boolean requireReliableProvisionalResponse;
-    /** Early UPDATE (no SE, no body) once the PRACK is confirmed. */
+    /** Early UPDATE (no SE, new offer) once the PRACK is confirmed. */
     public boolean sendUpdate;
     /** SE=30 on the INVITE (expect 422), then SE=30 on an UPDATE at midDialogUpdateDelay. */
     public boolean smallSe;
     public boolean delayAck;
     public long ackDelay = 1500;
-    public boolean allowUpdate;
     /** -1 = never. */
     public long appReInviteDelay = -1;
     public boolean appReInviteWithSe;
@@ -198,12 +201,6 @@ public class Shootist implements SipListenerExt {
         } else {
             request.setContent(OFFER_SDP, sdpContentType());
         }
-        if (allowUpdate) {
-            for (String method : new String[] { Request.INVITE, Request.ACK, Request.CANCEL, Request.BYE,
-                    Request.UPDATE, Request.PRACK }) {
-                request.addHeader(headerFactory.createAllowHeader(method));
-            }
-        }
 
         initialInviteCseq = cseq;
         ClientTransaction inviteTransaction = sipProvider.getNewClientTransaction(request);
@@ -215,6 +212,7 @@ public class Shootist implements SipListenerExt {
     private void sendEarlyUpdate(Dialog earlyDialog) {
         try {
             Request update = earlyDialog.createRequest(Request.UPDATE);
+            update.setContent(EARLY_UPDATE_SDP, sdpContentType());
             markAppRequest(update);
             ClientTransaction ct = sipProvider.getNewClientTransaction(update);
             logger.info("shootist:" + port + " sending early UPDATE");
@@ -583,6 +581,16 @@ public class Shootist implements SipListenerExt {
 
     public List<MessageRecord> getSentByes() {
         return Records.requests(sentRequests, Request.BYE);
+    }
+
+    /** the INVITE that opened the dialog, as it went out */
+    public MessageRecord getFirstSentInvite() {
+        for (MessageRecord r : Records.requests(sentRequests, Request.INVITE)) {
+            if (r.cseq == initialInviteCseq) {
+                return r;
+            }
+        }
+        return null;
     }
 
     public MessageRecord getFirstInviteOk() {

@@ -19,7 +19,6 @@
 package gov.nist.javax.sip;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.ListIterator;
 
 import javax.sip.ClientTransaction;
@@ -514,8 +513,6 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
                             sendSessionIntervalTooSmallResponse(sipRequest, transaction, 90);
                             continueProcessing = false;
                         }
-                	else if(dialog!=null)
-                		dialog.scheduleEmptyTimer(sipRequest, true);
                 }
                 break;  
             case Request.ACK:
@@ -883,11 +880,6 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         final int statusCode = response.getStatusCode();
         final String method = response.getCSeqHeader().getMethod();
         
-        //to know that it uses UPDATE or save body from PRACK transaction
-        if(dialog!=null && (method.equalsIgnoreCase(Request.PRACK) || method.equalsIgnoreCase(Request.UPDATE)) && statusCode/100 == 2) {
-        	dialog.scheduleEmptyTimer(response, true);
-        }
-        
         if (!method.equalsIgnoreCase(Request.INVITE) && !method.equalsIgnoreCase(Request.UPDATE)) {
             return;
         }
@@ -939,7 +931,7 @@ class DialogFilter implements ServerRequestInterface, DialogResponseInterface {
         if (statusCode / 100 == 2) {
             if(sessionExpires!=null) {
         		if(("uac").equalsIgnoreCase(sessionExpires.getRefresher())) {
-        			dialog.scheduleSessionRefreshTimerAsRefresher(response, SIPDialog.checkForUpdateAllow(response));
+        			dialog.scheduleSessionRefreshTimerAsRefresher(response);
         			}
         		else { 
         			dialog.scheduleSessionRefreshTimerAsRefreshee(response);

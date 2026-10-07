@@ -65,6 +65,10 @@ public class Shootme implements SipListenerExt {
             + "s=rfc4028-183-offer\r\n" + "c=IN IP4 127.0.0.1\r\n" + "t=0 0\r\n" + "m=audio 30002 RTP/AVP 0\r\n"
             + "a=rtpmap:0 PCMU/8000\r\n";
 
+    static final String UPDATE_ANSWER_SDP = "v=0\r\n" + "o=shootme 4000 4000 IN IP4 127.0.0.1\r\n"
+            + "s=rfc4028-update-answer\r\n" + "c=IN IP4 127.0.0.1\r\n" + "t=0 0\r\n" + "m=audio 30006 RTP/AVP 0\r\n"
+            + "a=rtpmap:0 PCMU/8000\r\n";
+
     static final String REINVITE_ANSWER_SDP = "v=0\r\n" + "o=shootme 3000 3000 IN IP4 127.0.0.1\r\n"
             + "s=rfc4028-reinvite-answer\r\n" + "c=IN IP4 127.0.0.1\r\n" + "t=0 0\r\n" + "m=audio 30004 RTP/AVP 0\r\n"
             + "a=rtpmap:0 PCMU/8000\r\n";
@@ -83,8 +87,6 @@ public class Shootme implements SipListenerExt {
     /** "uac", "uas" or null; null means stack decides (STACK) or no Session-Expires at all (MANUAL). */
     public String refresher;
     public int sessionExpires = 90;
-    /** Allow: UPDATE on our 2xx. */
-    public boolean peerAllowsUpdate;
     public boolean sendReliableProvisional;
     public boolean sendRinging = true;
     public boolean dropRefresh;
@@ -104,6 +106,7 @@ public class Shootme implements SipListenerExt {
     private final List<MessageRecord> receivedResponses = Collections
             .synchronizedList(new ArrayList<MessageRecord>());
     private final List<MessageRecord> sentRequests = Collections.synchronizedList(new ArrayList<MessageRecord>());
+    private final List<MessageRecord> sentResponses = Collections.synchronizedList(new ArrayList<MessageRecord>());
     private final List<DialogTimeoutEvent.Reason> dialogTimeoutReasons = Collections
             .synchronizedList(new ArrayList<DialogTimeoutEvent.Reason>());
 
@@ -169,6 +172,9 @@ public class Shootme implements SipListenerExt {
             } else if (method.equals(Request.UPDATE)) {
                 Response ok = messageFactory.createResponse(Response.OK, request);
                 ok.addHeader(createContact());
+                if (request.getRawContent() != null) {
+                    ok.setContent(UPDATE_ANSWER_SDP, sdpContentType());
+                }
                 if (mode == SessionTimerMode.MANUAL) {
                     copySessionExpires(request, ok);
                 }
@@ -250,12 +256,6 @@ public class Shootme implements SipListenerExt {
                     ok.addHeader(headerFactory.createRequireHeader("timer"));
                 }
             }
-            if (peerAllowsUpdate) {
-                for (String m : new String[] { Request.INVITE, Request.ACK, Request.CANCEL, Request.BYE,
-                        Request.UPDATE, Request.PRACK }) {
-                    ok.addHeader(headerFactory.createAllowHeader(m));
-                }
-            }
             logger.info("shootme:" + port + " sending 200 to INVITE, refresher=" + refresher + " mode=" + mode);
             st.sendResponse(ok);
         } catch (Exception ex) {
@@ -332,11 +332,13 @@ public class Shootme implements SipListenerExt {
     }
 
     public void processMessageSent(MessageExt messageSentEvent, TransactionExt transaction) {
+        MessageRecord record = Records.record(messageSentEvent);
         if (messageSentEvent instanceof Request) {
-            MessageRecord record = Records.record(messageSentEvent);
             sentRequests.add(record);
-            logger.info("shootme:" + port + " sent " + record);
+        } else {
+            sentResponses.add(record);
         }
+        logger.info("shootme:" + port + " sent " + record);
     }
 
     public void processDialogTimeout(DialogTimeoutEvent timeoutEvent) {
@@ -424,6 +426,16 @@ public class Shootme implements SipListenerExt {
 
     public List<MessageRecord> getSentByes() {
         return Records.requests(sentRequests, Request.BYE);
+    }
+
+    /** our 200 to the INVITE that opened the dialog, as it went out */
+    public MessageRecord getFirstSentInviteOk() {
+        List<MessageRecord> oks = Records.responses(sentResponses, Response.OK, Request.INVITE);
+        return oks.isEmpty() ? null : oks.get(0);
+    }
+
+    public String getViaSentBy() {
+        return myAddress + ":" + port;
     }
 
     public SessionTimerMode getMode() {
