@@ -402,6 +402,9 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 	protected boolean isAutomaticDialogErrorHandlingEnabled = true;
 
 	protected boolean isDialogTerminatedEventDeliveredForNullDialog = false;
+	
+	//Automatic timer support(RFC 4028 compliance) flag
+	protected boolean isRFC4028AutoSupported = false;
 
 	// Max time for a forked response to arrive. After this time, the original
 	// dialog

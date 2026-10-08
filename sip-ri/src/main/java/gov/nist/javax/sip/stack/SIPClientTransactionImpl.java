@@ -58,6 +58,7 @@ import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.header.RecordRouteList;
 import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.RouteList;
+import gov.nist.javax.sip.header.Supported;
 import gov.nist.javax.sip.header.TimeStamp;
 import gov.nist.javax.sip.header.To;
 import gov.nist.javax.sip.header.Via;
@@ -348,6 +349,22 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     // Message typecast as a request
     SIPRequest transactionRequest = (SIPRequest) messageToSend;
 
+    // RFC 4028 7.1: every request but ACK needs to have Supported: timer
+    if (sipStack.isRFC4028AutoSupported && !transactionRequest.getMethod().equalsIgnoreCase(Request.ACK))
+    	{
+    		transactionRequest.addHeader(new Supported("timer"));
+    		
+    		//Save the SDP of our INVITE, UPDATE or PRACK for the re-INVITE refresh
+    		String method = transactionRequest.getMethod();
+    		boolean targetRefresh = method.equalsIgnoreCase(Request.INVITE) || method.equalsIgnoreCase(Request.UPDATE);
+    		if ((targetRefresh || method.equalsIgnoreCase(Request.PRACK)) && getDefaultDialog() != null) {
+    			getDefaultDialog().setSDPForReInviteRefresh(transactionRequest);
+    			//a target refresh moves our Contact at the peer, the re-INVITE refresh must carry the same one
+    			if (targetRefresh && transactionRequest.getContactHeader() != null)
+    				getDefaultDialog().contactHeader = transactionRequest.getContactHeader();
+    		}
+    	}
+    
     try {
       // Set the branch id for the top via header.
       Via topVia = (Via) transactionRequest.getTopmostVia();

@@ -48,6 +48,14 @@ public class ProtocolObjects {
 
     public ProtocolObjects(String stackname, String pathname, String transport,
             boolean autoDialog, boolean isBackToBackUserAgent, boolean isReentrant) {
+        this(stackname, pathname, transport, autoDialog, isBackToBackUserAgent, isReentrant, null);
+    }
+
+    /**
+     * Needed new properties for RFC 4028, second constructor to not break existing tests
+     */
+    public ProtocolObjects(String stackname, String pathname, String transport,
+            boolean autoDialog, boolean isBackToBackUserAgent, boolean isReentrant, Properties additionalProperties) {
 
     	this.autoDialog = autoDialog;
         this.transport = transport;
@@ -98,6 +106,11 @@ public class ProtocolObjects {
         // Your code will limp at 32 but it is best for debugging.
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", Integer.valueOf(
                 logLevel).toString());
+        
+        //Just in case new properties appear for later tests
+        if (additionalProperties != null) {
+            properties.putAll(additionalProperties);
+        }
 
         try {
             // Create SipStack object

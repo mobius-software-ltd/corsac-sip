@@ -999,7 +999,10 @@ public class SipProviderImpl implements gov.nist.javax.sip.SipProviderExt,
             reason = Reason.ReInviteTimeout;
         } else if (dialogErrorEvent.getErrorID() == SIPDialogErrorEvent.EARLY_STATE_TIMEOUT) {
             reason = Reason.EarlyStateTimeout;
+        } else if (dialogErrorEvent.getErrorID() == SIPDialogErrorEvent.RFC4028_SESSION_EXPIRED) {
+            reason = Reason.SessionExpired;
         }
+
         if (logger.isLoggingEnabled(LogLevels.TRACE_DEBUG)) {
             logger.logDebug(
                     "Dialog TimeoutError occured on " + sipDialog + " with Reason " + reason);
