@@ -43,6 +43,7 @@ import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.socket.DatagramChannel;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 
 /**
  * Netty Based Datagram Message Processor to handle creation of 
@@ -200,7 +201,7 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
             return EpollDatagramChannel.class;
         } else {
             logger.logWarning("EPoll is not enabled or supported on this platform, using NIO.");
-            return DatagramChannel.class;
+            return NioDatagramChannel.class;
         }
     }    
 }

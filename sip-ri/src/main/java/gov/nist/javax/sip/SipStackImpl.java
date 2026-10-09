@@ -601,7 +601,8 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * </li>
  *
  *<li><b>gov.nist.javax.sip.RELIABLE_CONNECTION_KEEP_ALIVE_TIMEOUT</b> Value in seconds which is used as default keepalive timeout
- * (See also http://tools.ietf.org/html/rfc5626#section-4.4.1). Defaults to "infiinity" seconds (i.e. timeout event not delivered).</li>
+ * (See also http://tools.ietf.org/html/rfc5626#section-4.4.1).
+ *  Defaults to "infiinity" seconds (i.e. timeout event not delivered).</li>
  *
  * <li><b>gov.nist.javax.sip.ALLOW_DIALOG_ON_DIFFERENT_PROVIDER = [true|false]</b> Default value is <b>false</b>. Whether to allow dialog continuation on different provider or not.</li>
  *
@@ -612,6 +613,11 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * <a href="http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2011-1473">reference</a> and <a href="http://www.ietf.org/mail-archive/web/tls/current/msg07553.html">another reference</a>. The safe option is to disable it.</li>
  *
  * <li><b>org.restcomm.ext.java.sip.SEND_TRYING_RIGHT_AWAY = [true|false]</b> Default value is <b>true</b>. Send 100 trying as soon as message received by stack.</li>
+ *
+ * * <li><b>gov.nist.javax.sip.RFC_4028_AUTO_SUPPORTED = [true|false] </b>
+ * <br/>
+ * Default is <i>false</i>. On true, will be automatically compliant with RFC 4028
+ * </li> 
  *
  * <li><b>org.restcomm.ext.java.sip.DNS_LOOKUP_PERFORMER = classpath </b><br/>
  * The fully qualified class path for an implementation of the DNSLookupPerformer
@@ -1002,6 +1008,14 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 			super.isAutomaticDialogErrorHandlingEnabled = true;
 		}
 
+		// Set the RFC 4028 automatic support flag
+		if(configurationProperties
+				.getProperty("gov.nist.javax.sip.RFC_4028_AUTO_SUPPORTED") != null) {
+		super.isRFC4028AutoSupported = configurationProperties
+				.getProperty("gov.nist.javax.sip.RFC_4028_AUTO_SUPPORTED", "false")
+				.equals(Boolean.TRUE.toString());
+		}
+		
 		if (configurationProperties
 				.getProperty("gov.nist.javax.sip.MAX_LISTENER_RESPONSE_TIME") != null) {
 			super.maxListenerResponseTime = Integer
@@ -1749,6 +1763,8 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			throw new PeerUnavailableException("The DNS Hopper of type " + dnsLookupPerformerClassName + " could not be instantiated", e);
 		}
+		
+		
 	}
 
 	/*
@@ -2183,6 +2199,10 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 	 */
 	public boolean isSendTryingRightAway() {
 		return sendTryingRightAway;
+	}
+
+	public boolean isRFC4028AutoSupported() {
+		return isRFC4028AutoSupported;
 	}
 	
 	/**

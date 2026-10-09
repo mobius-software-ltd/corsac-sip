@@ -21,6 +21,7 @@ package gov.nist.javax.sip.stack;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.text.ParseException;
+import java.util.ListIterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.Dialog;
@@ -36,6 +37,7 @@ import javax.sip.header.ExpiresHeader;
 import javax.sip.header.RecordRouteHeader;
 import javax.sip.header.RequireHeader;
 import javax.sip.header.RouteHeader;
+import javax.sip.header.SupportedHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -51,7 +53,10 @@ import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.ParameterNames;
+import gov.nist.javax.sip.header.Require;
+import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.extensions.SessionExpires;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -287,6 +292,26 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
         }
         
         this.setTimeoutTimerActive();
+       
+        //Record our SDP if sent and contact header
+        SIPDialog sessionDialog = (SIPDialog) getDialog();
+        if(sipStack.isRFC4028AutoSupported && sessionDialog!=null && transactionResponse.getStatusCode()/100==2
+        		&& ((transactionResponse.getCSeq().getMethod().equalsIgnoreCase(Request.INVITE)) || (transactionResponse.getCSeq().getMethod().equalsIgnoreCase(Request.UPDATE)))) {
+        	sessionDialog.setSDPForReInviteRefresh(transactionResponse);
+        	//UAS dialogs never record our Contact (addTransaction runs before any response and cleans it). 
+        	//The re-INVITE refresh needs the one the peer knows
+        	if(transactionResponse.getContactHeader()!=null)
+        		sessionDialog.contactHeader = transactionResponse.getContactHeader();
+        	if((SessionExpires) transactionResponse.getHeader(SessionExpires.NAME)!=null) {
+        		if(("uac").equalsIgnoreCase(((SessionExpires) transactionResponse.getHeader(SessionExpires.NAME)).getRefresher())) {
+        			sessionDialog.scheduleSessionRefreshTimerAsRefreshee(transactionResponse);
+        			}
+        		else { 
+        			sessionDialog.scheduleSessionRefreshTimerAsRefresher(transactionResponse);
+        		}
+        	}
+        	else sessionDialog.stopSessionRefreshTimer();
+        }
         // RFC18.2.2. Sending Responses
         // The server transport uses the value of the top Via header field
         // in
@@ -375,6 +400,7 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
             }
 
         }
+       
         lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
         lastResponse = null;
     }
@@ -1197,6 +1223,33 @@ public class SIPServerTransactionImpl extends SIPTransactionImpl implements SIPS
          * the request.
          */
         final int statusCode = response.getStatusCode();
+        
+        if (sipStack.isRFC4028AutoSupported && statusCode / 100 == 2
+                && (getMethod().equals(Request.INVITE) || getMethod().equals(Request.UPDATE))
+                && getOriginalRequest() != null) {
+            SessionExpires se = (SessionExpires) sipResponse.getHeader(SessionExpires.NAME);
+            if (se == null && getOriginalRequest().getHeader(SessionExpires.NAME) != null) {
+                se = (SessionExpires) getOriginalRequest().getHeader(SessionExpires.NAME).clone();
+                sipResponse.setHeader(se);
+            }
+            if (se != null) {
+                boolean uacSupportsTimer = false;
+                ListIterator<SIPHeader> shl = getOriginalRequest().getHeaders(SupportedHeader.NAME);
+                while (shl.hasNext()) {
+                    if ("timer".equalsIgnoreCase(((SupportedHeader) shl.next()).getOptionTag())) {
+                        uacSupportsTimer = true;
+                        break;
+                    }
+                }
+                if (!uacSupportsTimer)
+                    se.setRefresher("uas");
+                else if (se.getRefresher() == null)
+                    se.setRefresher("uac");
+                if (uacSupportsTimer)
+                    sipResponse.addHeader(new Require("timer"));
+            }
+        }
+        
         if (this.getMethod().equals(Request.SUBSCRIBE) && statusCode / 100 == 2) {
 
             if (response.getHeader(ExpiresHeader.NAME) == null) {

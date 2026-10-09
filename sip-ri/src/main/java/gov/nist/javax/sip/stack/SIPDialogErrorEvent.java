@@ -61,6 +61,12 @@ public class SIPDialogErrorEvent extends EventObject {
      */
     public static final int DIALOG_ERROR_INTERNAL_COULD_NOT_TAKE_ACK_SEM = 5;
     
+    /*
+    * RFC 4028: the session expired. Either the session timer deadline passed without a successful refresh, or a session refresh got 408/481.
+    */
+   public static final int RFC4028_SESSION_EXPIRED = 6;
+
+    
 
     // ID of this error event
     private int errorID;
