@@ -564,6 +564,11 @@ public abstract class SIPTransactionImpl implements SIPTransaction {
             newState = currentState;
         // END OF PATCH
 
+        // terminated transaction shouldn't retransmit anything
+        if (newState == TransactionState._TERMINATED) {
+            disableRetransmissionTimer();
+        }
+
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
             logger.logDebug("Transaction:setState " + newState
                     + " " + this + " branchID = " + this.getBranch()

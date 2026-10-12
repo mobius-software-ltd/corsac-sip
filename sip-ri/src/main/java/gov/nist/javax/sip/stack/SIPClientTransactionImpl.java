@@ -851,6 +851,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // }
 
       } else if (300 <= statusCode && statusCode <= 699) {
+    	  disableRetransmissionTimer();
         // Send back an ACK request
 
         try {
