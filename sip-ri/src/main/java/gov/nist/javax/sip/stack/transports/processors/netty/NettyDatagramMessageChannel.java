@@ -48,6 +48,8 @@ import gov.nist.javax.sip.stack.transports.processors.oio.UDPMessageChannel;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.socket.DatagramPacket;
 
 /**
@@ -176,7 +178,16 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 	}
 
 	protected void writeDatagramPacket(DatagramPacket packet) {
-		channel.writeAndFlush(packet);
+		final InetSocketAddress recipient = packet.recipient();
+		channel.writeAndFlush(packet).addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) {
+				if (!future.isSuccess()) {
+					logger.logError("Failed to send UDP message to " + recipient + " on " + future.channel(),
+							future.cause());
+				}
+			}
+		});
 	}
 	
 	@Override
