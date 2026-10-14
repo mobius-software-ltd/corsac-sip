@@ -602,7 +602,8 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
           this.setState(TransactionState._COMPLETED);
           startTimerK(timerK);
         } else {
-          this.setState(TransactionState._TERMINATED);
+          // cleaned up below, once the response is passed up
+          this.setState(TransactionState._TERMINATED, false);
         }
         // Send the response up to the TU.
         if (respondTo != null) {
@@ -631,7 +632,8 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
           this.setState(TransactionState._COMPLETED);
           startTimerK(timerK);
         } else {
-          this.setState(TransactionState._TERMINATED);
+          // cleaned up below, once the response is passed up
+          this.setState(TransactionState._TERMINATED, false);
         }
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, sipDialog);
@@ -830,7 +832,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         disableRetransmissionTimer();
         disableTimeoutTimer();
         ServerResponseInterface respondTo = this.respondTo;
-        this.setState(TransactionState._TERMINATED);
+        this.setState(TransactionState._TERMINATED, false);
 
         // 200 responses are always seen by TU.
         if (respondTo != null)
@@ -838,6 +840,7 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // else {
         // this.semRelease();
         // }
+        cleanUpOnTerminated();
 
       } else if (statusCode / 100 == 1) {
         disableRetransmissionTimer();
@@ -854,6 +857,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
     	  disableRetransmissionTimer();
         // Send back an ACK request
 
+        // Completed before the ACK goes out: sent from Calling over a reliable
+        // transport the ACK terminates the transaction, which cleans it up and
+        // fires the terminated event before the response is passed up
+        this.setState(TransactionState._COMPLETED);
         try {
           sendMessage((SIPRequest) createErrorAck());
 
@@ -877,11 +884,11 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
 
         ServerResponseInterface respondTo = this.respondTo;
         if (!isReliable()) {
-          this.setState(TransactionState._COMPLETED);
           enableTimeoutTimer(timerD);
         } else {
-          // Proceed immediately to the TERMINATED state.
-          this.setState(TransactionState._TERMINATED);
+          // Proceed immediately to the TERMINATED state, cleaned up once the
+          // response is passed up.
+          this.setState(TransactionState._TERMINATED, false);
         }
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
@@ -889,6 +896,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // else {
         // this.semRelease();
         // }
+        if (isReliable()) {
+          cleanUpOnTerminated();
+        }
         cleanUpOnTimer();
       }
     } else if (TransactionState._PROCEEDING == this.getInternalState()) {
@@ -901,15 +911,18 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // }
       } else if (statusCode / 100 == 2) {
     	ServerResponseInterface respondTo = this.respondTo;
-    	this.setState(TransactionState._TERMINATED);
+    	this.setState(TransactionState._TERMINATED, false);
         if (respondTo != null) {
           respondTo.processResponse(transactionResponse, encapsulatedChannel, dialog);
         }
         // else {
         // this.semRelease();
         // }
+        cleanUpOnTerminated();
 
       } else if (300 <= statusCode && statusCode <= 699) {
+        // Completed before the ACK goes out, as in Calling
+        this.setState(TransactionState._COMPLETED);
         // Send back an ACK request
         try {
           sendMessage((SIPRequest) createErrorAck());
@@ -923,10 +936,10 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // JvB: update state before passing to app
         ServerResponseInterface respondTo = this.respondTo;
         if (!isReliable()) {
-          this.setState(TransactionState._COMPLETED);
           this.enableTimeoutTimer(timerD);
         } else {
-          this.setState(TransactionState._TERMINATED);
+          // cleaned up below, once the response is passed up
+          this.setState(TransactionState._TERMINATED, false);
         }
         cleanUpOnTimer();
 
@@ -936,6 +949,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
         // else {
         // this.semRelease();
         // }
+        if (isReliable()) {
+          cleanUpOnTerminated();
+        }
 
         // JvB: duplicate with line 874
         // if (!isReliable()) {
@@ -1359,6 +1375,16 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
    */
   @Override
   public void setState(int newState) {
+    setState(newState, true);
+  }
+
+  /**
+   * @param cleanUpOnTerminated false when terminating on a final response: cleaning
+   *   up fires the transaction terminated event and, with a reentrant listener and a
+   *   release references strategy, nulls respondTo, so the caller cleans up once
+   *   the response is passed up
+   */
+  private void setState(int newState, boolean cleanUpOnTerminated) {
     // Set this timer for connection caching
     // of incoming connections.
     if (newState == TransactionState._TERMINATED && this.isReliable()
@@ -1383,7 +1409,9 @@ public class SIPClientTransactionImpl extends SIPTransactionImpl implements SIPC
                 return;
         }
 
-        cleanUpOnTerminated();
+        if (cleanUpOnTerminated) {
+          cleanUpOnTerminated();
+        }
     }
   }
 

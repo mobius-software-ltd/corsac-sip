@@ -524,7 +524,10 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 	protected Integer sctpSoLinger = null;
 
 	protected boolean computeContentLengthFromMessage = false;
-
+	
+	// log messages the transport failed to send; on UDP this adds a listener to every send
+	protected boolean logMessageSendFailures = false;
+	
 	public StackExecutor getMessageProcessorExecutor() {
 		return messageProcessorExecutor;
 	}
@@ -3661,5 +3664,13 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 
 	public Integer getSctpSoLinger() {
 		return sctpSoLinger;
+	}
+
+	public boolean isLogMessageSendFailures() {
+		return logMessageSendFailures;
+	}
+
+	public void setLogMessageSendFailures(boolean logMessageSendFailures) {
+		this.logMessageSendFailures = logMessageSendFailures;
 	}
 }
