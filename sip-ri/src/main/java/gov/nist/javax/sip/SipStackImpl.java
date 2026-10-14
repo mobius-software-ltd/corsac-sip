@@ -619,6 +619,11 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * Default is <i>false</i>. On true, will be automatically compliant with RFC 4028
  * </li> 
  *
+ * * <li><b>gov.nist.javax.sip.LOG_MESSAGE_SEND_FAILURES = [true|false] </b><br/>
+ * Default is <i>false</i>. Set true to log at ERROR level every message the Netty
+ * transport fails to send, with its destination and cause. For UDP this adds a
+ * listener to each message sent.</li>
+ *
  * <li><b>org.restcomm.ext.java.sip.DNS_LOOKUP_PERFORMER = classpath </b><br/>
  * The fully qualified class path for an implementation of the DNSLookupPerformer
  * interface. The DNSLookupPerformer Allow stack to provide its own DNS Lookup Performer instance.</li>
@@ -1737,6 +1742,13 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 		if(sctpDisableFragmentsString != null) {
 			Boolean sctpDisableFragmentsBoolean = new Boolean(sctpDisableFragmentsString).booleanValue();
 			sctpDisableFragments = sctpDisableFragmentsBoolean;
+		}
+		
+		String logMessageSendFailuresString = configurationProperties.getProperty(
+				"gov.nist.javax.sip.LOG_MESSAGE_SEND_FAILURES", null);
+		if(logMessageSendFailuresString != null) {
+			Boolean logMessageSendFailuresBoolean = new Boolean(logMessageSendFailuresString).booleanValue();
+			logMessageSendFailures = logMessageSendFailuresBoolean;
 		}
 		
 		String sendTryingRightAway = configurationProperties.getProperty("org.restcomm.ext.java.sip.SEND_TRYING_RIGHT_AWAY","false");

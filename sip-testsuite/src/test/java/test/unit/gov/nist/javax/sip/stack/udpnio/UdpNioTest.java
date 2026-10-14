@@ -79,8 +79,11 @@ public class UdpNioTest {
         shootist = new Shootist(shootistPort, shootmePort, shootistProperties);
     }
 
+    /** NIO stacks also log failed UDP sends, so a regression shows up in the test output */
     private static Properties nioUdp() {
-        return stackProperties(NioUdpMessageProcessorFactory.class.getName(), THREAD_POOL_SIZE);
+        Properties properties = stackProperties(NioUdpMessageProcessorFactory.class.getName(), THREAD_POOL_SIZE);
+        properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_SEND_FAILURES", "true");
+        return properties;
     }
 
     private static Properties defaultNettyUdp(int threadPoolSize) {

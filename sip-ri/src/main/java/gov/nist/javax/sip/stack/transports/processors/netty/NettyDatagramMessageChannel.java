@@ -178,6 +178,7 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 	}
 
 	protected void writeDatagramPacket(DatagramPacket packet) {
+		if(sipStack.isLogMessageSendFailures()) {
 		final InetSocketAddress recipient = packet.recipient();
 		channel.writeAndFlush(packet).addListener(new ChannelFutureListener() {
 			@Override
@@ -188,6 +189,9 @@ public class NettyDatagramMessageChannel extends MessageChannel implements RawMe
 				}
 			}
 		});
+		}
+		else
+			channel.writeAndFlush(packet);
 	}
 	
 	@Override
