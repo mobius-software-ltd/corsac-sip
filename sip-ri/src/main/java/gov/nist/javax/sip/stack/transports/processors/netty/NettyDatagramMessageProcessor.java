@@ -135,13 +135,10 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
                 }
                 
                 future.awaitUninterruptibly();
-                if(!future.isSuccess()) {
+                if(!future.isSuccess())
                     logger.logError("Channel Not Connected:" + future.cause());
-                    // a channel that failed to bind can not send, createMessageChannel must never pick it
-                    continue;
-                }
-
-                serverChannels.add(future.channel());                           
+                else
+                    serverChannels.add(future.channel());                           
             } 
         }
         if (serverChannels.isEmpty()) {
