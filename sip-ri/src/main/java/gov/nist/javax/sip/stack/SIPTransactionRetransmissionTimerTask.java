@@ -2,6 +2,8 @@ package gov.nist.javax.sip.stack;
 
 import java.io.Serializable;
 
+import javax.sip.TransactionState;
+
 import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
@@ -19,6 +21,13 @@ public class SIPTransactionRetransmissionTimerTask extends SIPStackTimerTask imp
          }
 
     public void runTask() {
+        // Don't rearm a dead transaction
+        if (transaction.getInternalState() == TransactionState._TERMINATED) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug("Transaction terminated, retransmission timer not re-armed " + transaction.getTransactionId());
+            return;
+        }
+
         // If I ACK has not been seen on Dialog,
         // resend last response.
         if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))

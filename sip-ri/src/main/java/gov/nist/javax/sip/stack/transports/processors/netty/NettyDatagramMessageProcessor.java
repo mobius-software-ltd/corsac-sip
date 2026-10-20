@@ -135,12 +135,14 @@ public class NettyDatagramMessageProcessor extends MessageProcessor implements N
                 }
                 
                 future.awaitUninterruptibly();
-                if(!future.isSuccess()) {
+                if(!future.isSuccess())
                     logger.logError("Channel Not Connected:" + future.cause());
-                }
-                
-                serverChannels.add(future.channel());                           
+                else
+                    serverChannels.add(future.channel());                           
             } 
+        }
+        if (serverChannels.isEmpty()) {
+            throw new IOException("Could not bind UDP port " + port);
         }
     }
 

@@ -427,7 +427,10 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 			public void operationComplete(ChannelFuture completeFuture) {
 				assert finalFuture == completeFuture;
 				if (!finalFuture.isSuccess()) {
-					if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+					if (sipStack.isLogMessageSendFailures()) {
+						logger.logError("Failed to send " + getTransport() + " message to " + peerAddress + ":" + peerPort
+								+ " on " + finalFuture.channel(), finalFuture.cause());
+					} else if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
 						logger.logDebug("Message not sent successfully " + finalFuture.cause().getMessage(),
 								(Exception) finalFuture.cause());
 					}
@@ -442,9 +445,6 @@ public class NettyStreamMessageChannel extends MessageChannel implements SIPMess
 						logger.logDebug("Message sent successfully " + channel.pipeline().toString());
 					}
 				}
-				// else {
-				// finalFuture.channel().close();
-				// }
 			}
 		});
 		// }
