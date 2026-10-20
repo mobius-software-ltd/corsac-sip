@@ -39,6 +39,7 @@ public class NettyDatagramChannelInitializer extends ChannelInitializer<Datagram
 
     @Override
     public void initChannel(DatagramChannel ch) throws Exception {        
+        NettyMessageProcessorFactory.configureRecvByteBufAllocator(ch, nettyMessageProcessor.getSIPStack());
         ChannelPipeline pipeline = ch.pipeline();        
                 
         // Decoders

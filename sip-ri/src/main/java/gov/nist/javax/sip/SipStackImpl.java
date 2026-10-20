@@ -30,6 +30,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.security.GeneralSecurityException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,6 +89,7 @@ import gov.nist.javax.sip.stack.transports.processors.DefaultTlsSecurityPolicy;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessorFactory;
 import gov.nist.javax.sip.stack.transports.processors.netty.NettyMessageProcessorFactory;
+import gov.nist.javax.sip.stack.transports.processors.netty.RecvByteBufAllocatorType;
 import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
 
 /**
@@ -433,6 +435,21 @@ import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
  * messages are dropped causing retransmissions, further increasing the load and
  * causing even more retransmissions. Good values to this property for servers
  * is a big number in the order of 8*8*1024 or higher.</li>
+ *
+ * <li><b>gov.nist.javax.sip.NETTY_RCVBUF_ALLOCATOR = [FIXED|ADAPTIVE] </b><br/>
+ * Default is Netty's own, <i>FIXED</i> for UDP and <i>ADAPTIVE</i> for TCP, TLS, WS, WSS
+ * and SCTP. Receive buffer allocator of the Netty transport. Use FIXED for UDP and SCTP,
+ * ADAPTIVE drops a message bigger than its current buffer before it grows.</li>
+ *
+ * <li><b>gov.nist.javax.sip.NETTY_RCVBUF_ALLOCATOR_SIZE = int </b><br/>
+ * Default is Netty's own. Receive buffer size of the Netty transport.
+ * FIXED: the size of every buffer, <i>2048</i> when not set. For UDP and SCTP it is the
+ * biggest message the stack can receive.
+ * ADAPTIVE: the starting buffer, <i>2048</i> when not set, rounded up to a power of two.
+ * Netty then still shrinks it after small messages and grows it again up to 65536, so a big
+ * UDP message after a run of small ones can still be dropped.
+ * From 64 to 65536: below 64 is logged and used as 64, above 65536 as 65536.
+ * Not the same as RECEIVE_UDP_BUFFER_SIZE.</li>
  *
  * <li><b>gov.nist.javax.sip.CONGESTION_CONTROL_TIMEOUT = int </b> How
  * much time messages are allowed to wait in queue before being dropped due to
@@ -1523,6 +1540,36 @@ public class SipStackImpl extends SIPTransactionStack implements SipStackExt {
 						.toString());
 		bufferSizeInteger = new Integer(bufferSize).intValue();
 		super.setSendUdpBufferSize(bufferSizeInteger);
+
+		String recvByteBufAllocator = configurationProperties.getProperty(
+				"gov.nist.javax.sip.NETTY_RCVBUF_ALLOCATOR");
+		if (recvByteBufAllocator != null) {
+			try {
+				super.setRecvByteBufAllocatorType(
+						RecvByteBufAllocatorType.valueOf(recvByteBufAllocator.trim().toUpperCase(Locale.ROOT)));
+			} catch (IllegalArgumentException e) {
+				logger.logError(
+						"Bad configuration value for gov.nist.javax.sip.NETTY_RCVBUF_ALLOCATOR="
+								+ recvByteBufAllocator, e);
+			}
+		}
+
+		String recvByteBufAllocatorSize = configurationProperties.getProperty(
+				"gov.nist.javax.sip.NETTY_RCVBUF_ALLOCATOR_SIZE");
+		if (recvByteBufAllocatorSize != null) {
+			try {
+				int size = Integer.parseInt(recvByteBufAllocatorSize.trim());
+				if (size > 0) {
+					super.setRecvByteBufAllocatorSize(size);
+				} else {
+					logger.logError("Bad configuration value for gov.nist.javax.sip.NETTY_RCVBUF_ALLOCATOR_SIZE="
+							+ recvByteBufAllocatorSize + ", must be > 0");
+				}
+			} catch (NumberFormatException e) {
+				logger.logError("Bad configuration value for gov.nist.javax.sip.NETTY_RCVBUF_ALLOCATOR_SIZE="
+						+ recvByteBufAllocatorSize, e);
+			}
+		}
 
 		String tcpReceiveBufferSize = configurationProperties.getProperty(
 				"gov.nist.javax.sip.TCP_RECEIVE_BUFFER_SIZE", null);

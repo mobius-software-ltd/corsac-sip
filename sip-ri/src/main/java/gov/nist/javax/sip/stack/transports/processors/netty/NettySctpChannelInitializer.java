@@ -43,6 +43,7 @@ public class NettySctpChannelInitializer extends ChannelInitializer<NioSctpChann
 
     @Override
     public void initChannel(NioSctpChannel ch) throws Exception {        
+        NettyMessageProcessorFactory.configureRecvByteBufAllocator(ch, sipStack);
         ChannelPipeline pipeline = ch.pipeline();
                
         // Add support for socket timeout

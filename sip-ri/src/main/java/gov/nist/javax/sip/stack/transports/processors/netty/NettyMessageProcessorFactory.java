@@ -28,10 +28,15 @@ import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.MessageProcessorFactory;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.FixedRecvByteBufAllocator;
+import io.netty.channel.MaxMessagesRecvByteBufAllocator;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
 
 /**
  * Netty Based Message Processor Factory extending the default
@@ -111,5 +116,41 @@ public class NettyMessageProcessorFactory implements MessageProcessorFactory {
             } else {
                 return new NioEventLoopGroup(threads);
             }
+        }
+
+        /*
+         * Sets NETTY_RCVBUF_ALLOCATOR(_SIZE) on a new channel, called from the channel initializers.
+         * Not done as a bootstrap option, that would drop TCP from 16 reads per loop to 1
+         */
+        public static void configureRecvByteBufAllocator(Channel channel, SIPTransactionStack sipStack) {
+            RecvByteBufAllocatorType type = sipStack.getRecvByteBufAllocatorType();
+            int size = sipStack.getRecvByteBufAllocatorSize();
+            //nothing configured, keep Netty's defaults
+            if (type == null && size <= 0) {
+                return;
+            }
+            //whatever is not configured stays Netty's default for this channel
+            boolean datagram = channel instanceof DatagramChannel;
+            if (type == null) {
+                if (datagram) {
+                    type = RecvByteBufAllocatorType.FIXED;
+                } else {
+                    type = RecvByteBufAllocatorType.ADAPTIVE;
+                }
+            }
+            //not set, Netty's default: 2048 (the UDP buffer, where streams start)
+            if (size <= 0) {
+                size = 2048;
+            }
+            MaxMessagesRecvByteBufAllocator allocator;
+            if (type == RecvByteBufAllocatorType.ADAPTIVE) {
+                //our size is where it starts, Netty's own minimum and maximum around it
+                allocator = new AdaptiveRecvByteBufAllocator(64, size, 65536);
+            } else {
+                allocator = new FixedRecvByteBufAllocator(size);
+            }
+            //keep the channel's own reads per loop (1 for UDP, 16 for TCP)
+            allocator.maxMessagesPerRead(channel.metadata().defaultMaxMessagesPerRead());
+            channel.config().setRecvByteBufAllocator(allocator);
         }
 }
