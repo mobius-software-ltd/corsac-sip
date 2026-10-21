@@ -48,6 +48,7 @@ public class NettyStreamChannelInitializer extends ChannelInitializer<SocketChan
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {        
+        NettyMessageProcessorFactory.configureRecvByteBufAllocator(ch, sipStack);
         ChannelPipeline pipeline = ch.pipeline();
 
         // Add SSL handler first to encrypt and decrypt everything.

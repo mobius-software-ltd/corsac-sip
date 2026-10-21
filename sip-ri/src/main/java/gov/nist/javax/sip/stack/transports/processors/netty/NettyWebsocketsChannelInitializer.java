@@ -42,6 +42,7 @@ public class NettyWebsocketsChannelInitializer extends ChannelInitializer<Socket
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
+        NettyMessageProcessorFactory.configureRecvByteBufAllocator(ch, nettyMessageProcessor.getSIPStack());
         ChannelPipeline pipeline = ch.pipeline();
         if (sslCtx != null) {
             pipeline.addLast(sslCtx.newHandler(ch.alloc()));

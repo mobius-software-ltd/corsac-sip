@@ -89,6 +89,7 @@ import gov.nist.javax.sip.stack.transports.processors.MessageProcessorFactory;
 import gov.nist.javax.sip.stack.transports.processors.RawMessageChannel;
 import gov.nist.javax.sip.stack.transports.processors.netty.IncomingMessageProcessingTask;
 import gov.nist.javax.sip.stack.transports.processors.netty.NettyStreamMessageProcessor;
+import gov.nist.javax.sip.stack.transports.processors.netty.RecvByteBufAllocatorType;
 import gov.nist.javax.sip.stack.transports.processors.nio.NIOMode;
 import gov.nist.javax.sip.stack.transports.processors.nio.NioTcpMessageProcessor;
 import gov.nist.javax.sip.stack.transports.processors.nio.NioTlsMessageProcessor;
@@ -383,6 +384,11 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 
 	// Receive UDP buffer size
 	protected int receiveUdpBufferSize;
+
+	// Netty receive buffer allocator and its size; null and -1 keep Netty's defaults
+	protected RecvByteBufAllocatorType recvByteBufAllocatorType;
+
+	protected int recvByteBufAllocatorSize = -1;
 
 	// Send UDP buffer size
 	protected int sendUdpBufferSize;
@@ -3062,6 +3068,30 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 	 */
 	public void setReceiveUdpBufferSize(int receiveUdpBufferSize) {
 		this.receiveUdpBufferSize = receiveUdpBufferSize;
+	}
+
+	public RecvByteBufAllocatorType getRecvByteBufAllocatorType() {
+		return recvByteBufAllocatorType;
+	}
+
+	public void setRecvByteBufAllocatorType(RecvByteBufAllocatorType recvByteBufAllocatorType) {
+		this.recvByteBufAllocatorType = recvByteBufAllocatorType;
+	}
+
+	public int getRecvByteBufAllocatorSize() {
+		return recvByteBufAllocatorSize;
+	}
+
+	public void setRecvByteBufAllocatorSize(int recvByteBufAllocatorSize) {
+		//64 to 65536: Netty's ADAPTIVE limits, 65536 is also the NIO UDP buffer
+		if (recvByteBufAllocatorSize > 0 && recvByteBufAllocatorSize < 64) {
+			logger.logWarning("Netty receive buffer size " + recvByteBufAllocatorSize + " is below 64, using 64");
+			recvByteBufAllocatorSize = 64;
+		} else if (recvByteBufAllocatorSize > 65536) {
+			logger.logWarning("Netty receive buffer size " + recvByteBufAllocatorSize + " is above 65536, using 65536");
+			recvByteBufAllocatorSize = 65536;
+		}
+		this.recvByteBufAllocatorSize = recvByteBufAllocatorSize;
 	}
 
 	/**
