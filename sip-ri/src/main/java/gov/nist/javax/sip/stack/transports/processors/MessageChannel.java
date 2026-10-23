@@ -509,6 +509,69 @@ public abstract class MessageChannel {
     }
 
     /**
+     * Copy of createBadReqRes for the 400s on TCP and Netty. createBadReqRes puts an empty line
+     * in the middle of the headers, on TCP the peer would read the rest as a new message.
+     * 
+     * @param badReq the request as received
+     * @param pe why it was rejected, goes into the reason phrase
+     * @param datagram true for UDP, the request is left out of the body if the 400 won't fit in one packet
+     * @return the 400, null if the request has no Via, CSeq, Call-ID, From or To
+     */
+    public static String createBadRequestResponse(String badReq, ParseException pe, boolean datagram) {
+
+        StringBuilder buf = new StringBuilder(512);
+        buf.append("SIP/2.0 400 Bad Request (" + pe.getLocalizedMessage() + ')');
+
+        // We need the following headers: all Vias, CSeq, Call-ID, From, To
+        if (!copyViaHeaders(badReq, buf))
+            return null;
+        if (!copyHeader(CSeqHeader.NAME, badReq, buf))
+            return null;
+        if (!copyHeader(CallIdHeader.NAME, badReq, buf))
+            return null;
+        if (!copyHeader(FromHeader.NAME, badReq, buf))
+            return null;
+        if (!copyHeader(ToHeader.NAME, badReq, buf))
+            return null;
+
+        // Should add a to-tag if not already present...
+        int toStart = buf.indexOf(ToHeader.NAME);
+        if (toStart != -1 && buf.indexOf("tag", toStart) == -1) {
+            buf.append(";tag=badreq");
+        }
+
+        //ends the last copied header, the headers below end their own lines
+        buf.append("\r\n");
+
+        // Let's add a Server header too..
+        ServerHeader s = MessageFactoryImpl.getDefaultServerHeader();
+        if ( s != null ) {
+            buf.append(s.toString());
+        }
+        int clength = badReq.length();
+        if (!datagram ||
+                clength + buf.length() + ContentTypeHeader.NAME.length()
+                + ": message/sipfrag\r\n".length() +
+                ContentLengthHeader.NAME.length()  < 1300) {
+
+            /*
+             * Check to see we are within one UDP packet.
+             */
+            ContentTypeHeader cth = new ContentType("message", "sipfrag");
+            buf.append(cth.toString());
+            ContentLength clengthHeader = new ContentLength(clength);
+            buf.append(clengthHeader.toString());
+            buf.append("\r\n" + badReq);
+        } else {
+            ContentLength clengthHeader = new ContentLength(0);
+            buf.append(clengthHeader.toString());
+            buf.append("\r\n");
+        }
+
+        return buf.toString();
+    }
+
+    /**
      * Copies a header from a request
      *
      * @param name

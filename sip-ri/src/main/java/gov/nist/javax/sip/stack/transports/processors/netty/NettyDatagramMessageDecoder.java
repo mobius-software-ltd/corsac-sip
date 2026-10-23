@@ -19,6 +19,8 @@
 package gov.nist.javax.sip.stack.transports.processors.netty;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +29,9 @@ import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.parser.NettyMessageParser;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -81,10 +85,34 @@ public class NettyDatagramMessageDecoder extends MessageToMessageDecoder<Datagra
                         logger.logError(
                             "Parsing issue !  " + content.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);
                     }
+                    String badReq = nettyMessageParser.getMalformedMessage();
+                    if (badReq != null && e instanceof ParseException) {
+                        sendBadRequest(ctx, msg.sender(), badReq, (ParseException) e);
+                    }
                 }  
             }                 
         } while (currMessage != null && content.readableBytes() > 0);
        
         out.addAll(sipMessages);                           
+    }
+
+    private void sendBadRequest(ChannelHandlerContext ctx, InetSocketAddress sender, String badReq,
+            ParseException e) {
+        if (badReq.startsWith("SIP/") || badReq.startsWith("ACK ")) {
+            return;
+        }
+        String badReqRes = MessageChannel.createBadRequestResponse(badReq, e, true);
+        if (badReqRes == null) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("Could not formulate automatic 400 Bad Request");
+            }
+            return;
+        }
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("Sending automatic 400 Bad Request:");
+            logger.logDebug(badReqRes);
+        }
+        ctx.channel().writeAndFlush(new DatagramPacket(
+                Unpooled.wrappedBuffer(badReqRes.getBytes(StandardCharsets.UTF_8)), sender));
     }
 }

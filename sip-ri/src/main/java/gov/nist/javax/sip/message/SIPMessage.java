@@ -516,6 +516,12 @@ public abstract class SIPMessage extends MessageObject implements MessageExt {
                 siphdr.encode(encoding);
             }
         }
+        //encode() writes the unrecognized headers too, without them a forwarded message drops the malformed headers
+        if (unrecognizedHeaders != null) {
+            for (String unrecognized : unrecognizedHeaders) {
+                encoding.append(unrecognized).append(NEWLINE);
+            }
+        }
         contentLengthHeader.encode(encoding);
         encoding.append(NEWLINE);
 

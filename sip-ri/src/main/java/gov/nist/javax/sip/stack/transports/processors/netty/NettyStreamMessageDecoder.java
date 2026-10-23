@@ -18,6 +18,8 @@
  */
 package gov.nist.javax.sip.stack.transports.processors.netty;
 
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +29,7 @@ import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.parser.NettyMessageParser;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.transports.processors.MessageChannel;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -71,6 +74,10 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
                         logger.logError(
                             "Parsing issue !  " + in.toString(io.netty.util.CharsetUtil.UTF_8) + " " + e.getMessage(), e);
                     }
+                    String badReq = nettyMessageParser.getMalformedMessage();
+                    if (badReq != null && e instanceof ParseException) {
+                        sendBadRequest(ctx, badReq, (ParseException) e);
+                    }
                     // in.clear();
                 }    
             }
@@ -80,5 +87,24 @@ public class NettyStreamMessageDecoder extends ByteToMessageDecoder {
         } while (currMessage != null && in.readableBytes() > 0);                    
         
         out.addAll(sipMessages);       
+    }
+
+    // RFC 3261 21.4.1: 400 for a malformed request, never for ACK or a response
+    private void sendBadRequest(ChannelHandlerContext ctx, String badReq, ParseException e) {
+        if (badReq.startsWith("SIP/") || badReq.startsWith("ACK ")) {
+            return;
+        }
+        String badReqRes = MessageChannel.createBadRequestResponse(badReq, e, false);
+        if (badReqRes == null) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+                logger.logDebug("Could not formulate automatic 400 Bad Request");
+            }
+            return;
+        }
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("Sending automatic 400 Bad Request:");
+            logger.logDebug(badReqRes);
+        }
+        ctx.channel().writeAndFlush(badReqRes.getBytes(StandardCharsets.UTF_8));
     }
 }

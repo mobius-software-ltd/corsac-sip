@@ -472,6 +472,8 @@ public class TLSMessageChannel extends ConnectionOrientedMessageChannel {
             }
             throw ex;
         } else {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_WARN))
+                logger.logWarning("Malformed header added to unrecognized headers: " + header + " " + ex.getMessage());
             sipMessage.addUnparsed(header);
         }
     }       
