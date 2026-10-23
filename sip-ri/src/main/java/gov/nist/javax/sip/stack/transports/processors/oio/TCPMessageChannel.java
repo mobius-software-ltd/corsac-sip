@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 
 /*
@@ -456,32 +457,47 @@ public class TCPMessageChannel extends ConnectionOrientedMessageChannel {
             }
 
             // JvB: send a 400 response for requests (except ACK)
-            // Currently only UDP, @todo also other transports
             String msgString = sipMessage.toString();
+            //the 400 needs the request as received, sipMessage no longer has the header that failed
+            if (message != null) {
+                msgString = message;
+            }
             if (!msgString.startsWith("SIP/") && !msgString.startsWith("ACK ")) {
-            	if(mySock != null)
-            	{
-	            	 if (logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {
-	            		 logger.logError("Malformed mandatory headers: closing socket! :" + mySock.toString());
-	            	 }
-	                
-	            	try
-	            	{
-	            		mySock.close();
-	            		
-	            	} catch(IOException ie)
-	            	{
-	            		if (logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {
-	            			logger.logError("Exception while closing socket! :" + mySock.toString() + ":" + ie.toString());
-	            		}
-	            		
-	            	}
-            	}
+            	sendBadRequest(msgString, ex);
             }
 
             throw ex;
         } else {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_WARN))
+                logger.logWarning("Malformed header added to unrecognized headers: " + header + " " + ex.getMessage());
             sipMessage.addUnparsed(header);
+        }
+    }
+
+    //writes on this connection itself. sendMessage looks the connection up in IOHandler
+    //for a broken first message it would open a new connection instead
+    private void sendBadRequest(String badReq, ParseException ex) {
+        String badReqRes = createBadRequestResponse(badReq, ex, false);
+        if (badReqRes == null) {
+            if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+                logger.logDebug("Could not formulate automatic 400 Bad Request");
+            return;
+        }
+        if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+            logger.logDebug("Sending automatic 400 Bad Request:");
+            logger.logDebug(badReqRes);
+        }
+        OutputStream outputStream = myClientOutputStream;
+        if (outputStream == null)
+            return;
+        try {
+            //IOHandler.writeChunks locks the stream the same way, the 400 can't land in the middle of another write
+            synchronized (outputStream) {
+                outputStream.write(badReqRes.getBytes(StandardCharsets.UTF_8));
+            }
+            outputStream.flush();
+        } catch (IOException e) {
+            logger.logException(e);
         }
     }    
 

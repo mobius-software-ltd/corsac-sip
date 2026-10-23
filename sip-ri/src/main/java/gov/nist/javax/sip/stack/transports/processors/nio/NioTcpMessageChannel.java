@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.Queue;
 
@@ -400,32 +401,38 @@ public class NioTcpMessageChannel extends ConnectionOrientedMessageChannel {
 			}
 
 			// JvB: send a 400 response for requests (except ACK)
-			// Currently only UDP, @todo also other transports
 			String msgString = sipMessage.toString();
+			//the 400 needs the request as received, sipMessage no longer has the header that failed
+			if (message != null) {
+				msgString = message;
+			}
 			if (!msgString.startsWith("SIP/") && !msgString.startsWith("ACK ")) {
-				if (socketChannel != null) {
-					if (logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {
-						logger
-								.logError("Malformed mandatory headers: closing socket! :"
-										+ socketChannel.toString());
-					}
-
-					try {
-						socketChannel.close();
-
-					} catch (IOException ie) {
-						if (logger.isLoggingEnabled(LogWriter.TRACE_ERROR)) {
-							logger.logError("Exception while closing socket! :"
-									+ socketChannel.toString() + ":" + ie.toString());
-						}
-
-					}
-				}
+				sendBadRequest(msgString, ex);
 			}
 
 			throw ex;
 		} else {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_WARN))
+				logger.logWarning("Malformed header added to unrecognized headers: " + header + " " + ex.getMessage());
 			sipMessage.addUnparsed(header);
+		}
+	}
+
+	private void sendBadRequest(String badReq, ParseException ex) {
+		String badReqRes = createBadRequestResponse(badReq, ex, false);
+		if (badReqRes == null) {
+			if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG))
+				logger.logDebug("Could not formulate automatic 400 Bad Request");
+			return;
+		}
+		if (logger.isLoggingEnabled(LogWriter.TRACE_DEBUG)) {
+			logger.logDebug("Sending automatic 400 Bad Request:");
+			logger.logDebug(badReqRes);
+		}
+		try {
+			sendMessage(badReqRes.getBytes(StandardCharsets.UTF_8), false);
+		} catch (IOException e) {
+			logger.logException(e);
 		}
 	}
 
