@@ -26,10 +26,16 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.LogWriter;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SIPConstants;
+import gov.nist.javax.sip.header.CSeq;
+import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
+import gov.nist.javax.sip.header.From;
+import gov.nist.javax.sip.header.NameMap;
 import gov.nist.javax.sip.header.RequestLine;
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.StatusLine;
+import gov.nist.javax.sip.header.To;
+import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -64,6 +70,10 @@ public class NettyMessageParser {
 	private	ParsingState parsingState; 
 	private	ParsingState parsingPartialState;    
 	private ParseException parseException;
+	//true when a mandatory header of this message failed to parse
+	private boolean malformed = false;
+	//kept for the decoders' 400 after consumeSIPMessage throws
+	private SIPMessage malformedMessage = null;
 
 	private int contentLength = -1;	
 	private int maxMessageSize = -1;        
@@ -247,6 +257,12 @@ public class NettyMessageParser {
 		}
 	}
 
+	private static boolean isMandatory(Class<?> headerClass) {
+		return headerClass != null && (headerClass.equals(From.class) || headerClass.equals(To.class)
+				|| headerClass.equals(CSeq.class) || headerClass.equals(Via.class)
+				|| headerClass.equals(CallID.class) || headerClass.equals(ContentLength.class));
+	}
+
 	public void readMessageBody(ByteBuf byteBuf, int readableBytes, SIPMessage message) {				
 		if(readableBytes >= contentLength) {	
 			int readerIndex = byteBuf.readerIndex();
@@ -279,10 +295,12 @@ public class NettyMessageParser {
 		parsingPartialState = ParsingState.INIT;
 		contentLength = -1;	
 		parseException = null;
+		malformed = false;
 		this.sipMessage = null;		
 	}	
 
     public SIPMessage consumeSIPMessage() throws ParseException {
+		malformedMessage = null;
 		
 		if(parsingState == ParsingState.READING_PARTIAL) {
 			parsingState = parsingPartialState;
@@ -303,10 +321,18 @@ public class NettyMessageParser {
 			// if there was a problem parsing the message, 
 			// we don't return a SIP Message and throw an exception
 			ParseException retVal = this.parseException;			
+			if(malformed) {
+				malformedMessage = this.sipMessage;
+			}
 			reset();			
 			throw retVal;
 		}
     }	
+
+	//null unless the last consumeSIPMessage threw for a broken mandatory header
+	public SIPMessage getMalformedMessage() {
+		return malformedMessage;
+	}
 
 	public boolean isMessageComplete() {
 		return parsingState == ParsingState.PARSING_COMPLETE 
@@ -358,7 +384,22 @@ public class NettyMessageParser {
 			SIPHeader sipHeader = headerParser.parse();
             sipMessage.attachHeader(sipHeader, false);
         } catch (ParseException ex) {
-			parseException = ex;
+			String headerName = Lexer.getHeaderName(header);
+			Class<?> headerClass = null;
+			if(headerName != null) {
+				headerClass = NameMap.getClassFromName(headerName);
+			}
+			if(isMandatory(headerClass)) {
+				parseException = ex;
+				malformed = true;
+			} else if(header.length() == 0) {
+				parseException = ex;
+			} else {
+				if(logger.isLoggingEnabled(LogWriter.TRACE_WARN)) {
+					logger.logWarning("Malformed header added to unrecognized headers: " + header + " " + ex.getMessage());
+				}
+				sipMessage.addUnparsed(header);
+			}
         }
     }
 

@@ -1,9 +1,14 @@
 package test.unit.gov.nist.javax.sip.stack.malformed;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,11 +35,18 @@ public class Shootist {
     /** as in the capture, no closing '>' */
     static final String MALFORMED_P_PREFERRED_IDENTITY = "P-Preferred-Identity: <sip:+41555521580@sips.peoplefone.ch";
 
+    static final String P_PREFERRED_IDENTITY = "P-Preferred-Identity: <sip:+41555521580@sips.peoplefone.ch>";
+
+    /** no closing '>', for the answer to come back with */
+    static final String MALFORMED_P_ASSERTED_IDENTITY = "P-Asserted-Identity: <sip:+41817500770@sips.peoplefone.ch";
+
     /** top Via branch from the capture */
     private static final String BRANCH = "z9hG4bKec96.917cddc0a4184a5280db5ba975a8f35f.0";
 
     private static final String REQUEST_URI = "sip:+41817500770@95.128.84.2:5060";
     private static final String FROM = "From: \"Matteo Facino\" <sip:+41555521580@50.93.36.47>;tag=as0f75d8b4";
+    /** no closing '>', From is mandatory */
+    private static final String MALFORMED_FROM = "From: \"Matteo Facino\" <sip:+41555521580@50.93.36.47;tag=as0f75d8b4";
     private static final String TO = "To: <sip:+41817500770@sips.peoplefone.ch:5060>";
     private static final String CALL_ID = "73bda81168f72f7a1d741c63044e1643";
     private static final long CSEQ = 103;
@@ -47,25 +59,50 @@ public class Shootist {
 
     private final int port;
     private final int peerPort;
+    private final String transport;
 
+    //one of the two, by transport
     private final DatagramSocket socket;
+    private final Socket tcpSocket;
+    private volatile boolean connectionClosed;
     private final MessageFactoryImpl messageFactory = new MessageFactoryImpl();
 
     private final List<MessageRecord> receivedResponses = Collections
             .synchronizedList(new ArrayList<MessageRecord>());
+    /** as received, the parser here drops what it can't parse */
+    private final List<String> receivedText = Collections.synchronizedList(new ArrayList<String>());
 
     public Shootist(int port, int peerPort) {
+        this(port, peerPort, "udp");
+    }
+
+    /** transport is udp or tcp, for tcp the connection comes from port so the top Via matches it */
+    public Shootist(int port, int peerPort, String transport) {
         this.port = port;
         this.peerPort = peerPort;
+        this.transport = transport;
         try {
-            this.socket = new DatagramSocket(port, InetAddress.getByName(myAddress));
+            if (transport.equals("tcp")) {
+                this.socket = null;
+                this.tcpSocket = new Socket();
+                tcpSocket.setReuseAddress(true);
+                tcpSocket.bind(new InetSocketAddress(myAddress, port));
+                tcpSocket.connect(new InetSocketAddress(myAddress, peerPort));
+            } else {
+                this.socket = new DatagramSocket(port, InetAddress.getByName(myAddress));
+                this.tcpSocket = null;
+            }
         } catch (Exception ex) {
             throw new RuntimeException("could not create shootist", ex);
         }
         Thread receiver = new Thread(new Runnable() {
             @Override
             public void run() {
-                receive();
+                if (tcpSocket != null) {
+                    receiveTcp();
+                } else {
+                    receive();
+                }
             }
         }, "shootist-" + port);
         receiver.setDaemon(true);
@@ -74,12 +111,23 @@ public class Shootist {
 
     /** INVITE from the capture with identityHeader, top Via is ours so the response comes back here */
     public void sendInvite(String identityHeader) throws IOException {
-        String invite = "INVITE " + REQUEST_URI + " SIP/2.0\r\n"
+        logger.logInfo("shootist:" + port + " sending INVITE with " + identityHeader);
+        send(invite(identityHeader, FROM));
+    }
+
+    /** same INVITE with a well-formed identity and a From without '>' */
+    public void sendInviteWithMalformedFrom() throws IOException {
+        logger.logInfo("shootist:" + port + " sending INVITE with " + MALFORMED_FROM);
+        send(invite(P_PREFERRED_IDENTITY, MALFORMED_FROM));
+    }
+
+    private String invite(String identityHeader, String from) {
+        return "INVITE " + REQUEST_URI + " SIP/2.0\r\n"
                 + "Record-Route: <sip:95.128.80.3;lr=on;did=cfa.d8d6>\r\n"
                 + topVia() + "\r\n"
                 + "Via: SIP/2.0/UDP 50.93.36.47;received=50.93.36.47;branch=z9hG4bKec96.3ba95b94e819d1501651b01423e8cfbf.0;rport=5060\r\n"
                 + "Max-Forwards: 68\r\n"
-                + FROM + "\r\n"
+                + from + "\r\n"
                 + TO + "\r\n"
                 + "Contact: <sip:+41555521580@50.93.36.47;transport=UDP;alias=50.93.36.47~5060~1>\r\n"
                 + "Call-ID: " + CALL_ID + "\r\n"
@@ -100,17 +148,19 @@ public class Shootist {
                 + "X-src-ip: 50.93.36.47\r\n"
                 + "\r\n"
                 + OFFER_SDP;
-        logger.logInfo("shootist:" + port + " sending INVITE with " + identityHeader);
-        send(invite);
     }
 
     /** RFC 3261 17.1.1.3: ACK to a non-2xx final response, same branch, To tag of the response */
     private void sendAck(MessageRecord response) throws IOException {
+        String to = TO;
+        if (response.toTag != null) {
+            to = TO + ";tag=" + response.toTag;
+        }
         String ack = "ACK " + REQUEST_URI + " SIP/2.0\r\n"
                 + topVia() + "\r\n"
                 + "Max-Forwards: 70\r\n"
                 + FROM + "\r\n"
-                + TO + (response.toTag != null ? ";tag=" + response.toTag : "") + "\r\n"
+                + to + "\r\n"
                 + "Call-ID: " + CALL_ID + "\r\n"
                 + "CSeq: " + CSEQ + " ACK\r\n"
                 + "Content-Length: 0\r\n"
@@ -119,11 +169,19 @@ public class Shootist {
     }
 
     private String topVia() {
-        return "Via: SIP/2.0/UDP " + myAddress + ":" + port + ";branch=" + BRANCH;
+        return "Via: SIP/2.0/" + transport.toUpperCase() + " " + myAddress + ":" + port + ";branch=" + BRANCH;
     }
 
     private void send(String message) throws IOException {
         byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+        if (tcpSocket != null) {
+            OutputStream out = tcpSocket.getOutputStream();
+            synchronized (out) {
+                out.write(bytes);
+                out.flush();
+            }
+            return;
+        }
         socket.send(new DatagramPacket(bytes, bytes.length, InetAddress.getByName(myAddress), peerPort));
     }
 
@@ -137,17 +195,66 @@ public class Shootist {
                 // socket closed by stop()
                 return;
             }
-            String message = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8);
-            try {
-                MessageRecord record = Records.record(messageFactory.createResponse(message));
-                receivedResponses.add(record);
-                logger.logInfo("shootist:" + port + " received " + record);
-                if (record.status >= 300 && Request.INVITE.equals(record.method)) {
-                    sendAck(record);
+            handle(new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8));
+        }
+    }
+
+    //splits the stream into messages by the empty line and Content-Length
+    private void receiveTcp() {
+        ByteArrayOutputStream pending = new ByteArrayOutputStream();
+        byte[] buffer = new byte[65535];
+        try {
+            InputStream in = tcpSocket.getInputStream();
+            int read = in.read(buffer);
+            while (read != -1) {
+                pending.write(buffer, 0, read);
+                String text = new String(pending.toByteArray(), StandardCharsets.UTF_8);
+                int headersEnd = text.indexOf("\r\n\r\n");
+                while (headersEnd != -1) {
+                    int end = headersEnd + 4 + contentLength(text.substring(0, headersEnd));
+                    if (end > text.length()) {
+                        break;
+                    }
+                    handle(text.substring(0, end));
+                    text = text.substring(end);
+                    headersEnd = text.indexOf("\r\n\r\n");
                 }
-            } catch (Exception ex) {
-                logger.logError("shootist: could not handle what came back:\n" + message, ex);
+                pending.reset();
+                pending.write(text.getBytes(StandardCharsets.UTF_8));
+                read = in.read(buffer);
             }
+            connectionClosed = true;
+            logger.logInfo("shootist:" + port + " connection closed by the peer");
+        } catch (IOException ex) {
+            // socket closed by stop(), or reset by the peer
+            connectionClosed = true;
+        }
+    }
+
+    private static int contentLength(String headers) {
+        for (String line : headers.split("\r\n")) {
+            int colon = line.indexOf(':');
+            if (colon > 0) {
+                String name = line.substring(0, colon).trim();
+                if (name.equalsIgnoreCase("Content-Length") || name.equalsIgnoreCase("l")) {
+                    return Integer.parseInt(line.substring(colon + 1).trim());
+                }
+            }
+        }
+        return 0;
+    }
+
+    private void handle(String message) {
+        receivedText.add(message);
+        try {
+            MessageRecord record = Records.record(messageFactory.createResponse(message));
+            receivedResponses.add(record);
+            logger.logInfo("shootist:" + port + " received " + record);
+            if (record.status >= 300 && Request.INVITE.equals(record.method)) {
+                sendAck(record);
+            }
+        } catch (Exception ex) {
+            logger.logError("shootist: could not handle what came back:\n" + message, ex);
         }
     }
 
@@ -164,7 +271,32 @@ public class Shootist {
         };
     }
 
+    /** a message that came back has this header line as is */
+    public boolean receivedLine(String line) {
+        synchronized (receivedText) {
+            for (String message : receivedText) {
+                if (message.contains("\r\n" + line + "\r\n")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** tcp only: the peer closed the connection */
+    public boolean isConnectionClosed() {
+        return connectionClosed;
+    }
+
     public void stop() {
+        if (tcpSocket != null) {
+            try {
+                tcpSocket.close();
+            } catch (IOException ex) {
+                // closing anyway
+            }
+            return;
+        }
         socket.close();
     }
 }

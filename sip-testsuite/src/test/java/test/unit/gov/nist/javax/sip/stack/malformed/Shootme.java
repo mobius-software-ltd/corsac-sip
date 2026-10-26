@@ -27,6 +27,7 @@ import gov.nist.core.CommonLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.header.ims.PAssertedIdentityHeader;
 import gov.nist.javax.sip.header.ims.PPreferredIdentityHeader;
+import gov.nist.javax.sip.message.SIPMessage;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.unit.gov.nist.javax.sip.stack.malformed.Records.MessageRecord;
 
@@ -39,13 +40,11 @@ public class Shootme implements SipListener {
 
     private static final StackLogger logger = CommonLogger.getLogger(Shootme.class);
     private static final String myAddress = "127.0.0.1";
-    private static final String transport = "udp";
 
     /** non-2xx, no dialog to tear down */
     static final int INVITE_ANSWER = Response.BUSY_HERE;
 
     private final int port;
-
     private final MessageFactory messageFactory;
     private final SipStack sipStack;
     private SipProvider sipProvider;
@@ -54,9 +53,15 @@ public class Shootme implements SipListener {
     private final List<MessageRecord> receivedRequests = Collections.synchronizedList(new ArrayList<MessageRecord>());
 
     private volatile boolean ioExceptionSeen;
+    private volatile String malformedResponseHeader;
 
     /** transport set here, -DenableNetty / -DenableNIO don't apply */
     public Shootme(int port, String messageProcessorFactory) {
+        this(port, messageProcessorFactory, "udp");
+    }
+
+    /** transport is udp or tcp */
+    public Shootme(int port, String messageProcessorFactory, String transport) {
         this.port = port;
         Properties properties = new Properties();
         properties.setProperty("gov.nist.javax.sip.STACK_LOGGER", RecordingStackLogger.class.getName());
@@ -99,6 +104,9 @@ public class Shootme implements SipListener {
                 response = messageFactory.createResponse(INVITE_ANSWER, request);
             }
             ((ToHeader) response.getHeader(ToHeader.NAME)).setTag(Integer.toHexString(new Random().nextInt()));
+            if (malformedResponseHeader != null) {
+                ((SIPMessage) response).addUnparsed(malformedResponseHeader);
+            }
             logger.logInfo("shootme:" + port + " answering INVITE with " + response.getStatusCode() + " "
                     + response.getReasonPhrase());
             st.sendResponse(response);
@@ -136,6 +144,11 @@ public class Shootme implements SipListener {
 
     public void processDialogTerminated(DialogTerminatedEvent e) {
         logger.logInfo("dialog terminated event recieved:" + e);
+    }
+
+    /** sent as is in the answer to the INVITE, like a header the stack could not parse */
+    public void setMalformedResponseHeader(String header) {
+        this.malformedResponseHeader = header;
     }
 
     public boolean isIoExceptionSeen() {
