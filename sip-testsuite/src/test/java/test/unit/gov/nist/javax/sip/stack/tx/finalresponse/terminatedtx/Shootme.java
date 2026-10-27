@@ -3,6 +3,7 @@ package test.unit.gov.nist.javax.sip.stack.tx.finalresponse.terminatedtx;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
@@ -13,6 +14,7 @@ import javax.sip.ServerTransaction;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
+import javax.sip.Timeout;
 import javax.sip.TimeoutEvent;
 import javax.sip.TransactionState;
 import javax.sip.TransactionTerminatedEvent;
@@ -23,7 +25,6 @@ import javax.sip.message.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import gov.nist.javax.sip.IOExceptionEventExt;
 import test.tck.msgflow.callflows.ProtocolObjects;
 import test.tck.msgflow.callflows.TestAssertion;
 
@@ -31,8 +32,8 @@ import test.tck.msgflow.callflows.TestAssertion;
  * This class is a UAS template. Shootist is the guy that shoots and shootme is
  * the guy that gets shot.
  * Dialog support off. Answers the REGISTER through the stx the stack made for it, as set by
- * {@link Flow}. Keeps the status of every response the stack reports as refused on a finalised stx
- * (FinalisedTransactionTriedResponding), and every other exception with its step.
+ * {@link Flow}. Counts the transaction timeouts raised on the REGISTER stx (a SipException in the
+ * send task reaches the app as one), keeps every other exception with its step.
  */
 public class Shootme implements SipListener {
 
@@ -61,8 +62,8 @@ public class Shootme implements SipListener {
     /** getState() right before the 504 of {@link #sendTimeout()} */
     private volatile TransactionState stateBeforeTimeout;
     private volatile boolean flowDone;
-    /** status of each response the stack refused on the finalised stx, in order */
-    private final List<Integer> refused = Collections.synchronizedList(new ArrayList<Integer>());
+    /** transaction timeouts raised on the REGISTER stx */
+    private final AtomicInteger transactionTimeouts = new AtomicInteger();
     /** "step: exception", in the order they were thrown */
     private final List<String> exceptions = Collections.synchronizedList(new ArrayList<String>());
     private volatile Throwable firstException;
@@ -155,17 +156,17 @@ public class Shootme implements SipListener {
     }
 
     public void processTimeout(TimeoutEvent e) {
-        logger.info("timeout event:" + e);
+        logger.info("shootme:" + port + " timeout " + e.getTimeout());
+        ServerTransaction st = registerStx;
+        if (!e.isServerTransaction() || st == null || e.getServerTransaction() != st
+                || e.getTimeout() != Timeout.TRANSACTION) {
+            caught("TimeoutEvent", new Exception("unexpected timeout " + e.getTimeout()));
+            return;
+        }
+        transactionTimeouts.incrementAndGet();
     }
 
     public void processIOException(IOExceptionEvent e) {
-        if (e instanceof IOExceptionEventExt && ((IOExceptionEventExt) e)
-                .getReason() == IOExceptionEventExt.Reason.FinalisedTransactionTriedResponding) {
-            int statusCode = ((Response) ((IOExceptionEventExt) e).getMessage()).getStatusCode();
-            logger.info("shootme:" + port + " stack refused " + statusCode + " on the finalised stx");
-            refused.add(statusCode);
-            return;
-        }
         caught("IOExceptionEvent", new java.io.IOException(e.getHost() + ":" + e.getPort() + "/" + e.getTransport()));
     }
 
@@ -187,10 +188,8 @@ public class Shootme implements SipListener {
         return firstException;
     }
 
-    public List<Integer> getRefused() {
-        synchronized (refused) {
-            return new ArrayList<Integer>(refused);
-        }
+    public int getTransactionTimeouts() {
+        return transactionTimeouts.get();
     }
 
     public TransactionState getStateBeforeTimeout() {
@@ -202,7 +201,7 @@ public class Shootme implements SipListener {
         ServerTransaction st = registerStx;
         return transport + ", " + flow
                 + (flow == Flow.NORMAL ? ", getState() before the 504 " + stateBeforeTimeout : "") + ", now "
-                + (st != null ? st.getState() : "no stx") + ", refused " + getRefused() + ", exceptions "
+                + (st != null ? st.getState() : "no stx") + ", transaction timeouts " + getTransactionTimeouts() + ", exceptions "
                 + getExceptions();
     }
 

@@ -3,7 +3,6 @@ package test.unit.gov.nist.javax.sip.stack.tx.finalresponse.terminatedtx;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
 import java.util.List;
 
 import javax.sip.TransactionState;
@@ -60,21 +59,21 @@ public class TerminatedTransactionResponseSentTest {
         shootme.sendTimeout();
         assertEquals("stx state when the 504 is sent, " + shootme.describe(), TransactionState.COMPLETED,
                 shootme.getStateBeforeTimeout());
-        assertOneFinal(Response.OK, Response.SERVER_TIMEOUT);
+        assertOneFinal(Response.OK);
     }
 
     /** 200 and 504 queued, stx terminated before the worker runs them: the 504 is refused. */
     @Test(timeout = 30000)
     public void testTerminated() throws Exception {
         register(Flow.TERMINATED);
-        assertOneFinal(Response.OK, Response.SERVER_TIMEOUT);
+        assertOneFinal(Response.OK);
     }
 
     /** Two 504s queued back to back: the second is refused. */
     @Test(timeout = 30000)
     public void testDouble504() throws Exception {
         register(Flow.DOUBLE_504);
-        assertOneFinal(Response.SERVER_TIMEOUT, Response.SERVER_TIMEOUT);
+        assertOneFinal(Response.SERVER_TIMEOUT);
     }
 
     /** REGISTER in, the UAS runs its flow */
@@ -88,7 +87,7 @@ public class TerminatedTransactionResponseSentTest {
     }
 
     /** any exception fails the test as the cause, then one final on the wire and one refused */
-    private void assertOneFinal(int statusCode, int refusedStatusCode) throws Exception {
+    private void assertOneFinal(int statusCode) throws Exception {
         Thread.sleep(QUIET);
         List<String> exceptions = shootme.getExceptions();
         if (!exceptions.isEmpty()) {
@@ -99,7 +98,8 @@ public class TerminatedTransactionResponseSentTest {
         assertEquals("finals to the REGISTER on the wire " + finals + ", " + shootme.describe(), 1, finals.size());
         assertEquals("the UAC must get the " + statusCode + ", on its REGISTER",
                 statusCode + " " + shootist.getRegisterBranch(), finals.get(0));
-        assertEquals("the app must be told the stack refused the " + refusedStatusCode + ", " + shootme.describe(),
-                Collections.singletonList(refusedStatusCode), shootme.getRefused());
+        //the app only sees the transaction timeout
+        assertEquals("the send task must throw a SipException on the second final, " + shootme.describe(), 1,
+                shootme.getTransactionTimeouts());
     }
 }
