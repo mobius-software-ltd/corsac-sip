@@ -30,7 +30,7 @@ public class IOExceptionEventExt extends IOExceptionEvent {
     private final int myPort;   
     private Reason reason = null;
     private Message message;
-    public enum Reason {KeepAliveTimeout, ConnectionFailure, ConnectionError, MessageToLong, NoListeninPointForTransport};
+    public enum Reason {KeepAliveTimeout, ConnectionFailure, ConnectionError, MessageToLong, NoListeninPointForTransport, FinalisedTransactionTriedResponding};
 
     public IOExceptionEventExt(Message message, Object source, Reason reason, String myHost, int myPort, String peerHost, int peerPort, String transport) {
         super(source, peerHost, peerPort, transport);
