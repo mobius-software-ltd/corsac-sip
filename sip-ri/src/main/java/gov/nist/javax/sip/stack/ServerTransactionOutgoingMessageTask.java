@@ -62,7 +62,11 @@ public class ServerTransactionOutgoingMessageTask implements SIPTask {
         final int statusCode = sipResponse.getStatusCode();
         final String responseMethod = sipResponse.getCSeq().getMethod();        
         try {
-            
+            //make sure non-INVITE doesn't get a double final
+            if(!serverTransaction.isInviteTransaction() && serverTransaction.lastResponseStatusCode/100 > 1) {
+                throw new SipException("Final response already sent on this transaction, not sending " + statusCode);
+            }
+
             // Sending the final response cancels the
             // pending response task.
             if (sipDialog != null && sipDialog.pendingReliableResponseAsBytes != null && sipResponse.isFinalResponse()) {
