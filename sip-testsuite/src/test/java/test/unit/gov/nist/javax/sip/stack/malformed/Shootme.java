@@ -66,6 +66,7 @@ public class Shootme implements SipListener {
         Properties properties = new Properties();
         properties.setProperty("gov.nist.javax.sip.STACK_LOGGER", RecordingStackLogger.class.getName());
         properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", messageProcessorFactory);
+        properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "1");
         // TRACE_LEVEL=LOG4J in an earlier test turns this off for the whole JVM, RecordingStackLogger would be skipped
         CommonLogger.useLegacyLogger = true;
         ProtocolObjects protocolObjects = new ProtocolObjects("shootme-" + port, "gov.nist", transport, true, false,
@@ -87,6 +88,10 @@ public class Shootme implements SipListener {
         MessageRecord record = Records.record(request);
         receivedRequests.add(record);
         logger.logInfo("shootme:" + port + " received " + record);
+        if (request.getMethod().equals(Request.OPTIONS)) {
+            answerOptions(requestEvent, request);
+            return;
+        }
         if (!request.getMethod().equals(Request.INVITE)) {
             return;
         }
@@ -112,6 +117,19 @@ public class Shootme implements SipListener {
             st.sendResponse(response);
         } catch (Exception ex) {
             logger.logError("shootme: could not answer INVITE", ex);
+        }
+    }
+
+    /** 200 OK to any OPTIONS: shows the socket still receives and sends */
+    private void answerOptions(RequestEvent requestEvent, Request request) {
+        try {
+            ServerTransaction st = requestEvent.getServerTransaction();
+            if (st == null) {
+                st = sipProvider.getNewServerTransaction(request);
+            }
+            st.sendResponse(messageFactory.createResponse(Response.OK, request));
+        } catch (Exception ex) {
+            logger.logError("shootme: could not answer OPTIONS", ex);
         }
     }
 
@@ -157,6 +175,10 @@ public class Shootme implements SipListener {
 
     public List<MessageRecord> getReceivedInvites() {
         return Records.requests(receivedRequests, Request.INVITE);
+    }
+
+    public List<MessageRecord> getReceivedOptions() {
+        return Records.requests(receivedRequests, Request.OPTIONS);
     }
 
     /** ParseExceptions logged by the stack */

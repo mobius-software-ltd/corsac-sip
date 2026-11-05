@@ -132,6 +132,12 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {        
+        // UDP: drop the datagram, keep the socket going
+        if (!reliableTransport) {
+            logger.logError("Exception " + cause.getClass().getName() + " while processing datagram on channel "
+                    + ctx.channel() + " - datagram dropped, channel kept open", cause);
+            return;
+        }
         if (cause instanceof ReadTimeoutException) {
             logger.logError("Read Timeout Received on channel " + ctx.channel() + ", closing channel", (Exception)cause);
             ctx.channel().close();            
