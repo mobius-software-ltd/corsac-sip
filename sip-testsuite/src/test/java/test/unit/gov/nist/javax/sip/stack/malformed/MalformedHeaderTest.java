@@ -1,8 +1,14 @@
 package test.unit.gov.nist.javax.sip.stack.malformed;
 
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.UUID;
 
 import javax.sip.header.ExpiresHeader;
 import javax.sip.message.Response;
@@ -29,7 +35,8 @@ import test.unit.gov.nist.javax.sip.stack.malformed.Records.MessageRecord;
  * Malformed P-Preferred-Identity (no closing '>'): per RFC 3261 the stack ignores it and
  * passes the INVITE on, keeps the header for forwarding, leaves answering to the app
  * <p>
- * The other flows cover Netty TCP, a broken From and a proxy in between, the tests after them feed the Netty parser directly
+ * The other flows cover Netty TCP, a broken From, a proxy in between and broken datagrams on Netty UDP,
+ * the tests after them feed the Netty parser directly
  */
 public class MalformedHeaderTest {
 
@@ -175,6 +182,91 @@ public class MalformedHeaderTest {
         Assert.assertFalse("No response arrived at the sender", shootist.getFinalInviteResponses().isEmpty());
         Assert.assertTrue("Malformed header dropped by the proxy on the response",
                 shootist.receivedLine(Shootist.MALFORMED_P_ASSERTED_IDENTITY));
+    }
+
+    /** request without Call-ID */
+    private static final String NO_CALL_ID_DATAGRAM = "OPTIONS sip:x@127.0.0.1 SIP/2.0\r\n"
+            + "Via: SIP/2.0/UDP 127.0.0.1:5;branch=z9hG4bKnocallid0\r\n"
+            + "From: <sip:a@b>;tag=1\r\n"
+            + "To: <sip:x@y>\r\n"
+            + "CSeq: 1 OPTIONS\r\n"
+            + "Content-Length: 0\r\n"
+            + "\r\n";
+
+    /** compact Content-Length that is not a number */
+    private static final String BAD_CONTENT_LENGTH_DATAGRAM = "INVITE sip:x@127.0.0.1 SIP/2.0\r\n"
+            + "l: abc\r\n"
+            + "\r\n";
+
+    /** Netty UDP, request without Call-ID: dropped, the UDP socket stays open */
+    @Test(timeout = 30000)
+    public void testNettyUdpMissingCallIdKeepsSocket() throws Exception {
+        checkUdpSocketSurvives(NO_CALL_ID_DATAGRAM);
+    }
+
+    /** Netty UDP, Content-Length that is not a number: dropped, the UDP socket stays open */
+    @Test(timeout = 30000)
+    public void testNettyUdpBadContentLengthKeepsSocket() throws Exception {
+        checkUdpSocketSurvives(BAD_CONTENT_LENGTH_DATAGRAM);
+    }
+
+    private void checkUdpSocketSurvives(String datagram) throws Exception {
+        shootme = new Shootme(shootmePort, NettyMessageProcessorFactory.class.getName());
+        Assert.assertTrue("OPTIONS not answered before the broken datagram", optionsAnswered(shootmePort));
+
+        int optionsBefore = shootme.getReceivedOptions().size();
+        sendDatagram(shootmePort, datagram);
+        // time for the stack to deal with it
+        Thread.sleep(1000);
+
+        boolean answered = optionsAnswered(shootmePort);
+        boolean delivered = shootme.getReceivedOptions().size() > optionsBefore;
+        Assert.assertTrue("OPTIONS after the broken datagram: answered=" + answered
+                + ", reached the application=" + delivered, answered);
+    }
+
+    private static void sendDatagram(int port, String text) throws Exception {
+        DatagramSocket socket = new DatagramSocket(0, InetAddress.getByName("127.0.0.1"));
+        try {
+            sendDatagram(port, text, socket);
+        } finally {
+            socket.close();
+        }
+    }
+
+    private static void sendDatagram(int port, String text, DatagramSocket socket) throws Exception {
+        byte[] bytes = text.getBytes(StandardCharsets.US_ASCII);
+        socket.send(new DatagramPacket(bytes, bytes.length, InetAddress.getByName("127.0.0.1"), port));
+    }
+
+    //OPTIONS from a new socket, true if a 200 OK with its Call-ID comes back
+    private static boolean optionsAnswered(int port) throws Exception {
+        DatagramSocket socket = new DatagramSocket(0, InetAddress.getByName("127.0.0.1"));
+        try {
+            int localPort = socket.getLocalPort();
+            String callId = UUID.randomUUID() + "@127.0.0.1";
+            sendDatagram(port, "OPTIONS sip:test@127.0.0.1:" + port + " SIP/2.0\r\n"
+                    + "Via: SIP/2.0/UDP 127.0.0.1:" + localPort + ";branch=z9hG4bK." + UUID.randomUUID() + ";rport\r\n"
+                    + "From: <sip:probe@127.0.0.1:" + localPort + ">;tag=" + localPort + "\r\n"
+                    + "To: <sip:test@127.0.0.1>\r\n"
+                    + "Call-ID: " + callId + "\r\n"
+                    + "CSeq: 1 OPTIONS\r\n"
+                    + "Max-Forwards: 70\r\n"
+                    + "Content-Length: 0\r\n"
+                    + "\r\n", socket);
+            socket.setSoTimeout(2000);
+            byte[] buffer = new byte[4096];
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            try {
+                socket.receive(packet);
+            } catch (SocketTimeoutException e) {
+                return false;
+            }
+            String response = new String(buffer, 0, packet.getLength(), StandardCharsets.US_ASCII);
+            return response.startsWith("SIP/2.0 200") && response.contains(callId);
+        } finally {
+            socket.close();
+        }
     }
 
     /** OPTIONS with one extra line in place of %s, Content-Length 0 */
