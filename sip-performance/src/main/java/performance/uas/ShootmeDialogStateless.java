@@ -189,7 +189,10 @@ public class ShootmeDialogStateless implements SipListener {
         properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "4");
         properties.setProperty("gov.nist.javax.sip.RECEIVE_UDP_BUFFER_SIZE", "65536");
         properties.setProperty("gov.nist.javax.sip.SEND_UDP_BUFFER_SIZE", "65536");
-        properties.setProperty("gov.nist.javax.sip.CONGESTION_CONTROL_ENABLED", "false");        
+        properties.setProperty("gov.nist.javax.sip.CONGESTION_CONTROL_ENABLED", "false");
+        //SCTP breaks with adaptive allocator, cause it eventually shrinks and breaks the message into multiple
+        //that makes the association die and the message to be lost
+        properties.setProperty("gov.nist.javax.sip.NETTY_RCVBUF_ALLOCATOR", "fixed");
         try {
             // Create SipStack object
             sipStack = sipFactory.createSipStack(properties);
@@ -209,12 +212,18 @@ public class ShootmeDialogStateless implements SipListener {
             addressFactory = sipFactory.createAddressFactory();
             messageFactory = sipFactory.createMessageFactory();
             ListeningPoint lp = sipStack.createListeningPoint("127.0.0.1",
-                    myPort, "udp");
-
+                    myPort, ListeningPoint.UDP);
+            ListeningPoint tcpListeningPoint = sipStack.createListeningPoint("127.0.0.1",
+                    myPort, ListeningPoint.TCP);
+            ListeningPoint sctpListeningPoint = sipStack.createListeningPoint("127.0.0.1",
+                    myPort, ListeningPoint.SCTP);
+            
             ShootmeDialogStateless listener = this;
 
             SipProvider sipProvider = sipStack.createSipProvider(lp);
             sipProvider.addSipListener(listener);
+            sipProvider.addListeningPoint(tcpListeningPoint);
+            sipProvider.addListeningPoint(sctpListeningPoint);
 
         } catch (Exception ex) {
             ex.printStackTrace();
