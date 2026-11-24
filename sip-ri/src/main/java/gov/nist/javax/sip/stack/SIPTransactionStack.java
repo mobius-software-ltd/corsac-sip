@@ -1048,6 +1048,12 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
 			removeDialog(earlyId);
 		}
 
+		// forked UAS dialogs are stored under their original dialog's id (createForkedUASDialog)
+		Dialog originalDialog = dialog.getOriginalDialog();
+		if (originalDialog != null && originalDialog.getDialogId() != null) {
+			earlyDialogTable.remove(originalDialog.getDialogId(), dialog);
+		}
+
 		removeMergeDialog(dialog.getMergeId());
 
 		if (id != null) {
